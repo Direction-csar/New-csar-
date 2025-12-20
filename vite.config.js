@@ -29,7 +29,6 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 manualChunks: {
-                    vendor: ['chart.js', 'leaflet'],
                     utils: ['public/js/responsive-charts.js', 'public/js/performance-optimizer.js']
                 }
             }
@@ -51,6 +50,6 @@ export default defineConfig({
     },
     // Optimize dependencies
     optimizeDeps: {
-        include: ['chart.js', 'leaflet']
+        // chart.js and leaflet are loaded via CDN in Blade templates
     }
 });
