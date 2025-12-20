@@ -142,10 +142,10 @@
                                         <span class="badge bg-secondary">{{ $report->size ?? 'N/A' }}</span>
                                     </td>
                                     <td>
-                                        <a href="{{ route('dg.reports.download', $report->id) }}" class="btn btn-outline-primary btn-sm me-1">
+                                        <a href="{{ route('dg.reports.download', ['filename' => $report->filename]) }}" class="btn btn-outline-primary btn-sm me-1">
                                             <i class="fas fa-download"></i>
                                         </a>
-                                        <a href="{{ route('dg.reports.show', $report->id) }}" class="btn btn-outline-info btn-sm">
+                                        <a href="{{ route('dg.reports.show', ['filename' => $report->filename]) }}" class="btn btn-outline-info btn-sm">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>

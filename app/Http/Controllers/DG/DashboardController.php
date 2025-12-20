@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DashboardController extends Controller
 {
@@ -22,7 +23,7 @@ class DashboardController extends Controller
             $recentActivities = $this->getRecentActivities();
             
             // Demandes récentes pour l'affichage
-            $recentRequests = \App\Models\DemandeUnifiee::latest()->take(5)->get();
+            $recentRequests = \App\Models\PublicRequest::latest()->take(5)->get();
             
             // Graphiques des données (lecture seule)
             $chartsData = $this->getChartsData();
@@ -507,8 +508,11 @@ class DashboardController extends Controller
      */
     private function generatePdfReport($data, $filePath, $type, $dateFrom, $dateTo)
     {
-        $html = view('dg.reports.pdf-template', compact('data', 'type', 'dateFrom', 'dateTo'))->render();
-        file_put_contents($filePath, $html);
+        // Génération PDF réelle (DomPDF) au lieu d'écrire du HTML avec extension .pdf
+        $pdf = Pdf::loadView('dg.reports.pdf-template', compact('data', 'type', 'dateFrom', 'dateTo'))
+            ->setPaper('a4', 'portrait');
+
+        file_put_contents($filePath, $pdf->output());
     }
 
     /**
@@ -591,16 +595,24 @@ class DashboardController extends Controller
     public function downloadReport($filename)
     {
         try {
-            $filePath = storage_path("app/reports/{$filename}");
-            
-            if (!file_exists($filePath)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Fichier non trouvé'
-                ], 404);
+            $safe = basename($filename);
+            if ($safe !== $filename) {
+                return response()->json(['success' => false, 'message' => 'Fichier invalide'], 400);
             }
 
-            return response()->download($filePath, $filename);
+            $filePath = storage_path("app/reports/{$safe}");
+            
+            if (!file_exists($filePath)) {
+                // Fallback: rapports livrés dans public/rapport
+                $publicPath = public_path("rapport/{$safe}");
+                if (file_exists($publicPath)) {
+                    return response()->download($publicPath, $safe);
+                }
+
+                return response()->json(['success' => false, 'message' => 'Fichier non trouvé'], 404);
+            }
+
+            return response()->download($filePath, $safe);
             
         } catch (\Exception $e) {
             Log::error('Erreur lors du téléchargement du rapport DG', [

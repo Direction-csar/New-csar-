@@ -3425,10 +3425,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div style="position: relative; z-index: 2;">
                     <div class="counter-wrapper" style="margin-bottom: 0.5rem;">
-                        <span class="counter" data-target="{{ $stats['capacity'] }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #8b5cf6, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
+                        <span class="counter" data-target="{{ preg_replace('/[^0-9]/', '', $stats['capacity']) }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #8b5cf6, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
                     </div>
                     <p style="color: rgba(255, 255, 255, 0.95); font-size: 1.4rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                        {{ number_format($stats['capacity']) }} tonnes de capacité
+                        {{ $stats['capacity'] }}
                     </p>
                 </div>
                 
@@ -3448,7 +3448,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div style="position: relative; z-index: 2;">
                     <div class="counter-wrapper" style="display: flex; align-items: center; justify-content: center; gap: 0.3rem; margin-bottom: 0.5rem;">
-                        <span class="counter" data-target="{{ $stats['experience'] }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #ec4899, #db2777); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
+                        <span class="counter" data-target="{{ preg_replace('/[^0-9]/', '', $stats['experience']) }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #ec4899, #db2777); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
                         <span style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #ec4899, #db2777); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: bounce 2s ease-in-out infinite;">+</span>
                     </div>
                     <p style="color: rgba(255, 255, 255, 0.95); font-size: 1.4rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion CSAR - Tous les comptes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-right: 15px;
+        }
+        .icon.admin { background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%); }
+        .icon.dg { background: linear-gradient(135deg, #28a745 0%, #20c997 100%); }
+        .icon.entrepot { background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); }
+        .icon.agent { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .icon.drh { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        
+        .card-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #333;
+        }
+        .card-role {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .credentials {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        .credentials p {
+            margin: 5px 0;
+            font-size: 0.95rem;
+        }
+        .credentials strong {
+            color: #333;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .status.working {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.fixed {
+            background: #cce5ff;
+            color: #004085;
+        }
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+        }
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Connexion CSAR</h1>
+        <p class="subtitle">Tous les comptes corrigés et prêts à l'emploi</p>
+        
+        <div class="cards-grid">
+            <!-- ADMIN -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon admin">👨‍💼</div>
+                    <div>
+                        <div class="card-title">Administrateur</div>
+                        <div class="card-role">Gestion complète</div>
+                    </div>
+                </div>
+                <div class="credentials">
+                    <p><strong>Email:</strong> admin@csar.sn</p>
+                    <p><strong>Mot de passe:</strong> password</p>
+                </div>
+                <a href="http://localhost:8000/admin/test-login" class="btn">✅ Connexion Admin</a>
+                <span class="status working">✓ Fonctionne</span>
+            </div>
+            
+            <!-- DG -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon dg">👔</div>
+                    <div>
+                        <div class="card-title">Directeur Général</div>
+                        <div class="card-role">Supervision stratégique</div>
+                    </div>
+                </div>
+                <div class="credentials">
+                    <p><strong>Email:</strong> dg@csar.sn</p>
+                    <p><strong>Mot de passe:</strong> password</p>
+                </div>
+                <a href="http://localhost:8000/dg/test-login" class="btn">✅ Connexion DG</a>
+                <span class="status fixed">✓ Corrigé</span>
+            </div>
+            
+            <!-- ENTREPÔT -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon entrepot">📦</div>
+                    <div>
+                        <div class="card-title">Responsable Entrepôt</div>
+                        <div class="card-role">Gestion des stocks</div>
+                    </div>
+                </div>
+                <div class="credentials">
+                    <p><strong>Email:</strong> entrepot@csar.sn</p>
+                    <p><strong>OU:</strong> responsable@csar.sn</p>
+                    <p><strong>Mot de passe:</strong> password</p>
+                </div>
+                <a href="http://localhost:8000/entrepot/test-login" class="btn">✅ Connexion Entrepôt</a>
+                <span class="status fixed">✓ Corrigé</span>
+            </div>
+            
+            <!-- AGENT -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon agent">🚚</div>
+                    <div>
+                        <div class="card-title">Agent CSAR</div>
+                        <div class="card-role">Consultation profil</div>
+                    </div>
+                </div>
+                <div class="credentials">
+                    <p><strong>Email:</strong> agent@csar.sn</p>
+                    <p><strong>Mot de passe:</strong> password</p>
+                </div>
+                <a href="http://localhost:8000/agent/login" class="btn">✅ Connexion Agent</a>
+                <span class="status working">✓ Fonctionne</span>
+            </div>
+            
+            <!-- DRH -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="icon drh">👥</div>
+                    <div>
+                        <div class="card-title">Directeur RH</div>
+                        <div class="card-role">Ressources humaines</div>
+                    </div>
+                </div>
+                <div class="credentials">
+                    <p><strong>Email:</strong> drh@csar.sn</p>
+                    <p><strong>Mot de passe:</strong> password</p>
+                </div>
+                <a href="http://localhost:8000/drh/login" class="btn">✅ Connexion DRH</a>
+                <span class="status working">✓ Disponible</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <h3>💡 Instructions</h3>
+            <p>Cliquez sur le bouton de connexion du rôle souhaité.</p>
+            <p>Les boutons vous connectent automatiquement sans formulaire.</p>
+            <p style="margin-top: 15px; font-size: 0.9rem;">
+                Si un bouton ne fonctionne pas, fermez complètement votre navigateur et réessayez.
+            </p>
+            <p style="margin-top: 20px; opacity: 0.8;">
+                © 2025 CSAR - Tous droits réservés
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+

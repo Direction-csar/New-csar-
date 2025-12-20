@@ -324,7 +324,7 @@
                 </div>
             @endif
             
-            <form method="POST" action="{{ route('drh.login.submit') }}">
+            <form method="POST" action="{{ route('drh.login.submit', [], false) }}">
                 @csrf
                 
                 <div class="form-group">

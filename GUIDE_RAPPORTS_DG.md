@@ -289,3 +289,19 @@ Le DG (Direction Générale) peut générer **4 types de rapports exécutifs** p
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

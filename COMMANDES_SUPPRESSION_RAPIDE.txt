@@ -1,0 +1,47 @@
+# ============================================
+# COMMANDES RAPIDES POUR SUPPRIMER LE SITE
+# ============================================
+# Exécutez ces commandes une par une dans votre terminal SSH
+# ============================================
+
+# 1. Exécuter le script (il est déjà créé dans /tmp/)
+sudo bash /tmp/SUPPRIMER_SITE_SERVEUR.sh
+
+# IMPORTANT: Quand le script demande confirmation, tapez exactement:
+# OUI
+# (en majuscules, sans guillemets)
+
+# ============================================
+# OU SUPPRESSION MANUELLE RAPIDE
+# ============================================
+# Si vous préférez supprimer manuellement sans confirmation:
+
+# 1. Désactiver le site Apache
+sudo a2dissite csar.conf
+sudo systemctl reload apache2
+
+# 2. Supprimer la configuration Apache
+sudo rm /etc/apache2/sites-available/csar.conf
+
+# 3. Supprimer les fichiers du site
+sudo rm -rf /var/www/csar
+
+# 4. Supprimer la base de données (entrez le mot de passe MySQL quand demandé)
+mysql -u root -p <<EOF
+DROP DATABASE IF EXISTS csar_platform;
+DROP USER IF EXISTS 'csar_user'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+
+# 5. Supprimer les logs
+sudo rm -f /var/log/apache2/csar-error.log
+sudo rm -f /var/log/apache2/csar-access.log
+
+# 6. Vérifier
+ls -la /var/www/csar
+ls -la /etc/apache2/sites-available/csar.conf
+
+
+
+
+

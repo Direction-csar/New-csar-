@@ -1,0 +1,55 @@
+# ============================================
+# CORRECTION AVEC RÉSOLUTION DU CONFLIT GIT
+# ============================================
+# Exécutez ces commandes sur le serveur
+# ============================================
+
+# 1. Aller dans le répertoire
+cd /var/www/csar
+
+# 2. Sauvegarder les modifications locales
+git stash
+
+# 3. Récupérer les modifications depuis GitHub
+git pull origin main
+
+# 4. Vérifier que le .htaccess est correct
+cat public/.htaccess | grep -E "^php_value|^#php_value" | head -5
+
+# 5. Si des php_value non commentées existent encore, les commenter
+sudo sed -i 's/^php_value/#php_value/g' public/.htaccess
+
+# 6. Permissions
+sudo chown www-data:www-data public/.htaccess
+sudo chmod 644 public/.htaccess
+
+# 7. Tester Apache
+sudo apache2ctl configtest
+
+# 8. Vider les caches
+sudo -u www-data php artisan optimize:clear
+php -r "if (function_exists('opcache_reset')) { opcache_reset(); echo 'OPcache vidé\n'; }"
+
+# 9. Redémarrer les services
+sudo systemctl restart php8.2-fpm
+sudo systemctl restart apache2
+
+# 10. Attendre et tester
+sleep 3
+curl -I https://csar.sn/fr 2>&1 | head -5
+
+# 11. Vérifier qu'il n'y a plus d'erreurs
+sudo tail -20 /var/log/apache2/error.log | grep -i "php_value" || echo "✅ Aucune erreur php_value"
+
+# 12. Tester toutes les pages
+echo "=== Test des pages ==="
+curl -s -o /dev/null -w "Page d'accueil: %{http_code}\n" https://csar.sn/fr
+curl -s -o /dev/null -w "Page contact: %{http_code}\n" https://csar.sn/fr/contact
+curl -s -o /dev/null -w "Page à propos: %{http_code}\n" https://csar.sn/fr/a-propos
+
+
+
+
+
+
+

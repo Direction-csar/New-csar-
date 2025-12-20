@@ -1,0 +1,149 @@
+# ============================================
+# COMMANDES COMPLÈTES POUR CORRIGER LE PROBLÈME
+# ============================================
+# Exécutez ces commandes dans l'ordre sur le serveur
+# ============================================
+
+# ============================================
+# ÉTAPE 1 : CORRECTION DU .htaccess SUR LE SERVEUR
+# ============================================
+
+cd /var/www/csar
+
+# Sauvegarder
+sudo cp public/.htaccess public/.htaccess.backup.$(date +%Y%m%d_%H%M%S)
+
+# Corriger le fichier
+sudo tee public/.htaccess > /dev/null << 'EOF'
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # Handle Authorization Header
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Send Requests To Front Controller...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Configuration pour les uploads de fichiers (commentées car PHP-FPM)
+#php_value upload_max_filesize 50M
+#php_value post_max_size 60M
+#php_value memory_limit 256M
+#php_value max_execution_time 300
+#php_value max_input_time 300
+
+LimitRequestBody 62914560
+
+# Sécurité
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Cache pour les performances
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 month"
+    ExpiresByType image/jpeg "access plus 1 month"
+    ExpiresByType image/gif "access plus 1 month"
+    ExpiresByType image/png "access plus 1 month"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/pdf "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType application/x-javascript "access plus 1 month"
+    ExpiresByType application/x-shockwave-flash "access plus 1 month"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresDefault "access plus 2 days"
+</IfModule>
+EOF
+
+# Permissions
+sudo chown www-data:www-data public/.htaccess
+sudo chmod 644 public/.htaccess
+
+# Tester la configuration
+sudo apache2ctl configtest
+
+# Redémarrer Apache
+sudo systemctl restart apache2
+
+# Vérifier qu'il n'y a plus d'erreurs
+sudo tail -20 /var/log/apache2/error.log | grep -i "php_value" || echo "✅ Aucune erreur php_value"
+
+# Tester le site
+curl -I https://csar.sn/fr 2>&1 | head -5
+
+# ============================================
+# ÉTAPE 2 : VIDER LES CACHES LARAVEL
+# ============================================
+
+cd /var/www/csar
+
+# Vider tous les caches
+sudo -u www-data php artisan config:clear
+sudo -u www-data php artisan cache:clear
+sudo -u www-data php artisan view:clear
+sudo -u www-data php artisan route:clear
+sudo -u www-data php artisan optimize:clear
+
+# Vider OPcache
+php -r "if (function_exists('opcache_reset')) { opcache_reset(); echo 'OPcache vidé\n'; }"
+
+# Redémarrer PHP-FPM
+sudo systemctl restart php8.2-fpm
+
+# ============================================
+# ÉTAPE 3 : VÉRIFICATION FINALE
+# ============================================
+
+# Tester les pages principales
+echo "=== Test des pages principales ==="
+curl -s -o /dev/null -w "Page d'accueil: %{http_code}\n" https://csar.sn/fr
+curl -s -o /dev/null -w "Page contact: %{http_code}\n" https://csar.sn/fr/contact
+curl -s -o /dev/null -w "Page à propos: %{http_code}\n" https://csar.sn/fr/a-propos
+
+# Vérifier les logs d'erreur récents
+echo ""
+echo "=== Dernières erreurs (s'il y en a) ==="
+sudo tail -10 /var/log/apache2/error.log | grep -i "error\|fatal" || echo "✅ Aucune erreur récente"
+
+# Vérifier les logs d'accès
+echo ""
+echo "=== Dernières requêtes ==="
+sudo tail -5 /var/log/apache2/csar-access.log 2>/dev/null || sudo tail -5 /var/log/apache2/access.log
+
+# ============================================
+# ÉTAPE 4 : PUSH SUR GITHUB (optionnel)
+# ============================================
+# Si vous voulez sauvegarder les modifications sur GitHub
+# Exécutez ces commandes depuis votre machine locale (Windows)
+
+# cd C:\xampp\htdocs\csar
+# git add public/.htaccess
+# git commit -m "Fix: Corriger .htaccess pour PHP-FPM (commenter php_value)"
+# git push origin main
+
+# Puis sur le serveur :
+# cd /var/www/csar
+# git pull origin main
+# sudo chown www-data:www-data public/.htaccess
+# sudo systemctl restart apache2
+
+
+
+
+
+
+

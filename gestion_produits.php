@@ -507,3 +507,19 @@ $stocks = Stock::with(['warehouse', 'stockType'])->where('is_active', true)->ord
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

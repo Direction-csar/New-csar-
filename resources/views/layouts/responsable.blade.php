@@ -427,7 +427,7 @@
                     <i class="nav-icon fas fa-sign-out-alt"></i>
                     <span class="nav-text">Déconnexion</span>
                 </a>
-                <form id="responsableLogoutForm" action="{{ route('responsable.logout') }}" method="POST" style="display:none;">
+                <form id="responsableLogoutForm" action="{{ route('responsable.logout', [], false) }}" method="POST" style="display:none;">
                     @csrf
                 </form>
             </div>
@@ -455,34 +455,7 @@
     </main>
     
     <!-- JavaScript -->
-    <script>
-        // Mobile menu toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('responsableSidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        
-        if (menuToggle) {
-            menuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-                overlay.classList.toggle('open');
-            });
-        }
-        
-        if (overlay) {
-            overlay.addEventListener('click', function() {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('open');
-            });
-        }
-        
-        // Close sidebar on window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 1024) {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('open');
-            }
-        });
-    </script>
+    {{-- Mobile sidebar toggling is handled by `components/mobile-navbar` to avoid duplicated/buggy scripts. --}}
     
     {{-- JavaScript Responsive --}}
     <script src="{{ asset('js/responsive-mobile.js') }}"></script>

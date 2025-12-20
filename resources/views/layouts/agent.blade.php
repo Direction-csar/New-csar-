@@ -424,7 +424,7 @@
             <div class="nav-section">
                 <div class="nav-section-title">Profil</div>
                 
-                <a href="{{ route('admin.profile') }}" class="nav-item {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
+                <a href="{{ route('agent.profile') }}" class="nav-item {{ request()->routeIs('agent.profile*') ? 'active' : '' }}">
                     <i class="nav-icon fas fa-user-edit"></i>
                     <span class="nav-text">Mon profil</span>
                 </a>
@@ -434,7 +434,7 @@
                     <i class="nav-icon fas fa-sign-out-alt"></i>
                     <span class="nav-text">Déconnexion</span>
                 </a>
-                <form id="agentLogoutForm" action="{{ route('agent.logout') }}" method="POST" style="display:none;">
+                <form id="agentLogoutForm" action="{{ route('agent.logout', [], false) }}" method="POST" style="display:none;">
                     @csrf
                 </form>
             </div>
@@ -462,34 +462,7 @@
     </main>
     
     <!-- JavaScript -->
-    <script>
-        // Mobile menu toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('agentSidebar');
-        const overlay = document.getElementById('sidebarOverlay');
-        
-        if (menuToggle) {
-            menuToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-                overlay.classList.toggle('open');
-            });
-        }
-        
-        if (overlay) {
-            overlay.addEventListener('click', function() {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('open');
-            });
-        }
-        
-        // Close sidebar on window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth > 1024) {
-                sidebar.classList.remove('open');
-                overlay.classList.remove('open');
-            }
-        });
-    </script>
+    {{-- Mobile sidebar toggling is handled by `components/mobile-navbar` to avoid duplicated/buggy scripts. --}}
     
     {{-- JavaScript Responsive --}}
     <script src="{{ asset('js/responsive-mobile.js') }}"></script>

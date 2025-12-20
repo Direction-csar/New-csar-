@@ -4,6 +4,20 @@
 
 @section('content')
 <style>
+/* Performance: respect reduced motion (avoid heavy animations on slower devices) */
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+    .hero-section {
+        animation: none !important;
+        transform: none !important;
+    }
+}
+
 /* Variables CSS pour la cohérence des couleurs */
 :root {
     --primary-green: #22c55e;
@@ -1169,15 +1183,19 @@
 .animate-delay-5 { animation-delay: 0.5s; }
 .animate-delay-6 { animation-delay: 0.6s; }
 
-/* Nouvelles classes d'animation modernes */
+/* Nouvelles classes d'animation modernes - OPTIMISÉES pour affichage immédiat */
 .slide-up-fade {
-    animation: slideUpFade 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    opacity: 0;
+    /* Contenu visible immédiatement, animation optionnelle */
+    opacity: 1 !important;
+    animation: slideUpFade 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ease-out;
+    will-change: transform;
 }
 
 .bounce-in {
-    animation: bounceIn 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-    opacity: 0;
+    /* Contenu visible immédiatement, animation optionnelle */
+    opacity: 1 !important;
+    animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55) ease-out;
+    will-change: transform;
 }
 
 .morphing-shape {
@@ -1191,13 +1209,17 @@
 }
 
 .text-reveal {
-    animation: textReveal 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    opacity: 0;
+    /* Contenu visible immédiatement, animation optionnelle */
+    opacity: 1 !important;
+    animation: textReveal 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) ease-out;
+    will-change: transform;
 }
 
 .card-flip {
-    animation: cardFlip 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    opacity: 0;
+    /* Contenu visible immédiatement, animation optionnelle */
+    opacity: 1 !important;
+    animation: cardFlip 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) ease-out;
+    will-change: transform;
 }
 
 .wave-effect {
@@ -1205,13 +1227,17 @@
 }
 
 .zoom-in {
-    animation: zoomIn 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    opacity: 0;
+    /* Contenu visible immédiatement, animation optionnelle */
+    opacity: 1 !important;
+    animation: zoomIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) ease-out;
+    will-change: transform;
 }
 
 .slide-diagonal {
-    animation: slideInDiagonal 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    opacity: 0;
+    /* Contenu visible immédiatement, animation optionnelle */
+    opacity: 1 !important;
+    animation: slideInDiagonal 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) ease-out;
+    will-change: transform;
 }
 
 /* Effets de survol améliorés */
@@ -1260,13 +1286,15 @@
     background-clip: text;
 }
 
-/* Classes pour les chiffres clés */
+/* Classes pour les chiffres clés - OPTIMISÉES */
 .counter-up {
-    animation: counterUp 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
-    opacity: 0;
+    /* Contenu visible immédiatement */
+    opacity: 1 !important;
+    animation: counterUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) ease-out;
+    will-change: transform;
 }
 
-/* Fallback pour s'assurer que les éléments sont visibles */
+/* Tous les éléments sont maintenant visibles immédiatement */
 .counter-up,
 .slide-up-fade,
 .bounce-in,
@@ -1276,8 +1304,9 @@
 .slide-diagonal,
 .timeline-slide,
 .content-reveal {
-    /* Fallback : rendre visible après 3 secondes si l'animation ne se déclenche pas */
-    animation-fill-mode: forwards;
+    /* Rendu visible immédiatement, animations comme effet visuel */
+    animation-fill-mode: both;
+    opacity: 1 !important;
 }
 
 /* Si JavaScript est désactivé, rendre tous les éléments visibles */
@@ -1933,8 +1962,50 @@
 
 @push('scripts')
 <script>
+// PERF: ensure content is visible immediately (avoid waiting for animations/intersection observers)
+function csarMakeContentVisible() {
+    const selectors = [
+        '.counter-up',
+        '.slide-up-fade',
+        '.bounce-in',
+        '.text-reveal',
+        '.card-flip',
+        '.zoom-in',
+        '.slide-diagonal',
+        '.timeline-slide',
+        '.content-reveal',
+        '.fade-in',
+        '.slide-in-left',
+        '.slide-in-right'
+    ];
+    document.querySelectorAll(selectors.join(', ')).forEach((el) => {
+        el.style.opacity = '1';
+        el.style.transform = 'none';
+        el.classList.add('animate-in');
+    });
+}
+
+// PERF: run heavy effects only when browser is idle (and skip for reduced motion / low-end)
+function csarRunWhenIdle(fn, timeout = 1500) {
+    if ('requestIdleCallback' in window) {
+        requestIdleCallback(fn, { timeout });
+    } else {
+        setTimeout(fn, Math.min(timeout, 500));
+    }
+}
+
+function csarShouldReduceMotion() {
+    return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
 // Animation d'entrée des éléments avec effet cascade
 document.addEventListener('DOMContentLoaded', function() {
+    // Always show content immediately; animations are nice-to-have, not blocking
+    csarMakeContentVisible();
+
+    // If user prefers reduced motion, skip the rest of heavy animation wiring
+    if (csarShouldReduceMotion()) return;
+
     const elements = document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right');
     
     const observer = new IntersectionObserver((entries) => {
@@ -2020,6 +2091,12 @@ document.querySelectorAll('.stats-card, .foundation-card, .objective-card').forE
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // PERF: if reduced motion, avoid intervals and expensive effects
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        csarMakeContentVisible();
+        return;
+    }
+
     // Effet chrono pour les chiffres clés
     function animateCounter(element, target, duration = 2000) {
         const start = 0;
@@ -2069,27 +2146,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Effet de pulsation continue pour les chiffres
-    setInterval(() => {
+    // PERF: avoid perpetual intervals; apply pulse once after counters animate
+    setTimeout(() => {
         const counters = document.querySelectorAll('.chrono-counter');
         counters.forEach(counter => {
-            counter.style.animation = 'none';
-            setTimeout(() => {
-                counter.style.animation = 'numberPulse 2s ease-in-out infinite';
-            }, 10);
+            counter.style.animation = 'numberPulse 2s ease-in-out infinite';
         });
-    }, 3000); // Répéter toutes les 3 secondes
+    }, 2200);
     
-    // Fallback : s'assurer que tous les éléments sont visibles après 5 secondes
+    // Fallback rapide : s'assurer que tous les éléments sont visibles après 100ms (au cas où)
     setTimeout(() => {
         const hiddenElements = document.querySelectorAll('.counter-up, .slide-up-fade, .bounce-in, .text-reveal, .card-flip, .zoom-in, .slide-diagonal, .timeline-slide, .content-reveal');
         hiddenElements.forEach(element => {
-            if (element.style.opacity === '0' || getComputedStyle(element).opacity === '0') {
+            if (getComputedStyle(element).opacity === '0') {
                 element.style.opacity = '1';
                 element.style.transform = 'none';
-                console.log('Fallback: Element rendu visible', element);
             }
         });
-    }, 5000);
+    }, 100); // Réduit de 5000ms à 100ms car le CSS rend déjà tout visible
 });
 
 // ============================================
@@ -2269,16 +2343,26 @@ function addDepthEffect() {
 
 // Initialisation des effets
 document.addEventListener('DOMContentLoaded', function() {
-    createParticles();
-    createConnections();
-    addGlitchEffect();
-    addMorphingEffect();
-    addTeleportEffect();
-    addDistortionEffect();
-    addCrystalEffect();
-    addSonarEffect();
-    add3DRotationEffect();
-    addDepthEffect();
+    // PERF: defer ultra effects to idle time so first render is fast
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    csarRunWhenIdle(() => {
+        try {
+            createParticles();
+            createConnections();
+            addGlitchEffect();
+            addMorphingEffect();
+            addTeleportEffect();
+            addDistortionEffect();
+            addCrystalEffect();
+            addSonarEffect();
+            add3DRotationEffect();
+            addDepthEffect();
+        } catch (e) {
+            // Never block the page if an effect fails
+            console.warn('CSAR effects init failed', e);
+        }
+    }, 2000);
     
     console.log('🎉 Effets ultra-modernes 2025 initialisés !');
 });

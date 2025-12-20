@@ -94,26 +94,16 @@
         </fieldset>
         <!-- Section géolocalisation pour aide alimentaire uniquement -->
         <fieldset id="geolocation-section" style="border:none;padding:0;margin-bottom:26px;display:none;">
-            <legend style="font-size:1.02rem;font-weight:700;color:#0284c7;margin-bottom:12px;">Localisation (obligatoire pour l'aide alimentaire)</legend>
+            <legend style="font-size:1.02rem;font-weight:700;color:#0284c7;margin-bottom:12px;">📍 Localisation (recommandée)</legend>
             
-            <div id="geolocation-info" style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:16px;margin-bottom:16px;">
-                <p style="margin:0;color:#92400e;font-size:0.9rem;font-weight:600;">
-                    <i class="fas fa-exclamation-triangle"></i> 
-                    <strong>OBLIGATOIRE :</strong> Pour traiter efficacement votre demande d'aide alimentaire, votre localisation est requise.
+            <div id="geolocation-info" style="background:#dbeafe;border:1px solid #3b82f6;border-radius:8px;padding:16px;margin-bottom:16px;">
+                <p style="margin:0;color:#1e40af;font-size:0.9rem;font-weight:600;">
+                    <i class="fas fa-info-circle"></i> 
+                    <strong>Localisation recommandée :</strong> Pour traiter efficacement votre demande d'aide alimentaire, nous avons besoin de votre localisation.
                 </p>
-                <p style="margin:8px 0 0 0;color:#92400e;font-size:0.85rem;">
-                    Vous pouvez soit activer votre GPS, soit saisir votre adresse manuellement ci-dessous.
+                <p style="margin:8px 0 0 0;color:#1e40af;font-size:0.85rem;">
+                    Vous pouvez <strong>soit utiliser le GPS</strong> (bouton ci-dessous), <strong>soit saisir votre adresse manuellement</strong> dans les champs ci-dessous.
                 </p>
-                <div id="https-warning" style="display:none;margin-top:8px;padding:8px;background:#fee2e2;border:1px solid #dc2626;border-radius:4px;">
-                    <p style="margin:0;color:#991b1b;font-size:0.8rem;">
-                        <i class="fas fa-lock"></i> <strong>Note :</strong> La géolocalisation nécessite HTTPS. Si vous êtes en HTTP, utilisez la saisie manuelle.
-                    </p>
-                    <div style="margin-top:8px;">
-                        <a href="https://csar.local" style="color:#dc2626;text-decoration:underline;font-size:0.75rem;">
-                            <i class="fas fa-external-link-alt"></i> Accéder à la version HTTPS
-                        </a>
-                    </div>
-                </div>
             </div>
             
             <button type="button" id="btn-geoloc" style="background:#0ea5e9;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;margin-bottom:12px;font-weight:600;transition:all 0.3s ease;">
@@ -578,29 +568,26 @@ function activerGeoloc() {
     const retryBtn = document.getElementById('btn-retry-geoloc');
     const status = document.getElementById('geo-status');
     const manualLocation = document.getElementById('manual-location');
-    const httpsWarning = document.getElementById('https-warning');
     
     if (!btn || !status) return;
     
-    // Vérifier si on est en HTTPS
-    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-        if (httpsWarning) {
-            httpsWarning.style.display = 'block';
-        }
+    // Afficher la saisie manuelle dans tous les cas
+    if (manualLocation) {
+        manualLocation.style.display = 'block';
+    }
+    
+    // Vérifier si on est en HTTPS (requis pour la géolocalisation)
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
         status.innerHTML = `
-            <div style="background:#fee2e2;color:#991b1b;padding:12px;border-radius:6px;border:1px solid #dc2626;">
-                <i class="fas fa-lock"></i> 
-                <strong>HTTPS requis pour la géolocalisation</strong><br>
-                <small>Veuillez utiliser la version HTTPS ou saisir votre adresse manuellement.</small>
+            <div style="background:#dbeafe;color:#1e40af;padding:12px;border-radius:6px;border:1px solid #3b82f6;">
+                <i class="fas fa-info-circle"></i> 
+                <strong>La géolocalisation GPS nécessite HTTPS</strong><br>
+                <small>Pas de problème ! Veuillez simplement remplir les champs d'adresse ci-dessous.</small>
             </div>
         `;
-        btn.innerHTML = '<i class="fas fa-lock"></i> HTTPS requis';
+        btn.innerHTML = '<i class="fas fa-map-marked-alt"></i> GPS non disponible (HTTP)';
         btn.disabled = true;
         btn.style.background = '#6b7280';
-        
-        if (manualLocation) {
-            manualLocation.style.display = 'block';
-        }
         return;
     }
     
@@ -621,12 +608,15 @@ function activerGeoloc() {
                 status.innerHTML = `
                     <div style="background:#dcfce7;color:#166534;padding:12px;border-radius:6px;border:1px solid #16a34a;">
                         <i class="fas fa-check-circle"></i> 
-                        <strong>Position obtenue avec succès !</strong><br>
-                        <small>Coordonnées : ${lat.toFixed(6)}, ${lng.toFixed(6)}</small>
+                        <strong>Position GPS obtenue !</strong><br>
+                        <small>Coordonnées : ${lat.toFixed(6)}, ${lng.toFixed(6)}</small><br>
+                        <small style="color:#059669;margin-top:4px;display:block;">
+                            <i class="fas fa-spinner fa-pulse"></i> Recherche de votre adresse...
+                        </small>
                     </div>
                 `;
                 
-                btn.innerHTML = '<i class="fas fa-check"></i> Position obtenue';
+                btn.innerHTML = '<i class="fas fa-check"></i> Position GPS obtenue';
                 btn.style.background = '#16a34a';
                 btn.disabled = true;
                 
@@ -635,12 +625,6 @@ function activerGeoloc() {
                 
                 // Essayer de récupérer l'adresse via reverse geocoding
                 reverseGeocode(lat, lng);
-                
-                // Remplir automatiquement la région par défaut (Dakar pour le Sénégal)
-                const regionField = document.getElementById('region');
-                if (regionField && !regionField.value) {
-                    regionField.value = 'Dakar'; // Région par défaut
-                }
                 
             },
             function(error) {
@@ -718,54 +702,126 @@ function activerGeoloc() {
 
 // Fonction de géocodage inversé (optionnel, pour récupérer l'adresse)
 function reverseGeocode(lat, lng) {
+    const status = document.getElementById('geo-status');
+    
+    // Ajouter un message de chargement
+    if (status) {
+        status.innerHTML = `
+            <div style="background:#dbeafe;color:#0369a1;padding:10px;border-radius:6px;border:1px solid #0ea5e9;">
+                <i class="fas fa-spinner fa-spin"></i> 
+                <strong>Recherche de l'adresse...</strong>
+            </div>
+        `;
+    }
+    
     // Utilisation de l'API Nominatim d'OpenStreetMap (gratuite)
-    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`)
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16&addressdetails=1&accept-language=fr`)
         .then(response => response.json())
         .then(data => {
+            console.log('Reverse geocoding data:', data);
+            
             if (data && data.address) {
-                const address = data.display_name;
-                const region = data.address.state || data.address.region || '';
-                const commune = data.address.city || data.address.town || data.address.village || '';
+                const addr = data.address;
                 
-                // Pré-remplir les champs si disponibles
+                // Construire une adresse lisible
+                let addressParts = [];
+                if (addr.road) addressParts.push(addr.road);
+                if (addr.suburb) addressParts.push(addr.suburb);
+                if (addr.neighbourhood) addressParts.push(addr.neighbourhood);
+                if (addr.city) addressParts.push(addr.city);
+                if (addr.town) addressParts.push(addr.town);
+                if (addr.village) addressParts.push(addr.village);
+                
+                const formattedAddress = addressParts.join(', ') || data.display_name;
+                
+                // Extraire la région (State/Region pour le Sénégal)
+                const region = addr.state || addr.region || addr.city || addr.town || 'Dakar';
+                
+                // Extraire la commune
+                const commune = addr.city || addr.town || addr.village || addr.suburb || '';
+                
+                // Pré-remplir les champs
                 const addressField = document.getElementById('address');
-                const regionSelect = document.getElementById('region');
+                const regionField = document.getElementById('region');
                 const communeField = document.getElementById('commune');
                 
-                if (address && addressField) {
-                    addressField.value = address;
+                if (formattedAddress && addressField) {
+                    addressField.value = formattedAddress;
                 }
-                if (region && regionSelect) {
-                    // Essayer de faire correspondre avec les options disponibles
-                    for (let option of regionSelect.options) {
-                        if (option.value.toLowerCase().includes(region.toLowerCase()) || 
-                            region.toLowerCase().includes(option.value.toLowerCase())) {
-                            regionSelect.value = option.value;
-                            break;
-                        }
-                    }
+                
+                if (region && regionField) {
+                    regionField.value = region;
                 }
+                
                 if (commune && communeField) {
                     communeField.value = commune;
+                }
+                
+                // Afficher le succès avec les informations
+                if (status) {
+                    status.innerHTML = `
+                        <div style="background:#d1fae5;color:#065f46;padding:12px;border-radius:6px;border:1px solid #10b981;">
+                            <i class="fas fa-check-circle"></i> 
+                            <strong>Adresse trouvée !</strong><br>
+                            <small style="display:block;margin-top:4px;">
+                                <i class="fas fa-map-marker-alt"></i> ${formattedAddress}
+                            </small>
+                            <small style="display:block;margin-top:2px;">
+                                <i class="fas fa-map"></i> Région: ${region}
+                            </small>
+                        </div>
+                    `;
+                }
+                
+                // Afficher les champs manuels pour permettre la correction
+                const manualLocation = document.getElementById('manual-location');
+                if (manualLocation) {
+                    manualLocation.style.display = 'block';
+                }
+                
+            } else {
+                // Pas d'adresse trouvée
+                if (status) {
+                    status.innerHTML = `
+                        <div style="background:#fef3c7;color:#92400e;padding:12px;border-radius:6px;border:1px solid #f59e0b;">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Position enregistrée</strong><br>
+                            <small>Adresse non trouvée automatiquement. Veuillez saisir votre adresse manuellement ci-dessous.</small>
+                        </div>
+                    `;
+                }
+                
+                // Forcer l'affichage des champs manuels
+                const manualLocation = document.getElementById('manual-location');
+                if (manualLocation) {
+                    manualLocation.style.display = 'block';
                 }
             }
         })
         .catch(error => {
             console.log('Reverse geocoding failed:', error);
-            // Ce n'est pas critique, on continue sans l'adresse
+            
+            // Afficher un message informatif
+            if (status) {
+                status.innerHTML = `
+                    <div style="background:#fef3c7;color:#92400e;padding:12px;border-radius:6px;border:1px solid #f59e0b;">
+                        <i class="fas fa-info-circle"></i> 
+                        <strong>Position enregistrée</strong><br>
+                        <small>Impossible de récupérer l'adresse automatiquement. Veuillez la saisir manuellement ci-dessous.</small>
+                    </div>
+                `;
+            }
+            
+            // Afficher les champs manuels
+            const manualLocation = document.getElementById('manual-location');
+            if (manualLocation) {
+                manualLocation.style.display = 'block';
+            }
         });
 }
 
 // Ajouter l'événement au bouton de géolocalisation
 document.addEventListener('DOMContentLoaded', function() {
-    // Vérifier si on est en HTTPS
-    const isHTTPS = location.protocol === 'https:';
-    const httpsWarning = document.getElementById('https-warning');
-    
-    if (!isHTTPS && httpsWarning) {
-        httpsWarning.style.display = 'block';
-    }
-    
     const btnGeoloc = document.getElementById('btn-geoloc');
     if (btnGeoloc) {
         btnGeoloc.addEventListener('click', activerGeoloc);
@@ -775,6 +831,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const btnRetryGeoloc = document.getElementById('btn-retry-geoloc');
     if (btnRetryGeoloc) {
         btnRetryGeoloc.addEventListener('click', activerGeoloc);
+    }
+    
+    // Afficher automatiquement la saisie manuelle si on détecte qu'on est en HTTP
+    const isHTTP = location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1';
+    const manualLocation = document.getElementById('manual-location');
+    
+    if (isHTTP && manualLocation) {
+        manualLocation.style.display = 'block';
     }
     
     // DÉSACTIVÉ: Gestion de la soumission AJAX du formulaire

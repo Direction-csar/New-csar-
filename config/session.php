@@ -47,7 +47,9 @@ return [
     |
     */
 
-    'encrypt' => env('SESSION_ENCRYPT', true),
+    // Default Laravel behavior: don't encrypt session payload unless explicitly enabled.
+    // Keeping this false in local avoids unnecessary cookie/session issues.
+    'encrypt' => env('SESSION_ENCRYPT', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -156,7 +158,10 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN'),
+    // On local (http://localhost), forcing a cookie domain can create duplicate cookies
+    // across localhost/127.0.0.1 and break session/CSRF (419).
+    // NOTE: Avoid using app()->environment() in config files (container may not be ready yet).
+    'domain' => env('APP_ENV') === 'local' ? null : env('SESSION_DOMAIN'),
 
     /*
     |--------------------------------------------------------------------------
@@ -169,7 +174,12 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE', true),
+    // If null, Laravel will automatically set the Secure flag only on HTTPS requests.
+    // This avoids "419 Page Expired" on local http:// environments.
+    // If set to "true" on http://localhost, browsers will drop the cookie => 419.
+    // If set to SameSite=None without Secure, browsers will also drop the cookie.
+    // Keep Laravel default behavior in local and only enforce secure in non-local envs.
+    'secure' => env('APP_ENV') === 'local' ? null : env('SESSION_SECURE_COOKIE', null),
 
     /*
     |--------------------------------------------------------------------------
@@ -199,7 +209,9 @@ return [
     |
     */
 
-    'same_site' => env('SESSION_SAME_SITE', 'lax'),
+    // Some environments set SameSite=None (requires Secure), which breaks on local http.
+    // Force lax locally to keep sessions stable during dev.
+    'same_site' => env('APP_ENV') === 'local' ? 'lax' : env('SESSION_SAME_SITE', 'lax'),
 
     /*
     |--------------------------------------------------------------------------
@@ -212,6 +224,6 @@ return [
     |
     */
 
-    'partitioned' => env('SESSION_PARTITIONED_COOKIE', false),
+    'partitioned' => env('APP_ENV') === 'local' ? false : env('SESSION_PARTITIONED_COOKIE', false),
 
 ];

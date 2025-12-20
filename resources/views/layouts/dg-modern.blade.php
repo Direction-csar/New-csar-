@@ -556,6 +556,14 @@
             background: rgba(26, 32, 44, 0.95);
             color: white;
         }
+
+        .csar-logo {
+            width: 34px;
+            height: 34px;
+            object-fit: contain;
+            margin-right: 10px;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.25));
+        }
     </style>
 </head>
 <body>
@@ -564,8 +572,13 @@
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <a href="{{ route('dg.dashboard') }}" class="logo">
-                    <i class="fas fa-building"></i>
-                    <span class="logo-text">CSAR DG</span>
+                    <img
+                        class="csar-logo"
+                        src="{{ asset('images/csar-logo-vectoriel-01.png') }}"
+                        alt="CSAR"
+                        onerror="this.style.display='none';"
+                    >
+                    <span class="logo-text">DG</span>
                 </a>
             </div>
             

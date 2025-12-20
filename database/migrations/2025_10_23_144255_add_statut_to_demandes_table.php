@@ -12,10 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('demandes', function (Blueprint $table) {
-            $table->enum('statut', ['en_attente', 'en_cours', 'traitee', 'rejetee'])->default('en_attente')->after('type_demande');
-            $table->text('reponse')->nullable()->after('statut');
-            $table->timestamp('date_traitement')->nullable()->after('reponse');
-            $table->unsignedBigInteger('traite_par')->nullable()->after('date_traitement');
+            if (!Schema::hasColumn('demandes', 'statut')) {
+                $table->enum('statut', ['en_attente', 'en_cours', 'traitee', 'rejetee'])->default('en_attente');
+            }
+            if (!Schema::hasColumn('demandes', 'reponse')) {
+                $table->text('reponse')->nullable();
+            }
+            if (!Schema::hasColumn('demandes', 'date_traitement')) {
+                $table->timestamp('date_traitement')->nullable();
+            }
+            if (!Schema::hasColumn('demandes', 'traite_par')) {
+                $table->unsignedBigInteger('traite_par')->nullable();
+            }
         });
     }
 

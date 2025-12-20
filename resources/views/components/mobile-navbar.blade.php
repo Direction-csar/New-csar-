@@ -21,9 +21,6 @@
     </button>
 </nav>
 
-{{-- Overlay pour fermer la sidebar --}}
-<div class="sidebar-overlay" id="sidebarOverlay"></div>
-
 <style>
 :root {
     --interface-primary: #1e3a8a;
@@ -134,7 +131,7 @@
     backdrop-filter: blur(2px);
 }
 
-.sidebar-overlay.active {
+.sidebar-overlay.open {
     opacity: 1;
     visibility: visible;
 }
@@ -154,20 +151,28 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const burgerMenu = document.getElementById('burgerMenu');
-    const sidebar = document.getElementById('adminSidebar');
-    const overlay = document.getElementById('sidebarOverlay');
+    const sidebar = document.getElementById('sidebar') || document.querySelector('.sidebar');
+    let overlay = document.getElementById('sidebarOverlay');
+
+    // Some layouts already render the overlay. If not, create it.
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'sidebarOverlay';
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
+    }
     
     if (burgerMenu && sidebar && overlay) {
         burgerMenu.addEventListener('click', function() {
             burgerMenu.classList.toggle('active');
             sidebar.classList.toggle('open');
-            overlay.classList.toggle('active');
+            overlay.classList.toggle('open');
         });
         
         overlay.addEventListener('click', function() {
             burgerMenu.classList.remove('active');
             sidebar.classList.remove('open');
-            overlay.classList.remove('active');
+            overlay.classList.remove('open');
         });
     }
 });

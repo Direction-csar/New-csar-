@@ -135,24 +135,28 @@
                         <i class="fas fa-edit me-1"></i>Traiter la demande
                     </a>
                     
-                    @if($demande->statut === 'en_attente')
-                    <form action="{{ route('admin.demandes.update', $demande->id) }}" method="POST" class="d-inline">
+                    @if($demande->status === 'pending' || $demande->status === 'processing')
+                    <form action="{{ route('admin.demandes.approve', $demande->id) }}" method="POST" class="d-inline">
                         @csrf
-                        @method('PUT')
-                        <input type="hidden" name="status" value="approved">
                         <button type="submit" class="btn btn-success w-100">
                             <i class="fas fa-check me-1"></i>Approuver
                         </button>
                     </form>
                     
-                    <form action="{{ route('admin.demandes.update', $demande->id) }}" method="POST" class="d-inline">
+                    <form action="{{ route('admin.demandes.reject', $demande->id) }}" method="POST" class="d-inline">
                         @csrf
-                        @method('PUT')
-                        <input type="hidden" name="status" value="rejected">
                         <button type="submit" class="btn btn-danger w-100">
                             <i class="fas fa-times me-1"></i>Rejeter
                         </button>
                     </form>
+                    @elseif($demande->status === 'approved')
+                    <div class="alert alert-success mb-2">
+                        <i class="fas fa-check-circle me-2"></i>Demande approuvée
+                    </div>
+                    @elseif($demande->status === 'rejected')
+                    <div class="alert alert-danger mb-2">
+                        <i class="fas fa-times-circle me-2"></i>Demande rejetée
+                    </div>
                     @endif
                 </div>
             </div>

@@ -194,26 +194,48 @@ csar-platform/
 └── config/                 # Configuration de l'application
 ```
 
-## 🚀 Déploiement sur Hostinger
+## 🚀 Déploiement et Hébergement
 
-### Installation Rapide
+### Options d'Hébergement
+
+La plateforme CSAR peut être hébergée sur différents types de serveurs :
+
+- 🌐 **Hostinger** (Hébergement partagé) - Recommandé pour débuter
+- 🖥️ **VPS Ubuntu/Debian** - Pour un contrôle total et de meilleures performances
+- 🎛️ **cPanel** - Interface graphique simplifiée
+
+### Déploiement Rapide
+
+#### Option 1 : Script Automatique (Hostinger)
 ```bash
-# Cloner le projet
-git clone https://github.com/sultan2096/Csar2025.git
-cd Csar2025
+chmod +x scripts/deploy/deploy_hostinger.sh
+./scripts/deploy/deploy_hostinger.sh
+```
 
-# Déploiement automatique
-chmod +x deploy_hostinger.sh
-./deploy_hostinger.sh
+#### Option 2 : Script Automatique (VPS)
+```bash
+chmod +x scripts/deploy/deploy_vps.sh
+sudo ./scripts/deploy/deploy_vps.sh
 ```
 
 ### Configuration Requise
-- PHP 8.1+ (recommandé 8.2)
+- PHP 8.2+ (minimum 8.1)
 - MySQL 5.7+ ou MariaDB 10.3+
-- Apache avec mod_rewrite
+- Apache avec mod_rewrite (ou Nginx)
 - Composer
 
-📚 **Documentation complète** : [README_DEPLOYMENT.md](README_DEPLOYMENT.md)
+### Documentation Complète
+
+📚 **Guide de déploiement rapide** : [README_DEPLOYMENT.md](README_DEPLOYMENT.md)
+
+📖 **Guide complet d'hébergement** : [GUIDE_HEBERGEMENT.md](GUIDE_HEBERGEMENT.md)
+
+Les guides incluent :
+- Instructions détaillées pour chaque type d'hébergement
+- Configuration SSL/HTTPS
+- Optimisation des performances
+- Sécurité et maintenance
+- Scripts de sauvegarde automatique
 
 ## 🤝 Contribution
 

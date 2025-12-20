@@ -225,9 +225,9 @@
                     
                     <div class="map-container">
                         <iframe 
-                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3859.123456789!2d-17.456789!3d14.678901!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTTCsDQwJzQ0LjAiTiAxN8KwMjcnMjQuNCJX!5e0!3m2!1sfr!2ssn!4v1234567890123!5m2!1sfr!2ssn&q=CSAR+Commissariat+%C3%A0+la+S%C3%A9curit%C3%A9+Alimentaire+et+%C3%A0+la+R%C3%A9silience+Dakar+Senegal"
+                            src="https://www.google.com/maps?q=Rue+El+Hadji+Amadou+Assane+Ndoye+29,+Dakar,+Sénégal&output=embed&zoom=17"
                             width="100%" 
-                            height="400" 
+                            height="450" 
                             style="border:0; border-radius: 10px;" 
                             allowfullscreen="" 
                             loading="lazy" 
@@ -236,7 +236,7 @@
                     </div>
                     
                     <div class="text-center mt-3">
-                            <a href="https://maps.google.com/?q=CSAR+-+Commissariat+%C3%A0+la+S%C3%A9curit%C3%A9+Alimentaire+et+%C3%A0+la+R%C3%A9silience,+Dakar,+Senegal" 
+                            <a href="https://maps.google.com/?q=Rue+El+Hadji+Amadou+Assane+Ndoye+29+Dakar+Senegal" 
                                target="_blank" 
                            class="btn btn-outline-primary">
                             <i class="fas fa-external-link-alt me-2"></i>

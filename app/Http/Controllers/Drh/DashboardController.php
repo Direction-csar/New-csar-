@@ -70,5 +70,38 @@ class DashboardController extends Controller
             ]);
         }
     }
+
+    /**
+     * Page "Statistiques RH"
+     */
+    public function statistics()
+    {
+        try {
+            $stats = [
+                'total_personnel' => \App\Models\Personnel::count(),
+                'personnel_valide' => \App\Models\Personnel::where('status', 'active')->count(),
+                'documents_actifs' => \App\Models\HrDocument::count(),
+                'documents_expires' => \App\Models\HrDocument::where('expiry_date', '<', today())->count(),
+                'presence_jour' => \App\Models\WorkAttendance::whereDate('date', today())->count(),
+            ];
+
+            return view('drh.statistics.index', compact('stats'));
+        } catch (\Exception $e) {
+            Log::error('Erreur dans DRH DashboardController@statistics', [
+                'error' => $e->getMessage(),
+                'user_id' => auth()->id()
+            ]);
+
+            return view('drh.statistics.index', [
+                'stats' => [
+                    'total_personnel' => 0,
+                    'personnel_valide' => 0,
+                    'documents_actifs' => 0,
+                    'documents_expires' => 0,
+                    'presence_jour' => 0,
+                ],
+            ]);
+        }
+    }
 }
 

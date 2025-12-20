@@ -1,0 +1,110 @@
+╔══════════════════════════════════════════════════════════════════╗
+║         GUIDE RAPIDE D'HÉBERGEMENT - PLATEFORME CSAR            ║
+╚══════════════════════════════════════════════════════════════════╝
+
+📚 DOCUMENTATION COMPLÈTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • Guide complet : GUIDE_HEBERGEMENT.md
+  • Déploiement rapide : README_DEPLOYMENT.md
+  • Scripts de déploiement : scripts/deploy/README.md
+
+🚀 OPTIONS D'HÉBERGEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. HOSTINGER (Hébergement partagé)
+   ✅ Facile et rapide
+   ✅ Support inclus
+   ✅ SSL gratuit
+   📖 Voir : GUIDE_HEBERGEMENT.md (section Hostinger)
+
+2. VPS UBUNTU/DEBIAN
+   ✅ Contrôle total
+   ✅ Meilleures performances
+   📖 Voir : GUIDE_HEBERGEMENT.md (section VPS)
+
+3. CPANEL
+   ✅ Interface graphique
+   📖 Voir : GUIDE_HEBERGEMENT.md (section cPanel)
+
+⚡ DÉPLOIEMENT RAPIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+HOSTINGER (via SSH) :
+  chmod +x scripts/deploy/deploy_hostinger.sh
+  ./scripts/deploy/deploy_hostinger.sh
+
+VPS UBUNTU/DEBIAN :
+  chmod +x scripts/deploy/deploy_vps.sh
+  sudo ./scripts/deploy/deploy_vps.sh
+
+📋 CHECKLIST MINIMALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ☐ PHP 8.2+ installé
+  ☐ MySQL/MariaDB configuré
+  ☐ Composer installé
+  ☐ Fichiers uploadés
+  ☐ Base de données créée
+  ☐ Fichier .env configuré
+  ☐ composer install exécuté
+  ☐ php artisan key:generate
+  ☐ php artisan migrate
+  ☐ php artisan storage:link
+  ☐ Permissions configurées (storage: 775)
+  ☐ SSL/HTTPS configuré
+
+🔧 CONFIGURATION .ENV (Production)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+APP_ENV=production
+APP_DEBUG=false
+APP_URL=https://votre-domaine.com
+
+DB_CONNECTION=mysql
+DB_HOST=localhost
+DB_DATABASE=nom_base
+DB_USERNAME=utilisateur
+DB_PASSWORD=mot_de_passe
+
+💾 SAUVEGARDES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sauvegarde manuelle :
+  chmod +x scripts/deploy/backup.sh
+  ./scripts/deploy/backup.sh
+
+Automatiser (cron quotidien à 2h) :
+  0 2 * * * /chemin/vers/scripts/deploy/backup.sh
+
+Restauration :
+  chmod +x scripts/deploy/restore.sh
+  ./scripts/deploy/restore.sh 20250109_020000
+
+🔒 SÉCURITÉ
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • Ne jamais commiter .env
+  • Utiliser HTTPS en production
+  • Permissions : fichiers 644, dossiers 755
+  • Storage et cache : 775
+  • Configurer un firewall
+
+🐛 DÉPANNAGE RAPIDE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Erreur 500 :
+  tail -f storage/logs/laravel.log
+  php artisan config:clear
+
+Erreur 404 :
+  Vérifier mod_rewrite activé
+  Vérifier .htaccess dans public/
+
+Problème MySQL :
+  Vérifier credentials dans .env
+  Tester : mysql -u user -p database
+
+📞 SUPPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  📧 support@csar.sn
+  📖 Consultez GUIDE_HEBERGEMENT.md pour plus de détails
+
+═══════════════════════════════════════════════════════════════════
+  🎉 Bon déploiement !
+═══════════════════════════════════════════════════════════════════
+

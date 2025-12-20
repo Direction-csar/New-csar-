@@ -215,15 +215,37 @@ class DemandesController extends Controller
     public function approve($id)
     {
         try {
+            DB::beginTransaction();
+            
             $demande = PublicRequest::findOrFail($id);
             $demande->update([
                 'status' => 'approved',
+                'processed_date' => now(),
                 'updated_at' => now()
+            ]);
+            
+            // Créer une notification
+            Notification::create([
+                'type' => 'demande_approved',
+                'title' => 'Demande approuvée',
+                'message' => "La demande {$demande->tracking_code} de {$demande->full_name} a été approuvée",
+                'icon' => 'check-circle',
+                'read' => false,
+                'user_id' => null
+            ]);
+            
+            DB::commit();
+            
+            Log::info("Demande approuvée", [
+                'demande_id' => $id,
+                'tracking_code' => $demande->tracking_code,
+                'admin_id' => auth()->id()
             ]);
             
             return redirect()->back()
                 ->with('success', 'Demande approuvée avec succès.');
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Erreur lors de l\'approbation: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Erreur lors de l\'approbation de la demande.');
@@ -277,15 +299,37 @@ class DemandesController extends Controller
     public function reject($id)
     {
         try {
+            DB::beginTransaction();
+            
             $demande = PublicRequest::findOrFail($id);
             $demande->update([
                 'status' => 'rejected',
+                'processed_date' => now(),
                 'updated_at' => now()
+            ]);
+            
+            // Créer une notification
+            Notification::create([
+                'type' => 'demande_rejected',
+                'title' => 'Demande rejetée',
+                'message' => "La demande {$demande->tracking_code} de {$demande->full_name} a été rejetée",
+                'icon' => 'times-circle',
+                'read' => false,
+                'user_id' => null
+            ]);
+            
+            DB::commit();
+            
+            Log::info("Demande rejetée", [
+                'demande_id' => $id,
+                'tracking_code' => $demande->tracking_code,
+                'admin_id' => auth()->id()
             ]);
             
             return redirect()->back()
                 ->with('success', 'Demande rejetée avec succès.');
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Erreur lors du rejet: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Erreur lors du rejet de la demande.');

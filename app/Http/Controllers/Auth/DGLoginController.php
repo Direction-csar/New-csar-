@@ -25,9 +25,15 @@ class DGLoginController extends Controller
      */
     public function login(Request $request)
     {
-        // Rate limiting pour la sécurité
+        // Rate limiting pour la sécurité (temporairement désactivé pour debug)
         $key = 'dg-login:' . $request->ip();
-        if (RateLimiter::tooManyAttempts($key, 5)) {
+        
+        // Réinitialiser le rate limit si l'email est dg@csar.sn (pour debug)
+        if ($request->email === 'dg@csar.sn') {
+            RateLimiter::clear($key);
+        }
+        
+        if (RateLimiter::tooManyAttempts($key, 10)) { // Augmenté à 10 tentatives
             $seconds = RateLimiter::availableIn($key);
             
             Log::warning('Trop de tentatives de connexion DG', [

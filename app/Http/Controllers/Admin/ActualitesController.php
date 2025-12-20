@@ -54,7 +54,6 @@ class ActualitesController extends Controller
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
             'tags' => 'nullable|string',
-            'cover_choice' => 'nullable|string|in:auto,video,image',
             'scheduled_at' => 'nullable|date|after:now',
         ]);
 
@@ -78,7 +77,6 @@ class ActualitesController extends Controller
                 'is_published' => $request->status === 'published',
                 'is_public' => $request->has('is_public'),
                 'is_featured' => $request->has('is_featured'),
-                'cover_choice' => $request->cover_choice ?? 'auto',
                 'created_by' => auth()->id(),
                 'views_count' => 0,
                 'downloads_count' => 0,

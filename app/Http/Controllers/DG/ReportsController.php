@@ -10,10 +10,25 @@ use App\Models\User;
 use App\Models\Personnel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class ReportsController extends Controller
 {
+    private function formatBytes(?int $bytes): string
+    {
+        $bytes = $bytes ?? 0;
+        if ($bytes <= 0) return '0 B';
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $i = 0;
+        $value = (float) $bytes;
+        while ($value >= 1024 && $i < count($units) - 1) {
+            $value /= 1024;
+            $i++;
+        }
+        return round($value, 1) . ' ' . $units[$i];
+    }
+
     /**
      * Afficher la page des rapports (lecture seule pour DG)
      */
@@ -44,17 +59,40 @@ class ReportsController extends Controller
                 ->get();
 
             // Top entrepôts par activité
-            $topWarehouses = DB::table('warehouses')
-                ->leftJoin('public_requests', 'warehouses.id', '=', 'public_requests.warehouse_id')
-                ->select(
-                    'warehouses.name',
-                    'warehouses.region',
-                    DB::raw('COUNT(public_requests.id) as requests_count')
-                )
-                ->groupBy('warehouses.id', 'warehouses.name', 'warehouses.region')
-                ->orderBy('requests_count', 'desc')
-                ->limit(10)
-                ->get();
+            if (Schema::hasColumn('public_requests', 'warehouse_id')) {
+                $topWarehouses = DB::table('warehouses')
+                    ->leftJoin('public_requests', 'warehouses.id', '=', 'public_requests.warehouse_id')
+                    ->select(
+                        'warehouses.name',
+                        'warehouses.region',
+                        DB::raw('COUNT(public_requests.id) as requests_count')
+                    )
+                    ->groupBy('warehouses.id', 'warehouses.name', 'warehouses.region')
+                    ->orderBy('requests_count', 'desc')
+                    ->limit(10)
+                    ->get();
+            } else {
+                // Fallback: pas de lien direct entre demandes et entrepôts dans la table public_requests.
+                // On approxime via la région: nombre de demandes par région, appliqué aux entrepôts de la même région.
+                $requestsByRegion = DB::table('public_requests')
+                    ->select('region', DB::raw('COUNT(*) as count'))
+                    ->groupBy('region')
+                    ->pluck('count', 'region');
+
+                $topWarehouses = Warehouse::query()
+                    ->select(['name', 'region'])
+                    ->get()
+                    ->map(function ($w) use ($requestsByRegion) {
+                        return (object) [
+                            'name' => $w->name,
+                            'region' => $w->region,
+                            'requests_count' => (int) ($requestsByRegion[$w->region] ?? 0),
+                        ];
+                    })
+                    ->sortByDesc('requests_count')
+                    ->take(10)
+                    ->values();
+            }
 
             // Activité par mois
             $monthlyActivity = DB::table('public_requests')
@@ -69,35 +107,63 @@ class ReportsController extends Controller
                 ->orderBy('month', 'desc')
                 ->get();
 
-            // Rapports récents (simulation)
-            $reports = collect([
-                (object)[
-                    'id' => 1,
-                    'name' => 'Rapport Mensuel Octobre 2025',
-                    'description' => 'Analyse complète des activités',
-                    'type' => 'Mensuel',
-                    'period' => 'Octobre 2025',
-                    'date_range' => '01/10/2025 - 31/10/2025',
-                    'size' => '2.5 MB',
-                    'created_at' => now()->subDays(2)
-                ],
-                (object)[
-                    'id' => 2,
-                    'name' => 'Rapport Demandes Q3 2025',
-                    'description' => 'Bilan trimestriel des demandes',
-                    'type' => 'Trimestriel',
-                    'period' => 'Q3 2025',
-                    'date_range' => '01/07/2025 - 30/09/2025',
-                    'size' => '1.8 MB',
-                    'created_at' => now()->subDays(15)
-                ]
-            ]);
+            // Rapports disponibles: fichiers générés + PDFs livrés dans public/rapport
+            $reports = collect();
+
+            $storageReportsDir = storage_path('app/reports');
+            if (is_dir($storageReportsDir)) {
+                foreach (glob($storageReportsDir . DIRECTORY_SEPARATOR . '*') as $path) {
+                    if (!is_file($path)) continue;
+                    $filename = basename($path);
+                    $mtime = @filemtime($path) ?: time();
+                    $sizeBytes = @filesize($path) ?: 0;
+                    $reports->push((object) [
+                        'filename' => $filename,
+                        'name' => pathinfo($filename, PATHINFO_FILENAME),
+                        'description' => 'Rapport généré (DG)',
+                        'type' => strtoupper(pathinfo($filename, PATHINFO_EXTENSION) ?: 'FILE'),
+                        'period' => Carbon::createFromTimestamp($mtime)->translatedFormat('F Y'),
+                        'date_range' => '-',
+                        'size' => $this->formatBytes($sizeBytes),
+                        'created_at' => Carbon::createFromTimestamp($mtime),
+                    ]);
+                }
+            }
+
+            $publicReportsDir = public_path('rapport');
+            if (is_dir($publicReportsDir)) {
+                foreach (glob($publicReportsDir . DIRECTORY_SEPARATOR . '*.pdf') as $path) {
+                    if (!is_file($path)) continue;
+                    $filename = basename($path);
+                    $mtime = @filemtime($path) ?: time();
+                    $sizeBytes = @filesize($path) ?: 0;
+                    $reports->push((object) [
+                        'filename' => $filename,
+                        'name' => pathinfo($filename, PATHINFO_FILENAME),
+                        'description' => 'Rapport fourni (public/rapport)',
+                        'type' => 'PDF',
+                        'period' => Carbon::createFromTimestamp($mtime)->translatedFormat('F Y'),
+                        'date_range' => '-',
+                        'size' => $this->formatBytes($sizeBytes),
+                        'created_at' => Carbon::createFromTimestamp($mtime),
+                    ]);
+                }
+            }
+
+            $reports = $reports
+                ->sortByDesc(fn ($r) => $r->created_at instanceof Carbon ? $r->created_at->timestamp : strtotime((string) $r->created_at))
+                ->values();
 
             // Statistiques des rapports
             $reportStats = [
                 'total_reports' => $reports->count(),
-                'total_size' => '4.3 MB',
-                'last_generated' => 'Il y a 2 jours'
+                'total_size' => $this->formatBytes(
+                    $reports->reduce(function ($carry, $r) {
+                        // extract number+unit from formatted size is hard; keep as 0 here
+                        return $carry;
+                    }, 0)
+                ),
+                'last_generated' => $reports->first()?->created_at ? (Carbon::parse($reports->first()->created_at)->diffForHumans()) : 'N/A'
             ];
 
             return view('dg.reports.index', compact(
@@ -118,6 +184,37 @@ class ReportsController extends Controller
 
             return redirect()->back()->with('error', 'Erreur lors du chargement des rapports');
         }
+    }
+
+    /**
+     * Aperçu simple d'un rapport (évite RouteNotFound).
+     */
+    public function show(string $filename)
+    {
+        $safe = basename($filename);
+        if ($safe !== $filename) {
+            abort(404);
+        }
+
+        $storagePath = storage_path("app/reports/{$safe}");
+        $publicPath = public_path("rapport/{$safe}");
+
+        if (file_exists($storagePath)) {
+            $path = $storagePath;
+            $source = 'storage';
+        } elseif (file_exists($publicPath)) {
+            $path = $publicPath;
+            $source = 'public';
+        } else {
+            abort(404);
+        }
+
+        return view('dg.reports.show', [
+            'filename' => $safe,
+            'source' => $source,
+            'size' => $this->formatBytes(@filesize($path) ?: 0),
+            'created_at' => Carbon::createFromTimestamp(@filemtime($path) ?: time()),
+        ]);
     }
 
     /**
@@ -213,7 +310,8 @@ class ReportsController extends Controller
      */
     private function generateRequestsReport($dateFrom = null, $dateTo = null)
     {
-        $query = PublicRequest::with(['warehouse', 'user']);
+        // Ne pas eager-load warehouse si la colonne warehouse_id n'existe pas.
+        $query = PublicRequest::with(['assignedTo']);
 
         if ($dateFrom) {
             $query->whereDate('created_at', '>=', $dateFrom);

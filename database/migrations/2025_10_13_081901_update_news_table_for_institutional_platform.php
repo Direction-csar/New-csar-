@@ -100,14 +100,46 @@ return new class extends Migration
             }
         });
 
-        // Ajouter les index pour optimiser les performances
-        Schema::table('news', function (Blueprint $table) {
-            $table->index(['status', 'is_published']);
-            $table->index(['category', 'is_published']);
-            $table->index(['is_featured', 'is_published']);
-            $table->index(['published_at']);
-            $table->index(['created_by']);
-        });
+        // Ajouter les index pour optimiser les performances - skip if they exist
+        try {
+            Schema::table('news', function (Blueprint $table) {
+                $table->index(['status', 'is_published']);
+            });
+        } catch (\Exception $e) {
+            // Index already exists
+        }
+        
+        try {
+            Schema::table('news', function (Blueprint $table) {
+                $table->index(['category', 'is_published']);
+            });
+        } catch (\Exception $e) {
+            // Index already exists
+        }
+        
+        try {
+            Schema::table('news', function (Blueprint $table) {
+                $table->index(['is_featured', 'is_published']);
+            });
+        } catch (\Exception $e) {
+            // Index already exists
+        }
+        
+        try {
+            Schema::table('news', function (Blueprint $table) {
+                $table->index(['published_at']);
+            });
+        } catch (\Exception $e) {
+            // Index already exists
+        }
+        
+        try {
+            Schema::table('news', function (Blueprint $table) {
+                $table->index(['created_by']);
+            });
+        } catch (\Exception $e) {
+            // Index already exists
+        }
     }
 
     /**

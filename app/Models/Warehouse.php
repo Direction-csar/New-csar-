@@ -28,7 +28,9 @@ class Warehouse extends Model
     protected $casts = [
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'capacity' => 'float',
+        'current_stock' => 'float'
     ];
 
     public function stocks()
@@ -55,5 +57,67 @@ class Warehouse extends Model
     public function responsible()
     {
         return $this->belongsTo(User::class, 'responsible_id');
+    }
+
+    /**
+     * Accessor pour capacite (alias de capacity pour compatibilité avec les vues)
+     */
+    public function getCapaciteAttribute()
+    {
+        return $this->capacity ?? 0;
+    }
+
+    /**
+     * Mutator pour capacite (redirige vers capacity)
+     */
+    public function setCapaciteAttribute($value)
+    {
+        $this->attributes['capacity'] = $value;
+    }
+
+    /**
+     * Accessors pour les anciens noms de colonnes (compatibilité)
+     */
+    public function getNomAttribute()
+    {
+        return $this->name;
+    }
+
+    public function getAdresseAttribute()
+    {
+        return $this->address;
+    }
+
+    public function getVilleAttribute()
+    {
+        return $this->city;
+    }
+
+    public function getStatutAttribute()
+    {
+        return $this->status;
+    }
+
+    /**
+     * Mutators pour les anciens noms de colonnes (compatibilité)
+     */
+    public function setNomAttribute($value)
+    {
+        $this->attributes['name'] = $value;
+    }
+
+    public function setAdresseAttribute($value)
+    {
+        $this->attributes['address'] = $value;
+    }
+
+    public function setVilleAttribute($value)
+    {
+        $this->attributes['city'] = $value;
+    }
+
+    public function setStatutAttribute($value)
+    {
+        $this->attributes['status'] = $value;
     }
 } 

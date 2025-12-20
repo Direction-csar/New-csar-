@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'role_id',
         'status',
         'is_active',
         'phone',
@@ -54,6 +55,69 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Boot method to sync role with role_id automatically
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Synchroniser le role avec role_id lors de la création
+        static::creating(function ($user) {
+            if (isset($user->role_id) && !isset($user->role)) {
+                $user->syncRoleFromRoleId();
+            }
+        });
+
+        // Synchroniser le role avec role_id lors de la modification
+        static::updating(function ($user) {
+            // Si role_id a changé, synchroniser le champ role
+            if ($user->isDirty('role_id')) {
+                $user->syncRoleFromRoleId();
+            }
+        });
+
+        // Après avoir sauvegardé, s'assurer que role est synchronisé
+        static::saved(function ($user) {
+            // Si le role n'est pas synchronisé avec role_id, le corriger
+            if (isset($user->role_id)) {
+                $expectedRole = $user->getRoleNameFromRoleId($user->role_id);
+                $currentRole = isset($user->attributes['role']) ? $user->attributes['role'] : null;
+                
+                if ($currentRole !== $expectedRole) {
+                    \DB::table('users')
+                        ->where('id', $user->id)
+                        ->update(['role' => $expectedRole]);
+                }
+            }
+        });
+    }
+
+    /**
+     * Synchronize role field from role_id
+     */
+    protected function syncRoleFromRoleId()
+    {
+        if (isset($this->role_id)) {
+            $this->attributes['role'] = $this->getRoleNameFromRoleId($this->role_id);
+        }
+    }
+
+    /**
+     * Get role name from role_id
+     */
+    protected function getRoleNameFromRoleId($roleId)
+    {
+        $roleMap = [
+            1 => 'admin',
+            2 => 'dg',
+            3 => 'responsable',
+            4 => 'agent',
+            5 => 'drh'
+        ];
+        return $roleMap[$roleId] ?? 'agent';
     }
 
     /**

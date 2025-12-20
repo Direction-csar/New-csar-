@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Connexion Entrepôt - CSAR</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}">
     
@@ -366,7 +367,7 @@
         </div>
         
         <div class="form-container">
-            <form method="POST" action="{{ route('responsable.login.submit') }}" id="loginForm">
+            <form method="POST" action="{{ request()->is('entrepot/*') ? '/entrepot/login' : '/responsable/login' }}" id="loginForm">
                 @csrf
                 
                 @if ($errors->any())
@@ -433,11 +434,33 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').addEventListener('submit', function() {
+        // Rafraîchir le token CSRF si nécessaire
+        document.addEventListener('DOMContentLoaded', function() {
+            // Vérifier si le token CSRF existe
+            const csrfToken = document.querySelector('meta[name="csrf-token"]');
+            if (!csrfToken) {
+                // Créer un meta tag pour le token CSRF
+                const meta = document.createElement('meta');
+                meta.name = 'csrf-token';
+                meta.content = document.querySelector('input[name="_token"]')?.value || '';
+                document.head.appendChild(meta);
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
             const btn = document.getElementById('loginBtn');
             const spinner = document.getElementById('spinner');
             const icon = document.getElementById('loginIcon');
             const text = document.getElementById('loginText');
+            
+            // Vérifier que le token CSRF est présent
+            const tokenInput = document.querySelector('input[name="_token"]');
+            if (!tokenInput || !tokenInput.value) {
+                e.preventDefault();
+                alert('Erreur: Token CSRF manquant. Veuillez rafraîchir la page.');
+                location.reload();
+                return;
+            }
             
             btn.disabled = true;
             spinner.style.display = 'block';

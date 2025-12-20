@@ -9,7 +9,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('demandes', function (Blueprint $table) {
-            $table->string('tracking_code')->nullable()->unique();
+            if (!Schema::hasColumn('demandes', 'tracking_code')) {
+                $table->string('tracking_code')->nullable()->unique();
+            }
         });
     }
 

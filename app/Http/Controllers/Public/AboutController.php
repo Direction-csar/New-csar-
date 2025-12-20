@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
 use Carbon\Carbon;
 
 class AboutController extends Controller
@@ -65,6 +66,8 @@ class AboutController extends Controller
     private function getPublicStats()
     {
         try {
+            // PERF: cache stats to avoid repeated DB/schema work on every request
+            return Cache::remember('public_about_stats_v1', now()->addMinutes(10), function () {
             // Vérifier si la table existe avant de l'utiliser
             if (!\Illuminate\Support\Facades\Schema::hasTable('chiffres_cles')) {
                 Log::warning('Table chiffres_cles n\'existe pas, utilisation des données par défaut');
@@ -125,6 +128,7 @@ class AboutController extends Controller
                     'color' => '#10b981'
                 ]
             ];
+            });
         } catch (\Exception $e) {
             Log::error('Erreur lors de la récupération des chiffres clés', [
                 'error' => $e->getMessage()

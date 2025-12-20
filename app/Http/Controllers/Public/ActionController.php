@@ -28,14 +28,9 @@ class ActionController extends Controller
             'description' => 'required|string',
         ];
         
-        // Géolocalisation obligatoire uniquement pour les demandes d'aide
-        if ($request->type === 'aide') {
-            $rules['latitude'] = 'required|numeric';
-            $rules['longitude'] = 'required|numeric';
-        } else {
-            $rules['latitude'] = 'nullable|numeric';
-            $rules['longitude'] = 'nullable|numeric';
-        }
+        // Géolocalisation optionnelle (recommandée mais pas obligatoire)
+        $rules['latitude'] = 'nullable|numeric';
+        $rules['longitude'] = 'nullable|numeric';
         
         $request->validate($rules);
         

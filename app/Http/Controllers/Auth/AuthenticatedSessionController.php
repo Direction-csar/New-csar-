@@ -49,8 +49,15 @@ class AuthenticatedSessionController extends Controller
         $path = request()->path();
         $user = Auth::user();
         
-        // Récupérer le nom du rôle depuis la relation
-        $roleName = $user->role_id ? \App\Models\Role::find($user->role_id)->name : 'agent';
+        // Déterminer le rôle de manière robuste:
+        // - Priorité à la colonne `role` (déjà normalisée dans le modèle User)
+        // - Fallback sur la table `roles` via role_id si nécessaire
+        $roleName = $user->role ?? null;
+        if (!$roleName && $user->role_id) {
+            $role = \App\Models\Role::find($user->role_id);
+            $roleName = $role?->name;
+        }
+        $roleName = $roleName ?: 'agent';
         
         // Rediriger selon l'interface demandée
         if (str_contains($path, 'drh')) {

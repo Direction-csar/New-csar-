@@ -1,0 +1,141 @@
+#!/bin/bash
+
+# ============================================
+# SCRIPT DE SUPPRESSION COMPLÈTE DU SITE CSAR
+# ============================================
+# Ce script supprime complètement le site du serveur Hostinger
+# ATTENTION: Cette action est IRRÉVERSIBLE !
+# ============================================
+
+echo "=========================================="
+echo "⚠️  SUPPRESSION DU SITE CSAR"
+echo "=========================================="
+echo ""
+echo "⚠️  ATTENTION: Cette action va supprimer:"
+echo "   - Tous les fichiers du site (/var/www/csar)"
+echo "   - La configuration Apache (csar.conf)"
+echo "   - La base de données (csar_platform)"
+echo "   - L'utilisateur MySQL (csar_user)"
+echo ""
+read -p "Êtes-vous sûr de vouloir continuer? (tapez 'OUI' pour confirmer): " confirmation
+
+if [ "$confirmation" != "OUI" ]; then
+    echo "❌ Suppression annulée."
+    exit 1
+fi
+
+echo ""
+echo "🚀 Début de la suppression..."
+echo ""
+
+# ============================================
+# 1. DÉSACTIVER LE SITE APACHE
+# ============================================
+echo "1. Désactivation du site Apache..."
+if [ -f /etc/apache2/sites-enabled/csar.conf ]; then
+    sudo a2dissite csar.conf
+    echo "✅ Site Apache désactivé"
+else
+    echo "ℹ️  Site Apache déjà désactivé ou inexistant"
+fi
+
+# ============================================
+# 2. SUPPRIMER LA CONFIGURATION APACHE
+# ============================================
+echo ""
+echo "2. Suppression de la configuration Apache..."
+if [ -f /etc/apache2/sites-available/csar.conf ]; then
+    sudo rm /etc/apache2/sites-available/csar.conf
+    echo "✅ Configuration Apache supprimée"
+else
+    echo "ℹ️  Configuration Apache déjà supprimée"
+fi
+
+# ============================================
+# 3. REDÉMARRER APACHE
+# ============================================
+echo ""
+echo "3. Redémarrage d'Apache..."
+sudo systemctl reload apache2
+echo "✅ Apache redémarré"
+
+# ============================================
+# 4. SUPPRIMER LES FICHIERS DU SITE
+# ============================================
+echo ""
+echo "4. Suppression des fichiers du site..."
+if [ -d /var/www/csar ]; then
+    sudo rm -rf /var/www/csar
+    echo "✅ Fichiers du site supprimés (/var/www/csar)"
+else
+    echo "ℹ️  Répertoire /var/www/csar n'existe pas"
+fi
+
+# ============================================
+# 5. SUPPRIMER LA BASE DE DONNÉES
+# ============================================
+echo ""
+echo "5. Suppression de la base de données..."
+echo ""
+read -p "Voulez-vous supprimer la base de données maintenant? (O/n): " supprimer_bdd
+
+if [ "$supprimer_bdd" = "O" ] || [ "$supprimer_bdd" = "o" ] || [ "$supprimer_bdd" = "" ]; then
+    echo ""
+    echo "   Exécution des commandes MySQL..."
+    echo "   (Vous devrez entrer le mot de passe root MySQL)"
+    echo ""
+    
+    mysql -u root -p <<EOF
+DROP DATABASE IF EXISTS csar_platform;
+DROP USER IF EXISTS 'csar_user'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+
+    if [ $? -eq 0 ]; then
+        echo "✅ Base de données et utilisateur supprimés"
+    else
+        echo "⚠️  Erreur lors de la suppression de la base de données"
+        echo "   Supprimez-la manuellement avec les commandes ci-dessous"
+    fi
+else
+    echo "ℹ️  Suppression de la base de données ignorée"
+    echo "   Supprimez-la manuellement avec:"
+    echo "   mysql -u root -p"
+    echo "   DROP DATABASE csar_platform;"
+    echo "   DROP USER 'csar_user'@'localhost';"
+    echo "   FLUSH PRIVILEGES;"
+    echo "   EXIT;"
+fi
+
+# ============================================
+# 6. SUPPRIMER LES LOGS APACHE
+# ============================================
+echo ""
+echo "6. Suppression des logs Apache..."
+if [ -f /var/log/apache2/csar-error.log ]; then
+    sudo rm /var/log/apache2/csar-error.log
+    echo "✅ Log d'erreur supprimé"
+fi
+if [ -f /var/log/apache2/csar-access.log ]; then
+    sudo rm /var/log/apache2/csar-access.log
+    echo "✅ Log d'accès supprimé"
+fi
+
+# ============================================
+# 7. VÉRIFICATION FINALE
+# ============================================
+echo ""
+echo "=========================================="
+echo "✅ SUPPRESSION TERMINÉE"
+echo "=========================================="
+echo ""
+echo "Vérifications:"
+echo "  - Répertoire /var/www/csar: $([ -d /var/www/csar ] && echo '❌ Existe encore' || echo '✅ Supprimé')"
+echo "  - Configuration Apache: $([ -f /etc/apache2/sites-available/csar.conf ] && echo '❌ Existe encore' || echo '✅ Supprimée')"
+echo "  - Site Apache activé: $([ -f /etc/apache2/sites-enabled/csar.conf ] && echo '❌ Toujours activé' || echo '✅ Désactivé')"
+echo ""
+echo "⚠️  Note: La base de données doit être vérifiée manuellement"
+echo ""
+echo "Le site CSAR a été complètement supprimé du serveur."
+echo ""
+

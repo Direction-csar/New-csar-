@@ -799,3 +799,19 @@ Route::post('/rgpd/exercer-droit', [RGPDController::class, 'exerciseRight']);
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

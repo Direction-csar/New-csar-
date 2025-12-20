@@ -27,9 +27,15 @@ class HomeController extends Controller
     public function index()
     {
         // Récupération de toutes les images de fond actives, triées par ordre d'affichage
-        $backgrounds = HomeBackground::active()
-            ->ordered()
-            ->get();
+        try {
+            $backgrounds = HomeBackground::active()
+                ->ordered()
+                ->get();
+        } catch (\Exception $e) {
+            // En cas d'erreur de connexion MySQL, utiliser des valeurs par défaut
+            \Log::warning('Erreur lors de la récupération des backgrounds', ['error' => $e->getMessage()]);
+            $backgrounds = collect([]);
+        }
             
         // Si aucune image de fond n'est définie, utiliser une valeur par défaut
         $backgroundImage = $backgrounds->isNotEmpty() ? $backgrounds->first()->image_url : asset('img/1.jpg');
@@ -60,10 +66,10 @@ class HomeController extends Controller
                     $chiffresCles = \App\Models\ChiffreCle::safeGetActifs()->keyBy('titre');
                     
                     $stats = [
-                        'agents' => $chiffresCles->get('Agents mobilisés', (object)['valeur' => '0'])->valeur ?? '0',
-                        'warehouses' => $chiffresCles->get('Entrepôts de stockage', (object)['valeur' => '0'])->valeur ?? '0',
-                        'capacity' => $chiffresCles->get('Capacité en tonnes', (object)['valeur' => '0'])->valeur ?? '0',
-                        'experience' => $chiffresCles->get('Années d\'expérience', (object)['valeur' => '0'])->valeur ?? '0'
+                        'agents' => $chiffresCles->get('Agents recensés', (object)['valeur' => '137'])->valeur ?? '137',
+                        'warehouses' => $chiffresCles->get('Magasins de stockage', (object)['valeur' => '71'])->valeur ?? '71',
+                        'capacity' => $chiffresCles->get('Capacité de stockage', (object)['valeur' => '79 000 tonnes'])->valeur ?? '79 000 tonnes',
+                        'experience' => $chiffresCles->get('Années d\'expérience', (object)['valeur' => '50+'])->valeur ?? '50+'
                     ];
                 } catch (\Exception $e) {
                     // En cas d'erreur lors de la récupération, utiliser les valeurs par défaut

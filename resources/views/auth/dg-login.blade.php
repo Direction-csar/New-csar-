@@ -313,7 +313,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('dg.login.submit') }}">
+            <form method="POST" action="{{ route('dg.login.submit', [], false) }}">
                 @csrf
                 
                 <div class="form-group">
@@ -338,7 +338,6 @@
                            class="form-control @error('password') is-invalid @enderror" 
                            id="password" 
                            name="password" 
-                           value="dg123"
                            required>
                     @error('password')
                         <div class="invalid-feedback">

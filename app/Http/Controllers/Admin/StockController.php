@@ -190,7 +190,7 @@ class StockController extends Controller
 
     private function getStockMovements($request, $paginate = true)
     {
-        $query = StockMovement::with(['warehouse', 'creator']);
+        $query = StockMovement::with(['warehouse', 'creator', 'stock.stockType']);
 
         // Filtre de recherche
         if ($request->filled('search')) {
@@ -222,9 +222,55 @@ class StockController extends Controller
         $query->orderBy('created_at', 'desc');
 
         if ($paginate) {
-            return $query->paginate(15)->withQueryString();
+            $movements = $query->paginate(15)->withQueryString();
         } else {
-            return $query->get();
+            $movements = $query->get();
+        }
+
+        // Transformer les données pour correspondre à ce que la vue attend
+        $transformedMovements = $movements->getCollection()->map(function($mouvement) {
+            // Extraire le nom du produit depuis le stock ou le reason
+            $produit = 'Non spécifié';
+            $unite = 'unité';
+            
+            if ($mouvement->stock) {
+                $produit = $mouvement->stock->item_name ?? 'Non spécifié';
+                // Récupérer l'unité depuis le StockType si disponible
+                if ($mouvement->stock->stockType && $mouvement->stock->stockType->unit) {
+                    $unite = $mouvement->stock->stockType->unit;
+                }
+            } elseif ($mouvement->reason) {
+                // Utiliser le reason comme nom de produit si pas de stock associé
+                $produit = $mouvement->reason;
+            }
+
+            // Calculer le total (quantité * prix unitaire si disponible, sinon 0)
+            $total = 0;
+            if ($mouvement->stock && $mouvement->stock->unit_price) {
+                $total = floatval($mouvement->quantity) * floatval($mouvement->stock->unit_price);
+            }
+
+            return [
+                'id' => $mouvement->id,
+                'reference' => $mouvement->reference ?? 'N/A',
+                'type' => $mouvement->type ?? 'out',
+                'produit' => $produit,
+                'quantite' => floatval($mouvement->quantity ?? 0),
+                'unite' => $unite,
+                'entrepot_nom' => $mouvement->warehouse->name ?? 'Non spécifié',
+                'responsable' => $mouvement->creator->name ?? 'Non spécifié',
+                'total' => $total,
+                'date_mouvement' => $mouvement->created_at ?? now(),
+                'reason' => $mouvement->reason ?? '',
+            ];
+        });
+
+        // Si paginé, remplacer la collection
+        if ($paginate) {
+            $movements->setCollection($transformedMovements);
+            return $movements;
+        } else {
+            return $transformedMovements;
         }
     }
 

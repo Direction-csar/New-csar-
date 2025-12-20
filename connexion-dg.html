@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion rapide DG</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 40px;
+            margin: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn-dg {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        .btn-admin {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        }
+        .url-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: monospace;
+            color: #333;
+            word-break: break-all;
+        }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-top: 20px;
+            text-align: left;
+            border-radius: 5px;
+        }
+        .note strong {
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Connexion Directe CSAR</h1>
+        <p>Cliquez sur le bouton pour vous connecter automatiquement</p>
+        
+        <a href="http://localhost:8000/dg/test-login" class="btn btn-dg">
+            ✅ Connexion DG (Directeur Général)
+        </a>
+        
+        <a href="http://localhost:8000/admin/test-login" class="btn btn-admin">
+            ✅ Connexion Admin
+        </a>
+        
+        <div class="note">
+            <strong>📌 Note :</strong> Ces boutons vous connectent automatiquement sans avoir à saisir d'identifiants.
+            <br><br>
+            <strong>Ou copiez-collez cette URL dans votre navigateur :</strong>
+            <div class="url-box">http://localhost:8000/dg/test-login</div>
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+

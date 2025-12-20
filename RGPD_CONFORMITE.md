@@ -579,3 +579,19 @@ Voir fichier : `resources/views/legal/privacy-policy.blade.php`
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

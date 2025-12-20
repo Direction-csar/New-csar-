@@ -1,0 +1,32 @@
+# ============================================
+# SUPPRIMER LA CONFIGURATION SSL RESTANTE
+# ============================================
+# Il reste une configuration SSL Let's Encrypt pour csar.sn
+# Exécutez ces commandes pour la supprimer complètement
+# ============================================
+
+# 1. Désactiver la configuration SSL
+sudo a2dissite csar-le-ssl.conf
+
+# 2. Supprimer le fichier de configuration SSL
+sudo rm /etc/apache2/sites-available/csar-le-ssl.conf
+
+# 3. Redémarrer Apache
+sudo systemctl reload apache2
+
+# 4. (Optionnel) Révoquer le certificat SSL Let's Encrypt
+# Si vous voulez aussi supprimer le certificat SSL :
+sudo certbot revoke --cert-path /etc/letsencrypt/live/csar.sn/cert.pem
+
+# 5. (Optionnel) Supprimer les fichiers du certificat
+# sudo rm -rf /etc/letsencrypt/live/csar.sn
+# sudo rm -rf /etc/letsencrypt/archive/csar.sn
+# sudo rm -rf /etc/letsencrypt/renewal/csar.sn.conf
+
+# 6. Vérifier que tout est supprimé
+apache2ctl -S | grep csar
+
+
+
+
+

@@ -14,6 +14,23 @@ use Carbon\Carbon;
 class UserController extends Controller
 {
     /**
+     * Convertir le nom du rôle en role_id
+     */
+    private function getRoleIdFromRoleName($roleName)
+    {
+        $roleMap = [
+            'admin' => 1,
+            'dg' => 2,
+            'responsable' => 3,
+            'agent' => 4,
+            'drh' => 5,
+            'entrepot' => 3 // Alias pour responsable
+        ];
+        
+        return $roleMap[$roleName] ?? 4; // Par défaut: agent
+    }
+
+    /**
      * Afficher la liste des utilisateurs
      */
     public function index(Request $request)
@@ -97,6 +114,7 @@ class UserController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'role' => $request->role,
+                'role_id' => $this->getRoleIdFromRoleName($request->role),
                 'is_active' => $request->is_active,
                 'password' => Hash::make('password123') // Mot de passe par défaut
             ]);
@@ -175,6 +193,7 @@ class UserController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'role' => $request->role,
+                'role_id' => $this->getRoleIdFromRoleName($request->role),
                 'is_active' => $request->is_active
             ]);
 

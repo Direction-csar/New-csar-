@@ -61,7 +61,7 @@ class DashboardController extends Controller
     private function getDashboardStats()
     {
         try {
-            return [
+            $stats = [
                 'total_users' => User::count(),
                 'active_users' => User::where('is_active', true)->count(),
                 'total_requests' => PublicRequest::count(),
@@ -80,15 +80,31 @@ class DashboardController extends Controller
                 'total_stock' => Stock::count(),
                 'unread_notifications' => Notification::where('read', false)->count(),
                 'unread_messages' => Message::where('lu', false)->count(),
-                // Newsletter & Communication
-                'total_newsletters' => DB::table('newsletters')->count(),
-                'sent_newsletters' => DB::table('newsletters')->where('status', 'sent')->count(),
-                'total_subscribers' => DB::table('newsletter_subscribers')->count(),
-                'active_subscribers' => DB::table('newsletter_subscribers')->where('status', 'subscribed')->count(),
-                // Audit & Sécurité
-                'total_audit_logs' => DB::table('audit_logs')->count(),
-                'today_audit_logs' => DB::table('audit_logs')->whereDate('created_at', today())->count()
             ];
+
+            // Newsletter & Communication (optional tables - skip if not exist)
+            try {
+                $stats['total_newsletters'] = \Schema::hasTable('newsletters') ? DB::table('newsletters')->count() : 0;
+                $stats['sent_newsletters'] = \Schema::hasTable('newsletters') ? DB::table('newsletters')->where('status', 'sent')->count() : 0;
+                $stats['total_subscribers'] = \Schema::hasTable('newsletter_subscribers') ? DB::table('newsletter_subscribers')->count() : 0;
+                $stats['active_subscribers'] = \Schema::hasTable('newsletter_subscribers') ? DB::table('newsletter_subscribers')->where('status', 'subscribed')->count() : 0;
+            } catch (\Exception $e) {
+                $stats['total_newsletters'] = 0;
+                $stats['sent_newsletters'] = 0;
+                $stats['total_subscribers'] = 0;
+                $stats['active_subscribers'] = 0;
+            }
+
+            // Audit & Sécurité (optional tables - skip if not exist)
+            try {
+                $stats['total_audit_logs'] = \Schema::hasTable('audit_logs') ? DB::table('audit_logs')->count() : 0;
+                $stats['today_audit_logs'] = \Schema::hasTable('audit_logs') ? DB::table('audit_logs')->whereDate('created_at', today())->count() : 0;
+            } catch (\Exception $e) {
+                $stats['total_audit_logs'] = 0;
+                $stats['today_audit_logs'] = 0;
+            }
+
+            return $stats;
         } catch (\Exception $e) {
             Log::error('Erreur dans getDashboardStats', ['error' => $e->getMessage()]);
             return [

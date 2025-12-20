@@ -560,13 +560,18 @@ function generateReport(type) {
         },
         body: JSON.stringify({
             type: type,
+            format: 'pdf',
             period: 'month'
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert('Rapport ' + type + ' généré avec succès !');
+            if (data.download_url) {
+                window.open(data.download_url, '_blank');
+            } else {
+                alert('Rapport ' + type + ' généré avec succès !');
+            }
         } else {
             alert('Erreur lors de la génération du rapport');
         }

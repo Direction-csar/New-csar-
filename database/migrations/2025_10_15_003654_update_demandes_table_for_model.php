@@ -13,31 +13,37 @@ return new class extends Migration
     {
         Schema::table('demandes', function (Blueprint $table) {
             // Ajouter les champs manquants pour le modèle Demande
-            $table->string('code_suivi')->nullable()->after('id');
-            $table->string('nom_demandeur')->nullable()->after('code_suivi');
-            $table->string('statut')->default('en_attente')->after('nom_demandeur');
-            $table->string('region')->nullable()->after('statut');
-            $table->string('commune')->nullable()->after('region');
-            $table->string('departement')->nullable()->after('commune');
-            $table->text('adresse')->nullable()->after('departement');
-            $table->date('date_demande')->nullable()->after('adresse');
-            $table->date('date_traitement')->nullable()->after('date_demande');
-            $table->text('commentaire_admin')->nullable()->after('date_traitement');
-            $table->unsignedBigInteger('assignee_id')->nullable()->after('commentaire_admin');
-            $table->string('priorite')->default('moyenne')->after('assignee_id');
-            $table->decimal('latitude', 10, 8)->nullable()->after('priorite');
-            $table->decimal('longitude', 11, 8)->nullable()->after('latitude');
-            $table->boolean('sms_envoye')->default(false)->after('longitude');
-            $table->string('sms_message_id')->nullable()->after('sms_envoye');
-            $table->timestamp('sms_envoye_at')->nullable()->after('sms_message_id');
-            
-            // Ajouter les index
-            $table->index('code_suivi');
-            $table->index('statut');
-            $table->index('region');
-            $table->index('assignee_id');
-            $table->index('created_at');
+            if (!Schema::hasColumn('demandes', 'code_suivi')) $table->string('code_suivi')->nullable();
+            if (!Schema::hasColumn('demandes', 'nom_demandeur')) $table->string('nom_demandeur')->nullable();
+            if (!Schema::hasColumn('demandes', 'statut')) $table->string('statut')->default('en_attente');
+            if (!Schema::hasColumn('demandes', 'region')) $table->string('region')->nullable();
+            if (!Schema::hasColumn('demandes', 'commune')) $table->string('commune')->nullable();
+            if (!Schema::hasColumn('demandes', 'departement')) $table->string('departement')->nullable();
+            if (!Schema::hasColumn('demandes', 'adresse')) $table->text('adresse')->nullable();
+            if (!Schema::hasColumn('demandes', 'date_demande')) $table->date('date_demande')->nullable();
+            if (!Schema::hasColumn('demandes', 'date_traitement')) $table->date('date_traitement')->nullable();
+            if (!Schema::hasColumn('demandes', 'commentaire_admin')) $table->text('commentaire_admin')->nullable();
+            if (!Schema::hasColumn('demandes', 'assignee_id')) $table->unsignedBigInteger('assignee_id')->nullable();
+            if (!Schema::hasColumn('demandes', 'priorite')) $table->string('priorite')->default('moyenne');
+            if (!Schema::hasColumn('demandes', 'latitude')) $table->decimal('latitude', 10, 8)->nullable();
+            if (!Schema::hasColumn('demandes', 'longitude')) $table->decimal('longitude', 11, 8)->nullable();
+            if (!Schema::hasColumn('demandes', 'sms_envoye')) $table->boolean('sms_envoye')->default(false);
+            if (!Schema::hasColumn('demandes', 'sms_message_id')) $table->string('sms_message_id')->nullable();
+            if (!Schema::hasColumn('demandes', 'sms_envoye_at')) $table->timestamp('sms_envoye_at')->nullable();
         });
+        
+        // Ajouter les index - skip if exist
+        try {
+            Schema::table('demandes', function (Blueprint $table) {
+                $table->index('code_suivi');
+                $table->index('statut');
+                $table->index('region');
+                $table->index('assignee_id');
+                $table->index('created_at');
+            });
+        } catch (\Exception $e) {
+            // Indexes may already exist
+        }
     }
 
     /**

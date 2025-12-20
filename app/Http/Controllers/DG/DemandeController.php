@@ -3,23 +3,53 @@
 namespace App\Http\Controllers\DG;
 
 use App\Http\Controllers\Controller;
-use App\Models\DemandeUnifiee;
+use App\Models\PublicRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class DemandeController extends Controller
 {
+    private function mapStatusToUi(?string $status): string
+    {
+        return match ($status) {
+            'pending' => 'en_attente',
+            'approved' => 'approuvee',
+            'rejected' => 'rejetee',
+            'completed' => 'terminee',
+            default => $status ?: 'en_attente',
+        };
+    }
+
+    private function mapStatusFromUi(?string $statut): string
+    {
+        return match ($statut) {
+            'en_attente' => 'pending',
+            'approuvee' => 'approved',
+            'rejetee' => 'rejected',
+            'terminee' => 'completed',
+            // Support UI value "en_cours" even if DB doesn't; keep as pending for now.
+            'en_cours' => 'pending',
+            default => $statut ?: 'pending',
+        };
+    }
+
     public function index()
     {
         try {
-            $demandes = DemandeUnifiee::latest()->paginate(5); // Réduire pour éviter la coupure
+            $demandes = PublicRequest::latest()->paginate(10);
+
+            // Adapter le statut pour les vues DG (qui attendent en_attente/approuvee/rejetee/terminee)
+            $demandes->getCollection()->transform(function ($demande) {
+                $demande->status = $this->mapStatusToUi($demande->status);
+                return $demande;
+            });
             
             $stats = [
-                "total" => DemandeUnifiee::count(),
-                "en_attente" => DemandeUnifiee::where("statut", "en_attente")->count(),
-                "approuvees" => DemandeUnifiee::where("statut", "approuvee")->count(),
-                "rejetees" => DemandeUnifiee::where("statut", "rejetee")->count(),
+                "total" => PublicRequest::count(),
+                "en_attente" => PublicRequest::where("status", "pending")->count(),
+                "approuvees" => PublicRequest::where("status", "approved")->count(),
+                "rejetees" => PublicRequest::where("status", "rejected")->count(),
             ];
             
             return view("dg.demandes.index", compact("demandes", "stats"));
@@ -36,7 +66,8 @@ class DemandeController extends Controller
     public function show($id)
     {
         try {
-            $demande = DemandeUnifiee::findOrFail($id);
+            $demande = PublicRequest::with(['assignedTo'])->findOrFail($id);
+            $demande->status = $this->mapStatusToUi($demande->status);
             return view("dg.demandes.show", compact("demande"));
             
         } catch (\Exception $e) {
@@ -47,18 +78,20 @@ class DemandeController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            $demande = DemandeUnifiee::findOrFail($id);
+            $demande = PublicRequest::findOrFail($id);
             
             $request->validate([
                 "statut" => "required|in:en_attente,en_cours,approuvee,rejetee,terminee",
                 "commentaire_admin" => "nullable|string|max:1000"
             ]);
+
+            $dbStatus = $this->mapStatusFromUi($request->statut);
             
             $demande->update([
-                "statut" => $request->statut,
-                "commentaire_admin" => $request->commentaire_admin,
-                "traite_par" => auth()->id(),
-                "date_traitement" => now()
+                "status" => $dbStatus,
+                "admin_comment" => $request->commentaire_admin,
+                "assigned_to" => $demande->assigned_to ?: auth()->id(),
+                "processed_date" => in_array($dbStatus, ['approved', 'rejected', 'completed']) ? now()->toDateString() : $demande->processed_date,
             ]);
             
             Log::info("Demande mise à jour par DG", [

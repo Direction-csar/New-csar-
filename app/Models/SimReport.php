@@ -86,6 +86,16 @@ class SimReport extends Model
     }
 
     /**
+     * Scope pour les rapports publics (publiés ET visibles)
+     */
+    public function scopePublic($query)
+    {
+        return $query->where('status', 'published')
+                    ->where('is_public', true)
+                    ->where('published_at', '<=', now());
+    }
+
+    /**
      * Obtenir l'URL de téléchargement du document
      */
     public function getDownloadUrlAttribute()

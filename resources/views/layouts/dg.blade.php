@@ -376,6 +376,13 @@
             .logo i {
                 font-size: 1.5rem;
             }
+
+            .csar-logo {
+                width: 34px;
+                height: 34px;
+                object-fit: contain;
+                margin-right: 10px;
+            }
         }
     </style>
     
@@ -386,9 +393,8 @@
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <a href="{{ route('dg.dashboard') }}" class="logo">
-                <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                <i class="fas fa-user-tie" style="display: none;"></i>
-                <span class="logo-text">CSAR DG</span>
+                <img class="csar-logo" src="{{ asset('images/csar-logo-vectoriel-01.png') }}" alt="CSAR" onerror="this.style.display='none';">
+                <span class="logo-text">DG</span>
             </a>
         </div>
         

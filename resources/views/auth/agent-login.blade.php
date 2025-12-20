@@ -354,7 +354,7 @@
             </div>
             
         <div class="login-body">
-            <form method="POST" action="{{ route('agent.login.submit') }}" id="loginForm">
+            <form method="POST" action="{{ route('agent.login.submit', [], false) }}" id="loginForm">
                 @csrf
                 
                 @if (session('error'))
@@ -455,7 +455,7 @@
                 <h1 class="text-lg font-bold text-gray-800 mb-1">Connexion Agent</h1>
                 <p class="text-gray-500 text-xs">Accédez à votre espace personnel</p>
             </div>
-            <form method="POST" action="{{ route('agent.login.submit') }}" class="space-y-3">
+            <form method="POST" action="{{ route('agent.login.submit', [], false) }}" class="space-y-3">
                 @csrf
                 <div>
                     <label for="email" class="block text-xs font-semibold text-gray-600 mb-1">Email</label>
@@ -485,7 +485,7 @@
             </div>
             
             <!-- Login Form -->
-            <form action="{{ route('agent.login.submit') }}" method="POST" class="space-y-4">
+            <form action="{{ route('agent.login.submit', [], false) }}" method="POST" class="space-y-4">
                 @csrf
                 
                 @if (session('error'))

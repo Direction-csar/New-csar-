@@ -403,7 +403,31 @@
     }
 
     function generateExecutiveReport() {
-        alert('Génération du rapport exécutif...');
+        fetch('{{ route("dg.api.generate-report") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                type: 'monthly',
+                format: 'pdf',
+                period: 'month'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.download_url) {
+                // Ouvrir le téléchargement dans un nouvel onglet
+                window.open(data.download_url, '_blank');
+            } else {
+                alert(data.message || 'Erreur lors de la génération du rapport DG');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Erreur lors de la génération du rapport DG');
+        });
     }
 
     function updateChart(period) {

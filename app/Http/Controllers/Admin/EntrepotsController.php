@@ -228,15 +228,11 @@ class EntrepotsController extends Controller
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
                 'capacity' => $request->capacite,
-                'capacity_unit' => $request->unite_capacite,
-                'occupancy_rate' => $request->taux_occupation ?? $entrepot->occupancy_rate,
-                'type' => $request->type,
-                'status' => $request->statut,
-                'manager_name' => $request->responsable,
-                'manager_phone' => $request->telephone_responsable,
+                'status' => $request->statut === 'actif' ? 'active' : 'inactive',
                 'email' => $request->email_responsable,
+                'phone' => $request->telephone_responsable,
                 'description' => $request->description,
-                'created_date' => $request->date_creation
+                'is_active' => $request->statut === 'actif' ? true : false
             ]);
 
             // Créer une notification si le statut a changé

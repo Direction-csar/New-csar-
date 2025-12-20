@@ -14,25 +14,25 @@ return new class extends Migration
         Schema::table('news', function (Blueprint $table) {
             // Ajouter les colonnes manquantes si elles n'existent pas
             if (!Schema::hasColumn('news', 'featured_image')) {
-                $table->string('featured_image')->nullable()->after('content');
+                $table->string('featured_image')->nullable();
             }
             if (!Schema::hasColumn('news', 'cover_image')) {
-                $table->string('cover_image')->nullable()->after('featured_image');
+                $table->string('cover_image')->nullable();
             }
             if (!Schema::hasColumn('news', 'youtube_url')) {
-                $table->string('youtube_url')->nullable()->after('cover_image');
+                $table->string('youtube_url')->nullable();
             }
             if (!Schema::hasColumn('news', 'slug')) {
-                $table->string('slug')->nullable()->after('title');
+                $table->string('slug')->nullable();
             }
             if (!Schema::hasColumn('news', 'meta_title')) {
-                $table->string('meta_title')->nullable()->after('slug');
+                $table->string('meta_title')->nullable();
             }
             if (!Schema::hasColumn('news', 'views_count')) {
-                $table->integer('views_count')->default(0)->after('is_featured');
+                $table->integer('views_count')->default(0);
             }
             if (!Schema::hasColumn('news', 'created_by')) {
-                $table->unsignedBigInteger('created_by')->nullable()->after('views_count');
+                $table->unsignedBigInteger('created_by')->nullable();
             }
         });
     }
