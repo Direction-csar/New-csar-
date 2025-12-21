@@ -268,10 +268,10 @@ Route::get('/test', [\App\Http\Controllers\Public\TestController::class, 'test']
 Route::get('/test-form', [\App\Http\Controllers\Public\TestController::class, 'testForm'])->name('test.form');
 Route::post('/test-submit', [\App\Http\Controllers\Public\TestController::class, 'testSubmit'])->name('test.submit');
 
-// Public Routes - Formulaire de demande
-Route::get('/demande', [DemandeController::class, 'create'])->name('demande.create');
-Route::post('/demande', [DemandeController::class, 'store'])->name('demande.store');
-Route::get('/demande-succes', [DemandeController::class, 'success'])->name('demande.success');
+// Public Routes - Formulaire de demande - Routes déjà définies dans le groupe {locale} (lignes 164-166)
+// Route::get('/demande', [DemandeController::class, 'create'])->name('demande.create');
+// Route::post('/demande', [DemandeController::class, 'store'])->name('demande.store');
+// Route::get('/demande-succes', [DemandeController::class, 'success'])->name('demande.success');
 
 // Route pour rafraîchir le token CSRF
 Route::get('/csrf-token', [\App\Http\Controllers\CsrfController::class, 'getToken'])->name('csrf.token');
