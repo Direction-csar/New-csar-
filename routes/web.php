@@ -280,8 +280,9 @@ Route::get('/csrf-token', [\App\Http\Controllers\CsrfController::class, 'getToke
 Route::redirect('/demande-static', '/demande', 301);
 // Route home déjà définie dans le groupe {locale} (ligne 95)
 // Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/a-propos', [AboutController::class, 'index'])->name('about');
-Route::get('/institution', [InstitutionController::class, 'index'])->name('institution');
+// Route about déjà définie dans le groupe {locale} (ligne 98)
+// Route::get('/a-propos', [AboutController::class, 'index'])->name('about');
+// Route::get('/institution', [InstitutionController::class, 'index'])->name('institution');
 Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
 Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
 
