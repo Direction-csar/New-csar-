@@ -533,9 +533,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('/warehouses/{warehouse}', [\App\Http\Controllers\Admin\WarehouseController::class, 'destroy'])->name('warehouses.destroy');
 
         // Messages
-        Route::resource('messages', MessagesController::class);
-        Route::post('/messages/{message}/reply', [MessagesController::class, 'reply'])->name('messages.reply');
-        Route::post('/messages/{message}/mark-read', [MessagesController::class, 'markAsRead'])->name('messages.mark-read');
+        // Routes messages déjà définies plus haut dans le groupe admin (lignes 454-459)
+        // Route::resource('messages', MessagesController::class); // CONFLIT - routes définies manuellement avec {id}
+        // Route::post('/messages/{message}/reply', [MessagesController::class, 'reply'])->name('messages.reply');
+        // Route::post('/messages/{message}/mark-read', [MessagesController::class, 'markAsRead'])->name('messages.mark-read');
 
         // Newsletter
         Route::resource('newsletter', NewsletterController::class);
