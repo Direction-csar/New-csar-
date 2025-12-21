@@ -382,8 +382,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Routes protégées Admin
     Route::middleware(['auth', 'admin'])->group(function () {
         // Redirection de admin/ vers admin/dashboard
-        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard'); // Nom complet: admin.dashboard
+        // Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard'); // Dupliquée - commentée
         Route::get('/dashboard/realtime-stats', [AdminDashboardController::class, 'realtimeStats'])->name('dashboard.realtime-stats');
         Route::post('/dashboard/filter-map', [AdminDashboardController::class, 'filterMapData'])->name('dashboard.filter-map');
         Route::post('/dashboard/generate-report', [AdminDashboardController::class, 'generateReport'])->name('dashboard.generate-report');
