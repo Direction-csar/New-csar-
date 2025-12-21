@@ -320,8 +320,9 @@ Route::redirect('/a-propos', '/fr/a-propos', 302);
 
 
 // Action Routes
-Route::get('/effectuer-une-action', [ActionController::class, 'index'])->name('action');
-Route::post('/effectuer-une-action', [ActionController::class, 'submit'])->name('request.submit');
+// Routes effectuer-une-action déjà définies dans le groupe {locale} ci-dessus
+// Route::get('/effectuer-une-action', [ActionController::class, 'index'])->name('action');
+// Route::post('/effectuer-une-action', [ActionController::class, 'submit'])->name('request.submit');
 
 // Track Routes
 Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
