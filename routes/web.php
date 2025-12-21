@@ -336,8 +336,8 @@ Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index
 // Public Map
 Route::get('/carte-interactive', [HomeController::class, 'map'])->name('map');
 
-// Public Partners
-Route::get('/partenaires', [PartnersController::class, 'index'])->name('partners.index');
+// Route partenaires déjà définie dans le groupe {locale} ci-dessus
+// Route::get('/partenaires', [PartnersController::class, 'index'])->name('partners.index');
 
 // Speeches Routes
 Route::get('/discours', [SpeechesController::class, 'index'])->name('speeches');
