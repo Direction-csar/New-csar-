@@ -534,10 +534,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('newsletter', NewsletterController::class);
         Route::post('/newsletter/{newsletter}/send', [NewsletterController::class, 'send'])->name('newsletter.send');
 
-        // Rapports SIM
-        Route::resource('sim-reports', SimReportsController::class);
-        Route::post('/sim-reports/generate', [SimReportsController::class, 'generate'])->name('sim-reports.generate');
-        Route::get('/sim-reports/{report}/download', [SimReportsController::class, 'download'])->name('sim-reports.download');
+        // Rapports SIM - Routes déjà définies plus haut dans le groupe admin (lignes 468-476)
+        // Route::resource('sim-reports', SimReportsController::class); // CONFLIT - déjà remplacé par routes manuelles ligne 468
+        // Route::post('/sim-reports/generate', [SimReportsController::class, 'generate'])->name('sim-reports.generate'); // DÉJÀ DÉFINI ligne 470
+        // Route::get('/sim-reports/{report}/download', [SimReportsController::class, 'download'])->name('sim-reports.download'); // DÉJÀ DÉFINI ligne 471
         
         // Routes pour les notifications (centre de notifications)
         Route::get('notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('notifications.index');
@@ -548,10 +548,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'store'])->name('notifications.store');
         Route::delete('notifications/{id}', [\App\Http\Controllers\Admin\NotificationsController::class, 'destroy'])->name('notifications.destroy');
         
-        Route::get('messages', [AdminMessageController::class, 'index'])->name('messages.index');
-        Route::get('messages/{id}', [AdminMessageController::class, 'show'])->name('messages.show');
-        Route::post('messages/mark-read', [AdminMessageController::class, 'markAsRead'])->name('messages.mark-read');
-        Route::post('messages/mark-all-read', [AdminMessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
+        // Routes messages déjà définies plus haut dans le groupe admin (lignes 454-460)
+        // Route::get('messages', [AdminMessageController::class, 'index'])->name('messages.index');
+        // Route::get('messages/{id}', [AdminMessageController::class, 'show'])->name('messages.show');
+        // Route::post('messages/mark-read', [AdminMessageController::class, 'markAsRead'])->name('messages.mark-read');
+        // Route::post('messages/mark-all-read', [AdminMessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
         Route::post('messages/{id}/reply', [AdminMessageController::class, 'reply'])->name('messages.reply');
         Route::delete('messages/{id}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
     });
