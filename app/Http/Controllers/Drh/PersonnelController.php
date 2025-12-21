@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Drh;
+namespace App\Http\Controllers\DRH;
 
 use App\Http\Controllers\Controller;
 use App\Models\Personnel;
