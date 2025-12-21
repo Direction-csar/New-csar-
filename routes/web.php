@@ -329,8 +329,8 @@ Route::redirect('/a-propos', '/fr/a-propos', 302);
 // Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
 // Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
 
-// Gallery Routes
-Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
+// Route missions-en-images déjà définie dans le groupe {locale} ci-dessus
+// Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
 Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
 
 // Public Map
