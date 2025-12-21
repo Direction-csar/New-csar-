@@ -4700,7 +4700,7 @@ if (statsSection) {
         
         <!-- View All Partners Button with Animation -->
         <div style="text-align: center;" data-aos="fade-up" data-aos-delay="400">
-            <a href="{{ route('partners.index') }}" class="btn-partners-modern" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 40px; background: linear-gradient(135deg, #22c55e 0%, #10b981 100%); color: white; font-weight: 700; font-size: 1rem; border-radius: 50px; text-decoration: none; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;">
+            <a href="{{ route('partners.index', app()->getLocale()) }}" class="btn-partners-modern" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 40px; background: linear-gradient(135deg, #22c55e 0%, #10b981 100%); color: white; font-weight: 700; font-size: 1rem; border-radius: 50px; text-decoration: none; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;">
                 <span style="position: relative; z-index: 2; display: flex; align-items: center; gap: 12px;">
                     <i class="fas fa-users"></i>
                     Découvrir tous nos partenaires
