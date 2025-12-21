@@ -339,9 +339,9 @@ Route::redirect('/a-propos', '/fr/a-propos', 302);
 // Route partenaires déjà définie dans le groupe {locale} ci-dessus
 // Route::get('/partenaires', [PartnersController::class, 'index'])->name('partners.index');
 
-// Speeches Routes
-Route::get('/discours', [SpeechesController::class, 'index'])->name('speeches');
-Route::get('/discours/{id}', [SpeechesController::class, 'show'])->name('speech');
+// Routes discours déjà définies dans le groupe {locale} ci-dessus
+// Route::get('/discours', [SpeechesController::class, 'index'])->name('speeches');
+// Route::get('/discours/{id}', [SpeechesController::class, 'show'])->name('speech');
 
 // Success page for request submission
 Route::get('/demande-succes', [HomeController::class, 'requestSuccess'])->name('request.success');
