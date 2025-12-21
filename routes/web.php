@@ -288,46 +288,46 @@ Route::redirect('/demande-static', '/demande', 301);
 // Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
 
 
-// Action Routes
-Route::get('/effectuer-une-action', [ActionController::class, 'index'])->name('action');
-Route::post('/effectuer-une-action', [ActionController::class, 'submit'])->name('request.submit');
+// Action Routes - Routes déjà définies dans le groupe {locale} (lignes 112-113)
+// Route::get('/effectuer-une-action', [ActionController::class, 'index'])->name('action');
+// Route::post('/effectuer-une-action', [ActionController::class, 'submit'])->name('request.submit');
 
-// Track Routes
-Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
-Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
-Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
+// Track Routes - Routes déjà définies dans le groupe {locale} (lignes 116-118)
+// Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
+// Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
+// Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
 
-// Gallery Routes
-Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
-Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
+// Gallery Routes - Routes déjà définies dans le groupe {locale} (lignes 121-122)
+// Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
+// Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
 
-// Public Map
-Route::get('/carte-interactive', [HomeController::class, 'map'])->name('map');
+// Public Map - Route déjà définie dans le groupe {locale} (ligne 125)
+// Route::get('/carte-interactive', [HomeController::class, 'map'])->name('map');
 
 // Public Partners - Route déjà définie dans le groupe {locale} (ligne 128)
 // Route::get('/partenaires', [PartnersController::class, 'index'])->name('partners.index');
 
-// Speeches Routes
-Route::get('/discours', [SpeechesController::class, 'index'])->name('speeches');
-Route::get('/discours/{id}', [SpeechesController::class, 'show'])->name('speech');
+// Speeches Routes - Routes déjà définies dans le groupe {locale} (lignes 136-137)
+// Route::get('/discours', [SpeechesController::class, 'index'])->name('speeches');
+// Route::get('/discours/{id}', [SpeechesController::class, 'show'])->name('speech');
 
-// Success page for request submission
-Route::get('/demande-succes', [HomeController::class, 'requestSuccess'])->name('request.success');
+// Success page for request submission - Route déjà définie dans le groupe {locale} (ligne 147)
+// Route::get('/demande-succes', [HomeController::class, 'requestSuccess'])->name('request.success');
 
-// SIM Reports Routes (routes spécifiques AVANT les routes avec paramètres)
+// SIM Reports Routes - Routes déjà définies dans le groupe {locale} (lignes 151-160)
 // Ajout d'un throttling léger pour éviter les abus (90 req/min par IP)
-Route::middleware('throttle:90,1')->group(function () {
-    Route::get('/sim', [\App\Http\Controllers\Public\SimController::class, 'index'])->name('sim.index');
-    Route::get('/sim/dashboard', [\App\Http\Controllers\Public\SimController::class, 'dashboard'])->name('sim.dashboard');
-    Route::get('/sim/prices', [\App\Http\Controllers\Public\SimController::class, 'prices'])->name('sim.prices');
-    Route::get('/sim/supply', [\App\Http\Controllers\Public\SimController::class, 'supply'])->name('sim.supply');
-    Route::get('/sim/regional', [\App\Http\Controllers\Public\SimController::class, 'regional'])->name('sim.regional');
-    Route::get('/sim/distributions', [\App\Http\Controllers\Public\SimController::class, 'distributions'])->name('sim.distributions');
-    Route::get('/sim/magasins', [\App\Http\Controllers\Public\SimController::class, 'magasins'])->name('sim.magasins');
-    Route::get('/sim/operations', [\App\Http\Controllers\Public\SimController::class, 'operations'])->name('sim.operations');
-    Route::get('/sim/{simReport}/download', [\App\Http\Controllers\Public\SimController::class, 'download'])->name('sim.download');
-    Route::get('/sim/{simReport}', [\App\Http\Controllers\Public\SimController::class, 'show'])->name('sim.show');
-});
+// Route::middleware('throttle:90,1')->group(function () {
+//     Route::get('/sim', [\App\Http\Controllers\Public\SimController::class, 'index'])->name('sim.index');
+//     Route::get('/sim/dashboard', [\App\Http\Controllers\Public\SimController::class, 'dashboard'])->name('sim.dashboard');
+//     Route::get('/sim/prices', [\App\Http\Controllers\Public\SimController::class, 'prices'])->name('sim.prices');
+//     Route::get('/sim/supply', [\App\Http\Controllers\Public\SimController::class, 'supply'])->name('sim.supply');
+//     Route::get('/sim/regional', [\App\Http\Controllers\Public\SimController::class, 'regional'])->name('sim.regional');
+//     Route::get('/sim/distributions', [\App\Http\Controllers\Public\SimController::class, 'distributions'])->name('sim.distributions');
+//     Route::get('/sim/magasins', [\App\Http\Controllers\Public\SimController::class, 'magasins'])->name('sim.magasins');
+//     Route::get('/sim/operations', [\App\Http\Controllers\Public\SimController::class, 'operations'])->name('sim.operations');
+//     Route::get('/sim/{simReport}/download', [\App\Http\Controllers\Public\SimController::class, 'download'])->name('sim.download');
+//     Route::get('/sim/{simReport}', [\App\Http\Controllers\Public\SimController::class, 'show'])->name('sim.show');
+// });
 
 // Routes Admin
 Route::prefix('admin')->name('admin.')->group(function () {
