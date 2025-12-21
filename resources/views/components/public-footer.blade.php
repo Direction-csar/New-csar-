@@ -73,7 +73,7 @@
           <li style="margin-bottom:8px;"><a href="/institution" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Institution</a></li>
           <li style="margin-bottom:8px;"><a href="/actualites" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Actualités</a></li>
           <li style="margin-bottom:8px;"><a href="{{ route('sim.index') }}" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">SIM</a></li>
-          <li style="margin-top:8px;"><a href="{{ route('gallery') }}" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Nos missions</a></li>
+          <li style="margin-top:8px;"><a href="{{ route('gallery', app()->getLocale()) }}" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Nos missions</a></li>
           
         </ul>
       </div>

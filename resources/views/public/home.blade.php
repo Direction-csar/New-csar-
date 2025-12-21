@@ -2983,7 +2983,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         <div class="services-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem;">
             <!-- Service Card 1 -->
-            <a href="{{ route('gallery') }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="100" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite;">
+            <a href="{{ route('gallery', app()->getLocale()) }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="100" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite;">
                 <!-- Animated Border -->
                 <div class="service-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #22c55e, #3b82f6, #22c55e); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-rotate 4s linear infinite;"></div>
                 

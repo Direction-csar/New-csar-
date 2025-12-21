@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <p class="section-subtitle">Découvrez nos missions et nos réalisations sur le terrain</p>
         
         <div class="grid grid-3 gallery-grid">
-            <a href="{{ route('gallery') }}" class="card gallery-card">
+            <a href="{{ route('gallery', app()->getLocale()) }}" class="card gallery-card">
                 <div class="gallery-icon">
                     <i class="fas fa-hands-helping"></i>
                 </div>
