@@ -570,10 +570,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/warehouses/{warehouse}', [\App\Http\Controllers\Admin\WarehouseController::class, 'update'])->name('warehouses.update');
         Route::delete('/warehouses/{warehouse}', [\App\Http\Controllers\Admin\WarehouseController::class, 'destroy'])->name('warehouses.destroy');
 
-        // Messages
-        Route::resource('messages', MessagesController::class);
-        Route::post('/messages/{message}/reply', [MessagesController::class, 'reply'])->name('messages.reply');
-        Route::post('/messages/{message}/mark-read', [MessagesController::class, 'markAsRead'])->name('messages.mark-read');
+        // Messages - Routes déjà définies plus haut avec MessageController
+        // Route::resource('messages', MessagesController::class); // CONFLIT avec routes manuelles lignes 499-504
+        // Route::post('/messages/{message}/reply', [MessagesController::class, 'reply'])->name('messages.reply');
+        // Route::post('/messages/{message}/mark-read', [MessagesController::class, 'markAsRead'])->name('messages.mark-read');
 
         // Newsletter
         Route::resource('newsletter', NewsletterController::class);
