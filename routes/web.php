@@ -333,8 +333,8 @@ Route::redirect('/a-propos', '/fr/a-propos', 302);
 // Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
 // Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
 
-// Public Map
-Route::get('/carte-interactive', [HomeController::class, 'map'])->name('map');
+// Route carte-interactive déjà définie dans le groupe {locale} ci-dessus
+// Route::get('/carte-interactive', [HomeController::class, 'map'])->name('map');
 
 // Route partenaires déjà définie dans le groupe {locale} ci-dessus
 // Route::get('/partenaires', [PartnersController::class, 'index'])->name('partners.index');
