@@ -92,8 +92,7 @@ Route::get('/news', function () {
 // Localized routes
 Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middleware' => ['web', \App\Http\Middleware\SetLocale::class]], function () {
     // Home route
-    // Route home déjà définie dans le groupe {locale} (ligne 95)
-// Route::get('/', [HomeController::class, 'index'])->name('home');
+    Route::get('/', [HomeController::class, 'index'])->name('home');
 
     // Public routes
     Route::get('/a-propos', [AboutController::class, 'index'])->name('about');
