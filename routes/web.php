@@ -314,8 +314,9 @@ Route::redirect('/demande-static', '/demande', 301);
 Route::redirect('/a-propos', '/fr/a-propos', 302);
 // Route institution déjà définie dans le groupe {locale} ci-dessus
 // Route::get('/institution', [InstitutionController::class, 'index'])->name('institution');
-Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
-Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
+// Routes rapports déjà définies dans le groupe {locale} ci-dessus
+// Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
+// Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
 
 
 // Action Routes
