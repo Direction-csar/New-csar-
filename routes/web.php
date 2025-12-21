@@ -312,7 +312,8 @@ Route::redirect('/demande-static', '/demande', 301);
 // Canonical public route is localized: /{locale}/a-propos
 // Keep non-localized /a-propos as a fast redirect to /fr/a-propos
 Route::redirect('/a-propos', '/fr/a-propos', 302);
-Route::get('/institution', [InstitutionController::class, 'index'])->name('institution');
+// Route institution déjà définie dans le groupe {locale} ci-dessus
+// Route::get('/institution', [InstitutionController::class, 'index'])->name('institution');
 Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
 Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
 

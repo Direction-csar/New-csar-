@@ -1,0 +1,57 @@
+═══════════════════════════════════════════════════════════════
+    🔐 IDENTIFIANTS DE CONNEXION - PLATEFORME CSAR
+═══════════════════════════════════════════════════════════════
+
+📌 TOUS LES COMPTES UTILISENT LE MOT DE PASSE : password
+
+═══════════════════════════════════════════════════════════════
+
+👨‍💼 ADMINISTRATEUR
+   URL      : https://www.csar.sn/admin
+   Email    : admin@csar.sn
+   Password : password
+
+═══════════════════════════════════════════════════════════════
+
+👔 DIRECTEUR GÉNÉRAL (DG)
+   URL      : https://www.csar.sn/dg
+   Email    : dg@csar.sn
+   Password : password
+
+═══════════════════════════════════════════════════════════════
+
+👤 DRH (Direction des Ressources Humaines)
+   URL      : https://www.csar.sn/drh
+   Email    : drh@csar.sn
+   Password : password
+
+═══════════════════════════════════════════════════════════════
+
+📦 RESPONSABLE ENTREPÔT
+   URL      : https://www.csar.sn/entrepot
+   Email    : responsable@csar.sn
+   Password : password
+
+   Alternative :
+   Email    : entrepot@csar.sn
+   Password : password
+
+═══════════════════════════════════════════════════════════════
+
+🚚 AGENT CSAR
+   URL      : https://www.csar.sn/agent
+   Email    : agent@csar.sn
+   Password : password
+
+═══════════════════════════════════════════════════════════════
+
+🌐 INTERFACE PUBLIQUE
+   URL      : https://www.csar.sn
+
+═══════════════════════════════════════════════════════════════
+
+⚠️  IMPORTANT - SÉCURITÉ
+   CHANGER TOUS LES MOTS DE PASSE EN PRODUCTION !
+
+═══════════════════════════════════════════════════════════════
+
