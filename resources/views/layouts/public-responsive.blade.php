@@ -73,7 +73,7 @@
                     <a href="{{ route('about') }}" class="nav-item {{ request()->routeIs('about') ? 'active' : '' }}">À propos</a>
                     <a href="{{ route('institution') }}" class="nav-item {{ request()->routeIs('institution') ? 'active' : '' }}">Institution</a>
                     <a href="{{ route('news') }}" class="nav-item {{ request()->routeIs('news.*') ? 'active' : '' }}">Actualités</a>
-                    <a href="{{ route('map') }}" class="nav-item {{ request()->routeIs('map') ? 'active' : '' }}">Carte</a>
+                    <a href="{{ route('map', app()->getLocale()) }}" class="nav-item {{ request()->routeIs('map') ? 'active' : '' }}">Carte</a>
                     <a href="{{ route('partners.index') }}" class="nav-item {{ request()->routeIs('partners.*') ? 'active' : '' }}">Partenaires</a>
                     <a href="{{ route('sim.index') }}" class="nav-item {{ request()->routeIs('sim.*') ? 'active' : '' }}">SIM</a>
                     <a href="{{ route('gallery', app()->getLocale()) }}" class="nav-item {{ request()->routeIs('gallery') || request()->routeIs('gallery.*') ? 'active' : '' }}">Missions</a>
@@ -107,7 +107,7 @@
             <a href="{{ route('about') }}" class="mobile-nav-item {{ request()->routeIs('about') ? 'active' : '' }}">À propos</a>
             <a href="{{ route('institution') }}" class="mobile-nav-item {{ request()->routeIs('institution') ? 'active' : '' }}">Institution</a>
             <a href="{{ route('news') }}" class="mobile-nav-item {{ request()->routeIs('news.*') ? 'active' : '' }}">Actualités</a>
-            <a href="{{ route('map') }}" class="mobile-nav-item {{ request()->routeIs('map') ? 'active' : '' }}">Carte</a>
+            <a href="{{ route('map', app()->getLocale()) }}" class="mobile-nav-item {{ request()->routeIs('map') ? 'active' : '' }}">Carte</a>
             <a href="{{ route('partners.index') }}" class="mobile-nav-item {{ request()->routeIs('partners.*') ? 'active' : '' }}">Partenaires</a>
             <a href="{{ route('sim.index') }}" class="mobile-nav-item {{ request()->routeIs('sim.*') ? 'active' : '' }}">SIM</a>
             <a href="{{ route('gallery', app()->getLocale()) }}" class="mobile-nav-item {{ request()->routeIs('gallery') || request()->routeIs('gallery.*') ? 'active' : '' }}">Missions</a>

@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p>Nos équipes distribuent des denrées alimentaires aux populations dans le besoin à travers tout le Sénégal</p>
             </a>
             
-            <a href="{{ route('map') }}" class="card gallery-card">
+            <a href="{{ route('map', app()->getLocale()) }}" class="card gallery-card">
                 <div class="gallery-icon">
                     <i class="fas fa-map-marked-alt"></i>
                 </div>
