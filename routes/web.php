@@ -283,8 +283,9 @@ Route::redirect('/demande-static', '/demande', 301);
 // Route about déjà définie dans le groupe {locale} (ligne 98)
 // Route::get('/a-propos', [AboutController::class, 'index'])->name('about');
 // Route::get('/institution', [InstitutionController::class, 'index'])->name('institution');
-Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
-Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
+// Routes rapports déjà définies dans le groupe {locale} (lignes 103-105)
+// Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
+// Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
 
 
 // Action Routes
