@@ -347,19 +347,19 @@ Route::redirect('/a-propos', '/fr/a-propos', 302);
 Route::get('/demande-succes', [HomeController::class, 'requestSuccess'])->name('request.success');
 
 // SIM Reports Routes (routes spécifiques AVANT les routes avec paramètres)
-// Ajout d'un throttling léger pour éviter les abus (90 req/min par IP)
-Route::middleware('throttle:90,1')->group(function () {
-    Route::get('/sim', [\App\Http\Controllers\Public\SimController::class, 'index'])->name('sim.index');
-    Route::get('/sim/dashboard', [\App\Http\Controllers\Public\SimController::class, 'dashboard'])->name('sim.dashboard');
-    Route::get('/sim/prices', [\App\Http\Controllers\Public\SimController::class, 'prices'])->name('sim.prices');
-    Route::get('/sim/supply', [\App\Http\Controllers\Public\SimController::class, 'supply'])->name('sim.supply');
-    Route::get('/sim/regional', [\App\Http\Controllers\Public\SimController::class, 'regional'])->name('sim.regional');
-    Route::get('/sim/distributions', [\App\Http\Controllers\Public\SimController::class, 'distributions'])->name('sim.distributions');
-    Route::get('/sim/magasins', [\App\Http\Controllers\Public\SimController::class, 'magasins'])->name('sim.magasins');
-    Route::get('/sim/operations', [\App\Http\Controllers\Public\SimController::class, 'operations'])->name('sim.operations');
-    Route::get('/sim/{simReport}/download', [\App\Http\Controllers\Public\SimController::class, 'download'])->name('sim.download');
-    Route::get('/sim/{simReport}', [\App\Http\Controllers\Public\SimController::class, 'show'])->name('sim.show');
-});
+// Routes sim déjà définies dans le groupe {locale} ci-dessus
+// Route::middleware('throttle:90,1')->group(function () {
+//     Route::get('/sim', [\App\Http\Controllers\Public\SimController::class, 'index'])->name('sim.index');
+//     Route::get('/sim/dashboard', [\App\Http\Controllers\Public\SimController::class, 'dashboard'])->name('sim.dashboard');
+//     Route::get('/sim/prices', [\App\Http\Controllers\Public\SimController::class, 'prices'])->name('sim.prices');
+//     Route::get('/sim/supply', [\App\Http\Controllers\Public\SimController::class, 'supply'])->name('sim.supply');
+//     Route::get('/sim/regional', [\App\Http\Controllers\Public\SimController::class, 'regional'])->name('sim.regional');
+//     Route::get('/sim/distributions', [\App\Http\Controllers\Public\SimController::class, 'distributions'])->name('sim.distributions');
+//     Route::get('/sim/magasins', [\App\Http\Controllers\Public\SimController::class, 'magasins'])->name('sim.magasins');
+//     Route::get('/sim/operations', [\App\Http\Controllers\Public\SimController::class, 'operations'])->name('sim.operations');
+//     Route::get('/sim/{simReport}/download', [\App\Http\Controllers\Public\SimController::class, 'download'])->name('sim.download');
+//     Route::get('/sim/{simReport}', [\App\Http\Controllers\Public\SimController::class, 'show'])->name('sim.show');
+// });
 
 // Routes Admin
 Route::prefix('admin')->name('admin.')->group(function () {
