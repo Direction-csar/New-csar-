@@ -324,10 +324,10 @@ Route::redirect('/a-propos', '/fr/a-propos', 302);
 // Route::get('/effectuer-une-action', [ActionController::class, 'index'])->name('action');
 // Route::post('/effectuer-une-action', [ActionController::class, 'submit'])->name('request.submit');
 
-// Track Routes
-Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
-Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
-Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
+// Routes suivre-ma-demande déjà définies dans le groupe {locale} ci-dessus
+// Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
+// Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
+// Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
 
 // Gallery Routes
 Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
