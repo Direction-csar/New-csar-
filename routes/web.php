@@ -510,7 +510,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/newsletter/analytics', [\App\Http\Controllers\Admin\NewsletterController::class, 'getAnalytics'])->name('newsletter.analytics');
         
         // Rapports SIM
-        Route::resource('sim-reports', \App\Http\Controllers\Admin\SimReportsController::class);
+        // Route::resource('sim-reports', \App\Http\Controllers\Admin\SimReportsController::class); // CONFLIT - routes définies manuellement ci-dessous
+        Route::get('/sim-reports', [\App\Http\Controllers\Admin\SimReportsController::class, 'index'])->name('sim-reports.index');
+        Route::get('/sim-reports/create', [\App\Http\Controllers\Admin\SimReportsController::class, 'create'])->name('sim-reports.create');
+        Route::post('/sim-reports', [\App\Http\Controllers\Admin\SimReportsController::class, 'store'])->name('sim-reports.store');
+        Route::get('/sim-reports/{id}', [\App\Http\Controllers\Admin\SimReportsController::class, 'show'])->name('sim-reports.show');
+        Route::get('/sim-reports/{id}/edit', [\App\Http\Controllers\Admin\SimReportsController::class, 'edit'])->name('sim-reports.edit');
+        Route::put('/sim-reports/{id}', [\App\Http\Controllers\Admin\SimReportsController::class, 'update'])->name('sim-reports.update');
+        Route::delete('/sim-reports/{id}', [\App\Http\Controllers\Admin\SimReportsController::class, 'destroy'])->name('sim-reports.destroy');
         Route::post('/sim-reports/upload', [\App\Http\Controllers\Admin\SimReportsController::class, 'uploadDocument'])->name('sim-reports.upload');
         Route::post('/sim-reports/generate', [\App\Http\Controllers\Admin\SimReportsController::class, 'generateReport'])->name('sim-reports.generate');
         Route::get('/sim-reports/{id}/download', [\App\Http\Controllers\Admin\SimReportsController::class, 'download'])->name('sim-reports.download');
