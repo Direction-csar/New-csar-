@@ -126,7 +126,6 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middlew
 
     // Public partners
     Route::get('/partenaires', [PartnersController::class, 'index'])->name('partners.index');
-    Route::get('/partenaires', [PartnersController::class, 'index'])->name('partners'); // Alias pour la navigation
 
     // Legal pages
     Route::get('/politique-confidentialite', [\App\Http\Controllers\Public\LegalController::class, 'privacy'])->name('privacy');
