@@ -92,7 +92,8 @@ Route::get('/news', function () {
 // Localized routes
 Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middleware' => ['web', \App\Http\Middleware\SetLocale::class]], function () {
     // Home route
-    Route::get('/', [HomeController::class, 'index'])->name('home');
+    // Route home déjà définie dans le groupe {locale} (ligne 95)
+// Route::get('/', [HomeController::class, 'index'])->name('home');
 
     // Public routes
     Route::get('/a-propos', [AboutController::class, 'index'])->name('about');
@@ -278,7 +279,8 @@ Route::get('/csrf-token', [\App\Http\Controllers\CsrfController::class, 'getToke
 
 // Alias pour la compatibilité avec les anciens liens
 Route::redirect('/demande-static', '/demande', 301);
-Route::get('/', [HomeController::class, 'index'])->name('home');
+// Route home déjà définie dans le groupe {locale} (ligne 95)
+// Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/a-propos', [AboutController::class, 'index'])->name('about');
 Route::get('/institution', [InstitutionController::class, 'index'])->name('institution');
 Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
