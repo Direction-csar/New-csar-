@@ -580,9 +580,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/newsletter/{newsletter}/send', [NewsletterController::class, 'send'])->name('newsletter.send');
 
         // Rapports SIM
-        Route::resource('sim-reports', SimReportsController::class);
-        Route::post('/sim-reports/generate', [SimReportsController::class, 'generate'])->name('sim-reports.generate');
-        Route::get('/sim-reports/{report}/download', [SimReportsController::class, 'download'])->name('sim-reports.download');
+        // Routes sim-reports déjà définies plus haut dans le groupe admin (lignes 514-518)
+        // Route::resource('sim-reports', SimReportsController::class); // CONFLIT avec routes manuelles
+        // Route::post('/sim-reports/generate', [SimReportsController::class, 'generate'])->name('sim-reports.generate'); // DÉJÀ DÉFINI ligne 515
+        // Route::get('/sim-reports/{report}/download', [SimReportsController::class, 'download'])->name('sim-reports.download'); // DÉJÀ DÉFINI ligne 516
         
         // Routes pour les notifications (centre de notifications)
         Route::get('notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('notifications.index');
