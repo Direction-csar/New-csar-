@@ -182,34 +182,16 @@ Route::prefix('drh')->name('drh.')->group(function () {
     Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store'])->name('login.submit');
     Route::post('/logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
     
-    // Route de test directe (bypass CSRF)
-    Route::get('/test-login', function() {
-        abort_unless(app()->environment('local'), 404);
-        $user = \App\Models\User::where('email', 'drh@csar.sn')->first();
-        if ($user && \Illuminate\Support\Facades\Hash::check('password', $user->password)) {
-            \Illuminate\Support\Facades\Auth::login($user);
-            return redirect()->route('drh.dashboard')->with('success', 'Connexion réussie!');
-        }
-        return redirect()->route('drh.login')->with('error', 'Échec');
-    })->name('test.login');
-    
     // Routes protégées DRH
     Route::middleware(['auth', 'drh'])->group(function () {
         Route::get('/', [\App\Http\Controllers\DRH\DashboardController::class, 'index'])->name('dashboard');
-        Route::get('/statistics', [\App\Http\Controllers\DRH\DashboardController::class, 'statistics'])->name('statistics');
-        Route::get('/settings', [\App\Http\Controllers\DRH\SettingsController::class, 'index'])->name('settings');
-        Route::post('/settings', [\App\Http\Controllers\DRH\SettingsController::class, 'update'])->name('settings.update');
         
         // Gestion du personnel
         Route::resource('personnel', \App\Http\Controllers\DRH\PersonnelController::class);
         Route::get('personnel/export', [\App\Http\Controllers\DRH\PersonnelController::class, 'export'])->name('personnel.export');
-        Route::get('personnel/export-pdf', [\App\Http\Controllers\DRH\PersonnelController::class, 'exportPdf'])->name('personnel.export-pdf');
-        Route::get('personnel/export-excel', [\App\Http\Controllers\DRH\PersonnelController::class, 'exportExcel'])->name('personnel.export-excel');
-        Route::get('personnel/{personnel}/export-fiche-pdf', [\App\Http\Controllers\DRH\PersonnelController::class, 'exportFichePdf'])->name('personnel.export-fiche-pdf');
         
         // Gestion des documents RH
         Route::resource('documents', \App\Http\Controllers\DRH\DocumentsController::class);
-        Route::get('documents/{document}/download', [\App\Http\Controllers\DRH\DocumentsController::class, 'download'])->name('documents.download');
         
         // Gestion des présences
         Route::resource('attendance', \App\Http\Controllers\DRH\AttendanceController::class);
@@ -231,17 +213,6 @@ Route::prefix('dg')->name('dg.')->group(function () {
     Route::get('/login', [App\Http\Controllers\Auth\DGLoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [App\Http\Controllers\Auth\DGLoginController::class, 'login'])->name('login.submit');
     Route::post('/logout', [App\Http\Controllers\Auth\DGLoginController::class, 'logout'])->name('logout');
-    
-    // Route de test directe (bypass rate limiting)
-    Route::get('/test-login', function() {
-        abort_unless(app()->environment('local'), 404);
-        $user = \App\Models\User::where('email', 'dg@csar.sn')->first();
-        if ($user && \Illuminate\Support\Facades\Hash::check('password', $user->password)) {
-            \Illuminate\Support\Facades\Auth::login($user);
-            return redirect()->route('dg.dashboard')->with('success', 'Connexion réussie via test!');
-        }
-        return redirect()->route('dg.login')->with('error', 'Échec de la connexion test');
-    })->name('test.login');
 
     // Routes protégées DG (lecture seule)
     Route::middleware(['auth', \App\Http\Middleware\DGMiddleware::class])->group(function () {
@@ -277,11 +248,10 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::get('/reports', [App\Http\Controllers\DG\ReportsController::class, 'index'])->name('reports.index');
         Route::get('/reports/generate', [App\Http\Controllers\DG\ReportsController::class, 'generate'])->name('reports.generate');
         Route::get('/reports/export', [App\Http\Controllers\DG\ReportsController::class, 'export'])->name('reports.export');
-        Route::get('/reports/show/{filename}', [App\Http\Controllers\DG\ReportsController::class, 'show'])->name('reports.show');
         
-        // Carte interactive (nom automatique: dg.map grâce au groupe name('dg.'))
-        Route::get('/map', [App\Http\Controllers\DG\MapController::class, 'index']); // Nom complet: dg.map
-        Route::get('/map/data', [App\Http\Controllers\DG\MapController::class, 'getData']); // Nom complet: dg.map.data
+        // Carte interactive
+        Route::get('/map', [App\Http\Controllers\DG\MapController::class, 'index'])->name('map');
+        Route::get('/map/data', [App\Http\Controllers\DG\MapController::class, 'getData'])->name('map.data');
         
         // Profil DG
         // Routes à implémenter si nécessaire
@@ -298,68 +268,63 @@ Route::get('/test', [\App\Http\Controllers\Public\TestController::class, 'test']
 Route::get('/test-form', [\App\Http\Controllers\Public\TestController::class, 'testForm'])->name('test.form');
 Route::post('/test-submit', [\App\Http\Controllers\Public\TestController::class, 'testSubmit'])->name('test.submit');
 
-// Public Routes - Formulaire de demande (déjà défini dans le groupe {locale} ci-dessus)
-// Route::get('/demande', [DemandeController::class, 'create'])->name('demande.create');
-// Route::post('/demande', [DemandeController::class, 'store'])->name('demande.store');
-// Route::get('/demande-succes', [DemandeController::class, 'success'])->name('demande.success');
+// Public Routes - Formulaire de demande
+Route::get('/demande', [DemandeController::class, 'create'])->name('demande.create');
+Route::post('/demande', [DemandeController::class, 'store'])->name('demande.store');
+Route::get('/demande-succes', [DemandeController::class, 'success'])->name('demande.success');
 
 // Route pour rafraîchir le token CSRF
 Route::get('/csrf-token', [\App\Http\Controllers\CsrfController::class, 'getToken'])->name('csrf.token');
 
 // Alias pour la compatibilité avec les anciens liens
 Route::redirect('/demande-static', '/demande', 301);
-// Route home principale est dans le groupe {locale} ci-dessus
-// Canonical public route is localized: /{locale}/a-propos
-// Keep non-localized /a-propos as a fast redirect to /fr/a-propos
-Route::redirect('/a-propos', '/fr/a-propos', 302);
-// Route institution déjà définie dans le groupe {locale} ci-dessus
-// Route::get('/institution', [InstitutionController::class, 'index'])->name('institution');
-// Routes rapports déjà définies dans le groupe {locale} ci-dessus
-// Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
-// Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/a-propos', [AboutController::class, 'index'])->name('about');
+Route::get('/institution', [InstitutionController::class, 'index'])->name('institution');
+Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
+Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
 
 
 // Action Routes
-// Routes effectuer-une-action déjà définies dans le groupe {locale} ci-dessus
-// Route::get('/effectuer-une-action', [ActionController::class, 'index'])->name('action');
-// Route::post('/effectuer-une-action', [ActionController::class, 'submit'])->name('request.submit');
+Route::get('/effectuer-une-action', [ActionController::class, 'index'])->name('action');
+Route::post('/effectuer-une-action', [ActionController::class, 'submit'])->name('request.submit');
 
-// Routes suivre-ma-demande déjà définies dans le groupe {locale} ci-dessus
-// Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
-// Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
-// Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
+// Track Routes
+Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
+Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
+Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
 
-// Routes gallery déjà définies dans le groupe {locale} ci-dessus
-// Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
-// Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
+// Gallery Routes
+Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
+Route::get('/gallery', [GalleryController::class, 'index'])->name('gallery.index');
 
-// Route carte-interactive déjà définie dans le groupe {locale} ci-dessus
-// Route::get('/carte-interactive', [HomeController::class, 'map'])->name('map');
+// Public Map
+Route::get('/carte-interactive', [HomeController::class, 'map'])->name('map');
 
-// Route partenaires déjà définie dans le groupe {locale} ci-dessus
+// Public Partners - Route déjà définie dans le groupe {locale} (ligne 128)
 // Route::get('/partenaires', [PartnersController::class, 'index'])->name('partners.index');
 
-// Routes discours déjà définies dans le groupe {locale} ci-dessus
-// Route::get('/discours', [SpeechesController::class, 'index'])->name('speeches');
-// Route::get('/discours/{id}', [SpeechesController::class, 'show'])->name('speech');
+// Speeches Routes
+Route::get('/discours', [SpeechesController::class, 'index'])->name('speeches');
+Route::get('/discours/{id}', [SpeechesController::class, 'show'])->name('speech');
 
 // Success page for request submission
 Route::get('/demande-succes', [HomeController::class, 'requestSuccess'])->name('request.success');
 
 // SIM Reports Routes (routes spécifiques AVANT les routes avec paramètres)
-// Routes sim déjà définies dans le groupe {locale} ci-dessus
-// Route::middleware('throttle:90,1')->group(function () {
-//     Route::get('/sim', [\App\Http\Controllers\Public\SimController::class, 'index'])->name('sim.index');
-//     Route::get('/sim/dashboard', [\App\Http\Controllers\Public\SimController::class, 'dashboard'])->name('sim.dashboard');
-//     Route::get('/sim/prices', [\App\Http\Controllers\Public\SimController::class, 'prices'])->name('sim.prices');
-//     Route::get('/sim/supply', [\App\Http\Controllers\Public\SimController::class, 'supply'])->name('sim.supply');
-//     Route::get('/sim/regional', [\App\Http\Controllers\Public\SimController::class, 'regional'])->name('sim.regional');
-//     Route::get('/sim/distributions', [\App\Http\Controllers\Public\SimController::class, 'distributions'])->name('sim.distributions');
-//     Route::get('/sim/magasins', [\App\Http\Controllers\Public\SimController::class, 'magasins'])->name('sim.magasins');
-//     Route::get('/sim/operations', [\App\Http\Controllers\Public\SimController::class, 'operations'])->name('sim.operations');
-//     Route::get('/sim/{simReport}/download', [\App\Http\Controllers\Public\SimController::class, 'download'])->name('sim.download');
-//     Route::get('/sim/{simReport}', [\App\Http\Controllers\Public\SimController::class, 'show'])->name('sim.show');
-// });
+// Ajout d'un throttling léger pour éviter les abus (90 req/min par IP)
+Route::middleware('throttle:90,1')->group(function () {
+    Route::get('/sim', [\App\Http\Controllers\Public\SimController::class, 'index'])->name('sim.index');
+    Route::get('/sim/dashboard', [\App\Http\Controllers\Public\SimController::class, 'dashboard'])->name('sim.dashboard');
+    Route::get('/sim/prices', [\App\Http\Controllers\Public\SimController::class, 'prices'])->name('sim.prices');
+    Route::get('/sim/supply', [\App\Http\Controllers\Public\SimController::class, 'supply'])->name('sim.supply');
+    Route::get('/sim/regional', [\App\Http\Controllers\Public\SimController::class, 'regional'])->name('sim.regional');
+    Route::get('/sim/distributions', [\App\Http\Controllers\Public\SimController::class, 'distributions'])->name('sim.distributions');
+    Route::get('/sim/magasins', [\App\Http\Controllers\Public\SimController::class, 'magasins'])->name('sim.magasins');
+    Route::get('/sim/operations', [\App\Http\Controllers\Public\SimController::class, 'operations'])->name('sim.operations');
+    Route::get('/sim/{simReport}/download', [\App\Http\Controllers\Public\SimController::class, 'download'])->name('sim.download');
+    Route::get('/sim/{simReport}', [\App\Http\Controllers\Public\SimController::class, 'show'])->name('sim.show');
+});
 
 // Routes Admin
 Route::prefix('admin')->name('admin.')->group(function () {
@@ -368,22 +333,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
     Route::post('/logout', [AdminLoginController::class, 'logout'])->name('logout');
     
-    // Route de test directe (bypass CSRF)
-    Route::get('/test-login', function() {
-        abort_unless(app()->environment('local'), 404);
-        $user = \App\Models\User::where('email', 'admin@csar.sn')->first();
-        if ($user && \Illuminate\Support\Facades\Hash::check('password', $user->password)) {
-            \Illuminate\Support\Facades\Auth::login($user);
-            return redirect()->route('admin.dashboard')->with('success', 'Connexion réussie!');
-        }
-        return redirect()->route('admin.login')->with('error', 'Échec');
-    })->name('test.login');
-    
     // Routes protégées Admin
     Route::middleware(['auth', 'admin'])->group(function () {
         // Redirection de admin/ vers admin/dashboard
-        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard'); // Nom complet: admin.dashboard
-        // Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard'); // Dupliquée - commentée
+        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard/realtime-stats', [AdminDashboardController::class, 'realtimeStats'])->name('dashboard.realtime-stats');
         Route::post('/dashboard/filter-map', [AdminDashboardController::class, 'filterMapData'])->name('dashboard.filter-map');
         Route::post('/dashboard/generate-report', [AdminDashboardController::class, 'generateReport'])->name('dashboard.generate-report');
@@ -394,8 +348,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/demandes/{id}/pdf', [DemandesController::class, 'downloadPdf'])->name('demandes.pdf');
         Route::post('/demandes/export', [DemandesController::class, 'export'])->name('demandes.export');
         Route::post('/demandes/bulk-delete', [DemandesController::class, 'bulkDelete'])->name('demandes.bulk-delete');
-        Route::post('/demandes/{id}/approve', [DemandesController::class, 'approve'])->name('demandes.approve');
-        Route::post('/demandes/{id}/reject', [DemandesController::class, 'reject'])->name('demandes.reject');
         
         // Gestion des entrepôts
         Route::resource('entrepots', EntrepotsController::class);
@@ -510,14 +462,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/newsletter/analytics', [\App\Http\Controllers\Admin\NewsletterController::class, 'getAnalytics'])->name('newsletter.analytics');
         
         // Rapports SIM
-        // Route::resource('sim-reports', \App\Http\Controllers\Admin\SimReportsController::class); // CONFLIT - routes définies manuellement ci-dessous
-        Route::get('/sim-reports', [\App\Http\Controllers\Admin\SimReportsController::class, 'index'])->name('sim-reports.index');
-        Route::get('/sim-reports/create', [\App\Http\Controllers\Admin\SimReportsController::class, 'create'])->name('sim-reports.create');
-        Route::post('/sim-reports', [\App\Http\Controllers\Admin\SimReportsController::class, 'store'])->name('sim-reports.store');
-        Route::get('/sim-reports/{id}', [\App\Http\Controllers\Admin\SimReportsController::class, 'show'])->name('sim-reports.show');
-        Route::get('/sim-reports/{id}/edit', [\App\Http\Controllers\Admin\SimReportsController::class, 'edit'])->name('sim-reports.edit');
-        Route::put('/sim-reports/{id}', [\App\Http\Controllers\Admin\SimReportsController::class, 'update'])->name('sim-reports.update');
-        Route::delete('/sim-reports/{id}', [\App\Http\Controllers\Admin\SimReportsController::class, 'destroy'])->name('sim-reports.destroy');
+        Route::resource('sim-reports', \App\Http\Controllers\Admin\SimReportsController::class);
         Route::post('/sim-reports/upload', [\App\Http\Controllers\Admin\SimReportsController::class, 'uploadDocument'])->name('sim-reports.upload');
         Route::post('/sim-reports/generate', [\App\Http\Controllers\Admin\SimReportsController::class, 'generateReport'])->name('sim-reports.generate');
         Route::get('/sim-reports/{id}/download', [\App\Http\Controllers\Admin\SimReportsController::class, 'download'])->name('sim-reports.download');
@@ -577,20 +522,19 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/warehouses/{warehouse}', [\App\Http\Controllers\Admin\WarehouseController::class, 'update'])->name('warehouses.update');
         Route::delete('/warehouses/{warehouse}', [\App\Http\Controllers\Admin\WarehouseController::class, 'destroy'])->name('warehouses.destroy');
 
-        // Messages - Routes déjà définies plus haut avec MessageController
-        // Route::resource('messages', MessagesController::class); // CONFLIT avec routes manuelles lignes 499-504
-        // Route::post('/messages/{message}/reply', [MessagesController::class, 'reply'])->name('messages.reply');
-        // Route::post('/messages/{message}/mark-read', [MessagesController::class, 'markAsRead'])->name('messages.mark-read');
+        // Messages
+        Route::resource('messages', MessagesController::class);
+        Route::post('/messages/{message}/reply', [MessagesController::class, 'reply'])->name('messages.reply');
+        Route::post('/messages/{message}/mark-read', [MessagesController::class, 'markAsRead'])->name('messages.mark-read');
 
         // Newsletter
         Route::resource('newsletter', NewsletterController::class);
         Route::post('/newsletter/{newsletter}/send', [NewsletterController::class, 'send'])->name('newsletter.send');
 
         // Rapports SIM
-        // Routes sim-reports déjà définies plus haut dans le groupe admin (lignes 514-518)
-        // Route::resource('sim-reports', SimReportsController::class); // CONFLIT avec routes manuelles
-        // Route::post('/sim-reports/generate', [SimReportsController::class, 'generate'])->name('sim-reports.generate'); // DÉJÀ DÉFINI ligne 515
-        // Route::get('/sim-reports/{report}/download', [SimReportsController::class, 'download'])->name('sim-reports.download'); // DÉJÀ DÉFINI ligne 516
+        Route::resource('sim-reports', SimReportsController::class);
+        Route::post('/sim-reports/generate', [SimReportsController::class, 'generate'])->name('sim-reports.generate');
+        Route::get('/sim-reports/{report}/download', [SimReportsController::class, 'download'])->name('sim-reports.download');
         
         // Routes pour les notifications (centre de notifications)
         Route::get('notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('notifications.index');
@@ -601,13 +545,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'store'])->name('notifications.store');
         Route::delete('notifications/{id}', [\App\Http\Controllers\Admin\NotificationsController::class, 'destroy'])->name('notifications.destroy');
         
-        // Routes messages déjà définies plus haut dans le groupe admin (lignes 499-504)
-        // Route::get('messages', [AdminMessageController::class, 'index'])->name('messages.index');
-        // Route::get('messages/{id}', [AdminMessageController::class, 'show'])->name('messages.show');
-        // Route::post('messages/mark-read', [AdminMessageController::class, 'markAsRead'])->name('messages.mark-read');
-        // Route::post('messages/mark-all-read', [AdminMessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
-        // Route::post('messages/{id}/reply', [AdminMessageController::class, 'reply'])->name('messages.reply'); // DÉJÀ DÉFINI ligne 504
-        // Route::delete('messages/{id}', [AdminMessageController::class, 'destroy'])->name('messages.destroy'); // DÉJÀ DÉFINI ligne 501
+        Route::get('messages', [AdminMessageController::class, 'index'])->name('messages.index');
+        Route::get('messages/{id}', [AdminMessageController::class, 'show'])->name('messages.show');
+        Route::post('messages/mark-read', [AdminMessageController::class, 'markAsRead'])->name('messages.mark-read');
+        Route::post('messages/mark-all-read', [AdminMessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
+        Route::post('messages/{id}/reply', [AdminMessageController::class, 'reply'])->name('messages.reply');
+        Route::delete('messages/{id}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
     });
 });
 
@@ -751,17 +694,6 @@ Route::prefix('responsable')->name('responsable.')->group(function () {
     Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store'])->name('login.submit');
     Route::post('/logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
     
-    // Route de test directe (bypass) - LOCAL ONLY
-    Route::get('/test-login', function() {
-        abort_unless(app()->environment('local'), 404);
-        $user = \App\Models\User::whereIn('email', ['responsable@csar.sn', 'entrepot@csar.sn'])->first();
-        if ($user && \Illuminate\Support\Facades\Hash::check('password', $user->password)) {
-            \Illuminate\Support\Facades\Auth::login($user);
-            return redirect()->route('responsable.dashboard')->with('success', 'Connexion réussie!');
-        }
-        return redirect()->route('responsable.login')->with('error', 'Échec');
-    })->name('test.login');
-    
     // Protected routes (with middleware)
     Route::middleware('responsable')->group(function () {
         Route::get('/', [\App\Http\Controllers\Responsable\DashboardController::class, 'index'])->name('dashboard');
@@ -785,26 +717,6 @@ Route::prefix('responsable')->name('responsable.')->group(function () {
         // Profile Management
         // Routes profil à implémenter si nécessaire
     }); // Fin du middleware responsable
-});
-
-// Alias pour entrepot -> responsable
-Route::prefix('entrepot')->group(function () {
-    Route::get('/login', function () {
-        return view('auth.responsable-login');
-    })->name('entrepot.login');
-    
-    // POST login redirects to responsable login handler
-    Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store'])->name('entrepot.login.submit');
-    
-    Route::get('/test-login', function() {
-        abort_unless(app()->environment('local'), 404);
-        $user = \App\Models\User::whereIn('email', ['responsable@csar.sn', 'entrepot@csar.sn'])->first();
-        if ($user && \Illuminate\Support\Facades\Hash::check('password', $user->password)) {
-            \Illuminate\Support\Facades\Auth::login($user);
-            return redirect()->route('responsable.dashboard')->with('success', 'Connexion réussie!');
-        }
-        return redirect()->route('entrepot.login')->with('error', 'Échec');
-    })->name('entrepot.test.login');
 });
 
 // Agent Routes
