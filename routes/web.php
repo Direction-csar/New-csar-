@@ -280,8 +280,8 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::get('/reports/show/{filename}', [App\Http\Controllers\DG\ReportsController::class, 'show'])->name('reports.show');
         
         // Carte interactive
-        Route::get('/map', [App\Http\Controllers\DG\MapController::class, 'index'])->name('map');
-        Route::get('/map/data', [App\Http\Controllers\DG\MapController::class, 'getData'])->name('map.data');
+        Route::get('/map', [App\Http\Controllers\DG\MapController::class, 'index'])->name('map'); // Nom complet: dg.map (grâce au groupe name('dg.'))
+        Route::get('/map/data', [App\Http\Controllers\DG\MapController::class, 'getData'])->name('map.data'); // Nom complet: dg.map.data
         
         // Profil DG
         // Routes à implémenter si nécessaire
