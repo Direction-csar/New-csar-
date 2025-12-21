@@ -83,7 +83,7 @@
                         </a>
                     </li>
                     <li class="footer-link-separator">
-                        <a href="{{ route('partners.index') }}" title="Nos partenaires" class="footer-link footer-link-with-icon">
+                        <a href="{{ route('partners.index', app()->getLocale()) }}" title="Nos partenaires" class="footer-link footer-link-with-icon">
                             <i class="fas fa-handshake"></i>
                             <span>Nos partenaires</span>
                         </a>

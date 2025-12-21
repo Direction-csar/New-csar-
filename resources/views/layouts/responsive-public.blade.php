@@ -362,7 +362,7 @@
                     <a href="{{ route('news.index') }}" class="nav-item {{ request()->routeIs('news.*') ? 'active' : '' }}">
                         Actualités
                     </a>
-                    <a href="{{ route('partners') }}" class="nav-item {{ request()->routeIs('partners') ? 'active' : '' }}">
+                    <a href="{{ route('partners', app()->getLocale()) }}" class="nav-item {{ request()->routeIs('partners') ? 'active' : '' }}">
                         Partenaires
                     </a>
                     <a href="{{ route('requests.index') }}" class="nav-item {{ request()->routeIs('requests.*') ? 'active' : '' }}">
@@ -405,7 +405,7 @@
             <a href="{{ route('news.index') }}" class="mobile-nav-item {{ request()->routeIs('news.*') ? 'active' : '' }}">
                 Actualités
             </a>
-            <a href="{{ route('partners') }}" class="mobile-nav-item {{ request()->routeIs('partners') ? 'active' : '' }}">
+            <a href="{{ route('partners', app()->getLocale()) }}" class="mobile-nav-item {{ request()->routeIs('partners') ? 'active' : '' }}">
                 Partenaires
             </a>
             <a href="{{ route('requests.index') }}" class="mobile-nav-item {{ request()->routeIs('requests.*') ? 'active' : '' }}">
