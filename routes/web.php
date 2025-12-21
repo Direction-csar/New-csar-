@@ -308,7 +308,7 @@ Route::get('/csrf-token', [\App\Http\Controllers\CsrfController::class, 'getToke
 
 // Alias pour la compatibilité avec les anciens liens
 Route::redirect('/demande-static', '/demande', 301);
-Route::get('/', [HomeController::class, 'index'])->name('home');
+// Route home principale est dans le groupe {locale} ci-dessus
 // Canonical public route is localized: /{locale}/a-propos
 // Keep non-localized /a-propos as a fast redirect to /fr/a-propos
 Route::redirect('/a-propos', '/fr/a-propos', 302);
