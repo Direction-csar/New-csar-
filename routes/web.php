@@ -593,10 +593,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'store'])->name('notifications.store');
         Route::delete('notifications/{id}', [\App\Http\Controllers\Admin\NotificationsController::class, 'destroy'])->name('notifications.destroy');
         
-        Route::get('messages', [AdminMessageController::class, 'index'])->name('messages.index');
-        Route::get('messages/{id}', [AdminMessageController::class, 'show'])->name('messages.show');
-        Route::post('messages/mark-read', [AdminMessageController::class, 'markAsRead'])->name('messages.mark-read');
-        Route::post('messages/mark-all-read', [AdminMessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
+        // Routes messages déjà définies plus haut dans le groupe admin
+        // Route::get('messages', [AdminMessageController::class, 'index'])->name('messages.index');
+        // Route::get('messages/{id}', [AdminMessageController::class, 'show'])->name('messages.show');
+        // Route::post('messages/mark-read', [AdminMessageController::class, 'markAsRead'])->name('messages.mark-read');
+        // Route::post('messages/mark-all-read', [AdminMessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
         Route::post('messages/{id}/reply', [AdminMessageController::class, 'reply'])->name('messages.reply');
         Route::delete('messages/{id}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
     });
