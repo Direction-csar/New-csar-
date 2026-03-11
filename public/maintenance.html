@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Site en maintenance | CSAR</title>
+    <link rel="icon" type="image/png" href="images/logos/LOGO%20CSAR%20vectoriel-01.png">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; overflow: hidden; }
@@ -67,16 +68,22 @@
         .logo-wrap {
             margin-bottom: 2.5rem;
             animation: fadeInDown 0.8s ease-out;
-            min-height: 80px;
+            min-height: 100px;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08);
         }
         .logo-wrap img {
-            max-height: 90px;
+            max-height: 120px;
             width: auto;
-            max-width: 280px;
-            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
+            max-width: 340px;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)) drop-shadow(0 8px 24px rgba(0,0,0,0.4)) drop-shadow(0 0 40px rgba(0,0,0,0.3));
             transition: transform 0.3s ease;
             display: block;
         }
@@ -190,7 +197,8 @@
         }
 
         @media (max-width: 480px) {
-            .logo-wrap img { max-height: 70px; }
+            .logo-wrap img { max-height: 95px; }
+            .logo-wrap { padding: 0.75rem 1rem; }
             .content { padding: 1.5rem; }
         }
     </style>
