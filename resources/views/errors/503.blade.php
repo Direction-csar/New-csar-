@@ -19,23 +19,23 @@
             color: #fff;
         }
 
-        /* Fond : image depuis public/img, rendu sombre pour bien indiquer la maintenance */
+        /* Fond : image 1.jpg, overlay un peu sombre */
         .bg-maintenance {
             position: fixed;
             inset: 0;
-            background-color: #1a1a1a;
-            background-image: url("{{ asset('img/maintenance-bg.jpg') }}");
+            background-color: #2a2a2a;
+            background-image: url("{{ asset('img/1.jpg') }}");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             z-index: -2;
         }
-        /* Overlay sombre pour lisibilité et ambiance "maintenance" */
+        /* Overlay léger pour lisibilité (un peu sombre) */
         .bg-maintenance::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.72);
+            background: rgba(0, 0, 0, 0.45);
             pointer-events: none;
             z-index: 0;
         }
@@ -43,7 +43,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(0,0,0,0.4) 0%, transparent 70%);
+            background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(0,0,0,0.25) 0%, transparent 70%);
             pointer-events: none;
             z-index: 0;
         }
@@ -64,20 +64,44 @@
             max-width: 90vw;
         }
 
-        /* Logo CSAR */
+        /* Logo CSAR — toujours visible (image + fallback texte) */
         .logo-wrap {
             margin-bottom: 2.5rem;
             animation: fadeInDown 0.8s ease-out;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .logo-wrap img {
             max-height: 90px;
             width: auto;
             max-width: 280px;
-            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25));
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
             transition: transform 0.3s ease;
+            display: block;
         }
         .logo-wrap img:hover {
             transform: scale(1.03);
+        }
+        .logo-fallback {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: rgba(30, 58, 138, 0.9);
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.75rem;
+            letter-spacing: 0.05em;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .logo-fallback small {
+            font-size: 0.65rem;
+            font-weight: 400;
+            margin-top: 0.25rem;
+            opacity: 0.95;
         }
 
         /* Titre principal */
@@ -182,7 +206,8 @@
 
     <main class="content">
         <div class="logo-wrap">
-            <img src="{{ asset('images/csar-logo.svg') }}" alt="CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience">
+            <img src="{{ asset('images/logos/' . rawurlencode('LOGO CSAR vectoriel-01.png')) }}" alt="CSAR" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="logo-fallback">CSAR<br><small>Commissariat à la Sécurité Alimentaire et à la Résilience</small></div>
         </div>
         <h1 class="title">Site en Maintenance</h1>
         <p class="subtitle">Le site est actuellement en maintenance, merci de patienter !</p>

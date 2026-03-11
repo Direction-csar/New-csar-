@@ -78,7 +78,14 @@ else
 fi
 
 echo ""
-echo "5. Dépendances Composer..."
+echo "5. Répertoires Laravel (bootstrap/cache, storage) et permissions..."
+mkdir -p "$APP_DIR/bootstrap/cache" "$APP_DIR/storage/framework/sessions" "$APP_DIR/storage/framework/views" "$APP_DIR/storage/framework/cache" "$APP_DIR/storage/logs"
+chmod -R 775 "$APP_DIR/bootstrap/cache" "$APP_DIR/storage"
+chown -R www-data:www-data "$APP_DIR"
+
+echo ""
+echo "6. Dépendances Composer..."
+export COMPOSER_ALLOW_SUPERUSER=1
 composer install --no-dev --optimize-autoloader --no-interaction
 
 if [ -f "package.json" ]; then
@@ -94,7 +101,7 @@ if [ -f "package.json" ]; then
 fi
 
 echo ""
-echo "6. Fichier .env..."
+echo "7. Fichier .env..."
 if [ -f ".env.production.example" ]; then
     cp .env.production.example .env
 else
@@ -110,13 +117,13 @@ sed -i "s|APP_DEBUG=.*|APP_DEBUG=false|g" .env
 php artisan key:generate --force
 
 echo ""
-echo "7. Permissions..."
+echo "8. Permissions (finales)..."
 chown -R www-data:www-data "$APP_DIR"
 chmod -R 755 "$APP_DIR"
 chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
 
 echo ""
-echo "8. Migrations et optimisations..."
+echo "9. Migrations et optimisations..."
 php artisan migrate --force
 php artisan storage:link 2>/dev/null || true
 php artisan config:cache
@@ -124,7 +131,7 @@ php artisan route:cache
 php artisan view:cache 2>/dev/null || true
 
 echo ""
-echo "9. Configuration Nginx..."
+echo "10. Configuration Nginx..."
 PHP_SOCK=$(ls /var/run/php/php*-fpm.sock 2>/dev/null | head -1)
 if [ -z "$PHP_SOCK" ]; then
     PHP_SOCK="/var/run/php/php8.2-fpm.sock"
@@ -167,7 +174,7 @@ rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 
 echo ""
-echo "10. Mise en mode MAINTENANCE (page « Site en maintenance »)..."
+echo "11. Mise en mode MAINTENANCE..."
 php artisan down --render="errors.503"
 
 echo ""

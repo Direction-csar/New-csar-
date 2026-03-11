@@ -1,0 +1,77 @@
+# Reprendre le déploiement après erreur "bootstrap/cache must be present and writable"
+
+Vous êtes déjà dans /var/www/csar. Collez ces commandes une par une (ou par bloc).
+
+Remplacez VOTRE_MOT_DE_PASSE par le mot de passe MySQL que vous avez choisi pour csar_user.
+
+--- Bloc 1 : Créer les dossiers et permissions ---
+
+mkdir -p /var/www/csar/bootstrap/cache /var/www/csar/storage/framework/sessions /var/www/csar/storage/framework/views /var/www/csar/storage/framework/cache /var/www/csar/storage/logs
+chmod -R 775 /var/www/csar/bootstrap/cache /var/www/csar/storage
+chown -R www-data:www-data /var/www/csar
+
+--- Bloc 2 : Composer (avec variable pour root) ---
+
+cd /var/www/csar
+export COMPOSER_ALLOW_SUPERUSER=1
+composer install --no-dev --optimize-autoloader --no-interaction
+
+--- Bloc 3 : .env et clé Laravel ---
+
+cd /var/www/csar
+cp .env.production.example .env 2>/dev/null || cp .env.example .env
+sed -i "s|APP_URL=.*|APP_URL=http://147.93.85.131|g" .env
+sed -i "s|DB_DATABASE=.*|DB_DATABASE=csar_platform|g" .env
+sed -i "s|DB_USERNAME=.*|DB_USERNAME=csar_user|g" .env
+sed -i "s|DB_PASSWORD=.*|DB_PASSWORD=VOTRE_MOT_DE_PASSE|g" .env
+sed -i "s|APP_ENV=.*|APP_ENV=production|g" .env
+sed -i "s|APP_DEBUG=.*|APP_DEBUG=false|g" .env
+php artisan key:generate --force
+
+--- Bloc 4 : Permissions, migrations, Nginx, maintenance ---
+
+chown -R www-data:www-data /var/www/csar
+chmod -R 775 /var/www/csar/storage /var/www/csar/bootstrap/cache
+cd /var/www/csar
+php artisan migrate --force
+php artisan storage:link 2>/dev/null || true
+php artisan config:cache
+php artisan route:cache
+
+# Nginx (déjà peut-être en place, sinon :)
+PHP_SOCK=$(ls /var/run/php/php*-fpm.sock 2>/dev/null | head -1)
+cat > /etc/nginx/sites-available/csar << 'NGINXEOF'
+server {
+    listen 80;
+    listen [::]:80;
+    server_name 147.93.85.131 _;
+    root /var/www/csar/public;
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-Content-Type-Options "nosniff";
+    index index.php;
+    charset utf-8;
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+    error_page 404 /index.php;
+    location ~ \.php$ {
+        fastcgi_pass unix:PHP_SOCK_PLACEHOLDER;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+        fastcgi_hide_header X-Powered-By;
+        fastcgi_read_timeout 300;
+    }
+    location ~ /\.(?!well-known).* { deny all; }
+}
+NGINXEOF
+sed -i "s|PHP_SOCK_PLACEHOLDER|$PHP_SOCK|g" /etc/nginx/sites-available/csar
+ln -sf /etc/nginx/sites-available/csar /etc/nginx/sites-enabled/
+rm -f /etc/nginx/sites-enabled/default
+nginx -t && systemctl reload nginx
+
+cd /var/www/csar
+php artisan down --render="errors.503"
+
+echo "Terminé. Ouvrez http://147.93.85.131"
