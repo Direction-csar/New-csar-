@@ -19,41 +19,40 @@
             color: #fff;
         }
 
-        /* Fond type drapeau Sénégal (vert, jaune, rouge) */
-        .bg-flag {
+        /* Fond : image depuis public/img, rendu sombre pour bien indiquer la maintenance */
+        .bg-maintenance {
             position: fixed;
             inset: 0;
-            background: linear-gradient(90deg,
-                #00843d 0%,
-                #00843d 33.33%,
-                #fcd116 33.33%,
-                #fcd116 66.66%,
-                #e31b23 66.66%,
-                #e31b23 100%);
+            background-color: #1a1a1a;
+            background-image: url("img/maintenance-bg.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             z-index: -2;
         }
-        .bg-flag::before {
+        /* Overlay sombre pour lisibilité et ambiance "maintenance" */
+        .bg-maintenance::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(255,255,255,0.12) 0%, transparent 60%);
+            background: rgba(0, 0, 0, 0.72);
             pointer-events: none;
             z-index: 0;
         }
-        .bg-flag::after {
+        .bg-maintenance::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            background: radial-gradient(ellipse 70% 50% at 50% 50%, rgba(0,0,0,0.4) 0%, transparent 70%);
             pointer-events: none;
             z-index: 0;
         }
 
         @keyframes bgShift {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.98; transform: scale(1.02); }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.97; }
         }
-        .bg-flag {
+        .bg-maintenance {
             animation: bgShift 8s ease-in-out infinite;
         }
 
@@ -173,7 +172,7 @@
     </style>
 </head>
 <body>
-    <div class="bg-flag" aria-hidden="true"></div>
+    <div class="bg-maintenance" aria-hidden="true"></div>
 
     <main class="content">
         <div class="logo-wrap">

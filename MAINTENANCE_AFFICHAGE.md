@@ -1,6 +1,19 @@
 # Afficher la page « Site en maintenance » en ligne
 
-La page de maintenance (logo CSAR, message, fond aux couleurs du drapeau, animations) peut être affichée de deux manières.
+La page de maintenance (logo CSAR, message, fond avec **votre image** depuis `public/img` en version sombre, animations) peut être affichée de deux manières. Placez votre image dans **`public/img/maintenance-bg.jpg`** pour qu’elle s’affiche en arrière-plan (avec overlay sombre).
+
+---
+
+## ⚠️ À ne pas oublier après hébergement
+
+**Quand vous hébergez la plateforme**, le site s’affiche normalement (pas en maintenance). Pour que les visiteurs voient uniquement la page « Site en maintenance », vous **devez** exécuter sur le serveur :
+
+```bash
+cd /chemin/vers/votre/projet
+php artisan down --render="errors.503"
+```
+
+Sans cette commande, la plateforme reste accessible en mode normal. Pour rouvrir le site plus tard : `php artisan up`.
 
 ---
 
@@ -36,7 +49,7 @@ Pour désactiver la maintenance et revenir au site normal :
 php artisan up
 ```
 
-La vue utilisée est `resources/views/errors/503.blade.php` (logo CSAR, texte, fond drapeau, barre de chargement et points animés).
+La vue utilisée est `resources/views/errors/503.blade.php` (logo CSAR, texte, fond image sombre, barre de chargement et points animés).
 
 ## 2. Fichier HTML statique (sans Laravel)
 
