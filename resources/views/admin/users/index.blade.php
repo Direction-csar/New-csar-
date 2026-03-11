@@ -288,9 +288,13 @@
                                             <button class="btn btn-outline-info" onclick="resetPassword({{ $user->id }})" title="Réinitialiser mot de passe">
                                                 <i class="fas fa-key"></i>
                                             </button>
-                                            <button class="btn btn-outline-danger" onclick="deleteUser({{ $user->id }})" title="Supprimer">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
+                                            <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-outline-danger" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </td>
                                 </tr>
@@ -567,29 +571,14 @@ if (registrationsCtx) {
 let currentFilters = {};
 let selectedUsers = [];
 
-// Fonction d'actualisation
+// Fonction d'actualisation (rechargement réel depuis la base de données)
 function refreshUsers() {
     const refreshBtn = document.querySelector('button[onclick="refreshUsers()"]');
-    const icon = refreshBtn.querySelector('i');
-    
-    // Animation de rotation
-    icon.style.animation = 'spin 1s linear infinite';
-    
-    // Simuler le rechargement
-    setTimeout(() => {
-        // Arrêter l'animation
-        icon.style.animation = '';
-        
-        // Mettre à jour les statistiques
-        updateStats();
-        
-        // Actualiser les graphiques
-        if (typeof rolesChart !== 'undefined') rolesChart.update();
-        if (typeof registrationsChart !== 'undefined') registrationsChart.update();
-        
-        // Afficher un message de succès
-        showToast('Utilisateurs actualisés avec succès!', 'success');
-    }, 1000);
+    if (refreshBtn) {
+        const icon = refreshBtn.querySelector('i');
+        if (icon) icon.style.animation = 'spin 1s linear infinite';
+    }
+    window.location.reload();
 }
 
 // Fonction d'export
@@ -774,61 +763,67 @@ function bulkAction(action) {
     }
 }
 
-// Fonction de basculement de statut
+// Fonction de basculement de statut (appel au serveur)
 function toggleStatus(userId, currentStatus) {
     const newStatus = currentStatus === true ? false : true;
     const actionText = newStatus === true ? 'activer' : 'désactiver';
     
     if (confirm(`Êtes-vous sûr de vouloir ${actionText} cet utilisateur ?`)) {
-        showToast(`Utilisateur ${actionText} avec succès!`, 'success');
-        
-        // Mettre à jour l'interface
-        const row = document.querySelector(`tr[data-id="${userId}"]`);
-        if (row) {
-            const statusBadge = row.querySelector('.badge:last-of-type');
-            const toggleBtn = row.querySelector('button[onclick*="toggleStatus"]');
-            
-            if (statusBadge) {
-                statusBadge.textContent = newStatus === true ? 'Actif' : 'Inactif';
-                statusBadge.className = `badge bg-${newStatus === true ? 'success' : 'secondary'}`;
+        const url = '{{ url("admin/users") }}/' + userId + '/toggle-status';
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
             }
-            
-            if (toggleBtn) {
-                toggleBtn.className = `btn btn-outline-${newStatus === true ? 'warning' : 'success'}`;
-                toggleBtn.title = newStatus === true ? 'Désactiver' : 'Activer';
-                toggleBtn.innerHTML = `<i class="fas fa-${newStatus === true ? 'user-times' : 'user-check'}"></i>`;
-                toggleBtn.setAttribute('onclick', `toggleStatus(${userId}, ${newStatus})`);
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message || 'Statut mis à jour.', 'success');
+                window.location.reload();
+            } else {
+                showToast(data.message || 'Erreur.', 'danger');
             }
-        }
-        
-        updateStats();
+        })
+        .catch(() => {
+            showToast('Erreur lors de la mise à jour du statut.', 'danger');
+        });
     }
 }
 
-// Fonction de réinitialisation de mot de passe
+// Fonction de réinitialisation de mot de passe (appel au serveur)
 function resetPassword(userId) {
     if (confirm('Êtes-vous sûr de vouloir réinitialiser le mot de passe de cet utilisateur ?')) {
-        showToast('Mot de passe réinitialisé avec succès!', 'success');
+        const url = '{{ url("admin/users") }}/' + userId + '/reset-password';
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message || 'Mot de passe réinitialisé.', 'success');
+            } else {
+                showToast(data.message || 'Erreur.', 'danger');
+            }
+        })
+        .catch(() => {
+            showToast('Erreur lors de la réinitialisation.', 'danger');
+        });
     }
 }
 
-// Fonction de suppression d'un utilisateur
-function deleteUser(userId) {
-    if (confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur ?')) {
-        showToast('Suppression en cours...', 'info');
-        
-        // Simuler la suppression avec animation
-        const row = document.querySelector(`tr[data-id="${userId}"]`);
-        if (row) {
-            row.classList.add('removed');
-            setTimeout(() => {
-                row.remove();
-                showToast('Utilisateur supprimé avec succès!', 'success');
-                updateStats();
-            }, 500);
-        }
-    }
-}
+// Suppression gérée par le formulaire DELETE (voir bouton Supprimer dans le tableau)
 
 // Fonction d'affichage d'un utilisateur
 function showUser(userId) {

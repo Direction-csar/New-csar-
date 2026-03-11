@@ -3,12 +3,27 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\SimDataAccessRequest;
 use App\Models\SimReport;
+use App\Services\SimAnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
 class SimController extends Controller
 {
+    public function __construct(
+        protected SimAnalyticsService $analytics
+    ) {
+    }
+
+    /**
+     * Page Présentation du SIM / Rapport d'atelier (contexte, objectifs, dispositif, marchés, produits, fiche de collecte)
+     */
+    public function presentation()
+    {
+        return view('public.sim.presentation');
+    }
+
     /**
      * Afficher les rapports SIM publics
      */
@@ -208,5 +223,100 @@ class SimController extends Controller
     public function operations()
     {
         return view('public.sim.operations');
+    }
+
+    public function dashboard()
+    {
+        $overview = $this->analytics->adminOverview();
+        $prices = $this->analytics->publicPrices();
+        $latestReports = Schema::hasTable('sim_reports')
+            ? SimReport::public()->latest('published_at')->take(6)->get()
+            : collect();
+        $marketsForMap = $this->analytics->getMarketsForMap();
+        $priceTable = $this->analytics->getPriceConsultationData(null, null, null, 15);
+
+        return view('public.sim.dashboard', compact('overview', 'prices', 'latestReports', 'marketsForMap', 'priceTable'));
+    }
+
+    /** Consultation des prix & Export de données (onglets catégories, recherche, tri, pagination, export) — 100 % BDD */
+    public function consultationPrix(Request $request)
+    {
+        $year = $request->filled('year') ? (int) $request->year : (int) now()->year;
+        $month = $request->filled('month') ? (int) $request->month : null;
+        $region = $request->filled('region') ? $request->region : null;
+        $categoryId = $request->filled('category') ? (int) $request->category : null;
+        $search = $request->get('search');
+        $sortCol = $request->get('sort', 'year');
+        $sortDir = $request->get('dir', 'desc');
+        $perPage = (int) $request->get('per_page', 10);
+        if (!in_array($perPage, [10, 25, 50, 100], true)) {
+            $perPage = 10;
+        }
+
+        $result = $this->analytics->getPriceConsultationData($year, $month, $region, $categoryId, $search, $sortCol, $sortDir, $perPage);
+        $regions = \Illuminate\Support\Facades\Schema::hasTable('sim_regions')
+            ? \App\Models\SimRegion::orderBy('name')->pluck('name', 'name')->toArray()
+            : [];
+        $categories = $this->analytics->getProductCategoriesForTabs();
+
+        return view('public.sim.consultation-prix', [
+            'data' => $result['data'],
+            'total' => $result['total'],
+            'paginator' => $result['paginator'],
+            'year' => $year,
+            'month' => $month,
+            'region' => $region,
+            'regions' => $regions,
+            'categories' => $categories,
+            'categoryId' => $categoryId,
+            'search' => $search,
+            'sortCol' => $sortCol,
+            'sortDir' => $sortDir,
+            'perPage' => $perPage,
+        ]);
+    }
+
+    /** Carte des marchés SIM */
+    public function carteMarches()
+    {
+        $markets = $this->analytics->getMarketsForMap();
+        return view('public.sim.carte-marches', compact('markets'));
+    }
+
+    public function prices(Request $request)
+    {
+        $year = (int) ($request->get('year') ?: now()->year);
+        $prices = $this->analytics->publicPrices($year);
+
+        return view('public.sim.prices', compact('prices', 'year'));
+    }
+
+    public function requestAccess()
+    {
+        return view('public.sim.request-access');
+    }
+
+    public function storeAccessRequest(Request $request)
+    {
+        $validated = $request->validate([
+            'requester_name' => 'required|string|max:255',
+            'organization' => 'required|string|max:255',
+            'role_title' => 'nullable|string|max:255',
+            'email' => 'required|email|max:255',
+            'phone' => 'nullable|string|max:50',
+            'request_subject' => 'required|string|max:255',
+            'requested_scope' => 'required|string|max:30',
+            'requested_data_types' => 'nullable|array',
+            'requested_data_types.*' => 'string|max:100',
+            'period_start' => 'nullable|date',
+            'period_end' => 'nullable|date|after_or_equal:period_start',
+            'purpose' => 'required|string|max:5000',
+        ]);
+
+        SimDataAccessRequest::create($validated);
+
+        return redirect()
+            ->route('sim.request-access', ['locale' => app()->getLocale()])
+            ->with('success', 'Votre demande d\'accès aux données a été envoyée avec succès.');
     }
 }

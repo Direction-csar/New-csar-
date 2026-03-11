@@ -985,7 +985,14 @@
                     <span>Rapports SIM</span>
                 </a>
             </div>
-            
+
+            <!-- SIM — Régions, Départements, Marchés, Assignations -->
+            <div class="menu-item">
+                <a href="{{ route('admin.sim.dashboard') }}" class="menu-link {{ request()->routeIs('admin.sim.*') ? 'active' : '' }}">
+                    <i class="fas fa-store"></i>
+                    <span>SIM (Régions, Marchés, Assignations)</span>
+                </a>
+            </div>
             
             <!-- Audit & Sécurité -->
             <div class="menu-item">

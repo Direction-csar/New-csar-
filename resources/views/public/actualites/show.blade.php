@@ -408,7 +408,7 @@
                                     {{ $actualite->downloads_count ?? 0 }} téléchargement(s)
                                 </small>
                             </div>
-                            <a href="{{ route('public.actualites.download-document', $actualite->id) }}" 
+                            <a href="{{ route('public.actualites.download', $actualite->id) }}" 
                                class="download-button"
                                target="_blank">
                                 <i class="fas fa-download"></i>

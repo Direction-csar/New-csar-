@@ -6,7 +6,7 @@ export default defineConfig({
     plugins: [
         laravel({
             input: [
-                'resources/css/app.css', 
+                'resources/css/app.css',
                 'resources/js/app.js',
                 'public/css/responsive-optimizations.css',
                 'public/js/responsive-charts.js',
@@ -19,11 +19,17 @@ export default defineConfig({
     ],
     build: {
         // Optimize for production
-        minify: 'esbuild',
-        // esbuild is faster and included by default
+        minify: 'terser',
+        terserOptions: {
+            compress: {
+                drop_console: true,
+                drop_debugger: true,
+            },
+        },
         rollupOptions: {
             output: {
                 manualChunks: {
+                    vendor: ['chart.js', 'leaflet'],
                     utils: ['public/js/responsive-charts.js', 'public/js/performance-optimizer.js']
                 }
             }
@@ -34,6 +40,7 @@ export default defineConfig({
         assetsInlineLimit: 4096,
         // Source maps for debugging
         sourcemap: false,
+
     },
     server: {
         // Development server configuration
@@ -45,6 +52,6 @@ export default defineConfig({
     },
     // Optimize dependencies
     optimizeDeps: {
-        // chart.js and leaflet are loaded via CDN in Blade templates
+        include: ['chart.js', 'leaflet']
     }
 });

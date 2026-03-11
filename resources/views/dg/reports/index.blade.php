@@ -145,7 +145,7 @@
                                         <a href="{{ route('dg.reports.download', ['filename' => $report->filename]) }}" class="btn btn-outline-primary btn-sm me-1">
                                             <i class="fas fa-download"></i>
                                         </a>
-                                        <a href="{{ route('dg.reports.show', ['filename' => $report->filename]) }}" class="btn btn-outline-info btn-sm">
+                                        <a href="{{ route('dg.reports.show', $report->filename) }}" class="btn btn-outline-info btn-sm">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>

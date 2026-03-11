@@ -237,7 +237,7 @@ class DashboardController extends Controller
                 })
                 ->toArray();
 
-            // Combiner toutes les données
+            // Combiner toutes les données (entrepôts + demandes points) — zones ajoutées après construction de demandesByRegionMapData
             $allMapData = array_merge($warehousesMapData, $publicRequestsMapData);
 
             // Récupérer les années disponibles dans les demandes
@@ -265,6 +265,50 @@ class DashboardController extends Controller
             $allRegions = array_unique(array_merge($publicRegions, $warehouseRegions));
             sort($allRegions);
 
+            // Demandes par région (zones à forte demande) avec coordonnées pour la carte
+            $regionCoords = config('regions_senegal.coordinates', []);
+            $demandesByRegionRows = DB::table('public_requests')
+                ->select('region', DB::raw('COUNT(*) as total'), DB::raw('SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending'), DB::raw('SUM(CASE WHEN status = "approved" THEN 1 ELSE 0 END) as approved'), DB::raw('SUM(CASE WHEN status = "rejected" THEN 1 ELSE 0 END) as rejected'))
+                ->whereNotNull('region')->where('region', '!=', '')
+                ->groupBy('region')->orderByDesc('total')
+                ->get();
+            $demandesByRegionTable = $demandesByRegionRows->map(function ($row) use ($regionCoords) {
+                $region = $row->region;
+                $lat = $regionCoords[$region]['lat'] ?? null;
+                $lng = $regionCoords[$region]['lng'] ?? null;
+                foreach ($regionCoords as $name => $c) {
+                    if (stripos($name, $region) !== false || stripos($region, $name) !== false) {
+                        $lat = $c['lat']; $lng = $c['lng']; break;
+                    }
+                }
+                return [
+                    'type' => 'zone',
+                    'region' => $region,
+                    'total' => (int) $row->total,
+                    'pending' => (int) $row->pending,
+                    'approved' => (int) $row->approved,
+                    'rejected' => (int) $row->rejected,
+                    'lat' => $lat,
+                    'lng' => $lng,
+                ];
+            })->toArray();
+            $demandesByRegionWithCoords = array_values(array_filter($demandesByRegionTable, fn ($r) => $r['lat'] !== null && $r['lng'] !== null));
+            $demandesByRegionMapData = array_map(function ($r) {
+                return [
+                    'type' => 'zone',
+                    'id' => 'Z-' . $r['region'],
+                    'lat' => $r['lat'],
+                    'lng' => $r['lng'],
+                    'name' => $r['region'],
+                    'region' => $r['region'],
+                    'total' => $r['total'],
+                    'approved' => $r['approved'],
+                    'pending' => $r['pending'],
+                    'rejected' => $r['rejected'],
+                ];
+            }, $demandesByRegionWithCoords);
+            $allMapData = array_merge($allMapData, $demandesByRegionMapData);
+
             return [
                 'last7Days' => $last7Days,
                 'entrepotsByRegion' => $entrepotsByRegion,
@@ -273,6 +317,8 @@ class DashboardController extends Controller
                 'mapData' => $allMapData,
                 'warehousesOnly' => $warehousesMapData,
                 'demandesOnly' => $publicRequestsMapData,
+                'demandesByRegion' => $demandesByRegionTable,
+                'demandesByRegionMapData' => $demandesByRegionMapData,
                 'availableYears' => $availableYears,
                 'availableRegions' => $allRegions
             ];
@@ -286,6 +332,8 @@ class DashboardController extends Controller
                 'mapData' => [],
                 'warehousesOnly' => [],
                 'demandesOnly' => [],
+                'demandesByRegion' => [],
+                'demandesByRegionMapData' => [],
                 'availableYears' => [],
                 'availableRegions' => []
             ];
@@ -394,7 +442,7 @@ class DashboardController extends Controller
                 'month' => 'nullable|integer|min:1|max:12',
                 'region' => 'nullable|string',
                 'status' => 'nullable|string',
-                'type' => 'nullable|in:all,warehouses,demandes'
+                'type' => 'nullable|in:all,warehouses,demandes,zones'
             ]);
 
             // Demandes publiques uniquement
@@ -470,6 +518,11 @@ class DashboardController extends Controller
                 } elseif (empty($filters['type']) || $filters['type'] === 'all') {
                     $mapData = array_merge($warehousesMapData, $allDemandes);
                 }
+            }
+
+            if (!empty($filters['type']) && $filters['type'] === 'zones') {
+                $chartsData = $this->getChartsData();
+                $mapData = $chartsData['demandesByRegionMapData'] ?? [];
             }
 
             return response()->json([

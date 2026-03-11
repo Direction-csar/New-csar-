@@ -125,30 +125,30 @@
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small">Taux de Présence</span>
-                        <span class="small fw-bold">94%</span>
+                        <span class="small fw-bold">{{ $stats['presence_rate'] ?? '—' }}</span>
                     </div>
                     <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-success" style="width: 94%"></div>
+                        <div class="progress-bar bg-success" style="width: {{ is_numeric($stats['presence_rate'] ?? null) ? (float)$stats['presence_rate'] : 0 }}%"></div>
                     </div>
                 </div>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small">Formations Complétées</span>
-                        <span class="small fw-bold">78%</span>
+                        <span class="small fw-bold">{{ $stats['training_rate'] ?? '—' }}</span>
                     </div>
                     <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-info" style="width: 78%"></div>
+                        <div class="progress-bar bg-info" style="width: {{ is_numeric($stats['training_rate'] ?? null) ? (float)$stats['training_rate'] : 0 }}%"></div>
                     </div>
                 </div>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small">Satisfaction</span>
-                        <span class="small fw-bold">8.5/10</span>
+                        <span class="small fw-bold">{{ $stats['satisfaction'] ?? '—' }}</span>
                     </div>
                     <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-warning" style="width: 85%"></div>
+                        <div class="progress-bar bg-warning" style="width: {{ is_numeric($stats['satisfaction'] ?? null) ? (float)$stats['satisfaction'] * 10 : 0 }}%"></div>
                     </div>
                 </div>
             </div>

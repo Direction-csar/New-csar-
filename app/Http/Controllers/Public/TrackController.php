@@ -11,7 +11,9 @@ class TrackController extends Controller
 {
     public function index()
     {
-        return view('public.track');
+        // Utiliser public.suivi si la route est /suivi, sinon public.track
+        $view = request()->is('suivi') || request()->is('*/suivi') ? 'public.suivi' : 'public.track';
+        return view($view);
     }
     
     public function track(Request $request)
@@ -23,16 +25,19 @@ class TrackController extends Controller
         
         $publicRequest = PublicRequest::where('tracking_code', $request->tracking_code)->first();
         
+        // Déterminer quelle vue utiliser
+        $view = request()->is('suivi') || request()->is('*/suivi') ? 'public.suivi' : 'public.track';
+        
         if (!$publicRequest) {
-            return view('public.track', ['notFound' => true]);
+            return view($view, ['notFound' => true]);
         }
         
         // Optional phone verification
         if ($request->phone && $publicRequest->phone !== $request->phone) {
-            return view('public.track', ['notFound' => true]);
+            return view($view, ['notFound' => true]);
         }
         
-        return view('public.track', ['request' => $publicRequest]);
+        return view($view, ['request' => $publicRequest]);
     }
     
     public function download($code)

@@ -26,6 +26,31 @@ class PartnersController extends Controller
             ];
         })->values()->all();
 
+        // Partenaires avec logos dans public/images/logos (liens officiels)
+        $logosFolderItems = [
+            [
+                'name' => 'ARAA',
+                'organization' => 'Agence Régionale pour l\'Agriculture et l\'Alimentation de la CEDEAO',
+                'type' => 'agency',
+                'website' => 'https://www.araa.org/fr',
+                'logo_url' => asset('images/logos/logo arra.png'),
+            ],
+            [
+                'name' => 'PAM',
+                'organization' => 'Programme Alimentaire Mondial (World Food Programme)',
+                'type' => 'agency',
+                'website' => 'https://fr.wfp.org/',
+                'logo_url' => asset('images/logos/logo pam.jpeg'),
+            ],
+            [
+                'name' => 'Saudia',
+                'organization' => 'Saudi Arabian Airlines',
+                'type' => 'private',
+                'website' => 'https://www.saudia.com/Pages/travel-with-saudia/where-we-fly/discover-saudi-arabia?rebranding_theme=Green&sc_lang=fr&sc_country=FR',
+                'logo_url' => asset('images/logos/logo arabie saudia.png'),
+            ],
+        ];
+
         // Curated partners from the annual report (logos expected in public/images/partners)
         $staticItems = [
             // FSRP - Programme de Résilience du Système Alimentaire
@@ -68,8 +93,9 @@ class PartnersController extends Controller
             ];
         }
 
-        // N'afficher QUE les logos présents dans public/images/partners
+        // Partenaires : dossiers partners + logos (ARAA, PAM, Saudia)
         $allItems = collect($fileItems)
+            ->merge($logosFolderItems)
             ->unique(fn ($item) => ($item['logo_url'] ?? '') . '|' . ($item['name'] ?? ''))
             ->values();
         $grouped = $allItems->groupBy('type');

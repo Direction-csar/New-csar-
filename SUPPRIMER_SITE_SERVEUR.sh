@@ -3,9 +3,16 @@
 # ============================================
 # SCRIPT DE SUPPRESSION COMPLÈTE DU SITE CSAR
 # ============================================
-# Ce script supprime complètement le site du serveur Hostinger
+# Ce script supprime complètement le site du serveur Ubuntu/Nginx
+# Compatible avec Apache et Nginx
 # ATTENTION: Cette action est IRRÉVERSIBLE !
 # ============================================
+
+# Couleurs pour les messages
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
 
 echo "=========================================="
 echo "⚠️  SUPPRESSION DU SITE CSAR"
@@ -13,14 +20,15 @@ echo "=========================================="
 echo ""
 echo "⚠️  ATTENTION: Cette action va supprimer:"
 echo "   - Tous les fichiers du site (/var/www/csar)"
-echo "   - La configuration Apache (csar.conf)"
+echo "   - La configuration serveur web (Nginx/Apache)"
+echo "   - Les certificats SSL Let's Encrypt (si présents)"
 echo "   - La base de données (csar_platform)"
 echo "   - L'utilisateur MySQL (csar_user)"
 echo ""
 read -p "Êtes-vous sûr de vouloir continuer? (tapez 'OUI' pour confirmer): " confirmation
 
 if [ "$confirmation" != "OUI" ]; then
-    echo "❌ Suppression annulée."
+    echo -e "${RED}❌ Suppression annulée.${NC}"
     exit 1
 fi
 
@@ -28,114 +36,221 @@ echo ""
 echo "🚀 Début de la suppression..."
 echo ""
 
-# ============================================
-# 1. DÉSACTIVER LE SITE APACHE
-# ============================================
-echo "1. Désactivation du site Apache..."
-if [ -f /etc/apache2/sites-enabled/csar.conf ]; then
-    sudo a2dissite csar.conf
-    echo "✅ Site Apache désactivé"
+# Variables
+APP_DIR="/var/www/csar"
+DOMAIN="www.csar.sn"
+DB_NAME="csar_platform"
+DB_USER="csar_user"
+
+# Détection du serveur web
+if systemctl is-active --quiet nginx; then
+    WEB_SERVER="nginx"
+elif systemctl is-active --quiet apache2; then
+    WEB_SERVER="apache2"
 else
-    echo "ℹ️  Site Apache déjà désactivé ou inexistant"
+    WEB_SERVER="unknown"
+fi
+
+echo -e "${YELLOW}Serveur web détecté: $WEB_SERVER${NC}"
+echo ""
+
+# ============================================
+# 1. DÉSACTIVER LE SITE (NGINX OU APACHE)
+# ============================================
+echo "1. Désactivation du site web..."
+
+if [ "$WEB_SERVER" = "nginx" ]; then
+    if [ -L /etc/nginx/sites-enabled/csar ]; then
+        rm -f /etc/nginx/sites-enabled/csar
+        echo "✅ Site Nginx désactivé"
+    else
+        echo "ℹ️  Site Nginx déjà désactivé ou inexistant"
+    fi
+elif [ "$WEB_SERVER" = "apache2" ]; then
+    if [ -f /etc/apache2/sites-enabled/csar.conf ]; then
+        a2dissite csar.conf 2>/dev/null
+        echo "✅ Site Apache désactivé"
+    else
+        echo "ℹ️  Site Apache déjà désactivé ou inexistant"
+    fi
 fi
 
 # ============================================
-# 2. SUPPRIMER LA CONFIGURATION APACHE
+# 2. SUPPRIMER LA CONFIGURATION SERVEUR WEB
 # ============================================
 echo ""
-echo "2. Suppression de la configuration Apache..."
-if [ -f /etc/apache2/sites-available/csar.conf ]; then
-    sudo rm /etc/apache2/sites-available/csar.conf
-    echo "✅ Configuration Apache supprimée"
-else
-    echo "ℹ️  Configuration Apache déjà supprimée"
+echo "2. Suppression de la configuration serveur web..."
+
+if [ "$WEB_SERVER" = "nginx" ]; then
+    if [ -f /etc/nginx/sites-available/csar ]; then
+        rm -f /etc/nginx/sites-available/csar
+        echo "✅ Configuration Nginx supprimée"
+    else
+        echo "ℹ️  Configuration Nginx déjà supprimée"
+    fi
+elif [ "$WEB_SERVER" = "apache2" ]; then
+    if [ -f /etc/apache2/sites-available/csar.conf ]; then
+        rm -f /etc/apache2/sites-available/csar.conf
+        echo "✅ Configuration Apache supprimée"
+    else
+        echo "ℹ️  Configuration Apache déjà supprimée"
+    fi
 fi
 
 # ============================================
-# 3. REDÉMARRER APACHE
+# 3. SUPPRIMER LES CERTIFICATS SSL
 # ============================================
 echo ""
-echo "3. Redémarrage d'Apache..."
-sudo systemctl reload apache2
-echo "✅ Apache redémarré"
+echo "3. Suppression des certificats SSL Let's Encrypt..."
 
-# ============================================
-# 4. SUPPRIMER LES FICHIERS DU SITE
-# ============================================
-echo ""
-echo "4. Suppression des fichiers du site..."
-if [ -d /var/www/csar ]; then
-    sudo rm -rf /var/www/csar
-    echo "✅ Fichiers du site supprimés (/var/www/csar)"
+if command -v certbot &> /dev/null; then
+    if certbot certificates 2>/dev/null | grep -q "$DOMAIN\|csar.sn"; then
+        echo "   Suppression des certificats pour $DOMAIN et csar.sn..."
+        certbot delete --cert-name "$DOMAIN" --non-interactive 2>/dev/null || true
+        certbot delete --cert-name "csar.sn" --non-interactive 2>/dev/null || true
+        echo "✅ Certificats SSL supprimés"
+    else
+        echo "ℹ️  Aucun certificat SSL trouvé pour ce domaine"
+    fi
 else
-    echo "ℹ️  Répertoire /var/www/csar n'existe pas"
+    echo "ℹ️  Certbot n'est pas installé"
 fi
 
 # ============================================
-# 5. SUPPRIMER LA BASE DE DONNÉES
+# 4. REDÉMARRER LE SERVEUR WEB
 # ============================================
 echo ""
-echo "5. Suppression de la base de données..."
+echo "4. Redémarrage du serveur web..."
+
+if [ "$WEB_SERVER" = "nginx" ]; then
+    if nginx -t 2>/dev/null; then
+        systemctl reload nginx
+        echo "✅ Nginx redémarré"
+    else
+        echo "⚠️  Configuration Nginx invalide, mais le site est désactivé"
+    fi
+elif [ "$WEB_SERVER" = "apache2" ]; then
+    systemctl reload apache2 2>/dev/null
+    echo "✅ Apache redémarré"
+fi
+
+# ============================================
+# 5. SUPPRIMER LES FICHIERS DU SITE
+# ============================================
+echo ""
+echo "5. Suppression des fichiers du site..."
+if [ -d "$APP_DIR" ]; then
+    rm -rf "$APP_DIR"
+    echo "✅ Fichiers du site supprimés ($APP_DIR)"
+else
+    echo "ℹ️  Répertoire $APP_DIR n'existe pas"
+fi
+
+# ============================================
+# 6. SUPPRIMER LA BASE DE DONNÉES
+# ============================================
+echo ""
+echo "6. Suppression de la base de données..."
 echo ""
 read -p "Voulez-vous supprimer la base de données maintenant? (O/n): " supprimer_bdd
 
 if [ "$supprimer_bdd" = "O" ] || [ "$supprimer_bdd" = "o" ] || [ "$supprimer_bdd" = "" ]; then
     echo ""
     echo "   Exécution des commandes MySQL..."
-    echo "   (Vous devrez entrer le mot de passe root MySQL)"
+    echo "   (Vous devrez entrer le mot de passe root MySQL si nécessaire)"
     echo ""
     
-    mysql -u root -p <<EOF
-DROP DATABASE IF EXISTS csar_platform;
-DROP USER IF EXISTS 'csar_user'@'localhost';
+    # Essayer sans mot de passe d'abord (si configuré)
+    mysql -u root <<EOF 2>/dev/null || mysql -u root -p <<EOF
+DROP DATABASE IF EXISTS $DB_NAME;
+DROP USER IF EXISTS '$DB_USER'@'localhost';
 FLUSH PRIVILEGES;
 EOF
 
     if [ $? -eq 0 ]; then
         echo "✅ Base de données et utilisateur supprimés"
     else
-        echo "⚠️  Erreur lors de la suppression de la base de données"
-        echo "   Supprimez-la manuellement avec les commandes ci-dessous"
+        echo -e "${YELLOW}⚠️  Erreur lors de la suppression de la base de données${NC}"
+        echo "   Supprimez-la manuellement avec les commandes ci-dessous:"
+        echo "   mysql -u root -p"
+        echo "   DROP DATABASE IF EXISTS $DB_NAME;"
+        echo "   DROP USER IF EXISTS '$DB_USER'@'localhost';"
+        echo "   FLUSH PRIVILEGES;"
+        echo "   EXIT;"
     fi
 else
     echo "ℹ️  Suppression de la base de données ignorée"
     echo "   Supprimez-la manuellement avec:"
     echo "   mysql -u root -p"
-    echo "   DROP DATABASE csar_platform;"
-    echo "   DROP USER 'csar_user'@'localhost';"
+    echo "   DROP DATABASE IF EXISTS $DB_NAME;"
+    echo "   DROP USER IF EXISTS '$DB_USER'@'localhost';"
     echo "   FLUSH PRIVILEGES;"
     echo "   EXIT;"
 fi
 
 # ============================================
-# 6. SUPPRIMER LES LOGS APACHE
+# 7. SUPPRIMER LES LOGS
 # ============================================
 echo ""
-echo "6. Suppression des logs Apache..."
-if [ -f /var/log/apache2/csar-error.log ]; then
-    sudo rm /var/log/apache2/csar-error.log
-    echo "✅ Log d'erreur supprimé"
+echo "7. Suppression des logs..."
+
+if [ "$WEB_SERVER" = "nginx" ]; then
+    # Les logs Nginx sont généralement dans /var/log/nginx/access.log et error.log
+    # On ne les supprime pas car ils peuvent contenir d'autres sites
+    echo "ℹ️  Les logs Nginx sont partagés, non supprimés"
+elif [ "$WEB_SERVER" = "apache2" ]; then
+    if [ -f /var/log/apache2/csar-error.log ]; then
+        rm -f /var/log/apache2/csar-error.log
+        echo "✅ Log d'erreur Apache supprimé"
+    fi
+    if [ -f /var/log/apache2/csar-access.log ]; then
+        rm -f /var/log/apache2/csar-access.log
+        echo "✅ Log d'accès Apache supprimé"
+    fi
 fi
-if [ -f /var/log/apache2/csar-access.log ]; then
-    sudo rm /var/log/apache2/csar-access.log
-    echo "✅ Log d'accès supprimé"
+
+# Supprimer les logs Laravel
+if [ -d "$APP_DIR/storage/logs" ]; then
+    rm -rf "$APP_DIR/storage/logs" 2>/dev/null
+    echo "✅ Logs Laravel supprimés"
 fi
 
 # ============================================
-# 7. VÉRIFICATION FINALE
+# 8. SUPPRIMER LES CRON JOBS (si présents)
+# ============================================
+echo ""
+echo "8. Vérification des tâches cron..."
+
+if crontab -l 2>/dev/null | grep -q "csar\|$APP_DIR"; then
+    echo "⚠️  Des tâches cron liées au site ont été détectées"
+    echo "   Vérifiez avec: crontab -l"
+    echo "   Supprimez-les manuellement si nécessaire"
+else
+    echo "ℹ️  Aucune tâche cron liée au site trouvée"
+fi
+
+# ============================================
+# 9. VÉRIFICATION FINALE
 # ============================================
 echo ""
 echo "=========================================="
-echo "✅ SUPPRESSION TERMINÉE"
+echo -e "${GREEN}✅ SUPPRESSION TERMINÉE${NC}"
 echo "=========================================="
 echo ""
 echo "Vérifications:"
-echo "  - Répertoire /var/www/csar: $([ -d /var/www/csar ] && echo '❌ Existe encore' || echo '✅ Supprimé')"
-echo "  - Configuration Apache: $([ -f /etc/apache2/sites-available/csar.conf ] && echo '❌ Existe encore' || echo '✅ Supprimée')"
-echo "  - Site Apache activé: $([ -f /etc/apache2/sites-enabled/csar.conf ] && echo '❌ Toujours activé' || echo '✅ Désactivé')"
+echo "  - Répertoire $APP_DIR: $([ -d "$APP_DIR" ] && echo -e "${RED}❌ Existe encore${NC}" || echo -e "${GREEN}✅ Supprimé${NC}")"
+
+if [ "$WEB_SERVER" = "nginx" ]; then
+    echo "  - Configuration Nginx: $([ -f /etc/nginx/sites-available/csar ] && echo -e "${RED}❌ Existe encore${NC}" || echo -e "${GREEN}✅ Supprimée${NC}")"
+    echo "  - Site Nginx activé: $([ -L /etc/nginx/sites-enabled/csar ] && echo -e "${RED}❌ Toujours activé${NC}" || echo -e "${GREEN}✅ Désactivé${NC}")"
+elif [ "$WEB_SERVER" = "apache2" ]; then
+    echo "  - Configuration Apache: $([ -f /etc/apache2/sites-available/csar.conf ] && echo -e "${RED}❌ Existe encore${NC}" || echo -e "${GREEN}✅ Supprimée${NC}")"
+    echo "  - Site Apache activé: $([ -f /etc/apache2/sites-enabled/csar.conf ] && echo -e "${RED}❌ Toujours activé${NC}" || echo -e "${GREEN}✅ Désactivé${NC}")"
+fi
+
 echo ""
-echo "⚠️  Note: La base de données doit être vérifiée manuellement"
+echo -e "${YELLOW}⚠️  Note: Vérifiez manuellement la base de données si nécessaire${NC}"
 echo ""
-echo "Le site CSAR a été complètement supprimé du serveur."
+echo -e "${GREEN}Le site CSAR a été complètement supprimé du serveur.${NC}"
 echo ""
 

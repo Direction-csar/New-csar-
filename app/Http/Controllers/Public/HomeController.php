@@ -101,13 +101,14 @@ class HomeController extends Controller
             $latestNews = collect([]); // Collection vide si erreur
         }
         
-        // Supprimer les données fictives des discours
+        // Discours institutionnels depuis la base de données
         try {
-            // Vider la table des discours fictifs
-            \DB::table('speeches')->delete();
-            $latestSpeeches = collect([]); // Collection vide après suppression
+            $latestSpeeches = Speech::orderBy('date', 'desc')
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get();
         } catch (\Exception $e) {
-            $latestSpeeches = collect([]); // Collection vide si erreur
+            $latestSpeeches = collect([]);
         }
         
         // Récupération des entrepôts actifs (avec gestion d'erreur)

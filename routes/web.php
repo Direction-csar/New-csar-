@@ -10,9 +10,12 @@ Route::get('/login', function () {
 })->name('login');
 // Rediriger les anciens liens /about vers la bonne route /a-propos
 Route::redirect('/about', '/a-propos', 302);
-// Ancienne route commentée pour référence
-// Route::view('/demande', 'public.demande')->name('demande_static');
-Route::view('/suivi', 'public.suivi')->name('suivi_static');
+// Route directe pour /demande (sans préfixe de locale) - utilise directement le contrôleur
+Route::get('/demande', [\App\Http\Controllers\Public\DemandeController::class, 'create'])->name('demande.create.direct');
+Route::post('/demande', [\App\Http\Controllers\Public\DemandeController::class, 'store'])->name('demande.store.direct');
+// Route directe pour /suivi (sans préfixe de locale) - utilise directement le contrôleur
+Route::get('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'index'])->name('suivi.direct');
+Route::post('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'track'])->name('suivi.track.direct');
 Route::view('/missions', 'public.missions')->name('missions_static');
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\AboutController;
@@ -69,13 +72,6 @@ use App\Http\Controllers\Auth\PasswordResetController;
 // Routes de connexion simplifiées
 require_once __DIR__ . '/simple-login.php';
 require_once __DIR__ . '/simple-auth.php';
-require_once __DIR__ . '/bypass-auth.php';
-
-// Page de test de connexion
-Route::get('/test-login-page', function() {
-    return view('test-login');
-});
-
 // Language switching routes
 Route::get('/set-locale/{locale}', [LanguageController::class, 'setLocale'])->name('set-locale');
 
@@ -148,8 +144,13 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middlew
     // SIM Reports Routes (routes spécifiques AVANT les routes avec paramètres)
     Route::middleware('throttle:90,1')->group(function () {
         Route::get('/sim', [\App\Http\Controllers\Public\SimController::class, 'index'])->name('sim.index');
+        Route::get('/sim/presentation', [\App\Http\Controllers\Public\SimController::class, 'presentation'])->name('sim.presentation');
         Route::get('/sim/dashboard', [\App\Http\Controllers\Public\SimController::class, 'dashboard'])->name('sim.dashboard');
         Route::get('/sim/prices', [\App\Http\Controllers\Public\SimController::class, 'prices'])->name('sim.prices');
+        Route::get('/sim/consultation-prix', [\App\Http\Controllers\Public\SimController::class, 'consultationPrix'])->name('sim.consultation-prix');
+        Route::get('/sim/carte-marches', [\App\Http\Controllers\Public\SimController::class, 'carteMarches'])->name('sim.carte-marches');
+        Route::get('/sim/request-access', [\App\Http\Controllers\Public\SimController::class, 'requestAccess'])->name('sim.request-access');
+        Route::post('/sim/request-access', [\App\Http\Controllers\Public\SimController::class, 'storeAccessRequest'])->name('sim.request-access.store');
         Route::get('/sim/supply', [\App\Http\Controllers\Public\SimController::class, 'supply'])->name('sim.supply');
         Route::get('/sim/regional', [\App\Http\Controllers\Public\SimController::class, 'regional'])->name('sim.regional');
         Route::get('/sim/distributions', [\App\Http\Controllers\Public\SimController::class, 'distributions'])->name('sim.distributions');
@@ -172,36 +173,12 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middlew
     Route::redirect('/demande-static', '/demande', 301);
 });
 
-// DRH Routes
+// DRH — Interface désactivée (Admin et DG uniquement)
 Route::prefix('drh')->name('drh.')->group(function () {
-    // Pages d'authentification DRH
-    Route::get('/login', function () {
-        return view('auth.drh-login');
-    })->name('login');
-    Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store'])->name('login.submit');
-    Route::post('/logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
-    
-    // Routes protégées DRH
-    Route::middleware(['auth', 'drh'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\DRH\DashboardController::class, 'index'])->name('dashboard');
-        
-        // Gestion du personnel
-        Route::resource('personnel', \App\Http\Controllers\DRH\PersonnelController::class);
-        Route::get('personnel/export', [\App\Http\Controllers\DRH\PersonnelController::class, 'export'])->name('personnel.export');
-        
-        // Gestion des documents RH
-        Route::resource('documents', \App\Http\Controllers\DRH\DocumentsController::class);
-        
-        // Gestion des présences
-        Route::resource('attendance', \App\Http\Controllers\DRH\AttendanceController::class);
-        
-        // Gestion des fiches de paie
-        Route::resource('salary-slips', \App\Http\Controllers\DRH\SalarySlipController::class);
-        
-        // Profil DRH
-        Route::get('profile', [\App\Http\Controllers\DRH\ProfileController::class, 'index'])->name('profile');
-        Route::put('profile', [\App\Http\Controllers\DRH\ProfileController::class, 'update'])->name('profile.update');
-    });
+    Route::get('/', fn () => view('auth.interface-desactivee'))->name('dashboard');
+    Route::get('/login', fn () => view('auth.interface-desactivee'))->name('login');
+    Route::post('/login', fn () => redirect()->route('drh.login')->with('message', 'Interface désactivée.'));
+    Route::match(['get', 'post'], '/{path}', fn () => view('auth.interface-desactivee'))->where('path', '.*')->name('fallback');
 });
 
 // Admin Routes - Supprimées (dupliquées avec le groupe ci-dessous)
@@ -247,10 +224,14 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::get('/reports', [App\Http\Controllers\DG\ReportsController::class, 'index'])->name('reports.index');
         Route::get('/reports/generate', [App\Http\Controllers\DG\ReportsController::class, 'generate'])->name('reports.generate');
         Route::get('/reports/export', [App\Http\Controllers\DG\ReportsController::class, 'export'])->name('reports.export');
+        Route::get('/reports/{filename}', [App\Http\Controllers\DG\ReportsController::class, 'show'])->name('reports.show');
         
         // Carte interactive
         Route::get('/map', [App\Http\Controllers\DG\MapController::class, 'index'])->name('map');
         Route::get('/map/data', [App\Http\Controllers\DG\MapController::class, 'getData'])->name('map.data');
+
+        // SIM (prix nationaux, évolution, alertes, comparaison régions)
+        Route::get('/sim', [App\Http\Controllers\DG\SimController::class, 'index'])->name('sim.index');
         
         // Profil DG
         // Routes à implémenter si nécessaire
@@ -479,6 +460,57 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/sim-reports/{id}/status', [\App\Http\Controllers\Admin\SimReportsController::class, 'getStatus'])->name('sim-reports.status');
         Route::get('/sim-reports/export-all', [\App\Http\Controllers\Admin\SimReportsController::class, 'exportAll'])->name('sim-reports.export-all');
         Route::get('/sim-reports/stats', [\App\Http\Controllers\Admin\SimReportsController::class, 'getStats'])->name('sim-reports.stats');
+
+        // Gestion opérationnelle du SIM
+        Route::prefix('sim')->name('sim.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\SimManagementController::class, 'dashboard'])->name('dashboard');
+            Route::get('/live', [\App\Http\Controllers\Admin\SimManagementController::class, 'live'])->name('live');
+
+            Route::get('/regions', [\App\Http\Controllers\Admin\SimManagementController::class, 'regions'])->name('regions');
+            Route::post('/regions', [\App\Http\Controllers\Admin\SimManagementController::class, 'storeRegion'])->name('regions.store');
+            Route::get('/regions/{simRegion}/edit', [\App\Http\Controllers\Admin\SimManagementController::class, 'editRegion'])->name('regions.edit');
+            Route::put('/regions/{simRegion}', [\App\Http\Controllers\Admin\SimManagementController::class, 'updateRegion'])->name('regions.update');
+            Route::delete('/regions/{simRegion}', [\App\Http\Controllers\Admin\SimManagementController::class, 'destroyRegion'])->name('regions.destroy');
+
+            Route::get('/departments', [\App\Http\Controllers\Admin\SimManagementController::class, 'departments'])->name('departments');
+            Route::post('/departments', [\App\Http\Controllers\Admin\SimManagementController::class, 'storeDepartment'])->name('departments.store');
+            Route::get('/departments/{simDepartment}/edit', [\App\Http\Controllers\Admin\SimManagementController::class, 'editDepartment'])->name('departments.edit');
+            Route::put('/departments/{simDepartment}', [\App\Http\Controllers\Admin\SimManagementController::class, 'updateDepartment'])->name('departments.update');
+            Route::delete('/departments/{simDepartment}', [\App\Http\Controllers\Admin\SimManagementController::class, 'destroyDepartment'])->name('departments.destroy');
+
+            Route::get('/assignments', [\App\Http\Controllers\Admin\SimManagementController::class, 'assignments'])->name('assignments');
+            Route::post('/assignments', [\App\Http\Controllers\Admin\SimManagementController::class, 'storeAssignment'])->name('assignments.store');
+            Route::put('/assignments/{simCollectorAssignment}', [\App\Http\Controllers\Admin\SimManagementController::class, 'updateAssignment'])->name('assignments.update');
+            Route::delete('/assignments/{simCollectorAssignment}', [\App\Http\Controllers\Admin\SimManagementController::class, 'destroyAssignment'])->name('assignments.destroy');
+
+            Route::get('/markets', [\App\Http\Controllers\Admin\SimManagementController::class, 'markets'])->name('markets');
+            Route::post('/markets', [\App\Http\Controllers\Admin\SimManagementController::class, 'storeMarket'])->name('markets.store');
+            Route::get('/markets/{simMarket}/edit', [\App\Http\Controllers\Admin\SimManagementController::class, 'editMarket'])->name('markets.edit');
+            Route::put('/markets/{simMarket}', [\App\Http\Controllers\Admin\SimManagementController::class, 'updateMarket'])->name('markets.update');
+            Route::delete('/markets/{simMarket}', [\App\Http\Controllers\Admin\SimManagementController::class, 'destroyMarket'])->name('markets.destroy');
+
+            Route::get('/categories', [\App\Http\Controllers\Admin\SimManagementController::class, 'categories'])->name('categories');
+            Route::post('/categories', [\App\Http\Controllers\Admin\SimManagementController::class, 'storeCategory'])->name('categories.store');
+            Route::get('/categories/{simProductCategory}/edit', [\App\Http\Controllers\Admin\SimManagementController::class, 'editCategory'])->name('categories.edit');
+            Route::put('/categories/{simProductCategory}', [\App\Http\Controllers\Admin\SimManagementController::class, 'updateCategory'])->name('categories.update');
+            Route::delete('/categories/{simProductCategory}', [\App\Http\Controllers\Admin\SimManagementController::class, 'destroyCategory'])->name('categories.destroy');
+
+            Route::get('/products', [\App\Http\Controllers\Admin\SimManagementController::class, 'products'])->name('products');
+            Route::post('/products', [\App\Http\Controllers\Admin\SimManagementController::class, 'storeProduct'])->name('products.store');
+            Route::get('/products/{simProduct}/edit', [\App\Http\Controllers\Admin\SimManagementController::class, 'editProduct'])->name('products.edit');
+            Route::put('/products/{simProduct}', [\App\Http\Controllers\Admin\SimManagementController::class, 'updateProduct'])->name('products.update');
+            Route::delete('/products/{simProduct}', [\App\Http\Controllers\Admin\SimManagementController::class, 'destroyProduct'])->name('products.destroy');
+
+            Route::get('/collections', [\App\Http\Controllers\Admin\SimManagementController::class, 'collections'])->name('collections');
+            Route::get('/collections/{simCollection}', [\App\Http\Controllers\Admin\SimManagementController::class, 'showCollection'])->name('collections.show');
+            Route::post('/collections/{simCollection}/validate', [\App\Http\Controllers\Admin\SimManagementController::class, 'validateCollection'])->name('collections.validate');
+            Route::post('/collections/{simCollection}/reject', [\App\Http\Controllers\Admin\SimManagementController::class, 'rejectCollection'])->name('collections.reject');
+            Route::post('/collections/{simCollection}/publish', [\App\Http\Controllers\Admin\SimManagementController::class, 'publishCollection'])->name('collections.publish');
+
+            Route::get('/access-requests', [\App\Http\Controllers\Admin\SimManagementController::class, 'accessRequests'])->name('access-requests');
+            Route::get('/access-requests/{simDataAccessRequest}', [\App\Http\Controllers\Admin\SimManagementController::class, 'showAccessRequest'])->name('access-requests.show');
+            Route::post('/access-requests/{simDataAccessRequest}/decision', [\App\Http\Controllers\Admin\SimManagementController::class, 'decideAccessRequest'])->name('access-requests.decision');
+        });
         
         // Routes API pour les notifications (pour le dropdown et AJAX)
         Route::get('/api/notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'getNotifications'])->name('notifications.api');
@@ -697,73 +729,23 @@ Route::get('/test-api-warehouses', function() {
 
 // Routes DG supprimées
 
-// Responsable Routes (Entrepôt)
+// Interfaces Agent et Responsable désactivées — Admin et DG uniquement pour le moment
 Route::prefix('responsable')->name('responsable.')->group(function () {
-    Route::get('/login', function () {
-        return view('auth.responsable-login');
-    })->name('login');
-    Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store'])->name('login.submit');
-    Route::post('/logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
-    
-    // Protected routes (with middleware)
-    Route::middleware('responsable')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Responsable\DashboardController::class, 'index'])->name('dashboard');
-        
-        // Stock Management
-        Route::get('stock', [\App\Http\Controllers\Responsable\StockController::class, 'index'])->name('stock');
-        Route::get('stock/create', [\App\Http\Controllers\Responsable\StockController::class, 'create'])->name('stock.create');
-        Route::post('stock', [\App\Http\Controllers\Responsable\StockController::class, 'store'])->name('stock.store');
-        Route::get('stock/out', [\App\Http\Controllers\Responsable\StockController::class, 'createOut'])->name('stock.out');
-        Route::post('stock/out', [\App\Http\Controllers\Responsable\StockController::class, 'storeOut'])->name('stock.out.store');
-        
-        // Movements History
-        Route::get('movements', [\App\Http\Controllers\Responsable\StockController::class, 'movements'])->name('movements');
-        Route::get('movements/export-pdf', [\App\Http\Controllers\Responsable\StockController::class, 'exportMovementsPdf'])->name('movements.export-pdf');
-        Route::get('movements/export-excel', [\App\Http\Controllers\Responsable\StockController::class, 'exportMovementsExcel'])->name('movements.export-excel');
-        
-        // Location Management
-        Route::get('location', [\App\Http\Controllers\Responsable\StockController::class, 'location'])->name('location');
-        Route::put('location', [\App\Http\Controllers\Responsable\StockController::class, 'updateLocation'])->name('location.update');
-        
-        // Profile Management
-        // Routes profil à implémenter si nécessaire
-    }); // Fin du middleware responsable
+    Route::get('/', fn () => view('auth.interface-desactivee'))->name('dashboard');
+    Route::get('/login', fn () => view('auth.interface-desactivee'))->name('login');
+    Route::post('/login', fn () => redirect()->route('responsable.login')->with('message', 'Interface désactivée.'));
+    Route::match(['get', 'post'], '/{path}', fn () => view('auth.interface-desactivee'))->where('path', '.*')->name('fallback');
 });
 
-// Agent Routes
 Route::prefix('agent')->name('agent.')->group(function () {
-    // Login routes (no middleware)
-    Route::get('/login', function () {
-        return view('auth.agent-login');
-    })->name('login');
-    Route::post('/login', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'store'])->name('login.submit');
-    Route::post('/logout', [App\Http\Controllers\Auth\AuthenticatedSessionController::class, 'destroy'])->name('logout');
-    
-    // Protected routes (with middleware)
-    Route::middleware('agent')->group(function () {
-    Route::get('/', [\App\Http\Controllers\Agent\DashboardController::class, 'index'])->name('dashboard');
-    
-    // Routes profil Agent
-    Route::get('/profile', [\App\Http\Controllers\Agent\ProfileController::class, 'index'])->name('profile');
-    Route::get('/profile/edit', [\App\Http\Controllers\Agent\ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('/profile', [\App\Http\Controllers\Agent\ProfileController::class, 'update'])->name('profile.update');
-    Route::get('/profile/change-password', [\App\Http\Controllers\Agent\ProfileController::class, 'changePassword'])->name('profile.change-password');
-    Route::post('/profile/change-password', [\App\Http\Controllers\Agent\ProfileController::class, 'updatePassword'])->name('profile.update-password');
-    Route::get('/profile/pdf', [\App\Http\Controllers\Agent\ProfileController::class, 'downloadPdf'])->name('profile.pdf');
-    Route::get('/profile/show', [\App\Http\Controllers\Agent\ProfileController::class, 'show'])->name('profile.show');
-    Route::prefix('hr')->name('hr.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Agent\HRController::class, 'index'])->name('index');
-        Route::get('documents', [\App\Http\Controllers\Agent\HRController::class, 'documents'])->name('documents.index');
-        Route::get('documents/{document}', [\App\Http\Controllers\Agent\HRController::class, 'showDocument'])->name('documents.show');
-        Route::get('documents/{document}/download', [\App\Http\Controllers\Agent\HRController::class, 'downloadDocument'])->name('documents.download');
-        Route::get('salary-slips', [\App\Http\Controllers\Agent\HRController::class, 'salarySlips'])->name('salary-slips.index');
-        Route::get('salary-slips/{salarySlip}', [\App\Http\Controllers\Agent\HRController::class, 'showSalarySlip'])->name('salary-slips.show');
-        Route::get('salary-slips/{salarySlip}/download', [\App\Http\Controllers\Agent\HRController::class, 'downloadSalarySlip'])->name('salary-slips.download');
-        Route::get('attendance', [\App\Http\Controllers\Agent\HRController::class, 'attendance'])->name('attendance.index');
-        Route::get('statistics', [\App\Http\Controllers\Agent\HRController::class, 'statistics'])->name('statistics');
-    });
-    }); // Fin du middleware agent
-}); // Fin du prefix agent
+    Route::get('/', fn () => view('auth.interface-desactivee'))->name('dashboard');
+    Route::get('/login', fn () => view('auth.interface-desactivee'))->name('login');
+    Route::post('/login', fn () => redirect()->route('agent.login')->with('message', 'Interface désactivée.'));
+    Route::match(['get', 'post'], '/{path}', fn () => view('auth.interface-desactivee'))->where('path', '.*')->name('fallback');
+});
+
+Route::get('/entrepot', fn () => view('auth.interface-desactivee'));
+Route::match(['get', 'post'], '/entrepot/{path}', fn () => view('auth.interface-desactivee'))->where('path', '.*');
 
 // Routes globales pour les nouvelles fonctionnalités
 Route::middleware(['auth'])->group(function () {

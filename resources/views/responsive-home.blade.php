@@ -124,7 +124,7 @@
                 <p class="feature-description">
                     Explorez notre carte interactive pour localiser les entrepôts, les zones d'intervention et suivre les demandes en temps réel.
                 </p>
-                <a href="{{ route('map', app()->getLocale()) }}" class="mt-4 inline-block text-csar-green-600 hover:text-csar-green-700 font-medium">
+                <a href="{{ route('map') }}" class="mt-4 inline-block text-csar-green-600 hover:text-csar-green-700 font-medium">
                     Voir la carte <i class="fas fa-arrow-right ml-1"></i>
                 </a>
             </div>
@@ -211,7 +211,7 @@
         </div>
         
         <div class="text-center mt-6">
-            <a href="{{ route('map', app()->getLocale()) }}" class="btn-primary">
+            <a href="{{ route('map') }}" class="btn-primary">
                 <i class="fas fa-map-marked-alt mr-2"></i>
                 Voir la carte complète
             </a>

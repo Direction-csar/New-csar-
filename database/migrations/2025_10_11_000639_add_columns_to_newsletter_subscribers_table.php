@@ -19,10 +19,22 @@ return new class extends Migration
             $table->json('preferences')->nullable()->after('source');
             $table->timestamp('last_email_sent_at')->nullable()->after('preferences');
             $table->integer('email_count')->default(0)->after('last_email_sent_at');
-            
-            // Supprimer l'ancienne colonne is_active
-            $table->dropColumn('is_active');
         });
+
+        // SQLite/MySQL: supprimer l'index avant de supprimer la colonne
+        if (Schema::hasColumn('newsletter_subscribers', 'is_active')) {
+            Schema::table('newsletter_subscribers', function (Blueprint $table) {
+                $driver = Schema::getConnection()->getDriverName();
+                if ($driver === 'sqlite') {
+                    $table->dropIndex('newsletter_subscribers_is_active_index');
+                } else {
+                    $table->dropIndex(['is_active']);
+                }
+            });
+            Schema::table('newsletter_subscribers', function (Blueprint $table) {
+                $table->dropColumn('is_active');
+            });
+        }
     }
 
     /**

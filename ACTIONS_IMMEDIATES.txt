@@ -34,12 +34,15 @@
    ✅ DB_DATABASE=csar_production
    ✅ DB_USERNAME=votre_user
    ✅ DB_PASSWORD=votre_password
+   ✅ SESSION_DRIVER=database   (sessions stockées en BDD)
+   ✅ CACHE_STORE=database     (cache stocké en BDD)
    ✅ MAIL_HOST=smtp.gmail.com (ou autre)
    ✅ MAIL_USERNAME=votre_email
    ✅ MAIL_PASSWORD=votre_password
    
    Puis :
    php artisan key:generate
+   php artisan migrate          (crée les tables sessions + cache si besoin)
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -148,6 +151,11 @@ République du Sénégal - Un Peuple, Un But, Une Foi
 © 2025 CSAR - Actions Immédiates de Déploiement
 
 ═══════════════════════════════════════════════════════════════════════
+
+
+
+
+
 
 
 

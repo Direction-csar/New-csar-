@@ -1,0 +1,60 @@
+╔══════════════════════════════════════════════════════════════╗
+║  VÉRIFICATION FINALE - SUPPRESSION COMPLÈTE                  ║
+╚══════════════════════════════════════════════════════════════╝
+
+Exécutez ces commandes pour vérifier que TOUT est supprimé:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Vérifier les fichiers du site
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ls -la /var/www/csar 2>&1
+# Doit afficher: "No such file or directory" ✅
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. Vérifier la configuration Nginx
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ls -la /etc/nginx/sites-available/csar 2>&1
+ls -la /etc/nginx/sites-enabled/csar 2>&1
+# Doivent afficher: "No such file or directory" ✅
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. Vérifier la base de données
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+sudo mysql -e "SHOW DATABASES;" | grep csar
+# Ne doit rien afficher ✅
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. Vérifier l'utilisateur MySQL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+sudo mysql -e "SELECT User, Host FROM mysql.user WHERE User='csar_user';"
+# Ne doit rien afficher ✅
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. Vérifier les certificats SSL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+certbot certificates 2>/dev/null | grep -i csar
+# Ne doit rien afficher (ou "No certificates found") ✅
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMMANDE RAPIDE - TOUT VÉRIFIER EN UNE FOIS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+echo "=== VÉRIFICATION COMPLÈTE ===" && \
+echo "1. Fichiers:" && ls -la /var/www/csar 2>&1 | head -1 && \
+echo "2. Config Nginx:" && ls -la /etc/nginx/sites-available/csar 2>&1 | head -1 && \
+echo "3. Site activé:" && ls -la /etc/nginx/sites-enabled/csar 2>&1 | head -1 && \
+echo "4. Base de données:" && (sudo mysql -e "SHOW DATABASES;" | grep csar || echo "Aucune base csar trouvée ✅") && \
+echo "5. Utilisateur MySQL:" && (sudo mysql -e "SELECT User FROM mysql.user WHERE User='csar_user';" || echo "Aucun utilisateur csar_user trouvé ✅") && \
+echo "=== FIN DE LA VÉRIFICATION ==="
+
+

@@ -442,15 +442,24 @@ class UserController extends Controller
                 ];
             }
 
+            // Évolution sur les 7 derniers jours (pour le graphique ligne)
+            $evolution = [];
+            for ($i = 6; $i >= 0; $i--) {
+                $date = now()->subDays($i);
+                $evolution[] = User::whereDate('created_at', $date)->count();
+            }
+
             return [
                 'roles' => $rolesData,
-                'monthly_registrations' => $monthlyData
+                'monthly_registrations' => $monthlyData,
+                'evolution' => $evolution
             ];
         } catch (\Exception $e) {
             Log::error('Erreur lors du calcul des données graphiques: ' . $e->getMessage());
             return [
                 'roles' => [],
-                'monthly_registrations' => []
+                'monthly_registrations' => [],
+                'evolution' => [0, 0, 0, 0, 0, 0, 0]
             ];
         }
     }

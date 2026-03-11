@@ -1,0 +1,96 @@
+╔══════════════════════════════════════════════════════════════╗
+║  GUIDE RAPIDE - SUPPRESSION DU SITE CSAR DU SERVEUR         ║
+╚══════════════════════════════════════════════════════════════╝
+
+📋 INFORMATIONS DU SERVEUR
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  • IP: 72.61.16.34
+  • Domaine: www.csar.sn
+  • Répertoire: /var/www/csar
+  • Base de données: csar_platform
+
+⚠️  ATTENTION: Cette opération est IRRÉVERSIBLE !
+
+
+🚀 MÉTHODE RAPIDE (Script Automatique)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Connectez-vous au serveur:
+   ssh root@72.61.16.34
+
+2. Créez le script de suppression:
+   nano /tmp/supprimer_csar.sh
+
+3. Copiez-collez le contenu du fichier SUPPRIMER_SITE_SERVEUR.sh
+   (depuis votre machine locale)
+
+4. Sauvegardez (Ctrl+O, Entrée, Ctrl+X)
+
+5. Rendez le script exécutable:
+   chmod +x /tmp/supprimer_csar.sh
+
+6. Exécutez le script:
+   bash /tmp/supprimer_csar.sh
+
+7. Tapez "OUI" pour confirmer la suppression
+
+
+🔧 MÉTHODE MANUELLE (Commandes Directes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# 1. Désactiver le site Nginx
+rm -f /etc/nginx/sites-enabled/csar
+nginx -t
+systemctl reload nginx
+
+# 2. Supprimer la configuration Nginx
+rm -f /etc/nginx/sites-available/csar
+
+# 3. Supprimer les certificats SSL (si présents)
+certbot delete --cert-name www.csar.sn --non-interactive
+certbot delete --cert-name csar.sn --non-interactive
+
+# 4. Supprimer les fichiers du site
+rm -rf /var/www/csar
+
+# 5. Supprimer la base de données
+mysql -u root -p <<EOF
+DROP DATABASE IF EXISTS csar_platform;
+DROP USER IF EXISTS 'csar_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+EOF
+
+# 6. Vérifier la suppression
+ls -la /var/www/csar
+ls -la /etc/nginx/sites-available/csar
+ls -la /etc/nginx/sites-enabled/csar
+
+
+✅ VÉRIFICATION FINALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Vérifiez que:
+  ✓ /var/www/csar n'existe plus
+  ✓ /etc/nginx/sites-available/csar n'existe plus
+  ✓ /etc/nginx/sites-enabled/csar n'existe plus
+  ✓ Les certificats SSL sont supprimés (certbot certificates)
+  ✓ La base de données est supprimée (mysql -u root -p puis SHOW DATABASES;)
+
+
+📝 NOTES IMPORTANTES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Si vous utilisez Apache au lieu de Nginx, remplacez les commandes
+  nginx par apache2:
+  - a2dissite csar.conf
+  - rm /etc/apache2/sites-available/csar.conf
+  - systemctl reload apache2
+
+• Le script SUPPRIMER_SITE_SERVEUR.sh détecte automatiquement
+  si vous utilisez Nginx ou Apache
+
+• Pour plus de détails, consultez SUPPRIMER_SITE_INSTRUCTIONS.md
+
+
+

@@ -215,8 +215,7 @@ class LoginController extends Controller
     private function redirectToInterface(string $interface): \Illuminate\Http\RedirectResponse
     {
         return match($interface) {
-            'responsable' => redirect()->route('responsable.dashboard'),
-            'agent' => redirect()->route('agent.dashboard'),
+            'responsable', 'agent' => redirect('/'),
             default => redirect()->route('home')
         };
     }

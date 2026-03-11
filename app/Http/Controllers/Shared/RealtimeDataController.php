@@ -19,12 +19,12 @@ class RealtimeDataController extends Controller
     public function getSharedData()
     {
         try {
-            // Statistiques générales
+            // Statistiques générales (mêmes valeurs que Admin : pending, approved, rejected)
             $stats = [
                 'total_requests' => PublicRequest::count(),
-                'pending_requests' => PublicRequest::where('status', 'en_attente')->count(),
-                'approved_requests' => PublicRequest::where('status', 'approuvee')->count(),
-                'rejected_requests' => PublicRequest::where('status', 'rejetee')->count(),
+                'pending_requests' => PublicRequest::where('status', 'pending')->count(),
+                'approved_requests' => PublicRequest::where('status', 'approved')->count(),
+                'rejected_requests' => PublicRequest::where('status', 'rejected')->count(),
                 'total_users' => User::count(),
                 'active_users' => User::where('is_active', true)->count(),
                 'total_warehouses' => Warehouse::count(),
@@ -83,23 +83,18 @@ class RealtimeDataController extends Controller
     public function getPerformanceStats()
     {
         try {
-            // Calcul des KPIs de performance
+            // Données réelles : taux de traitement des demandes (aligné Admin/DG)
             $totalRequests = PublicRequest::count();
-            $processedRequests = PublicRequest::whereIn('status', ['approuvee', 'rejetee'])->count();
+            $processedRequests = PublicRequest::whereIn('status', ['approved', 'rejected'])->count();
             $efficiencyRate = $totalRequests > 0 ? round(($processedRequests / $totalRequests) * 100, 1) : 0;
 
-            // Temps de réponse moyen (simulation)
-            $avgResponseTime = 2.3; // heures
-
-            // Taux de satisfaction (simulation)
-            $satisfactionRate = 8.7; // /10
-
+            // Délai moyen / satisfaction : pas de champs en BDD → afficher "—" côté vue
             return response()->json([
                 'success' => true,
                 'data' => [
                     'efficiency_rate' => $efficiencyRate . '%',
-                    'satisfaction_rate' => $satisfactionRate . '/10',
-                    'response_time' => $avgResponseTime . 'h',
+                    'response_time' => '—',
+                    'satisfaction_rate' => '—',
                     'total_processed' => $processedRequests,
                     'processing_rate' => $efficiencyRate
                 ]
@@ -138,7 +133,7 @@ class RealtimeDataController extends Controller
             }
 
             // Alertes de demandes en attente
-            $pendingRequests = PublicRequest::where('status', 'en_attente')
+            $pendingRequests = PublicRequest::where('status', 'pending')
                 ->where('created_at', '<', now()->subHours(24))
                 ->count();
 

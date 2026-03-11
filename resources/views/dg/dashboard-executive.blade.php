@@ -127,18 +127,19 @@
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">Taux de Réponse</span>
+                        <span class="small">Taux de traitement</span>
                         <span class="small fw-bold">{{ $stats['efficiency_rate'] ?? '0%' }}</span>
                     </div>
                     <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-success" style="width: 0%"></div>
+                        @php $rate = isset($stats['processing_rate']) ? (float)$stats['processing_rate'] : 0; @endphp
+                        <div class="progress-bar bg-success" style="width: {{ $rate }}%"></div>
                     </div>
                 </div>
                 
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">Délai Moyen</span>
-                        <span class="small fw-bold">{{ $stats['response_time'] ?? '0h' }}</span>
+                        <span class="small">Délai moyen</span>
+                        <span class="small fw-bold">{{ $stats['response_time'] ?? '—' }}</span>
                     </div>
                     <div class="progress" style="height: 6px;">
                         <div class="progress-bar bg-info" style="width: 0%"></div>
@@ -148,7 +149,7 @@
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small">Satisfaction</span>
-                        <span class="small fw-bold">{{ $stats['satisfaction_rate'] ?? '0/10' }}</span>
+                        <span class="small fw-bold">{{ $stats['satisfaction_rate'] ?? '—' }}</span>
                     </div>
                     <div class="progress" style="height: 6px;">
                         <div class="progress-bar bg-warning" style="width: 0%"></div>

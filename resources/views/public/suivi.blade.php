@@ -34,7 +34,7 @@
         </div>
         <div style="max-width: 700px; margin: 0 auto;">
             <div class="track-card zoom-hover" style="background: #fff; border-radius: 20px; padding: 50px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid #f3f4f6;">
-                <form action="{{ route('track.request') }}" method="POST" id="trackForm">
+                <form action="{{ request()->is('suivi') || request()->is('*/suivi') ? '/suivi' : route('track.request', ['locale' => app()->getLocale() ?? 'fr']) }}" method="POST" id="trackForm">
                     @csrf
                     <div style="margin-bottom: 35px;">
                         <label for="tracking_code" style="display: block; margin-bottom: 12px; font-weight: 600; font-size: 1.1rem; color: #1f2937;">

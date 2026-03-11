@@ -9,6 +9,11 @@ class SimReport extends Model
 {
     use HasFactory;
 
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_SCHEDULED = 'scheduled';
+    public const STATUS_PUBLISHED = 'published';
+
     protected $fillable = [
         'title',
         'description',
@@ -50,6 +55,21 @@ class SimReport extends Model
     public function generator()
     {
         return $this->belongsTo(User::class, 'generated_by');
+    }
+
+    public function scopeByType($query, $type)
+    {
+        return $query->where('report_type', $type);
+    }
+
+    public function scopeByRegion($query, $region)
+    {
+        return $query->where('metadata->region', $region);
+    }
+
+    public function scopeBySector($query, $sector)
+    {
+        return $query->where('metadata->sector', $sector);
     }
 
     /**
@@ -112,9 +132,50 @@ class SimReport extends Model
     public function getPublicDownloadUrlAttribute()
     {
         if ($this->document_file && $this->status === 'published' && $this->is_public) {
-            return route('reports.download', $this->id);
+            return route('sim.download', $this->id);
         }
         return null;
+    }
+
+    public function getReportTypeLabelAttribute()
+    {
+        return match ($this->report_type) {
+            'daily' => 'Quotidien',
+            'weekly' => 'Hebdomadaire',
+            'monthly' => 'Mensuel',
+            'quarterly' => 'Trimestriel',
+            'annual' => 'Annuel',
+            'special' => 'Spécial',
+            default => ucfirst((string) $this->report_type),
+        };
+    }
+
+    public function getSectorLabelAttribute()
+    {
+        return $this->metadata['sector'] ?? 'Marché';
+    }
+
+    public function getRegionAttribute()
+    {
+        return $this->metadata['region'] ?? null;
+    }
+
+    public function getFormattedPeriodAttribute()
+    {
+        if ($this->period_start && $this->period_end) {
+            return $this->period_start->format('d/m/Y') . ' - ' . $this->period_end->format('d/m/Y');
+        }
+
+        if ($this->period_start) {
+            return $this->period_start->format('d/m/Y');
+        }
+
+        return 'Non spécifiée';
+    }
+
+    public function isPublic(): bool
+    {
+        return $this->status === self::STATUS_PUBLISHED && $this->is_public === true;
     }
 
     /**
@@ -155,12 +216,22 @@ class SimReport extends Model
         $this->increment('download_count');
     }
 
+    public function incrementDownloadCount()
+    {
+        $this->incrementDownloads();
+    }
+
     /**
      * Incrémenter le compteur de vues
      */
     public function incrementViews()
     {
         $this->increment('view_count');
+    }
+
+    public function incrementViewCount()
+    {
+        $this->incrementViews();
     }
 
     /**

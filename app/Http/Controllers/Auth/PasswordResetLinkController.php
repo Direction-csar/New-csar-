@@ -24,27 +24,22 @@ class PasswordResetLinkController extends Controller
                 $backUrl = '/admin/login';
             } elseif (str_contains($referer, '/dg/login')) {
                 $backUrl = '/dg/login';
-            } elseif (str_contains($referer, '/agent/login')) {
-                $backUrl = '/agent/login';
-            } elseif (str_contains($referer, '/entrepot/login')) {
-                $backUrl = '/entrepot/login';
+            } elseif (str_contains($referer, '/agent/login') || str_contains($referer, '/entrepot/login') || str_contains($referer, '/drh/login') || str_contains($referer, '/responsable/login')) {
+                $backUrl = '/';
             } elseif (str_contains($referer, '/login')) {
                 $backUrl = '/login';
             }
         }
         
-        // Utiliser la vue appropriée selon le type d'utilisateur
-        $view = 'auth.forgot-password'; // Vue par défaut
-        
+        // Utiliser la vue appropriée (DRH, Responsable, Agent désactivés → interface-desactivee)
+        $view = 'auth.forgot-password';
         if ($referer) {
             if (str_contains($referer, '/admin/login')) {
                 $view = 'auth.admin-forgot-password';
             } elseif (str_contains($referer, '/dg/login')) {
                 $view = 'auth.dg-forgot-password';
-            } elseif (str_contains($referer, '/agent/login')) {
-                $view = 'auth.agent-forgot-password';
-            } elseif (str_contains($referer, '/entrepot/login')) {
-                $view = 'auth.responsable-forgot-password';
+            } elseif (str_contains($referer, '/agent/login') || str_contains($referer, '/entrepot/login') || str_contains($referer, '/drh/login') || str_contains($referer, '/responsable/login')) {
+                $view = 'auth.interface-desactivee';
             }
         }
         

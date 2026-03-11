@@ -216,6 +216,49 @@ class User extends Authenticatable
     }
 
     /**
+     * Relations SIM - affectations, collectes et décisions admin.
+     */
+    public function simCollectorAssignments()
+    {
+        return $this->hasMany(SimCollectorAssignment::class, 'collector_id');
+    }
+
+    public function simSupervisedAssignments()
+    {
+        return $this->hasMany(SimCollectorAssignment::class, 'supervisor_id');
+    }
+
+    public function simCollections()
+    {
+        return $this->hasMany(SimCollection::class, 'collector_id');
+    }
+
+    public function simSupervisedCollections()
+    {
+        return $this->hasMany(SimCollection::class, 'supervisor_id');
+    }
+
+    public function simValidatedCollections()
+    {
+        return $this->hasMany(SimCollection::class, 'validated_by');
+    }
+
+    public function simRejectedCollections()
+    {
+        return $this->hasMany(SimCollection::class, 'rejected_by');
+    }
+
+    public function simReviewedDataAccessRequests()
+    {
+        return $this->hasMany(SimDataAccessRequest::class, 'reviewed_by');
+    }
+
+    public function simCreatedMarkets()
+    {
+        return $this->hasMany(SimMarket::class, 'created_by');
+    }
+
+    /**
      * Check if user has a specific role.
      * Accepts a role name (string) or an array of role names.
      */
@@ -258,6 +301,21 @@ class User extends Authenticatable
     public function isAgent()
     {
         return $this->role === 'agent';
+    }
+
+    public function canManageSim()
+    {
+        return $this->role === 'admin';
+    }
+
+    public function canSuperviseSim()
+    {
+        return in_array($this->role, ['admin', 'responsable'], true);
+    }
+
+    public function canCollectSim()
+    {
+        return in_array($this->role, ['admin', 'responsable', 'agent'], true);
     }
 }
 

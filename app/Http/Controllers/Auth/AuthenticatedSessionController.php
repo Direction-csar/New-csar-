@@ -20,17 +20,13 @@ class AuthenticatedSessionController extends Controller
         // Déterminer l'interface basée sur l'URL
         $path = request()->path();
         
-        if (str_contains($path, 'drh')) {
-            return view('auth.drh-login');
+        if (str_contains($path, 'drh') || str_contains($path, 'responsable') || str_contains($path, 'entrepot') || str_contains($path, 'agent')) {
+            return view('auth.interface-desactivee');
         }
         if (str_contains($path, 'admin')) {
             return view('auth.admin-login');
         } elseif (str_contains($path, 'dg')) {
             return view('auth.dg-login');
-        } elseif (str_contains($path, 'responsable') || str_contains($path, 'entrepot')) {
-            return view('auth.responsable-login');
-        } elseif (str_contains($path, 'agent')) {
-            return view('auth.agent-login');
         } else {
             return view('auth.login');
         }
@@ -59,34 +55,16 @@ class AuthenticatedSessionController extends Controller
         }
         $roleName = $roleName ?: 'agent';
         
-        // Rediriger selon l'interface demandée
-        if (str_contains($path, 'drh')) {
-            if (in_array($roleName, ['drh','admin','dg'])) {
-                return redirect()->intended('/drh');
-            } else {
-                Auth::logout();
-                return redirect()->back()->withErrors(['email' => "Vous n'avez pas les permissions pour accéder à l'interface DRH."]);
-            }
-        } elseif (str_contains($path, 'dg')) {
+        // Rediriger selon l'interface demandée (DRH, Responsable, Agent désactivés)
+        if (str_contains($path, 'drh') || str_contains($path, 'responsable') || str_contains($path, 'entrepot') || str_contains($path, 'agent')) {
+            return redirect('/');
+        }
+        if (str_contains($path, 'dg')) {
             if ($roleName === 'dg' || $roleName === 'admin') {
                 return redirect()->intended('/dg');
             } else {
                 Auth::logout();
                 return redirect()->back()->withErrors(['email' => 'Vous n\'avez pas les permissions pour accéder à l\'interface DG.']);
-            }
-        } elseif (str_contains($path, 'entrepot') || str_contains($path, 'responsable')) {
-            if ($roleName === 'responsable' || $roleName === 'admin') {
-                return redirect()->intended('/entrepot');
-            } else {
-                Auth::logout();
-                return redirect()->back()->withErrors(['email' => 'Vous n\'avez pas les permissions pour accéder à l\'interface Entrepôt.']);
-            }
-        } elseif (str_contains($path, 'agent')) {
-            if ($roleName === 'agent' || $roleName === 'admin') {
-                return redirect()->intended('/agent');
-            } else {
-                Auth::logout();
-                return redirect()->back()->withErrors(['email' => 'Vous n\'avez pas les permissions pour accéder à l\'interface Agent.']);
             }
         } elseif (str_contains($path, 'admin')) {
             if ($roleName === 'admin') {
@@ -97,7 +75,7 @@ class AuthenticatedSessionController extends Controller
             }
         }
 
-        // Fallback: rediriger selon le rôle
+        // Fallback: rediriger selon le rôle (responsable/agent désactivés → accueil)
         if ($user->role) {
             switch ($user->role) {
                 case 'admin':
@@ -105,9 +83,8 @@ class AuthenticatedSessionController extends Controller
                 case 'dg':
                     return redirect()->intended('/dg/dashboard');
                 case 'responsable':
-                    return redirect()->intended('/entrepot/dashboard');
                 case 'agent':
-                    return redirect()->intended('/agent/dashboard');
+                    return redirect()->intended('/');
                 default:
                     return redirect()->intended(RouteServiceProvider::HOME);
             }
@@ -130,15 +107,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        // Rediriger vers la page de connexion appropriée
+        // Rediriger vers la page de connexion appropriée (DRH, Responsable, Agent désactivés → accueil)
         if (str_contains($path, 'dg')) {
             return redirect()->route('dg.login')->with('success', 'Déconnexion réussie');
-        } elseif (str_contains($path, 'drh')) {
-            return redirect()->route('drh.login')->with('success', 'Déconnexion réussie');
-        } elseif (str_contains($path, 'entrepot') || str_contains($path, 'responsable')) {
-            return redirect()->route('responsable.login')->with('success', 'Déconnexion réussie');
-        } elseif (str_contains($path, 'agent')) {
-            return redirect()->route('agent.login')->with('success', 'Déconnexion réussie');
+        } elseif (str_contains($path, 'drh') || str_contains($path, 'entrepot') || str_contains($path, 'responsable') || str_contains($path, 'agent')) {
+            return redirect('/')->with('success', 'Déconnexion réussie');
         } elseif (str_contains($path, 'admin')) {
             return redirect()->route('admin.login')->with('success', 'Déconnexion réussie');
         }

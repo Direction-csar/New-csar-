@@ -53,7 +53,7 @@
                     <li><a href="/institution" class="footer-link">Institution</a></li>
                     <li><a href="/actualites" class="footer-link">Actualités</a></li>
                     <li><a href="{{ route('sim.index') }}" class="footer-link">SIM</a></li>
-                    <li><a href="{{ route('gallery', app()->getLocale()) }}" class="footer-link">Nos missions</a></li>
+                    <li><a href="{{ route('gallery') }}" class="footer-link">Nos missions</a></li>
                 </ul>
             </div>
             
@@ -83,7 +83,7 @@
                         </a>
                     </li>
                     <li class="footer-link-separator">
-                        <a href="{{ route('partners.index', app()->getLocale()) }}" title="Nos partenaires" class="footer-link footer-link-with-icon">
+                        <a href="{{ route('partners.index') }}" title="Nos partenaires" class="footer-link footer-link-with-icon">
                             <i class="fas fa-handshake"></i>
                             <span>Nos partenaires</span>
                         </a>

@@ -2983,7 +2983,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         <div class="services-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem;">
             <!-- Service Card 1 -->
-            <a href="{{ route('gallery', app()->getLocale()) }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="100" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite;">
+            <a href="{{ route('gallery') }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="100" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite;">
                 <!-- Animated Border -->
                 <div class="service-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #22c55e, #3b82f6, #22c55e); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-rotate 4s linear infinite;"></div>
                 
@@ -3005,7 +3005,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </a>
             
             <!-- Service Card 2 -->
-            <a href="{{ route('map', app()->getLocale()) }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="250" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite; animation-delay: 1s;">
+            <a href="{{ route('map') }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="250" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite; animation-delay: 1s;">
                 <div class="service-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #3b82f6, #8b5cf6, #3b82f6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-rotate 4s linear infinite;"></div>
                 <div class="service-glow" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent); opacity: 0; filter: blur(30px); transition: opacity 0.6s ease; z-index: 0;"></div>
                 
@@ -3024,7 +3024,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </a>
             
             <!-- Service Card 3 -->
-            <a href="{{ route('suivi_static') }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="400" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite; animation-delay: 2s;">
+            <a href="{{ route('suivi.direct') }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="400" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite; animation-delay: 2s;">
                 <div class="service-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #8b5cf6, #ec4899, #8b5cf6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-rotate 4s linear infinite;"></div>
                 <div class="service-glow" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent); opacity: 0; filter: blur(30px); transition: opacity 0.6s ease; z-index: 0;"></div>
                 
@@ -3157,7 +3157,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <!-- Image de couverture -->
                 <div style="height: 200px; overflow: hidden; position: relative;">
                     @if($publication->document_cover_image)
-                    <img src="{{ asset('storage/' . $publication->document_cover_image) }}" 
+                    @php
+                        $pubImgPath = ltrim((string) $publication->document_cover_image, '/');
+                        $pubImgUrl = (str_starts_with($pubImgPath, 'images/') || str_starts_with($pubImgPath, 'http')) ? asset($pubImgPath) : asset('storage/' . $pubImgPath);
+                    @endphp
+                    <img src="{{ $pubImgUrl }}" 
                          alt="{{ $publication->document_title }}" 
                          style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;"
                          onerror="this.src='{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}'">
@@ -3227,16 +3231,16 @@ document.addEventListener('DOMContentLoaded', function() {
 @endif
 
 <!-- Actualités Section ULTRA PRO -->
-<section class="news-section-ultra fade-in-left" style="padding: 100px 0; background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); position: relative; overflow: hidden;">
+<section class="news-section-ultra" data-aos="fade-up" style="padding: 100px 0; background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); position: relative; overflow: hidden;">
     <!-- Animated Particles -->
     <div style="position: absolute; top: 10%; left: 5%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(34, 197, 94, 0.05), transparent); border-radius: 50%; filter: blur(40px); animation: float-particle-slow 20s ease-in-out infinite;"></div>
     <div style="position: absolute; bottom: 20%; right: 10%; width: 250px; height: 250px; background: radial-gradient(circle, rgba(59, 130, 246, 0.04), transparent); border-radius: 50%; filter: blur(50px); animation: float-particle-slow 25s ease-in-out infinite reverse;"></div>
     
     <div class="container" style="position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 20px;">
         <!-- Title Section -->
-        <div style="text-align: center; margin-bottom: 5rem;" data-aos="fade-up">
+        <div style="text-align: center; margin-bottom: 5rem;" data-aos="fade-down" data-aos-duration="600">
             <h2 style="font-size: 3.5rem; font-weight: 700; margin-bottom: 1rem; color: #5a7d70; letter-spacing: 2px; text-transform: uppercase;">
-                {{ __('home.news.title') }}
+                ACTUALITÉS
             </h2>
             <!-- Ligne décorative -->
             <div style="width: 200px; height: 2px; background: #5a7d70; margin: 0 auto 3rem;"></div>
@@ -3258,6 +3262,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             $imagePath = trim((string) $imagePath);
                             if (preg_match('/^https?:\/\//i', $imagePath)) {
                                 $imageUrl = $imagePath;
+                            } elseif (str_starts_with(ltrim($imagePath, '/'), 'images/')) {
+                                $imageUrl = asset(ltrim($imagePath, '/'));
                             } else {
                                 $imageUrl = asset('storage/' . ltrim($imagePath, '/'));
                             }
@@ -3310,10 +3316,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 @endforeach
             @else
-                <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
-                    <i class="fas fa-newspaper" style="font-size: 3rem; color: #9ca3af; margin-bottom: 1rem;"></i>
-                    <h3 style="color: #6b7280; margin-bottom: 0.5rem;">Aucune actualité disponible pour le moment</h3>
-                    <p style="color: #9ca3af;">Les actualités du CSAR seront publiées ici dès qu'elles seront disponibles.</p>
+                <div class="news-empty-state" data-aos="zoom-in" data-aos-duration="600" style="grid-column: 1 / -1; text-align: center; padding: 60px 24px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 20px; border: 2px dashed #cbd5e1;">
+                    <i class="fas fa-newspaper" style="font-size: 3.5rem; color: #94a3b8; margin-bottom: 1.25rem;"></i>
+                    <h3 style="color: #475569; font-size: 1.35rem; font-weight: 700; margin-bottom: 0.75rem;">Aucune actualité disponible pour le moment</h3>
+                    <p style="color: #64748b; font-size: 1.05rem; max-width: 480px; margin: 0 auto;">Les actualités du CSAR seront publiées ici dès qu'elles seront disponibles.</p>
                 </div>
             @endif
         </div>
@@ -3425,10 +3431,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div style="position: relative; z-index: 2;">
                     <div class="counter-wrapper" style="margin-bottom: 0.5rem;">
-                        <span class="counter" data-target="{{ preg_replace('/[^0-9]/', '', $stats['capacity']) }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #8b5cf6, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
+                        <span class="counter" data-target="{{ $stats['capacity'] }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #8b5cf6, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
                     </div>
                     <p style="color: rgba(255, 255, 255, 0.95); font-size: 1.4rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                        {{ $stats['capacity'] }}
+                        {{ number_format((float) ($stats['capacity'] ?? 0)) }} tonnes de capacité
                     </p>
                 </div>
                 
@@ -3448,7 +3454,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 <div style="position: relative; z-index: 2;">
                     <div class="counter-wrapper" style="display: flex; align-items: center; justify-content: center; gap: 0.3rem; margin-bottom: 0.5rem;">
-                        <span class="counter" data-target="{{ preg_replace('/[^0-9]/', '', $stats['experience']) }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #ec4899, #db2777); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
+                        <span class="counter" data-target="{{ $stats['experience'] }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #ec4899, #db2777); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
                         <span style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #ec4899, #db2777); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: bounce 2s ease-in-out infinite;">+</span>
                     </div>
                     <p style="color: rgba(255, 255, 255, 0.95); font-size: 1.4rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
@@ -3515,11 +3521,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     <!-- Image with Multiple Layers -->
                     <div style="position: relative; width: 100%; height: 100%;">
+                        @php
+                            $galPath = $image->file_path ? ltrim((string) $image->file_path, '/') : '';
+                            $galUrl = $galPath ? ((str_starts_with($galPath, 'images/') || str_starts_with($galPath, 'http')) ? asset($galPath) : asset('storage/' . $galPath)) : '';
+                        @endphp
                         <!-- Main Image -->
-                        <img src="{{ asset('storage/' . $image->file_path) }}" 
+                        <img src="{{ $galUrl }}" 
                              alt="{{ $image->alt_text ?? $image->title }}" 
                              style="width: 100%; height: 100%; object-fit: cover; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); filter: brightness(0.95) contrast(1.05);"
-                             class="gallery-image-hover">
+                             class="gallery-image-hover"
+                             onerror="this.style.display='none'; this.nextElementSibling && (this.nextElementSibling.style.display='flex');">
+                        <div class="gallery-image-fallback" style="display: none; position: absolute; inset: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); align-items: center; justify-content: center; flex-direction: column;">
+                            <i class="fas fa-image" style="color: rgba(255,255,255,0.8); font-size: 3rem;"></i>
+                            <span style="color: rgba(255,255,255,0.9); font-size: 0.9rem;">{{ $image->title }}</span>
+                        </div>
                         
                         <!-- Color Overlay Effect -->
                         <div class="color-overlay" style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(59, 130, 246, 0.2)); mix-blend-mode: overlay; opacity: 0; transition: opacity 0.5s ease;"></div>
@@ -4700,7 +4715,7 @@ if (statsSection) {
         
         <!-- View All Partners Button with Animation -->
         <div style="text-align: center;" data-aos="fade-up" data-aos-delay="400">
-            <a href="{{ route('partners.index', app()->getLocale()) }}" class="btn-partners-modern" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 40px; background: linear-gradient(135deg, #22c55e 0%, #10b981 100%); color: white; font-weight: 700; font-size: 1rem; border-radius: 50px; text-decoration: none; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;">
+            <a href="{{ route('partners.index') }}" class="btn-partners-modern" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 40px; background: linear-gradient(135deg, #22c55e 0%, #10b981 100%); color: white; font-weight: 700; font-size: 1rem; border-radius: 50px; text-decoration: none; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;">
                 <span style="position: relative; z-index: 2; display: flex; align-items: center; gap: 12px;">
                     <i class="fas fa-users"></i>
                     Découvrir tous nos partenaires
@@ -5419,48 +5434,47 @@ window.addEventListener('beforeunload', function() {
 </script>
 
 <!-- Section La Directrice Générale -->
-<section class="minister-section">
+<section class="minister-section" data-aos="fade-up" data-aos-duration="700">
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-lg-10">
-                <h2 class="text-center mb-5 minister-title">
+                <h2 class="text-center mb-2 minister-title" data-aos="fade-down" data-aos-duration="500">
                     <span class="minister-title-text">LA DIRECTRICE GÉNÉRALE</span>
                 </h2>
+                <p class="text-center mb-4" style="color: #4b5563; font-size: 1.1rem; font-weight: 600;">La Directrice Générale</p>
                 
-                <div class="minister-card">
+                <div class="minister-card" data-aos="fade-up" data-aos-delay="150" data-aos-duration="600">
                     <div class="row align-items-center">
                         <!-- Image de la DG -->
-                        <div class="col-lg-5">
+                        <div class="col-lg-5" data-aos="fade-right" data-aos-duration="600">
                             <div class="minister-image-container">
                                 <div class="minister-image-wrapper">
-                                    <img src="{{ asset('images/DG csar.jpg') }}" alt="La Directrice Générale" class="minister-image" onerror="this.src='{{ asset('images/personnel/DG csar.jpg') }}';">
-                                    <div class="minister-flags">
-                                        <div class="flag flag-senegal"></div>
-                                        <div class="flag flag-csar"></div>
-                                    </div>
+                                    <img src="{{ asset('images/DG csar.jpg') }}" alt="Marieme Soda NDIAYE, Directrice Générale du CSAR" class="minister-image" onerror="this.src='{{ asset('images/personnel/DG csar.jpg') }}';">
                                     <div class="minister-glow"></div>
                                 </div>
+                                <p class="text-center mt-3 mb-0" style="font-size: 1.1rem; font-weight: 700; color: #1f2937;">Marieme Soda NDIAYE</p>
+                                <p class="text-center" style="font-size: 0.95rem; color: #6b7280;">Directrice Générale du CSAR</p>
                             </div>
                         </div>
                         
                         <!-- Contenu de la DG -->
-                        <div class="col-lg-7">
+                        <div class="col-lg-7" data-aos="fade-left" data-aos-duration="600" data-aos-delay="100">
                             <div class="minister-content">
                                 <div class="minister-subtitle">
                                     <div class="subtitle-line"></div>
-                                    <span class="subtitle-text">{{ __('messages.dg.subtitle') }}</span>
+                                    <span class="subtitle-text">MOTS DE LA DIRECTRICE GÉNÉRALE</span>
                                 </div>
                                 
                                 <div class="minister-message">
-                                    <p class="greeting">{{ __('messages.dg.greeting') }}</p>
+                                    <p class="greeting">Chères citoyennes, chers citoyens,</p>
                                     
-                                    <p>{!! __('messages.dg.welcome_message') !!}</p>
+                                    <p>Bienvenue sur la plateforme officielle d'information et de communication du <strong>Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)</strong>.</p>
                                     
-                                    <p>{{ __('messages.dg.mission_message') }}</p>
+                                    <p>Cet espace a pour mission de vous informer sur les activités et initiatives du CSAR, chargé de garantir la sécurité alimentaire et de renforcer la résilience des populations vulnérables au Sénégal.</p>
                                     
-                                    <p>{{ __('messages.dg.invitation_message') }}</p>
+                                    <p>Nous vous invitons à explorer ce site pour mieux connaître nos actions, nos programmes et les projets dédiés à la sécurité alimentaire et au renforcement de la résilience nationale.</p>
                                     
-                                    <p class="closing">{{ __('messages.dg.closing') }}</p>
+                                    <p class="closing">Bonne visite !</p>
                                 </div>
                             </div>
                         </div>

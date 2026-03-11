@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <p class="section-subtitle">Découvrez nos missions et nos réalisations sur le terrain</p>
         
         <div class="grid grid-3 gallery-grid">
-            <a href="{{ route('gallery', app()->getLocale()) }}" class="card gallery-card">
+            <a href="{{ route('gallery') }}" class="card gallery-card">
                 <div class="gallery-icon">
                     <i class="fas fa-hands-helping"></i>
                 </div>
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p>Nos équipes distribuent des denrées alimentaires aux populations dans le besoin à travers tout le Sénégal</p>
             </a>
             
-            <a href="{{ route('map', app()->getLocale()) }}" class="card gallery-card">
+            <a href="{{ route('map') }}" class="card gallery-card">
                 <div class="gallery-icon">
                     <i class="fas fa-map-marked-alt"></i>
                 </div>
@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p>Notre réseau de magasins de stockage stratégiques assure le stockage et la distribution des denrées alimentaires</p>
             </a>
             
-            <a href="{{ route('suivi_static') }}" class="card gallery-card">
+            <a href="{{ route('suivi.direct') }}" class="card gallery-card">
                 <div class="gallery-icon">
                     <i class="fas fa-search"></i>
                 </div>

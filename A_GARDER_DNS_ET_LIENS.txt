@@ -1,0 +1,34 @@
+============================================
+  À GARDER – DNS NETIM + LIENS INTERNES CSAR
+============================================
+
+--- 1. ENREGISTREMENT DNS (NETIM) ---
+
+Pour que le site csar.sn pointe vers votre hébergement, gardez :
+
+  Type    : A
+  Nom     : csar.sn
+  TTL     : Par défaut (ou 1 h si vous voulez que le changement soit plus rapide)
+  Cible   : 72.61.16.34   (remplacez par l’IP de votre hébergement si différente)
+
+À faire aussi pour le sous-domaine www :
+  Type    : A
+  Nom     : www.csar.sn
+  TTL     : Par défaut (ou 1 h)
+  Cible   : 72.61.16.34
+
+============================================
+
+--- 2. LIENS À ÉCRIRE (PLATEFORME INTERNE) ---
+
+Connexion Admin (gestion complète du site) :
+  https://csar.sn/admin/login
+
+Connexion DG (direction générale) :
+  https://csar.sn/dg/login
+
+(DRH, Responsable entrepôt et Agent : interfaces désactivées pour le moment.)
+
+============================================
+
+Note : En local ou avant que le domaine soit actif, remplacez csar.sn par l’adresse du serveur (ex. http://72.61.16.34 ou http://localhost/csar/public).

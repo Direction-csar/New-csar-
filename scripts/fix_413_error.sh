@@ -98,3 +98,6 @@ echo ""
 echo "💡 Vous pouvez maintenant uploader des fichiers jusqu'à 50MB"
 echo "   (avec une marge de sécurité de 100MB configurée)"
 
+
+
+

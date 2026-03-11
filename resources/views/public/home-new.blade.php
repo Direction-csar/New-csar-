@@ -409,7 +409,7 @@
         </div>
 
         <div class="text-center">
-            <a href="{{ route('gallery', app()->getLocale()) }}" class="btn-all-news">
+            <a href="{{ route('gallery') }}" class="btn-all-news">
                 Voir la galerie complète
                 <i class="fas fa-images"></i>
             </a>

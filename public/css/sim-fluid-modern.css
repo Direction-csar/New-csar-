@@ -1,0 +1,186 @@
+/* ============================================
+   SIM - PAGES FLUIDES & DESIGN MODERNE
+   Dashboard dynamique • Graphiques clairs • Interface professionnelle
+   ============================================ */
+
+:root {
+    --sim-transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    --sim-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    --sim-shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.12);
+    --sim-radius: 16px;
+    --sim-radius-sm: 12px;
+}
+
+/* Scroll fluide */
+html { scroll-behavior: smooth; }
+
+/* Cartes modernes - transition fluide */
+.sim-fluid-dashboard .card,
+.sim-fluid-dashboard .sim-stat-card {
+    border-radius: var(--sim-radius);
+    border: none;
+    box-shadow: var(--sim-shadow);
+    transition: var(--sim-transition);
+    overflow: hidden;
+}
+
+.sim-fluid-dashboard .card:hover,
+.sim-fluid-dashboard .sim-stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--sim-shadow-hover);
+}
+
+/* Cartes statistiques - entrée dynamique */
+.sim-stat-card {
+    border-radius: var(--sim-radius);
+    border: none;
+    box-shadow: var(--sim-shadow);
+    transition: var(--sim-transition);
+    height: 100%;
+}
+
+.sim-stat-card .card-body {
+    padding: 1.25rem 1.5rem;
+    transition: var(--sim-transition);
+}
+
+.sim-stat-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--sim-shadow-hover);
+}
+
+.sim-stat-card:hover .card-body {
+    padding: 1.25rem 1.5rem;
+}
+
+/* Animation légère au chargement */
+@keyframes simFadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sim-fluid-dashboard #stats .col-6:nth-child(1) { animation: simFadeInUp 0.5s ease-out 0.1s both; }
+.sim-fluid-dashboard #stats .col-6:nth-child(2) { animation: simFadeInUp 0.5s ease-out 0.2s both; }
+.sim-fluid-dashboard #stats .col-6:nth-child(3) { animation: simFadeInUp 0.5s ease-out 0.3s both; }
+.sim-fluid-dashboard #stats .col-6:nth-child(4) { animation: simFadeInUp 0.5s ease-out 0.4s both; }
+
+/* En-tête SIM - fluide */
+.sim-fluid-dashboard .p-4.rounded-4 {
+    border-radius: var(--sim-radius) !important;
+    transition: var(--sim-transition);
+}
+
+.sim-fluid-dashboard .btn {
+    transition: var(--sim-transition);
+    border-radius: var(--sim-radius-sm);
+}
+
+.sim-fluid-dashboard .btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Tableaux - lignes fluides */
+.sim-fluid-dashboard .table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.sim-fluid-dashboard .table tbody tr:hover {
+    background-color: rgba(0, 120, 110, 0.06);
+}
+
+/* Menu latéral - sticky fluide */
+.sim-fluid-dashboard .list-group-item {
+    transition: var(--sim-transition);
+    border-radius: 0;
+}
+
+.sim-fluid-dashboard .list-group-item:hover {
+    padding-left: 1.25rem;
+    background-color: rgba(15, 118, 110, 0.08);
+}
+
+/* Section graphique - conteneur clair */
+.sim-chart-container {
+    position: relative;
+    min-height: 220px;
+    padding: 1rem 0;
+}
+
+/* Carte Leaflet - conteneur arrondi */
+.sim-fluid-dashboard #simMap,
+.sim-map-wrapper {
+    border-radius: 0 0 var(--sim-radius) var(--sim-radius);
+    overflow: hidden;
+}
+
+/* Consultation des prix - page fluide */
+.sim-consult-fluid .card {
+    border-radius: var(--sim-radius);
+    border: none;
+    box-shadow: var(--sim-shadow);
+    transition: var(--sim-transition);
+}
+
+.sim-consult-fluid .card:hover {
+    box-shadow: var(--sim-shadow-hover);
+}
+
+.sim-consult-fluid .nav-tabs .nav-link {
+    transition: var(--sim-transition);
+    border-radius: var(--sim-radius-sm) var(--sim-radius-sm) 0 0;
+    font-weight: 600;
+}
+
+.sim-consult-fluid .table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.sim-consult-fluid .table tbody tr:hover {
+    background-color: rgba(40, 167, 69, 0.06);
+}
+
+.sim-consult-fluid .btn {
+    transition: var(--sim-transition);
+}
+
+.sim-consult-fluid .btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Carte des marchés - bannière fluide */
+.sim-map-banner {
+    transition: var(--sim-transition);
+}
+
+/* Contrôles de formulaire - focus fluide */
+.sim-fluid-dashboard .form-select:focus,
+.sim-fluid-dashboard .form-control:focus,
+.sim-consult-fluid .form-select:focus,
+.sim-consult-fluid .form-control:focus {
+    border-color: #0f766e;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+    outline: none;
+    transition: var(--sim-transition);
+}
+
+/* Publications / listes - effet fluide */
+.sim-fluid-dashboard .list-group-item-action {
+    transition: var(--sim-transition);
+}
+
+/* Responsive - espacements fluides */
+@media (max-width: 768px) {
+    .sim-fluid-dashboard #stats .col-6 { animation: none; }
+    .sim-stat-card:hover { transform: none; }
+}
+
+/* Réduction des mouvements si préféré */
+@media (prefers-reduced-motion: reduce) {
+    .sim-fluid-dashboard .card,
+    .sim-stat-card,
+    .sim-fluid-dashboard .btn,
+    .sim-fluid-dashboard .list-group-item { transition: none; }
+    .sim-fluid-dashboard .card:hover,
+    .sim-stat-card:hover { transform: none; }
+    html { scroll-behavior: auto; }
+}

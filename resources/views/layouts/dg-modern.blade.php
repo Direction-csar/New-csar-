@@ -624,6 +624,13 @@
                         <span>Rapports</span>
                     </a>
                 </div>
+
+                <div class="menu-item">
+                    <a href="{{ route('dg.sim.index') }}" class="menu-link {{ request()->routeIs('dg.sim.*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-line"></i>
+                        <span>SIM</span>
+                    </a>
+                </div>
                 
                 <div class="menu-item">
                     <a href="#" class="menu-link" onclick="toggleDarkMode()">

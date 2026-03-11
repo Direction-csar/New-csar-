@@ -17,3 +17,6 @@ echo "📋 Dernières lignes du log (pour contexte):"
 echo "=========================================="
 tail -30 storage/logs/laravel.log
 
+
+
+

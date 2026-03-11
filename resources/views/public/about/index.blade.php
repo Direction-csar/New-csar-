@@ -1597,7 +1597,7 @@
 </style>
 
 <!-- Hero Section -->
-<section class="hero-section">
+<section class="hero-section" data-aos="fade-down" data-aos-duration="600">
     <div class="container">
         <div class="hero-content text-center">
             <h1 class="hero-title text-reveal text-gradient">À propos du CSAR</h1>
@@ -1607,7 +1607,7 @@
 </section>
 
 <!-- Section CSAR -->
-<section class="csar-section">
+<section class="csar-section" data-aos="fade-up" data-aos-duration="600">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-8">
@@ -1643,7 +1643,7 @@
 </section>
 
 <!-- Section Fondation -->
-<section class="foundation-section">
+<section class="foundation-section" data-aos="fade-up" data-aos-duration="600">
     <div class="container">
         <h2 class="text-center mb-2 text-reveal text-gradient" style="font-size: 2.5rem; font-weight: 800; color: var(--gray-800);">
             Notre Fondation
@@ -1693,7 +1693,7 @@
 </section>
 
 <!-- Section Objectifs Stratégiques -->
-<section class="objectives-section">
+<section class="objectives-section" data-aos="fade-up" data-aos-duration="600">
     <div class="container">
         <h2 class="text-center mb-2 text-reveal text-gradient" style="font-size: 2.5rem; font-weight: 800; color: var(--gray-800);">
             Objectifs stratégiques (jusqu'en 2028)
@@ -1757,7 +1757,7 @@
 </section>
 
 <!-- Section Chiffres Clés Dynamiques -->
-<section class="stats-section">
+<section class="stats-section" data-aos="zoom-in" data-aos-duration="600">
     <div class="container">
         <h2 class="stats-title text-reveal text-gradient">Chiffres clés dynamiques</h2>
         <p class="stats-subtitle slide-up-fade animate-delay-1">L'impact du CSAR en chiffres</p>
@@ -1794,7 +1794,7 @@
 </section>
 
 <!-- Section Historique -->
-<section class="history-section">
+<section class="history-section" data-aos="fade-up" data-aos-duration="600">
     <div class="container">
         <h2 class="text-center mb-2 text-reveal text-gradient" style="font-size: 2.5rem; font-weight: 800; color: var(--gray-800);">
             Notre Historique
@@ -1852,7 +1852,7 @@
 </section>
 
 <!-- Section Message de la Direction Générale -->
-<section class="message-section">
+<section class="message-section" data-aos="fade-up" data-aos-duration="600">
     <div class="container">
         <h2 class="text-center mb-2" style="font-size: 2.5rem; font-weight: 800; color: white;">
             Message de la Direction Générale
@@ -1920,7 +1920,7 @@
 </section>
 
 <!-- Section Message du Ministère -->
-<section class="message-section" style="background: var(--dark-blue);">
+<section class="message-section" data-aos="fade-up" data-aos-duration="600" style="background: var(--dark-blue);">
     <div class="container">
         <h2 class="text-center mb-2" style="font-size: 2.5rem; font-weight: 800; color: white;">
             Message du Ministère

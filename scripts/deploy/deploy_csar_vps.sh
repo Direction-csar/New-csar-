@@ -85,23 +85,9 @@ else
     cd csar
 fi
 
-# Créer les répertoires nécessaires et configurer les permissions
-echo "📁 Création des répertoires nécessaires..."
-mkdir -p storage/app/public
-mkdir -p storage/framework/cache
-mkdir -p storage/framework/sessions
-mkdir -p storage/framework/views
-mkdir -p storage/logs
-mkdir -p bootstrap/cache
-
-# Permissions temporaires pour l'installation
-chown -R $APP_USER:$APP_USER $APP_DIR
-chmod -R 775 storage
-chmod -R 775 bootstrap/cache
-
 # Installation des dépendances
 echo "📦 Installation des dépendances Composer..."
-COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction
+composer install --no-dev --optimize-autoloader --no-interaction
 
 if [ -f "package.json" ]; then
     if command -v npm &> /dev/null; then

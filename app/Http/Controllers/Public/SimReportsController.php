@@ -4,39 +4,68 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\SimReport;
+use App\Services\SimAnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
 class SimReportsController extends Controller
 {
+    public function __construct(
+        protected SimAnalyticsService $simAnalytics
+    ) {}
+
     /**
-     * Afficher la page des rapports SIM publics
+     * Tableau de bord SIM complet : stats, prix moyens, graphique, carte, consultation, publications.
      */
     public function index(Request $request)
     {
+        $locale = $request->get('locale', app()->getLocale()) ?: 'fr';
         try {
-            // Vérifier si la table existe
-            if (!Schema::hasTable('sim_reports')) {
-                $reports = collect([]);
-                return view('public.sim-reports', compact('reports'));
-            }
-            
-            // Récupérer les rapports publics directement sans mapping
-            $reports = SimReport::where('is_public', true)
-                ->where('status', 'published')
-                ->orderBy('published_at', 'desc')
-                ->get();
-            
-            return view('public.sim-reports', compact('reports'));
-            
-        } catch (\Exception $e) {
-            \Log::error('Erreur dans SimReportsController@index', [
-                'error' => $e->getMessage(),
-                'request' => $request->all()
-            ]);
-            
-            return view('public.sim-reports', ['reports' => collect([])]);
+            $overview = $this->simAnalytics->adminOverview();
+            $year = (int) ($request->get('year') ?: now()->year);
+            $prices = $this->simAnalytics->publicPrices($year);
+            $priceTable = $this->simAnalytics->getPriceConsultationData(
+                $year,
+                $request->filled('month') ? (int) $request->month : null,
+                $request->filled('region') ? $request->region : null,
+                null,
+                null,
+                'year',
+                'desc',
+                80
+            );
+            $marketsForMap = $this->simAnalytics->getMarketsForMap();
+        } catch (\Throwable $e) {
+            \Log::warning('SimReportsController@index analytics', ['error' => $e->getMessage()]);
+            $overview = ['markets_count' => 0, 'products_count' => 0, 'collections_this_month' => 0, 'last_updated' => null];
+            $prices = ['cards' => [], 'line' => ['labels' => [], 'datasets' => []]];
+            $priceTable = ['data' => collect(), 'total' => 0];
+            $marketsForMap = [];
+            $year = (int) now()->year;
         }
+
+        $reports = collect([]);
+        if (Schema::hasTable('sim_reports')) {
+            try {
+                $reports = SimReport::where('is_public', true)
+                    ->where('status', 'published')
+                    ->orderBy('published_at', 'desc')
+                    ->limit(20)
+                    ->get();
+            } catch (\Throwable $e) {
+                // ignore
+            }
+        }
+
+        return view('public.sim-reports', [
+            'overview' => $overview,
+            'prices' => $prices,
+            'priceTable' => $priceTable,
+            'marketsForMap' => $marketsForMap,
+            'reports' => $reports,
+            'year' => $year,
+            'locale' => $locale,
+        ]);
     }
     
     /**

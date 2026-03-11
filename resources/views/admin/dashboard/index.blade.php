@@ -297,6 +297,41 @@
         </div>
     </div>
 
+    <!-- Statistiques des demandes par région (zones à forte demande) -->
+    <div class="row mb-2">
+        <div class="col-12">
+            <div class="card-modern p-3">
+                <h6 class="mb-3 fw-bold">📊 Demandes d'aide alimentaire par région</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Région</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-end">En attente</th>
+                                <th class="text-end">Approuvées</th>
+                                <th class="text-end">Rejetées</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($chartsData['demandesByRegion'] ?? [] as $r)
+                            <tr>
+                                <td class="fw-medium">{{ $r['region'] }}</td>
+                                <td class="text-end">{{ $r['total'] }}</td>
+                                <td class="text-end">{{ $r['pending'] }}</td>
+                                <td class="text-end">{{ $r['approved'] }}</td>
+                                <td class="text-end">{{ $r['rejected'] }}</td>
+                            </tr>
+                            @empty
+                            <tr><td colspan="5" class="text-center text-muted">Aucune donnée par région.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Carte interactive avec filtres et géolocalisation des demandes -->
     <div class="row mb-2">
         <div class="col-12">
@@ -396,7 +431,8 @@
                                 <select id="filterType" class="form-select form-select-sm" onchange="applyMapFilters()">
                                     <option value="all">Tout afficher</option>
                                     <option value="warehouses">Entrepôts uniquement</option>
-                                    <option value="demandes">Demandes uniquement</option>
+                                    <option value="demandes">Demandes (points)</option>
+                                    <option value="zones">Zones par région (demandes)</option>
                                 </select>
                             </div>
                             <div class="col-md-2 d-flex align-items-end">
@@ -914,16 +950,43 @@ function renderMapMarkers(data) {
                         <p class="mb-1 small"><strong>Région:</strong> ${item.region}</p>
                         <p class="mb-1 small"><strong>Date:</strong> ${item.created_at}</p>
                         <p class="mb-2 small"><strong>Adresse:</strong> ${item.address}</p>
-                        <a href="/admin/demandes/${item.id}" class="btn btn-sm btn-danger w-100">
+                        <a href="/admin/demandes/${item.id.replace('P','')}" class="btn btn-sm btn-danger w-100">
                             <i class="fas fa-eye me-1"></i>Voir la demande
                         </a>
                     </div>
                 `;
+            } else if (item.type === 'zone') {
+                demandeCount += item.total || 0;
+                pendingCount += item.pending || 0;
+                approvedCount += item.approved || 0;
+                const marker = L.circleMarker([item.lat, item.lng], {
+                    color: '#2563eb',
+                    fillColor: '#2563eb',
+                    fillOpacity: 0.6,
+                    radius: Math.min(14, 6 + (item.total || 0)),
+                    weight: 2
+                });
+                marker.bindPopup(`
+                    <div style="min-width: 200px;">
+                        <h6 class="mb-2 fw-bold text-primary"><i class="fas fa-map-marker-alt me-1"></i>${item.name || item.region}</h6>
+                        <span class="badge bg-info">Région</span>
+                        <hr class="my-2">
+                        <p class="mb-1 small"><strong>Total demandes:</strong> ${item.total}</p>
+                        <p class="mb-1 small"><strong>Approuvées:</strong> ${item.approved}</p>
+                        <p class="mb-1 small"><strong>En attente:</strong> ${item.pending}</p>
+                        <p class="mb-2 small"><strong>Rejetées:</strong> ${item.rejected}</p>
+                        <a href="/admin/demandes?region=${encodeURIComponent(item.region)}" class="btn btn-sm btn-outline-primary w-100">Voir les demandes</a>
+                    </div>
+                `);
+                markersLayer.addLayer(marker);
+                return;
             }
             
-            const marker = L.marker([item.lat, item.lng], { icon: icon });
-            marker.bindPopup(popupContent);
-            markersLayer.addLayer(marker);
+            if (item.type !== 'zone') {
+                const marker = L.marker([item.lat, item.lng], { icon: icon });
+                marker.bindPopup(popupContent);
+                markersLayer.addLayer(marker);
+            }
         });
         
         warehouseMap.addLayer(markersLayer);
@@ -957,15 +1020,22 @@ function updateMapStats(data) {
     if (!data) return;
     
     const warehouses = data.filter(item => item.type === 'warehouse').length;
-    const demandes = data.filter(item => item.type === 'demande').length;
-    const pending = data.filter(item => 
+    const demandesPoints = data.filter(item => item.type === 'demande').length;
+    const zones = data.filter(item => item.type === 'zone');
+    const demandesFromZones = zones.reduce((s, z) => s + (z.total || 0), 0);
+    const demandes = demandesPoints + (zones.length ? demandesFromZones : 0);
+    let pending = data.filter(item => 
         item.type === 'demande' && 
         (item.status === 'en_attente' || item.status === 'pending')
     ).length;
-    const approved = data.filter(item => 
+    let approved = data.filter(item => 
         item.type === 'demande' && 
         (item.status === 'traitee' || item.status === 'approved')
     ).length;
+    if (zones.length) {
+        pending += zones.reduce((s, z) => s + (z.pending || 0), 0);
+        approved += zones.reduce((s, z) => s + (z.approved || 0), 0);
+    }
     
     document.getElementById('mapStatWarehouses').textContent = warehouses;
     document.getElementById('mapStatDemandes').textContent = demandes;

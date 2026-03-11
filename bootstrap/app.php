@@ -31,9 +31,6 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'dg' => \App\Http\Middleware\DGMiddleware::class,
-            'drh' => \App\Http\Middleware\DrhMiddleware::class,
-            'responsable' => \App\Http\Middleware\ResponsableMiddleware::class,
-            'agent' => \App\Http\Middleware\AgentMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

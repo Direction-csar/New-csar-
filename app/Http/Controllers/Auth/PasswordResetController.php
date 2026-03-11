@@ -188,12 +188,12 @@ class PasswordResetController extends Controller
                 return route('admin.login');
             } elseif (strpos($referer, '/dg/login') !== false) {
                 return route('dg.login');
-            } elseif (strpos($referer, '/drh/login') !== false) {
-                return route('drh.login');
+            } else            if (strpos($referer, '/drh/login') !== false) {
+                return url('/');
             } elseif (strpos($referer, '/agent/login') !== false) {
-                return route('agent.login');
+                return url('/');
             } elseif (strpos($referer, '/responsable/login') !== false) {
-                return route('responsable.login');
+                return url('/');
             }
         }
         
@@ -213,12 +213,8 @@ class PasswordResetController extends Controller
                 return 'auth.admin-forgot-password';
             } elseif (strpos($referer, '/dg/login') !== false) {
                 return 'auth.dg-forgot-password';
-            } elseif (strpos($referer, '/drh/login') !== false) {
-                return 'auth.drh-forgot-password';
-            } elseif (strpos($referer, '/agent/login') !== false) {
-                return 'auth.agent-forgot-password';
-            } elseif (strpos($referer, '/responsable/login') !== false) {
-                return 'auth.responsable-forgot-password';
+            } elseif (strpos($referer, '/drh/login') !== false || strpos($referer, '/agent/login') !== false || strpos($referer, '/responsable/login') !== false) {
+                return 'auth.interface-desactivee';
             }
         }
         

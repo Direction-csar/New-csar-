@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\URL;
 
 class SetLocale
 {
@@ -37,6 +38,10 @@ class SetLocale
         // Définir la locale pour l'application
         App::setLocale($locale);
         Session::put('locale', $locale);
+
+        // Définir la locale par défaut pour la génération d'URLs (route())
+        // Permet d'appeler route('map') sans passer explicitement ['locale' => ...]
+        URL::defaults(['locale' => $locale]);
         
         return $next($request);
     }

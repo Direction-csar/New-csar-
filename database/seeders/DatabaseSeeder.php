@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             // Seulement les seeders essentiels - pas de données fictives
             CleanDatabaseSeeder::class,
+            SimGeographySeeder::class,
         ]);
     }
 }

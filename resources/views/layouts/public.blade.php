@@ -22,6 +22,9 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- AOS - Animate On Scroll -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
     <!-- Custom CSS -->
     @stack('styles')
     <style>
@@ -1305,6 +1308,14 @@
     
     <!-- Toast Notifications -->
     <x-toast-notification />
+    
+    <!-- AOS - Animate On Scroll -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        AOS.init({ duration: 600, easing: 'ease-out-cubic', offset: 40, once: true });
+      });
+    </script>
     
     @stack('scripts')
 </body>

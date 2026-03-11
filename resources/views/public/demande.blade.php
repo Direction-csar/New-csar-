@@ -61,7 +61,7 @@
         </ul>
     </div>
 @endif
-<form method="POST" action="{{ route('demande.store') }}" id="demandeForm" autocomplete="off" enctype="multipart/form-data">
+<form method="POST" action="{{ route('demande.store.direct') }}" id="demandeForm" autocomplete="off" enctype="multipart/form-data">
         @csrf
         <fieldset style="border:none;padding:0;margin-bottom:26px;">
             <legend style="font-size:1.02rem;font-weight:700;color:#0284c7;margin-bottom:12px;">Type de demande</legend>

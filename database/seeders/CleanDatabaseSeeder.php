@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -49,16 +50,18 @@ class CleanDatabaseSeeder extends Seeder
      */
     private function createEssentialData()
     {
-        // Créer un utilisateur admin par défaut
-        DB::table('users')->insert([
-            'name' => 'Administrateur CSAR',
-            'email' => 'admin@csar.sn',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'is_active' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        // Créer ou mettre à jour l'utilisateur admin (évite "Duplicate entry" si users non truncaté)
+        $roleId = \App\Models\Role::where('name', 'admin')->first()?->id;
+        User::updateOrCreate(
+            ['email' => 'admin@csar.sn'],
+            array_filter([
+                'name' => 'Administrateur CSAR',
+                'password' => Hash::make('password'),
+                'role' => 'admin',
+                'role_id' => $roleId,
+                'is_active' => true,
+            ])
+        );
         
         // Créer les contenus publics de base
         $this->createPublicContent();
@@ -95,18 +98,21 @@ class CleanDatabaseSeeder extends Seeder
     }
     
     /**
-     * Créer les statistiques de base
+     * Créer les statistiques de base (colonnes: key, title, description, value, section, order, is_active)
      */
     private function createBaseStatistics()
     {
         $statistics = [
-            ['section' => 'about', 'key_name' => 'agents_count', 'value' => '0', 'is_active' => true, 'order' => 1],
-            ['section' => 'about', 'key_name' => 'warehouses_count', 'value' => '0', 'is_active' => true, 'order' => 2],
-            ['section' => 'about', 'key_name' => 'capacity_count', 'value' => '0', 'is_active' => true, 'order' => 3],
-            ['section' => 'about', 'key_name' => 'experience_count', 'value' => '0', 'is_active' => true, 'order' => 4],
+            ['key' => 'agents_count', 'title' => 'Agents', 'description' => 'Agents de terrain', 'value' => '0', 'section' => 'about', 'order' => 1, 'is_active' => true],
+            ['key' => 'warehouses_count', 'title' => 'Entrepôts', 'description' => 'Entrepôts actifs', 'value' => '0', 'section' => 'about', 'order' => 2, 'is_active' => true],
+            ['key' => 'capacity_count', 'title' => 'Capacité', 'description' => 'Tonnes de capacité', 'value' => '0', 'section' => 'about', 'order' => 3, 'is_active' => true],
+            ['key' => 'experience_count', 'title' => 'Années', 'description' => "Années d'expérience", 'value' => '0', 'section' => 'about', 'order' => 4, 'is_active' => true],
         ];
-        
+
         foreach ($statistics as $stat) {
+            if (DB::table('statistics')->where('key', $stat['key'])->exists()) {
+                continue;
+            }
             DB::table('statistics')->insert(array_merge($stat, [
                 'created_at' => now(),
                 'updated_at' => now(),

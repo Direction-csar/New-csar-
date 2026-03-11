@@ -1,0 +1,71 @@
+╔══════════════════════════════════════════════════════════════╗
+║  SUPPRIMER LA BASE DE DONNÉES - MÉTHODES ALTERNATIVES       ║
+╚══════════════════════════════════════════════════════════════╝
+
+Votre site a été supprimé avec succès ! Il ne reste plus que la base de données.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MÉTHODE 1: Essayer sans mot de passe (si MySQL utilise auth_socket)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+sudo mysql <<EOF
+DROP DATABASE IF EXISTS csar_platform;
+DROP USER IF EXISTS 'csar_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+EOF
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MÉTHODE 2: Se connecter à MySQL et supprimer manuellement
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Essayer avec sudo (sans mot de passe)
+sudo mysql
+
+# Une fois dans MySQL, exécutez:
+DROP DATABASE IF EXISTS csar_platform;
+DROP USER IF EXISTS 'csar_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MÉTHODE 3: Si vous connaissez le mot de passe root MySQL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+mysql -u root -p
+
+# Entrez le mot de passe quand demandé, puis:
+DROP DATABASE IF EXISTS csar_platform;
+DROP USER IF EXISTS 'csar_user'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MÉTHODE 4: Vérifier d'abord si la base existe
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Lister toutes les bases de données
+sudo mysql -e "SHOW DATABASES;"
+
+# Vérifier si csar_platform existe
+sudo mysql -e "SHOW DATABASES LIKE 'csar_platform';"
+
+# Si elle existe, la supprimer:
+sudo mysql -e "DROP DATABASE IF EXISTS csar_platform;"
+sudo mysql -e "DROP USER IF EXISTS 'csar_user'@'localhost';"
+sudo mysql -e "FLUSH PRIVILEGES;"
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+VÉRIFICATION FINALE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# Vérifier que la base n'existe plus
+sudo mysql -e "SHOW DATABASES;" | grep csar
+
+# Si rien ne s'affiche, c'est bon ! ✅
+
+
