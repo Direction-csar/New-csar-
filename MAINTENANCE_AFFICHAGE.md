@@ -2,6 +2,26 @@
 
 La page de maintenance (logo CSAR, message, fond aux couleurs du drapeau, animations) peut être affichée de deux manières.
 
+---
+
+## Après hébergement : afficher le mode maintenance
+
+**Une fois le site déployé sur le serveur**, pour que les visiteurs voient « Site en maintenance » au lieu du site normal :
+
+1. Connectez-vous au serveur (SSH ou panneau d’hébergement).
+2. Allez dans le dossier du projet (là où se trouve `artisan`).
+3. Lancez :
+   ```bash
+   php artisan down --render="errors.503"
+   ```
+4. Toutes les pages du site afficheront alors la page de maintenance (logo CSAR + message + animations).
+5. Quand vous voulez rouvrir le site :
+   ```bash
+   php artisan up
+   ```
+
+---
+
 ## 1. Avec Laravel (recommandé en production)
 
 Quand le site tourne sous Laravel, activez le mode maintenance pour que **toutes** les URLs affichent cette page :
