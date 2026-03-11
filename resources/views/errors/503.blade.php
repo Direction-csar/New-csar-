@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site en maintenance | CSAR</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+            color: #fff;
+        }
+
+        /* Fond type drapeau Sénégal (vert, jaune, rouge) avec léger flou / effet */
+        .bg-flag {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(90deg,
+                #00843d 0%,
+                #00843d 33.33%,
+                #fcd116 33.33%,
+                #fcd116 66.66%,
+                #e31b23 66.66%,
+                #e31b23 100%);
+            z-index: -2;
+        }
+        .bg-flag::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(255,255,255,0.12) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .bg-flag::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Animation douce du fond (léger mouvement) */
+        @keyframes bgShift {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.98; transform: scale(1.02); }
+        }
+        .bg-flag {
+            animation: bgShift 8s ease-in-out infinite;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 2rem;
+            max-width: 90vw;
+        }
+
+        /* Logo CSAR */
+        .logo-wrap {
+            margin-bottom: 2.5rem;
+            animation: fadeInDown 0.8s ease-out;
+        }
+        .logo-wrap img {
+            max-height: 90px;
+            width: auto;
+            max-width: 280px;
+            filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25));
+            transition: transform 0.3s ease;
+        }
+        .logo-wrap img:hover {
+            transform: scale(1.03);
+        }
+
+        /* Titre principal */
+        .title {
+            font-size: clamp(1.75rem, 5vw, 2.75rem);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+            margin-bottom: 0.75rem;
+            animation: fadeIn 1s ease-out 0.2s both, pulse 2.5s ease-in-out 1.2s infinite;
+        }
+
+        /* Sous-titre */
+        .subtitle {
+            font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+            font-weight: 400;
+            opacity: 0.95;
+            text-shadow: 0 1px 10px rgba(0,0,0,0.25);
+            margin-bottom: 2rem;
+            animation: fadeIn 1s ease-out 0.4s both;
+        }
+
+        /* Barre de progression / chargement */
+        .loader-wrap {
+            width: 200px;
+            margin: 0 auto 2rem;
+            animation: fadeIn 1s ease-out 0.6s both;
+        }
+        .loader-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.25);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .loader-fill {
+            height: 100%;
+            width: 35%;
+            background: #fff;
+            border-radius: 4px;
+            animation: loading 1.5s ease-in-out infinite;
+            box-shadow: 0 0 12px rgba(255,255,255,0.6);
+        }
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(250%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Points animés optionnels */
+        .dots {
+            display: inline-flex;
+            gap: 6px;
+            margin-top: 0.5rem;
+        }
+        .dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #fff;
+            animation: dotPulse 1.2s ease-in-out infinite;
+            box-shadow: 0 0 8px rgba(255,255,255,0.5);
+        }
+        .dots span:nth-child(2) { animation-delay: 0.2s; }
+        .dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dotPulse {
+            0%, 100% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        /* Footer */
+        .footer {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 0;
+            right: 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+            animation: fadeIn 1s ease-out 0.8s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.92; }
+        }
+
+        @media (max-width: 480px) {
+            .logo-wrap img { max-height: 70px; }
+            .content { padding: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-flag" aria-hidden="true"></div>
+
+    <main class="content">
+        <div class="logo-wrap">
+            <img src="{{ asset('images/csar-logo.svg') }}" alt="CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience">
+        </div>
+        <h1 class="title">Site en Maintenance</h1>
+        <p class="subtitle">Le site est actuellement en maintenance, merci de patienter !</p>
+        <div class="loader-wrap">
+            <div class="loader-bar">
+                <div class="loader-fill"></div>
+            </div>
+            <div class="dots" aria-hidden="true">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">© CSAR {{ date('Y') }}</footer>
+</body>
+</html>
