@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Effectuer une action - CSAR')
+@section('title', __('pages.action'))
 
 @section('content')
 <!-- Hero Section -->
@@ -19,24 +19,24 @@
             <div id="progressBar" style="height:100%; width:0%; background:#fff; border-radius:999px; transition:width .6s ease;"></div>
         </div>
         <h1 class="main-title" style="font-size: 3rem; font-weight: 800; color: #fff; margin-bottom: 14px; letter-spacing: -1px; line-height: 1.2;">
-            Effectuer une action
+            {{ __('messages.action.title') }}
         </h1>
         <p class="main-subtitle" style="font-size: 1.1rem; color: #e5e7eb; max-width: 780px; margin: 0 auto 28px; line-height: 1.6;">
-            Choisissez le type d'action que vous souhaitez effectuer auprès du CSAR
+            {{ __('messages.action.subtitle') }}
         </p>
         
         <div style="display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;">
             <div class="hero-stat zoom-hover" style="background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.28);">
                 <div style="font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 2px;">4</div>
-                <div style="color: #e6f7ef; font-size: 0.85rem;">Types d'actions</div>
+                <div style="color: #e6f7ef; font-size: 0.85rem;">{{ __('messages.action.types_count') }}</div>
             </div>
             <div class="hero-stat zoom-hover" style="background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.28);">
                 <div style="font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 2px;">24h</div>
-                <div style="color: #e6f7ef; font-size: 0.85rem;">Temps de réponse</div>
+                <div style="color: #e6f7ef; font-size: 0.85rem;">{{ __('messages.action.response_time') }}</div>
             </div>
             <div class="hero-stat zoom-hover" style="background: rgba(255,255,255,0.18); backdrop-filter: blur(8px); padding: 10px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.28);">
                 <div style="font-size: 1.35rem; font-weight: 700; color: #fff; margin-bottom: 2px;">100%</div>
-                <div style="color: #e6f7ef; font-size: 0.85rem;">Gratuit</div>
+                <div style="color: #e6f7ef; font-size: 0.85rem;">{{ __('messages.action.free') }}</div>
             </div>
         </div>
     </div>
@@ -61,8 +61,8 @@
                 <div class="card-icon" style="width: 80px; height: 80px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; font-size: 32px; color: #fff; box-shadow: 0 8px 25px rgba(239,68,68,0.3);">
                     <i class="fas fa-box"></i>
                 </div>
-                <h3 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin-bottom: 15px;">📦 Demande d'aide alimentaire</h3>
-                <p style="color: #6b7280; margin-bottom: 25px; line-height: 1.6;">Demandes d'aide alimentaire ou matérielle pour les populations dans le besoin</p>
+                <h3 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin-bottom: 15px;">📦 {{ __('messages.action.food_aid') }}</h3>
+                <p style="color: #6b7280; margin-bottom: 25px; line-height: 1.6;">{{ __('messages.action.food_aid_desc') }}</p>
                 <ul style="margin: 0 0 30px; padding: 0; list-style: none; text-align: left;">
                     <li style="padding: 8px 0; color: #6b7280; display: flex; align-items: center;">
                         <i class="fas fa-check" style="color: #22c55e; margin-right: 10px; font-size: 14px;"></i>
@@ -78,7 +78,7 @@
                     </li>
                 </ul>
                 <button class="btn btn-primary select-action" style="width: 100%; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: #fff; padding: 15px 30px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 1rem; border: none; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(239,68,68,0.3);">
-                    <i class="fas fa-arrow-right"></i> Choisir cette action
+                    <i class="fas fa-arrow-right"></i> {{ __('messages.action.choose') }}
                 </button>
             </div>
             
@@ -87,8 +87,8 @@
                 <div class="card-icon" style="width: 80px; height: 80px; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; font-size: 32px; color: #fff; box-shadow: 0 8px 25px rgba(139,92,246,0.3);">
                     <i class="fas fa-handshake"></i>
                 </div>
-                <h3 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin-bottom: 15px;">🤝 Demande de partenariat</h3>
-                <p style="color: #6b7280; margin-bottom: 25px; line-height: 1.6;">Partenariats institutionnels pour renforcer la sécurité alimentaire</p>
+                <h3 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin-bottom: 15px;">🤝 {{ __('messages.action.partnership') }}</h3>
+                <p style="color: #6b7280; margin-bottom: 25px; line-height: 1.6;">{{ __('messages.action.partnership_desc') }}</p>
                 <ul style="margin: 0 0 30px; padding: 0; list-style: none; text-align: left;">
                     <li style="padding: 8px 0; color: #6b7280; display: flex; align-items: center;">
                         <i class="fas fa-check" style="color: #22c55e; margin-right: 10px; font-size: 14px;"></i>
@@ -104,7 +104,7 @@
                     </li>
                 </ul>
                 <button class="btn btn-primary select-action" style="width: 100%; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: #fff; padding: 15px 30px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 1rem; border: none; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(139,92,246,0.3);">
-                    <i class="fas fa-arrow-right"></i> Choisir cette action
+                    <i class="fas fa-arrow-right"></i> {{ __('messages.action.choose') }}
                 </button>
             </div>
             
@@ -113,8 +113,8 @@
                 <div class="card-icon" style="width: 80px; height: 80px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; font-size: 32px; color: #fff; box-shadow: 0 8px 25px rgba(6,182,212,0.3);">
                     <i class="fas fa-user-tie"></i>
                 </div>
-                <h3 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin-bottom: 15px;">🙋‍♂️ Demande d'audience</h3>
-                <p style="color: #6b7280; margin-bottom: 25px; line-height: 1.6;">Rencontres avec les responsables du CSAR pour discuter de projets</p>
+                <h3 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin-bottom: 15px;">🙋‍♂️ {{ __('messages.action.audience') }}</h3>
+                <p style="color: #6b7280; margin-bottom: 25px; line-height: 1.6;">{{ __('messages.action.audience_desc') }}</p>
                 <ul style="margin: 0 0 30px; padding: 0; list-style: none; text-align: left;">
                     <li style="padding: 8px 0; color: #6b7280; display: flex; align-items: center;">
                         <i class="fas fa-check" style="color: #22c55e; margin-right: 10px; font-size: 14px;"></i>
@@ -130,7 +130,7 @@
                     </li>
                 </ul>
                 <button class="btn btn-primary select-action" style="width: 100%; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: #fff; padding: 15px 30px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 1rem; border: none; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(6,182,212,0.3);">
-                    <i class="fas fa-arrow-right"></i> Choisir cette action
+                    <i class="fas fa-arrow-right"></i> {{ __('messages.action.choose') }}
                 </button>
             </div>
             
@@ -139,8 +139,8 @@
                 <div class="card-icon" style="width: 80px; height: 80px; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 25px; font-size: 32px; color: #fff; box-shadow: 0 8px 25px rgba(249,115,22,0.3);">
                     <i class="fas fa-file-alt"></i>
                 </div>
-                <h3 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin-bottom: 15px;">📝 Autres demandes</h3>
-                <p style="color: #6b7280; margin-bottom: 25px; line-height: 1.6;">Stages, appui logistique et autres types de demandes</p>
+                <h3 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin-bottom: 15px;">📝 {{ __('messages.action.other') }}</h3>
+                <p style="color: #6b7280; margin-bottom: 25px; line-height: 1.6;">{{ __('messages.action.other_desc') }}</p>
                 <ul style="margin: 0 0 30px; padding: 0; list-style: none; text-align: left;">
                     <li style="padding: 8px 0; color: #6b7280; display: flex; align-items: center;">
                         <i class="fas fa-check" style="color: #22c55e; margin-right: 10px; font-size: 14px;"></i>
@@ -156,7 +156,7 @@
                     </li>
                 </ul>
                 <button class="btn btn-primary select-action" style="width: 100%; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); color: #fff; padding: 15px 30px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 1rem; border: none; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(249,115,22,0.3);">
-                    <i class="fas fa-arrow-right"></i> Choisir cette action
+                    <i class="fas fa-arrow-right"></i> {{ __('messages.action.choose') }}
                 </button>
             </div>
         </div>

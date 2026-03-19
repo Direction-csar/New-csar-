@@ -858,14 +858,60 @@
     <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <a href="{{ route('admin.dashboard') }}" class="logo">
+            <a href="{{ route(request()->routeIs('ctc.*') ? 'ctc.dashboard' : 'admin.dashboard') }}" class="logo">
                 <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR Logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
                 <i class="fas fa-shield-alt" style="display: none;"></i>
-                <span class="logo-text">CSAR Admin</span>
+                <span class="logo-text">{{ request()->routeIs('ctc.*') ? 'CTC CSAR' : 'CSAR Admin' }}</span>
             </a>
         </div>
         
         <nav class="sidebar-menu">
+            @if(request()->routeIs('ctc.*'))
+            {{-- Menu CTC - Conseil Technique Communication --}}
+            <div class="menu-item">
+                <a href="{{ route('ctc.dashboard') }}" class="menu-link {{ request()->routeIs('ctc.dashboard') || request()->routeIs('ctc.communications.*') ? 'active' : '' }}">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Tableau de bord</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="{{ route('ctc.actualites.index') }}" class="menu-link {{ request()->routeIs('ctc.actualites.*') ? 'active' : '' }}">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Actualités</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="{{ route('ctc.sim-reports.index') }}" class="menu-link {{ request()->routeIs('ctc.sim-reports.*') ? 'active' : '' }}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Rapports</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="{{ route('ctc.newsletter.index') }}" class="menu-link {{ request()->routeIs('ctc.newsletter.*') ? 'active' : '' }}">
+                    <i class="fas fa-mail-bulk"></i>
+                    <span>Newsletter</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="{{ route('ctc.galerie.index') }}" class="menu-link {{ request()->routeIs('ctc.galerie.*') ? 'active' : '' }}">
+                    <i class="fas fa-images"></i>
+                    <span>Galerie</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="{{ route('ctc.messages.index') }}" class="menu-link {{ request()->routeIs('ctc.messages.*') ? 'active' : '' }}">
+                    <i class="fas fa-envelope"></i>
+                    <span>Messages</span>
+                </a>
+            </div>
+            <div class="menu-item mt-3 pt-3" style="border-top: 1px solid rgba(255,255,255,0.2);">
+                <a href="{{ url('/') }}" class="menu-link" target="_blank">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>Voir le site public</span>
+                </a>
+            </div>
+            @else
+            {{-- Menu Admin complet --}}
             <!-- Tableau de bord -->
             <div class="menu-item">
                 <a href="{{ route('admin.dashboard') }}" class="menu-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
@@ -879,6 +925,12 @@
                 <a href="{{ route('admin.demandes.index') }}" class="menu-link {{ request()->routeIs('admin.demandes.*') ? 'active' : '' }}">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Demandes</span>
+                </a>
+            </div>
+            <div class="menu-item">
+                <a href="{{ route('admin.carte-demandes.index') }}" class="menu-link {{ request()->routeIs('admin.carte-demandes.*') ? 'active' : '' }}">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Carte des demandes d'aide</span>
                 </a>
             </div>
             
@@ -938,51 +990,11 @@
                 </a>
             </div>
             
-            <!-- Actualités -->
+            <!-- Communication & Publications (hub central : actualités, rapports, newsletter, galerie, messages) -->
             <div class="menu-item">
-                <a href="{{ route('admin.actualites.index') }}" class="menu-link {{ request()->routeIs('admin.actualites.*') ? 'active' : '' }}">
-                    <i class="fas fa-newspaper"></i>
-                    <span>Actualités</span>
-                </a>
-            </div>
-            
-            <!-- Galerie -->
-            <div class="menu-item">
-                <a href="{{ route('admin.galerie.index') }}" class="menu-link {{ request()->routeIs('admin.galerie.*') ? 'active' : '' }}">
-                    <i class="fas fa-images"></i>
-                    <span>Galerie</span>
-                </a>
-            </div>
-            
-            <!-- Communication -->
-            <div class="menu-item">
-                <a href="{{ route('admin.communication.index') }}" class="menu-link {{ request()->routeIs('admin.communication.*') ? 'active' : '' }}">
-                    <i class="fas fa-comments"></i>
-                    <span>Communication</span>
-                </a>
-            </div>
-            
-            <!-- Messages -->
-            <div class="menu-item">
-                <a href="{{ route('admin.messages.index') }}" class="menu-link {{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
-                    <i class="fas fa-envelope"></i>
-                    <span>Messages</span>
-                </a>
-            </div>
-            
-            <!-- Newsletter -->
-            <div class="menu-item">
-                <a href="{{ route('admin.newsletter.index') }}" class="menu-link {{ request()->routeIs('admin.newsletter.*') ? 'active' : '' }}">
-                    <i class="fas fa-mail-bulk"></i>
-                    <span>Newsletter</span>
-                </a>
-            </div>
-            
-            <!-- Rapports SIM -->
-            <div class="menu-item">
-                <a href="{{ route('admin.sim-reports.index') }}" class="menu-link {{ request()->routeIs('admin.sim-reports.*') ? 'active' : '' }}">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Rapports SIM</span>
+                <a href="{{ route('admin.communications.index') }}" class="menu-link {{ request()->routeIs('admin.communications.*') || request()->routeIs('admin.communication.*') || request()->routeIs('admin.actualites.*') || request()->routeIs('admin.newsletter.*') || request()->routeIs('admin.sim-reports.*') || request()->routeIs('admin.galerie.*') || request()->routeIs('admin.messages.*') ? 'active' : '' }}">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>Communication & Publications</span>
                 </a>
             </div>
 
@@ -1010,6 +1022,7 @@
                     <span>Profil</span>
                 </a>
             </div>
+            @endif
             
             <!-- Indicateur de défilement -->
             <div class="scroll-indicator">
@@ -1066,13 +1079,15 @@
                         A
                     </div>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><h6 class="dropdown-header">Administrateur</h6></li>
+                        <li><h6 class="dropdown-header">{{ request()->routeIs('ctc.*') ? 'CTC' : 'Administrateur' }}</h6></li>
+                        @if(!request()->routeIs('ctc.*'))
                         <li><a class="dropdown-item" href="{{ route('admin.profile') }}">
                             <i class="fas fa-user me-2"></i>Profil
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
+                        @endif
                         <li>
-                            <form method="POST" action="{{ route('admin.logout') }}" class="d-inline">
+                            <form method="POST" action="{{ route(request()->routeIs('ctc.*') ? 'ctc.logout' : 'admin.logout') }}" class="d-inline">
                     @csrf
                                 <button type="submit" class="dropdown-item">
                                     <i class="fas fa-sign-out-alt me-2"></i>Déconnexion

@@ -1,5 +1,5 @@
 @extends('layouts.public')
-@section('title', 'Demande envoyée avec succès - CSAR')
+@section('title', __('pages.demande_success'))
 @section('content')
 
 <div class="success-container">
@@ -114,13 +114,13 @@
                     Suivre ma demande
                 </a>
             @endif
-            <a href="{{ route('home', ['locale' => 'fr']) }}" class="btn btn-secondary">
+            <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="btn btn-secondary">
                 <i class="fas fa-home"></i>
-                Retour à l'accueil
+                {{ __('messages.home.back_to_home') }}
             </a>
-            <a href="{{ route('demande.selection') }}" class="btn btn-outline">
+            <a href="{{ route('action', ['locale' => app()->getLocale()]) }}" class="btn btn-outline">
                 <i class="fas fa-plus"></i>
-                Nouvelle demande
+                {{ __('messages.home.request_button') }}
             </a>
         </div>
     </div>

@@ -39,5 +39,9 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('agent', function ($user) {
             return $user->role && $user->role->name === 'agent';
         });
+
+        Gate::define('ctc', function ($user) {
+            return $user->role === 'ctc' || (isset($user->attributes['role']) && $user->attributes['role'] === 'ctc');
+        });
     }
 } 

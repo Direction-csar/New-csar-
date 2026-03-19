@@ -236,6 +236,28 @@
     </div>
 </section>
 
+<!-- CTA LinkedIn - Intégration stratégique -->
+<section class="py-4">
+    <div class="container">
+        <div class="card border-0 shadow-sm bg-primary text-white overflow-hidden">
+            <div class="card-body py-4 px-4 d-flex flex-column flex-md-row align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/" target="_blank" rel="noopener" class="text-white">
+                        <i class="fab fa-linkedin fa-3x opacity-75"></i>
+                    </a>
+                    <div>
+                        <h4 class="h5 mb-1">Suivez l'actualité CSAR sur LinkedIn</h4>
+                        <p class="mb-0 small opacity-90">Communiqués, résultats terrain et partenariats. Hashtags officiels : <strong>#CSAR</strong> <strong>#SécuritéAlimentaire</strong> <strong>#Résilience</strong> <strong>#SIM</strong> <strong>#PartenariatInternational</strong></p>
+                    </div>
+                </div>
+                <a href="https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/" target="_blank" rel="noopener" class="btn btn-light btn-lg flex-shrink-0">
+                    <i class="fab fa-linkedin-in me-2"></i>Suivez-nous sur LinkedIn
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Filtres -->
 <section class="py-4">
     <div class="container">
@@ -264,35 +286,73 @@
         
         <div class="row">
             @foreach($featured as $actualite)
-                <div class="col-lg-4 col-md-6 mb-4">
-                    <div class="news-card">
-                        <div class="news-image" @if($actualite->image) style="background-image: url('{{ $actualite->image }}')" @else style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" @endif>
-                            <div class="news-badge">{{ ucfirst(str_replace('_', ' ', $actualite->categorie)) }}</div>
-                            <div class="featured-badge">⭐ À la une</div>
-                            @if(!$actualite->image)
-                                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
-                                    <i class="fas fa-newspaper fa-3x mb-2"></i>
-                                    <div>Actualité CSAR</div>
-                                </div>
-                            @endif
-                        </div>
-                        <div class="news-content">
-                            <h3 class="news-title">{{ $actualite->titre }}</h3>
-                            <p class="news-excerpt">{{ Str::limit($actualite->contenu, 120) }}</p>
-                            <div class="news-meta">
-                                <div>
-                                    <i class="fas fa-user me-1"></i>{{ $actualite->auteur }}
-                                    <br>
-                                    <i class="fas fa-calendar me-1"></i>{{ $actualite->published_at->format('d/m/Y') }}
-                                </div>
-                                <div>
-                                    <i class="fas fa-eye me-1"></i>{{ $actualite->vues }} vues
-                                </div>
+                <div class="col-lg-{{ $actualite->youtube_url ? '8' : '4' }} col-md-6 mb-4">
+                    <div class="news-card {{ $actualite->youtube_url ? 'd-flex flex-column flex-md-row' : '' }}">
+                        @if($actualite->youtube_url)
+                            {{-- Layout avec vidéo YouTube à côté --}}
+                            <div class="flex-shrink-0" style="width:100%;max-width:420px;">
+                                @php
+                                    preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/', $actualite->youtube_url, $ytMatches);
+                                    $ytId = $ytMatches[1] ?? null;
+                                @endphp
+                                @if($ytId)
+                                    <div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:15px 0 0 15px;">
+                                        <iframe src="https://www.youtube.com/embed/{{ $ytId }}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none;" allowfullscreen></iframe>
+                                    </div>
+                                @endif
                             </div>
-                            <a href="{{ route('public.actualites.show', $actualite->id) }}" class="btn btn-primary mt-3 w-100">
-                                Lire la suite <i class="fas fa-arrow-right ms-2"></i>
-                            </a>
-                        </div>
+                            <div class="news-content flex-grow-1">
+                                <div class="d-flex gap-2 mb-2">
+                                    <span class="badge bg-dark">{{ ucfirst(str_replace('_', ' ', $actualite->categorie)) }}</span>
+                                    <span class="badge bg-warning text-white">⭐ À la une</span>
+                                    <span class="badge bg-danger"><i class="fab fa-youtube me-1"></i>Vidéo</span>
+                                </div>
+                                <h3 class="news-title">{{ $actualite->titre }}</h3>
+                                <p class="news-excerpt">{{ $actualite->extrait }}</p>
+                                <div class="news-meta">
+                                    <div>
+                                        <i class="fas fa-user me-1"></i>{{ $actualite->auteur }}
+                                        <br>
+                                        <i class="fas fa-calendar me-1"></i>{{ $actualite->published_at->format('d/m/Y') }}
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-eye me-1"></i>{{ $actualite->vues }} vues
+                                    </div>
+                                </div>
+                                <a href="{{ route('public.actualites.show', $actualite->id) }}" class="btn btn-primary mt-3 w-100">
+                                    Lire la suite <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        @else
+                            {{-- Layout classique avec image --}}
+                            <div class="news-image" @if($actualite->image) style="background-image: url('{{ $actualite->image }}')" @else style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);" @endif>
+                                <div class="news-badge">{{ ucfirst(str_replace('_', ' ', $actualite->categorie)) }}</div>
+                                <div class="featured-badge">⭐ À la une</div>
+                                @if(!$actualite->image)
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
+                                        <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" alt="CSAR" style="width:80px;opacity:0.7;margin-bottom:8px;">
+                                        <div style="font-weight:600;">Actualité CSAR</div>
+                                    </div>
+                                @endif
+                            </div>
+                            <div class="news-content">
+                                <h3 class="news-title">{{ $actualite->titre }}</h3>
+                                <p class="news-excerpt">{{ $actualite->extrait }}</p>
+                                <div class="news-meta">
+                                    <div>
+                                        <i class="fas fa-user me-1"></i>{{ $actualite->auteur }}
+                                        <br>
+                                        <i class="fas fa-calendar me-1"></i>{{ $actualite->published_at->format('d/m/Y') }}
+                                    </div>
+                                    <div>
+                                        <i class="fas fa-eye me-1"></i>{{ $actualite->vues }} vues
+                                    </div>
+                                </div>
+                                <a href="{{ route('public.actualites.show', $actualite->id) }}" class="btn btn-primary mt-3 w-100">
+                                    Lire la suite <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endforeach
@@ -301,28 +361,39 @@
 </section>
 @endif
 
-<!-- Toutes les actualités -->
+<!-- Actualités récentes -->
+@php
+    $recentItems = $regular->take(6);
+    $historicItems = $regular->skip(6);
+@endphp
 <section class="py-5" style="background: var(--light-bg);">
     <div class="container">
-        <h2 class="section-title">Toutes les actualités</h2>
-        <p class="section-subtitle">Découvrez toutes nos actualités et communiqués</p>
+        <h2 class="section-title">Actualités récentes</h2>
+        <p class="section-subtitle">Découvrez nos dernières actualités et communiqués</p>
         
         <div class="row" id="actualites-container">
-            @forelse ($regular as $actualite)
+            @forelse ($recentItems as $actualite)
                 <div class="col-lg-4 col-md-6 mb-4 actualite-item" data-category="{{ $actualite->categorie }}">
                     <div class="news-card">
-                        <div class="news-image" @if($actualite->image) style="background-image: url('{{ $actualite->image }}')" @else style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" @endif>
+                        <div class="news-image" @if($actualite->image) style="background-image: url('{{ $actualite->image }}')" @else style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);" @endif>
                             <div class="news-badge">{{ ucfirst(str_replace('_', ' ', $actualite->categorie)) }}</div>
+                            @if($actualite->youtube_url)
+                                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;">
+                                    <div style="width:60px;height:60px;background:rgba(255,0,0,0.85);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                                        <i class="fab fa-youtube" style="font-size:1.8rem;color:white;"></i>
+                                    </div>
+                                </div>
+                            @endif
                             @if(!$actualite->image)
                                 <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; text-align: center;">
-                                    <i class="fas fa-newspaper fa-3x mb-2"></i>
-                                    <div>Actualité CSAR</div>
+                                    <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" alt="CSAR" style="width:80px;opacity:0.7;margin-bottom:8px;">
+                                    <div style="font-weight:600;">Actualité CSAR</div>
                                 </div>
                             @endif
                         </div>
                         <div class="news-content">
                             <h3 class="news-title">{{ $actualite->titre }}</h3>
-                            <p class="news-excerpt">{{ Str::limit($actualite->contenu, 120) }}</p>
+                            <p class="news-excerpt">{{ $actualite->extrait }}</p>
                             <div class="news-meta">
                                 <div>
                                     <i class="fas fa-user me-1"></i>{{ $actualite->auteur }}
@@ -351,6 +422,58 @@
         </div>
     </div>
 </section>
+
+<!-- Historique des actualités -->
+@if($historicItems->count() > 0)
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <h2 class="section-title text-start mb-1" style="font-size:2rem;">
+                    <i class="fas fa-history me-2" style="color:var(--secondary-color);"></i>Historique
+                </h2>
+                <p class="text-muted mb-0">Articles précédents</p>
+            </div>
+            <button class="btn btn-outline-secondary" id="toggle-historique" onclick="document.getElementById('historique-list').classList.toggle('d-none'); this.querySelector('i').classList.toggle('fa-chevron-down'); this.querySelector('i').classList.toggle('fa-chevron-up');">
+                <i class="fas fa-chevron-down me-1"></i> Afficher
+            </button>
+        </div>
+        <div id="historique-list" class="d-none">
+            <div class="row">
+                @foreach($historicItems as $actualite)
+                    <div class="col-12 mb-3 actualite-item" data-category="{{ $actualite->categorie }}">
+                        <a href="{{ route('public.actualites.show', $actualite->id) }}" class="text-decoration-none">
+                            <div class="d-flex align-items-center gap-3 p-3 bg-white rounded-3 shadow-sm" style="transition:all 0.3s ease;" onmouseover="this.style.transform='translateX(5px)';this.style.boxShadow='0 5px 20px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.1)'">
+                                <div class="flex-shrink-0" style="width:80px;height:60px;border-radius:10px;overflow:hidden;">
+                                    @if($actualite->image)
+                                        <img src="{{ $actualite->image }}" alt="{{ $actualite->titre }}" style="width:100%;height:100%;object-fit:cover;">
+                                    @else
+                                        <div style="width:100%;height:100%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;">
+                                            <i class="fas fa-newspaper" style="color:rgba(255,255,255,0.6);"></i>
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1" style="color:var(--primary-color);font-weight:600;">{{ $actualite->titre }}</h6>
+                                    <div class="d-flex gap-3" style="font-size:0.8rem;color:#888;">
+                                        <span><i class="fas fa-tag me-1"></i>{{ ucfirst(str_replace('_', ' ', $actualite->categorie)) }}</span>
+                                        <span><i class="fas fa-calendar me-1"></i>{{ $actualite->published_at->format('d/m/Y') }}</span>
+                                        <span><i class="fas fa-eye me-1"></i>{{ $actualite->vues }} vues</span>
+                                        @if($actualite->youtube_url)<span class="text-danger"><i class="fab fa-youtube me-1"></i>Vidéo</span>@endif
+                                    </div>
+                                </div>
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-chevron-right" style="color:#ccc;"></i>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+</section>
+@endif
 @endsection
 
 @push('scripts')

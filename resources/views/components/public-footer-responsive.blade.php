@@ -95,8 +95,8 @@
             <div class="footer-section">
                 <h3 class="footer-section-title">Contact</h3>
                 <ul class="footer-links">
-                    <li><a href="{{ route('demande.selection') }}" class="footer-link">Effectuer une demande</a></li>
-                    <li><a href="{{ route('contact.simple') }}" class="footer-link">Nous contacter</a></li>
+                    <li><a href="{{ route('action', ['locale' => app()->getLocale()]) }}" class="footer-link">{{ __('messages.home.request_button') }}</a></li>
+                    <li><a href="{{ route('contact', ['locale' => app()->getLocale()]) }}" class="footer-link">{{ __('messages.nav.contact_us') }}</a></li>
                     <li class="footer-link-separator">
                         <a href="/about#dg-speech" class="footer-link footer-link-with-icon">
                             <i class="fas fa-file-alt" style="color: #059669;"></i>
@@ -121,7 +121,7 @@
     </div>
     
     <div class="footer-bottom">
-        <p>© 2025 CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience. Tous droits réservés.</p>
+        <p>© {{ date('Y') }} CSAR - {{ __('messages.home.title') }}. {{ __('messages.footer.copyright') }}</p>
     </div>
 
     <script>

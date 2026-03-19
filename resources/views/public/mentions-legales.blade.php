@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Mentions Légales - CSAR')
+@section('title', __('pages.mentions'))
 @section('meta_description', 'Mentions légales de la plateforme CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience du Sénégal')
 
 @section('content')

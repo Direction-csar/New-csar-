@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Demande soumise avec succès - CSAR')
+@section('title', __('pages.demande_success'))
 
 @push('styles')
 <style>

@@ -138,17 +138,17 @@ document.addEventListener('DOMContentLoaded', function() {
         </h1>
         
         <p class="hero-subtitle">
-            Le Commissariat à la Sécurité Alimentaire et à la Résilience œuvre pour garantir l'accès à une alimentation suffisante et nutritive pour tous les Sénégalais, tout en renforçant leur capacité à faire face aux crises et aux défis climatiques
+            {{ __('messages.home.subtitle') }}
         </p>
         
         <div class="hero-buttons">
-            <a href="{{ route('demande.selection') }}" class="hero-btn hero-btn-primary">
+            <a href="{{ route('action', ['locale' => app()->getLocale()]) }}" class="hero-btn hero-btn-primary">
                 <i class="fas fa-clipboard-list"></i> 
-                <span>Effectuer une demande</span>
+                <span>{{ __('messages.home.request_button') }}</span>
             </a>
-            <a href="{{ route('about') }}" class="hero-btn hero-btn-secondary">
+            <a href="{{ route('about', ['locale' => app()->getLocale()]) }}" class="hero-btn hero-btn-secondary">
                 <i class="fas fa-info-circle"></i> 
-                <span>Découvrir le CSAR</span>
+                <span>{{ __('messages.home.discover_button') }}</span>
             </a>
         </div>
     </div>

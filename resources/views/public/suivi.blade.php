@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Suivre ma demande - CSAR')
+@section('title', __('pages.track'))
 
 @section('content')
 <!-- Hero Section -->

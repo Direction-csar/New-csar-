@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Rapports Officiels - CSAR')
+@section('title', __('pages.rapports'))
 
 @section('content')
 <!-- Hero Section -->
@@ -12,10 +12,10 @@
     
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px; text-align: center; position: relative; z-index: 2;">
         <h1 class="main-title" style="font-size: 2.8rem; font-weight: 800; color: #fff; margin-bottom: 20px; text-shadow: 0 4px 8px rgba(0,0,0,0.3);">
-            Rapports Officiels
+            {{ __('messages.rapports.title') }}
         </h1>
         <p class="main-subtitle" style="font-size: 1.2rem; color: rgba(255,255,255,0.9); max-width: 800px; margin: 0 auto; line-height: 1.6; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-            Consultez les rapports officiels et documents de référence du Commissariat à la Sécurité Alimentaire et à la Résilience
+            {{ __('messages.rapports.subtitle') }}
         </p>
     </div>
 </section>
@@ -25,10 +25,10 @@
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
         <div style="text-align: center; margin-bottom: 60px;">
             <h2 class="section-title" style="font-size: 2.5rem; font-weight: 700; color: #1f2937; margin-bottom: 16px;">
-                Documents Officiels
+                {{ __('messages.rapports.documents') }}
             </h2>
             <p class="section-subtitle" style="font-size: 1.2rem; color: #6b7280; max-width: 600px; margin: 0 auto; line-height: 1.6;">
-                Accédez aux rapports annuels, bilans sociaux et autres documents officiels du CSAR
+                {{ __('messages.rapports.documents_desc') }}
             </p>
         </div>
 
@@ -46,12 +46,12 @@
                                 <h3 style="font-size: 1.4rem; font-weight: 700; color: #fff; margin-bottom: 5px;">
                                     {{ $report->title }}
                                 </h3>
-                                <p style="color: rgba(255,255,255,0.9); font-size: 0.9rem; font-weight: 500;">Rapport SIM</p>
+                                <p style="color: rgba(255,255,255,0.9); font-size: 0.9rem; font-weight: 500;">{{ __('messages.rapports.sim') }}</p>
                             </div>
                         </div>
                         @if($report->published_at && $report->published_at->diffInDays() <= 30)
                         <span style="background: rgba(255,255,255,0.2); color: #fff; font-size: 0.75rem; font-weight: 600; padding: 8px 16px; border-radius: 20px; backdrop-filter: blur(10px);">
-                            Nouveau
+                            {{ __('messages.rapports.new') }}
                         </span>
                         @endif
                     </div>
@@ -68,7 +68,7 @@
                         </div>
                         <div style="display: flex; align-items: center; color: #6b7280; font-size: 0.9rem;">
                             <i class="fas fa-eye" style="margin-right: 8px; color: #059669;"></i>
-                            <span>{{ $report->view_count ?? 0 }} vues</span>
+                            <span>{{ $report->view_count ?? 0 }} {{ __('messages.rapports.views') }}</span>
                         </div>
                     </div>
                     
@@ -82,7 +82,7 @@
                     @else
                     <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 15px; background: #f3f4f6; color: #6b7280; border-radius: 12px; font-weight: 600; font-size: 1rem;">
                         <i class="fas fa-lock"></i>
-                        Téléchargement non disponible
+                        {{ __('messages.rapports.download_na') }}
                     </div>
                     @endif
                 </div>
@@ -105,10 +105,10 @@
         <div class="info-section fade-in" style="background: #fff; border-radius: 20px; padding: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 60px;">
             <div style="text-align: center; margin-bottom: 50px;">
                 <h3 style="font-size: 2rem; font-weight: 700; color: #1f2937; margin-bottom: 16px;">
-                    Informations sur les Rapports
+                    {{ __('messages.rapports.info_title') }}
                 </h3>
                 <p style="color: #6b7280; max-width: 800px; margin: 0 auto; line-height: 1.6; font-size: 1.1rem;">
-                    Les rapports officiels du CSAR sont publiés annuellement et présentent un aperçu complet des activités, réalisations et perspectives de l'institution.
+                    {{ __('messages.rapports.info_desc') }}
                 </p>
             </div>
 
@@ -127,9 +127,9 @@
                     <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 20px; border-radius: 15px; display: inline-block; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);">
                         <i class="fas fa-shield-alt" style="font-size: 2rem; color: #fff;"></i>
                     </div>
-                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 1.2rem;">Fiabilité</h4>
+                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 1.2rem;">{{ __('messages.rapports.reliability') }}</h4>
                     <p style="color: #6b7280; font-size: 0.95rem; line-height: 1.6;">
-                        Données vérifiées et validées par les services compétents
+                        {{ __('messages.rapports.reliability_desc') }}
                     </p>
                 </div>
 
@@ -137,9 +137,9 @@
                     <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 20px; border-radius: 15px; display: inline-block; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);">
                         <i class="fas fa-clock" style="font-size: 2rem; color: #fff;"></i>
                     </div>
-                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 1.2rem;">Actualité</h4>
+                    <h4 style="font-weight: 700; color: #1f2937; margin-bottom: 12px; font-size: 1.2rem;">{{ __('messages.rapports.currency') }}</h4>
                     <p style="color: #6b7280; font-size: 0.95rem; line-height: 1.6;">
-                        Rapports mis à jour régulièrement avec les dernières données
+                        {{ __('messages.rapports.currency_desc') }}
                     </p>
                 </div>
             </div>

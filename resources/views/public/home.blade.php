@@ -33,1303 +33,41 @@
     color: white;
 }
 
-/* Hover effects pour les cards de rapports SIM */
-.sim-report-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 25px 70px rgba(5, 150, 105, 0.25) !important;
-}
-
-.sim-report-card:hover .news-image-hover {
-    transform: scale(1.08);
-}
-
-.sim-report-card:hover h3 {
-    color: #059669 !important;
-}
-
-.sim-report-card:hover a[href] {
-    background: #059669;
-    color: white;
-}
-
-/* Hover effects pour les cartes de publications */
-.publication-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 60px rgba(245, 158, 11, 0.2) !important;
-}
-
-.publication-card:hover img {
-    transform: scale(1.05);
-}
-
-.publication-card:hover h3 {
-    color: #f59e0b !important;
-}
-
-.publication-card:hover a[href] {
-    background: #d97706 !important;
-    color: white !important;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(217, 119, 6, 0.4);
-}
-
-/* ============================================
-   ANIMATIONS PROFESSIONNELLES AVEC TRANSITIONS DYNAMIQUES
-   ============================================ */
-
-/* ============================================
-   SECTION LE MINISTRE - ANIMATIONS PROFESSIONNELLES
-   ============================================ */
-
-/* Section principale */
-.minister-section {
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%);
-    padding: 6rem 0;
+.home-media-frame {
     position: relative;
     overflow: hidden;
+    background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
 }
 
-/* Particules flottantes en arrière-plan */
-.minister-section::before {
-    content: '';
-    position: absolute;
-    top: 10%;
-    left: 5%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(34, 197, 94, 0.1), transparent);
-    border-radius: 50%;
-    filter: blur(60px);
-    animation: ministerFloat 20s ease-in-out infinite;
-}
-
-.minister-section::after {
-    content: '';
-    position: absolute;
-    bottom: 10%;
-    right: 5%;
-    width: 250px;
-    height: 250px;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.1), transparent);
-    border-radius: 50%;
-    filter: blur(50px);
-    animation: ministerFloat 25s ease-in-out infinite reverse;
-}
-
-/* Animation de flottement */
-@keyframes ministerFloat {
-    0%, 100% {
-        transform: translateY(0) translateX(0) rotate(0deg);
-        opacity: 0.3;
-    }
-    25% {
-        transform: translateY(-20px) translateX(10px) rotate(90deg);
-        opacity: 0.5;
-    }
-    50% {
-        transform: translateY(-10px) translateX(-15px) rotate(180deg);
-        opacity: 0.4;
-    }
-    75% {
-        transform: translateY(-30px) translateX(5px) rotate(270deg);
-        opacity: 0.6;
-    }
-}
-
-/* Titre de la section */
-.minister-title {
-    font-size: 3rem;
-    font-weight: 900;
-    color: #1e293b;
-    margin-bottom: 3rem;
-    position: relative;
-    animation: ministerTitleSlide 1.2s ease-out;
-}
-
-.minister-title-text {
-    background: linear-gradient(45deg, #1e293b, #475569, #64748b);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    position: relative;
-    display: inline-block;
-}
-
-.minister-title-text::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 80px;
-    height: 4px;
-    background: linear-gradient(90deg, #22c55e, #16a34a);
-    border-radius: 2px;
-    animation: ministerUnderline 1.5s ease-out 0.5s both;
-}
-
-/* Animation du titre */
-@keyframes ministerTitleSlide {
-    0% {
-        opacity: 0;
-        transform: translateY(-50px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes ministerUnderline {
-    0% {
-        width: 0;
-        opacity: 0;
-    }
-    100% {
-        width: 80px;
-        opacity: 1;
-    }
-}
-
-/* Carte principale */
-.minister-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-radius: 30px;
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
-    border: 2px solid rgba(34, 197, 94, 0.1);
-    overflow: hidden;
-    position: relative;
-    animation: ministerCardSlide 1.5s ease-out 0.3s both;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.minister-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 35px 70px rgba(0, 0, 0, 0.15);
-    border-color: rgba(34, 197, 94, 0.2);
-}
-
-/* Animation de la carte */
-@keyframes ministerCardSlide {
-    0% {
-        opacity: 0;
-        transform: translateY(50px) scale(0.95);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Container de l'image */
-.minister-image-container {
-    padding: 3rem;
-    position: relative;
-    animation: ministerImageContainer 1.8s ease-out 0.6s both;
-}
-
-@keyframes ministerImageContainer {
-    0% {
-        opacity: 0;
-        transform: translateX(-50px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Wrapper de l'image */
-.minister-image-wrapper {
-    position: relative;
-    display: inline-block;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.minister-image-wrapper:hover {
-    transform: scale(1.05) rotate(2deg);
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.2);
-}
-
-/* Image du ministre */
-.minister-image {
-    width: 100%;
-    max-width: 400px;
-    height: auto;
+.home-media-frame img {
     display: block;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+}
+
+.home-image-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.home-image-contain {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+}
+
+.home-logo-tile {
     border-radius: 20px;
-    transition: all 0.4s ease;
+    background: rgba(255,255,255,0.98);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
 }
 
-/* Drapeaux en arrière-plan */
-.minister-flags {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: flex;
-    gap: 10px;
-    z-index: 2;
-    animation: ministerFlagsFloat 2s ease-out 1s both;
-}
-
-.flag {
-    width: 40px;
-    height: 30px;
-    border-radius: 4px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
-}
-
-.flag:hover {
-    transform: scale(1.1);
-}
-
-.flag-senegal {
-    background: linear-gradient(90deg, #00853f 0%, #fcd116 50%, #ce1126 100%);
-    position: relative;
-}
-
-.flag-senegal::after {
-    content: '★';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: #00853f;
-    font-size: 12px;
-}
-
-.flag-csar {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    position: relative;
-}
-
-.flag-csar::after {
-    content: 'CSAR';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    font-size: 7px;
-    font-weight: bold;
-}
-
-@keyframes ministerFlagsFloat {
-    0% {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Effet de lueur */
-.minister-glow {
-    position: absolute;
-    top: -20px;
-    left: -20px;
-    right: -20px;
-    bottom: -20px;
-    background: linear-gradient(45deg, rgba(34, 197, 94, 0.1), rgba(59, 130, 246, 0.1));
-    border-radius: 30px;
-    filter: blur(20px);
-    opacity: 0;
-    transition: all 0.4s ease;
-    z-index: -1;
-}
-
-.minister-image-wrapper:hover .minister-glow {
-    opacity: 1;
-    animation: ministerGlowPulse 2s ease-in-out infinite;
-}
-
-@keyframes ministerGlowPulse {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 0.3;
-    }
-    50% {
-        transform: scale(1.1);
-        opacity: 0.6;
-    }
-}
-
-/* Contenu du ministre */
-.minister-content {
-    padding: 3rem;
-    animation: ministerContentSlide 1.8s ease-out 0.9s both;
-}
-
-@keyframes ministerContentSlide {
-    0% {
-        opacity: 0;
-        transform: translateX(50px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Sous-titre */
-.minister-subtitle {
-    display: flex;
-    align-items: center;
-    margin-bottom: 2rem;
-    animation: ministerSubtitleSlide 1.5s ease-out 1.2s both;
-}
-
-.subtitle-line {
-    width: 50px;
-    height: 3px;
-    background: linear-gradient(90deg, #22c55e, #16a34a);
-    border-radius: 2px;
-    margin-right: 15px;
-    animation: ministerLineExtend 1s ease-out 1.5s both;
-}
-
-.subtitle-text {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: #22c55e;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-@keyframes ministerSubtitleSlide {
-    0% {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes ministerLineExtend {
-    0% {
-        width: 0;
-    }
-    100% {
-        width: 50px;
-    }
-}
-
-/* Message du ministre */
-.minister-message {
-    font-size: 1.1rem;
-    line-height: 1.8;
-    color: #475569;
-    animation: ministerMessageReveal 2s ease-out 1.5s both;
-}
-
-.minister-message p {
-    margin-bottom: 1.5rem;
-    opacity: 0;
-    animation: ministerParagraphSlide 0.8s ease-out both;
-}
-
-.minister-message p:nth-child(1) { animation-delay: 1.8s; }
-.minister-message p:nth-child(2) { animation-delay: 2.0s; }
-.minister-message p:nth-child(3) { animation-delay: 2.2s; }
-.minister-message p:nth-child(4) { animation-delay: 2.4s; }
-.minister-message p:nth-child(5) { animation-delay: 2.6s; }
-
-.greeting {
-    font-weight: 600;
-    color: #1e293b;
-    font-size: 1.2rem;
-}
-
-.closing {
-    font-weight: 600;
-    color: #22c55e;
-    font-style: italic;
-    text-align: right;
-}
-
-@keyframes ministerMessageReveal {
-    0% {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes ministerParagraphSlide {
-    0% {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .minister-title {
-        font-size: 2.5rem;
-    }
-    
-    .minister-image-container,
-    .minister-content {
-        padding: 2rem;
-    }
-    
-    .minister-flags {
-        top: 15px;
-        right: 15px;
-    }
-    
-    .flag {
-        width: 35px;
-        height: 25px;
-    }
-}
-
-/* Animation de flottement du motif de grille */
-
-    25% {
-        transform: translateX(10px) translateY(-5px);
-        opacity: 0.4;
-    }
-    50% {
-        transform: translateX(-5px) translateY(10px);
-        opacity: 0.2;
-    }
-    75% {
-        transform: translateX(-10px) translateY(-5px);
-        opacity: 0.4;
-    }
-}
-
-/* Animation d'entrée de la carte */
-
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Animation de pulsation au survol */
-
-    50% {
-        box-shadow: 0 50px 100px rgba(34, 197, 94, 0.35);
-    }
-}
-
-/* Animation d'entrée du header */
-
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Animation de rotation du logo */
-
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
-/* Animation de brillance du titre */
-
-    50% {
-        background-position: 100% 50%;
-    }
-}
-
-/* Animation d'entrée du contenu */
-
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Styles pour les paragraphes */
-
-/* Animation d'entrée des paragraphes */
-
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Animation de brillance des paragraphes */
-
-    100% {
-        left: 100%;
-    }
-}
-
-
-/* Animation d'entrée de la signature */
-
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* Animation de flottement de l'image */
-
-    50% {
-        transform: translateY(-10px);
-    }
-}
-
-/* Animation d'entrée de l'image */
-
-    100% {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-    }
-}
-
-@keyframes logoPulse {
-    0%, 100% {
-        transform: scale(1);
-        box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);
-    }
-    50% {
-        transform: scale(1.05);
-        box-shadow: 0 15px 40px rgba(34, 197, 94, 0.5);
-    }
-}
-
-/* Styles pour les logos en haut des discours */
-
-/* Animation de rebond du logo principal */
-
-    50% {
-        transform: translateY(-8px);
-    }
-}
-
-/* Animation d'entrée du logo principal */
-
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Style du titre de section */
-
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-    50% {
-        text-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
-    }
-}
-
-@keyframes speechSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(50px) scale(0.9);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-
-/* Effets de transition entre images */
-@keyframes slideInFromLeft {
-    0% {
-        transform: translateX(-100%) scale(0.8);
-        opacity: 0;
-        filter: blur(10px);
-    }
-    50% {
-        transform: translateX(-20%) scale(0.9);
-        opacity: 0.7;
-        filter: blur(5px);
-    }
-    100% {
-        transform: translateX(0) scale(1);
-        opacity: 1;
-        filter: blur(0);
-    }
-}
-
-@keyframes slideInFromRight {
-    0% {
-        transform: translateX(100%) scale(0.8);
-        opacity: 0;
-        filter: blur(10px);
-    }
-    50% {
-        transform: translateX(20%) scale(0.9);
-        opacity: 0.7;
-        filter: blur(5px);
-    }
-    100% {
-        transform: translateX(0) scale(1);
-        opacity: 1;
-        filter: blur(0);
-    }
-}
-
-@keyframes zoomInWithRotation {
-    0% {
-        transform: scale(0.5) rotate(-180deg);
-        opacity: 0;
-        filter: brightness(0.3);
-    }
-    50% {
-        transform: scale(0.8) rotate(-90deg);
-        opacity: 0.6;
-        filter: brightness(0.7);
-    }
-    100% {
-        transform: scale(1) rotate(0deg);
-        opacity: 1;
-        filter: brightness(1);
-    }
-}
-
-@keyframes fadeInWithGlow {
-    0% {
-        opacity: 0;
-        transform: scale(0.9);
-        filter: brightness(0.5) drop-shadow(0 0 0px rgba(34, 197, 94, 0));
-    }
-    50% {
-        opacity: 0.8;
-        transform: scale(1.05);
-        filter: brightness(1.2) drop-shadow(0 0 20px rgba(34, 197, 94, 0.5));
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1);
-        filter: brightness(1) drop-shadow(0 0 10px rgba(34, 197, 94, 0.3));
-    }
-}
-
-@keyframes morphingTransition {
-    0% {
-        transform: scale(1) rotate(0deg) skew(0deg, 0deg);
-        border-radius: 0%;
-        filter: hue-rotate(0deg);
-    }
-    25% {
-        transform: scale(1.1) rotate(5deg) skew(2deg, 1deg);
-        border-radius: 20%;
-        filter: hue-rotate(90deg);
-    }
-    50% {
-        transform: scale(0.9) rotate(-5deg) skew(-1deg, 2deg);
-        border-radius: 50%;
-        filter: hue-rotate(180deg);
-    }
-    75% {
-        transform: scale(1.05) rotate(3deg) skew(1deg, -1deg);
-        border-radius: 30%;
-        filter: hue-rotate(270deg);
-    }
-    100% {
-        transform: scale(1) rotate(0deg) skew(0deg, 0deg);
-        border-radius: 0%;
-        filter: hue-rotate(360deg);
-    }
-}
-
-/* ============================================
-   ANIMATIONS MOBILES ADOUCIES - EFFETS PROFESSIONNELS
-   ============================================ */
-
-/* Image 1 - Effet Matrix unique pour mobile (8s) */
-@keyframes ultraMatrixMobile {
-    0% {
-        transform: scale(1) rotate(0deg) translateX(0%);
-        filter: brightness(1) contrast(1);
-    }
-    20% {
-        transform: scale(1.04) rotate(0.3deg) translateX(-1%);
-        filter: brightness(1.05) contrast(1.02);
-    }
-    40% {
-        transform: scale(1.02) rotate(-0.2deg) translateX(1%);
-        filter: brightness(1.08) contrast(1.05);
-    }
-    60% {
-        transform: scale(1.06) rotate(0.1deg) translateX(-0.5%);
-        filter: brightness(1.03) contrast(1.01);
-    }
-    80% {
-        transform: scale(1.01) rotate(-0.1deg) translateX(0.5%);
-        filter: brightness(1.06) contrast(1.03);
-    }
-    100% {
-        transform: scale(1) rotate(0deg) translateX(0%);
-        filter: brightness(1) contrast(1);
-    }
-}
-
-/* N1 - Effet doré unique pour mobile (8s) */
-@keyframes dynamicN1Mobile {
-    0% {
-        transform: scale(1.02) rotate(0deg) translateY(0%);
-        filter: brightness(1) hue-rotate(0deg);
-    }
-    15% {
-        transform: scale(1.05) rotate(0.4deg) translateY(-0.8%);
-        filter: brightness(1.08) hue-rotate(5deg);
-    }
-    30% {
-        transform: scale(1.03) rotate(-0.2deg) translateY(0.4%);
-        filter: brightness(1.12) hue-rotate(-3deg);
-    }
-    45% {
-        transform: scale(1.07) rotate(0.3deg) translateY(-0.3%);
-        filter: brightness(1.06) hue-rotate(8deg);
-    }
-    60% {
-        transform: scale(1.01) rotate(-0.1deg) translateY(0.6%);
-        filter: brightness(1.09) hue-rotate(-2deg);
-    }
-    75% {
-        transform: scale(1.04) rotate(0.2deg) translateY(-0.2%);
-        filter: brightness(1.04) hue-rotate(3deg);
-    }
-    90% {
-        transform: scale(1.06) rotate(-0.1deg) translateY(0.1%);
-        filter: brightness(1.07) hue-rotate(-1deg);
-    }
-    100% {
-        transform: scale(1.02) rotate(0deg) translateY(0%);
-        filter: brightness(1) hue-rotate(0deg);
-    }
-}
-
-/* N2 - Effet diamant unique pour mobile (8s) */
-@keyframes diamondSpinMobile {
-    0% {
-        transform: scale(1) rotate(0deg) perspective(1000px) rotateY(0deg) rotateX(0deg);
-        filter: brightness(1) saturate(1);
-    }
-    12% {
-        transform: scale(1.04) rotate(0.6deg) perspective(1000px) rotateY(1.5deg) rotateX(0.3deg);
-        filter: brightness(1.06) saturate(1.1);
-    }
-    25% {
-        transform: scale(1.02) rotate(-0.4deg) perspective(1000px) rotateY(-1deg) rotateX(-0.2deg);
-        filter: brightness(1.09) saturate(1.2);
-    }
-    37% {
-        transform: scale(1.06) rotate(0.3deg) perspective(1000px) rotateY(0.8deg) rotateX(0.4deg);
-        filter: brightness(1.04) saturate(1.05);
-    }
-    50% {
-        transform: scale(1.01) rotate(-0.2deg) perspective(1000px) rotateY(-0.6deg) rotateX(-0.3deg);
-        filter: brightness(1.11) saturate(1.15);
-    }
-    62% {
-        transform: scale(1.05) rotate(0.5deg) perspective(1000px) rotateY(1.2deg) rotateX(0.2deg);
-        filter: brightness(1.03) saturate(1.08);
-    }
-    75% {
-        transform: scale(1.03) rotate(-0.1deg) perspective(1000px) rotateY(-0.4deg) rotateX(-0.1deg);
-        filter: brightness(1.07) saturate(1.12);
-    }
-    87% {
-        transform: scale(1.02) rotate(0.2deg) perspective(1000px) rotateY(0.5deg) rotateX(0.1deg);
-        filter: brightness(1.05) saturate(1.03);
-    }
-    100% {
-        transform: scale(1) rotate(0deg) perspective(1000px) rotateY(0deg) rotateX(0deg);
-        filter: brightness(1) saturate(1);
-    }
-}
-
-/* N3 - Effet onde de choc unique pour mobile (8s) */
-@keyframes shockwaveMobile {
-    0% {
-        transform: scale(1) rotate(0deg) translateZ(0px);
-        filter: brightness(1) contrast(1) blur(0px);
-    }
-    10% {
-        transform: scale(1.03) rotate(0.1deg) translateZ(2px);
-        filter: brightness(1.04) contrast(1.01) blur(0.5px);
-    }
-    20% {
-        transform: scale(1.01) rotate(-0.1deg) translateZ(-1px);
-        filter: brightness(1.07) contrast(1.03) blur(0px);
-    }
-    30% {
-        transform: scale(1.05) rotate(0.2deg) translateZ(3px);
-        filter: brightness(1.02) contrast(1.05) blur(0.3px);
-    }
-    40% {
-        transform: scale(1.02) rotate(-0.15deg) translateZ(-2px);
-        filter: brightness(1.09) contrast(1.08) blur(0px);
-    }
-    50% {
-        transform: scale(1.04) rotate(0.1deg) translateZ(1px);
-        filter: brightness(1.06) contrast(1.02) blur(0.2px);
-    }
-    60% {
-        transform: scale(1.01) rotate(-0.05deg) translateZ(-1px);
-        filter: brightness(1.08) contrast(1.06) blur(0px);
-    }
-    70% {
-        transform: scale(1.03) rotate(0.15deg) translateZ(2px);
-        filter: brightness(1.03) contrast(1.04) blur(0.4px);
-    }
-    80% {
-        transform: scale(1.02) rotate(-0.1deg) translateZ(-1px);
-        filter: brightness(1.05) contrast(1.01) blur(0px);
-    }
-    90% {
-        transform: scale(1.01) rotate(0.05deg) translateZ(1px);
-        filter: brightness(1.04) contrast(1.03) blur(0.1px);
-    }
-    100% {
-        transform: scale(1) rotate(0deg) translateZ(0px);
-        filter: brightness(1) contrast(1) blur(0px);
-    }
-}
-
-/* N4 - Effet tourbillon galactique unique pour mobile (8s) */
-@keyframes galacticMobile {
-    0% {
-        transform: scale(1) rotate(0deg) skew(0deg, 0deg);
-        filter: hue-rotate(0deg) brightness(1) saturate(1);
-    }
-    14% {
-        transform: scale(1.04) rotate(0.8deg) skew(0.2deg, 0.1deg);
-        filter: hue-rotate(15deg) brightness(1.05) saturate(1.1);
-    }
-    28% {
-        transform: scale(1.02) rotate(-0.5deg) skew(-0.1deg, 0.2deg);
-        filter: hue-rotate(-10deg) brightness(1.08) saturate(1.2);
-    }
-    42% {
-        transform: scale(1.06) rotate(1.2deg) skew(0.3deg, -0.1deg);
-        filter: hue-rotate(25deg) brightness(1.03) saturate(1.05);
-    }
-    56% {
-        transform: scale(1.01) rotate(-0.3deg) skew(-0.2deg, 0.1deg);
-        filter: hue-rotate(-5deg) brightness(1.09) saturate(1.15);
-    }
-    70% {
-        transform: scale(1.05) rotate(0.6deg) skew(0.1deg, -0.2deg);
-        filter: hue-rotate(20deg) brightness(1.04) saturate(1.08);
-    }
-    84% {
-        transform: scale(1.03) rotate(-0.2deg) skew(-0.1deg, 0.1deg);
-        filter: hue-rotate(-8deg) brightness(1.06) saturate(1.12);
-    }
-    100% {
-        transform: scale(1) rotate(0deg) skew(0deg, 0deg);
-        filter: hue-rotate(0deg) brightness(1) saturate(1);
-    }
-}
-
-/* N5 - Effet pulsation unique pour mobile (8s) */
-@keyframes pulseMobile {
-    0%, 100% {
-        transform: scale(1) rotate(0deg);
-        filter: brightness(1) opacity(1);
-    }
-    8% {
-        transform: scale(1.02) rotate(0.1deg);
-        filter: brightness(1.03) opacity(0.98);
-    }
-    16% {
-        transform: scale(1.05) rotate(-0.1deg);
-        filter: brightness(1.06) opacity(0.95);
-    }
-    24% {
-        transform: scale(1.01) rotate(0.05deg);
-        filter: brightness(1.08) opacity(0.97);
-    }
-    32% {
-        transform: scale(1.04) rotate(-0.05deg);
-        filter: brightness(1.04) opacity(0.96);
-    }
-    40% {
-        transform: scale(1.07) rotate(0.1deg);
-        filter: brightness(1.09) opacity(0.94);
-    }
-    48% {
-        transform: scale(1.02) rotate(-0.1deg);
-        filter: brightness(1.05) opacity(0.98);
-    }
-    56% {
-        transform: scale(1.03) rotate(0.05deg);
-        filter: brightness(1.07) opacity(0.96);
-    }
-    64% {
-        transform: scale(1.01) rotate(-0.05deg);
-        filter: brightness(1.08) opacity(0.97);
-    }
-    72% {
-        transform: scale(1.06) rotate(0.1deg);
-        filter: brightness(1.03) opacity(0.95);
-    }
-    80% {
-        transform: scale(1.02) rotate(-0.1deg);
-        filter: brightness(1.06) opacity(0.98);
-    }
-    88% {
-        transform: scale(1.04) rotate(0.05deg);
-        filter: brightness(1.04) opacity(0.96);
-    }
-    96% {
-        transform: scale(1.01) rotate(-0.05deg);
-        filter: brightness(1.05) opacity(0.99);
-    }
-}
-
-/* N6 - Effet rotation unique pour mobile (8s) */
-@keyframes rotationMobile {
-    0% {
-        transform: scale(1) rotate(0deg) translateX(0%) translateY(0%);
-        filter: brightness(1) contrast(1);
-    }
-    11% {
-        transform: scale(1.03) rotate(0.4deg) translateX(0.5%) translateY(-0.3%);
-        filter: brightness(1.04) contrast(1.02);
-    }
-    22% {
-        transform: scale(1.01) rotate(-0.3deg) translateX(-0.4%) translateY(0.2%);
-        filter: brightness(1.07) contrast(1.05);
-    }
-    33% {
-        transform: scale(1.05) rotate(0.6deg) translateX(0.3%) translateY(-0.5%);
-        filter: brightness(1.02) contrast(1.01);
-    }
-    44% {
-        transform: scale(1.02) rotate(-0.2deg) translateX(-0.2%) translateY(0.4%);
-        filter: brightness(1.08) contrast(1.06);
-    }
-    55% {
-        transform: scale(1.04) rotate(0.3deg) translateX(0.6%) translateY(-0.2%);
-        filter: brightness(1.05) contrast(1.03);
-    }
-    66% {
-        transform: scale(1.01) rotate(-0.4deg) translateX(-0.3%) translateY(0.3%);
-        filter: brightness(1.06) contrast(1.04);
-    }
-    77% {
-        transform: scale(1.03) rotate(0.2deg) translateX(0.2%) translateY(-0.4%);
-        filter: brightness(1.03) contrast(1.02);
-    }
-    88% {
-        transform: scale(1.02) rotate(-0.1deg) translateX(-0.1%) translateY(0.2%);
-        filter: brightness(1.07) contrast(1.05);
-    }
-    100% {
-        transform: scale(1) rotate(0deg) translateX(0%) translateY(0%);
-        filter: brightness(1) contrast(1);
-    }
-}
-
-/* N7 - Effet zoom unique pour mobile (8s) */
-@keyframes zoomMobile {
-    0% {
-        transform: scale(1) rotate(0deg);
-        filter: brightness(1) saturate(1);
-    }
-    13% {
-        transform: scale(1.02) rotate(0.1deg);
-        filter: brightness(1.03) saturate(1.05);
-    }
-    25% {
-        transform: scale(1.05) rotate(-0.1deg);
-        filter: brightness(1.06) saturate(1.1);
-    }
-    38% {
-        transform: scale(1.01) rotate(0.05deg);
-        filter: brightness(1.08) saturate(1.15);
-    }
-    50% {
-        transform: scale(1.04) rotate(-0.05deg);
-        filter: brightness(1.04) saturate(1.08);
-    }
-    63% {
-        transform: scale(1.07) rotate(0.1deg);
-        filter: brightness(1.09) saturate(1.2);
-    }
-    75% {
-        transform: scale(1.02) rotate(-0.1deg);
-        filter: brightness(1.05) saturate(1.12);
-    }
-    88% {
-        transform: scale(1.03) rotate(0.05deg);
-        filter: brightness(1.07) saturate(1.18);
-    }
-    100% {
-        transform: scale(1) rotate(0deg);
-        filter: brightness(1) saturate(1);
-    }
-}
-
-/* N8 - Effet fade unique pour mobile (8s) */
-@keyframes fadeMobile {
-    0%, 100% {
-        transform: scale(1) rotate(0deg);
-        filter: opacity(1) brightness(1) contrast(1);
-    }
-    9% {
-        transform: scale(1.01) rotate(0.05deg);
-        filter: opacity(0.98) brightness(1.02) contrast(1.01);
-    }
-    18% {
-        transform: scale(1.03) rotate(-0.05deg);
-        filter: opacity(0.95) brightness(1.05) contrast(1.03);
-    }
-    27% {
-        transform: scale(1.01) rotate(0.03deg);
-        filter: opacity(0.97) brightness(1.08) contrast(1.05);
-    }
-    36% {
-        transform: scale(1.04) rotate(-0.03deg);
-        filter: opacity(0.93) brightness(1.03) contrast(1.02);
-    }
-    45% {
-        transform: scale(1.02) rotate(0.04deg);
-        filter: opacity(0.96) brightness(1.06) contrast(1.04);
-    }
-    54% {
-        transform: scale(1.05) rotate(-0.04deg);
-        filter: opacity(0.92) brightness(1.09) contrast(1.06);
-    }
-    63% {
-        transform: scale(1.01) rotate(0.02deg);
-        filter: opacity(0.98) brightness(1.04) contrast(1.03);
-    }
-    72% {
-        transform: scale(1.03) rotate(-0.02deg);
-        filter: opacity(0.94) brightness(1.07) contrast(1.05);
-    }
-    81% {
-        transform: scale(1.02) rotate(0.03deg);
-        filter: opacity(0.96) brightness(1.05) contrast(1.04);
-    }
-    90% {
-        transform: scale(1.01) rotate(-0.01deg);
-        filter: opacity(0.99) brightness(1.02) contrast(1.01);
-    }
-}
-
-/* ============================================
-   ANIMATIONS TABLETTE ADOUCIES - EFFETS PROFESSIONNELS
-   ============================================ */
-
-/* Image 1 - Effet Matrix adouci pour tablette (6s au lieu de 5s) */
-@keyframes ultraMatrixTablet {
-    0% {
-        transform: scale(1) rotate(0deg);
-    }
-    20% {
-        transform: scale(1.04) rotate(0.3deg);
-    }
-    40% {
-        transform: scale(1.07) rotate(-0.2deg) translateX(-0.7%);
-    }
-    60% {
-        transform: scale(1.03) rotate(0.15deg) translateX(0.7%);
-    }
-    80% {
-        transform: scale(1.05) rotate(-0.1deg);
-    }
-    100% {
-        transform: scale(1) rotate(0deg);
-    }
-}
-
-/* N1 - Effet doré adouci pour tablette */
-@keyframes dynamicN1Tablet {
-    0% {
-        transform: scale(1.03) rotate(-0.5deg);
-    }
-    25% {
-        transform: scale(1.08) rotate(0.5deg) translateX(-2%);
-    }
-    50% {
-        transform: scale(1.05) rotate(0deg) translateX(1%) translateY(-0.5%);
-    }
-    75% {
-        transform: scale(1.1) rotate(-0.3deg) translateX(-0.7%);
-    }
-    100% {
-        transform: scale(1.07) rotate(0deg);
-    }
-}
-
-/* N2 - Effet diamant adouci pour tablette */
-@keyframes diamondSpinTablet {
-    0% {
-        transform: scale(1) rotate(0deg) perspective(1000px) rotateY(0deg);
-    }
-    25% {
-        transform: scale(1.05) rotate(1deg) perspective(1000px) rotateY(2deg);
-    }
-    50% {
-        transform: scale(1.08) rotate(-0.5deg) perspective(1000px) rotateY(-1deg);
-    }
-    75% {
-        transform: scale(1.03) rotate(0.3deg) perspective(1000px) rotateY(1deg);
-    }
-    100% {
-        transform: scale(1) rotate(0deg) perspective(1000px) rotateY(0deg);
-    }
-}
-
-/* N3 - Effet onde de choc adouci pour tablette */
-@keyframes shockwaveTablet {
-    0% {
-        transform: scale(1) rotate(0deg);
-        filter: brightness(1) contrast(1);
-    }
-    25% {
-        transform: scale(1.03) rotate(0.3deg);
-        filter: brightness(1.08) contrast(1.03);
-    }
-    50% {
-        transform: scale(1.06) rotate(-0.2deg);
-        filter: brightness(1.12) contrast(1.08);
-    }
-    75% {
-        transform: scale(1.02) rotate(0.15deg);
-        filter: brightness(1.05) contrast(1.02);
-    }
-    100% {
-        transform: scale(1) rotate(0deg);
-        filter: brightness(1) contrast(1);
-    }
-}
-
-/* N4 - Effet tourbillon galactique adouci pour tablette */
-@keyframes galacticTablet {
-    0% {
-        transform: scale(1) rotate(0deg);
-        filter: hue-rotate(0deg) brightness(1);
-    }
-    25% {
-        transform: scale(1.04) rotate(0.7deg);
-        filter: hue-rotate(8deg) brightness(1.03);
-    }
-    50% {
-        transform: scale(1.07) rotate(-0.4deg);
-        filter: hue-rotate(-5deg) brightness(1.08);
-    }
-    75% {
-        transform: scale(1.03) rotate(0.3deg);
-        filter: hue-rotate(3deg) brightness(1.02);
-    }
-    100% {
-        transform: scale(1) rotate(0deg);
-        filter: hue-rotate(0deg) brightness(1);
-    }
-}
-
-/* N5 - Effet pulsation adouci pour tablette */
-@keyframes pulseTablet {
-    0%, 100% {
-        transform: scale(1);
-        filter: brightness(1);
-    }
-    25% {
-        transform: scale(1.03);
-        filter: brightness(1.05);
-    }
-    50% {
-        transform: scale(1.06);
-        filter: brightness(1.08);
-    }
-    75% {
-        transform: scale(1.02);
-        filter: brightness(1.03);
-    }
-}
-
-/* N6 - Effet rotation douce pour tablette */
-@keyframes rotationTablet {
-    0% {
-        transform: scale(1) rotate(0deg);
-    }
-    25% {
-        transform: scale(1.03) rotate(0.5deg);
-    }
-    50% {
-        transform: scale(1.05) rotate(-0.3deg);
-    }
-    75% {
-        transform: scale(1.02) rotate(0.2deg);
-    }
-    100% {
-        transform: scale(1) rotate(0deg);
-    }
-}
-
-/* N7 - Effet zoom doux pour tablette */
-@keyframes zoomTablet {
-    0% {
-        transform: scale(1);
-    }
-    25% {
-        transform: scale(1.03);
-    }
-    50% {
-        transform: scale(1.06);
-    }
-    75% {
-        transform: scale(1.02);
-    }
-    100% {
-        transform: scale(1);
-    }
-}
-
-/* N8 - Effet fade doux pour tablette */
-@keyframes fadeTablet {
-    0%, 100% {
-        transform: scale(1);
-        filter: opacity(1) brightness(1);
-    }
-    25% {
-        transform: scale(1.02);
-        filter: opacity(0.97) brightness(1.03);
-    }
-    50% {
-        transform: scale(1.05);
-        filter: opacity(0.93) brightness(1.08);
-    }
-    75% {
-        transform: scale(1.02);
-        filter: opacity(0.96) brightness(1.02);
-    }
-}
-
-/* ============================================
-   DIAPORAMA D'ARRIÈRE-PLAN ULTRA-LUXE
-   ============================================ */
-
-/* Hero Section avec diaporama */
+/* Hero Section moderne avec rotation d'images */
 .hero-section {
     position: relative;
     min-height: 100vh;
@@ -1337,856 +75,75 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    /* Transparent to let the image fill the background */
-    background-color: transparent;
+    background: linear-gradient(135deg, #18392b 0%, #27533f 50%, #18392b 100%);
 }
 
-/* Container du diaporama d'arrière-plan */
-.hero-background-slider {
+.hero-background {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
-    /* Avoid white flash between slides */
-    background-color: transparent;
-}
-
-/* Chaque slide du diaporama avec transition visible et effets */
-.hero-bg-slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    visibility: hidden;
-    will-change: opacity, transform, visibility, filter;
-    transition: opacity 2s ease-in-out, 
-                visibility 2s ease-in-out,
-                transform 2s ease-in-out,
-                filter 2s ease-in-out;
-    transform: scale(0.95);
-    filter: blur(10px) brightness(0.7);
-    background-color: transparent;
-}
-
-.hero-bg-slide.active {
-    opacity: 1;
-    visibility: visible;
-    z-index: 2;
-    transform: scale(1);
-    filter: blur(0px) brightness(1);
-}
-
-.hero-bg-slide.next-up {
-    z-index: 1;
-    opacity: 0;
-}
-
-/* Image sans zoom - photo entière visible */
-.hero-bg-slide img {
-    width: 100%;
-    height: 100%;
-    /* Full-bleed background image */
-    object-fit: cover;
-    object-position: center;
-    transform: none;
-    transition: none;
-    background-color: transparent;
-}
-
-.hero-bg-slide.active img {
-    transform: scale(1);
-    /* default subtle motion; can be overridden per-slide below */
-    animation: none;
-}
-
-/* ---------- Global responsive images ---------- */
-img, .img-fluid { max-width: 100%; height: auto; }
-
-/* ---------- Slow down desktop animations ---------- */
-@media (min-width: 992px) {
-  .hero-bg-slide[data-index].active img { animation-duration: 12s !important; }
-  .hero-bg-slide { transition-duration: 1.2s !important; }
-}
-
-/* ---------- Disable heavy motion on tablets & mobiles ---------- */
-@media (max-width: 991.98px) {
-  .hero-section { min-height: 80vh; }
-  .hero-bg-slide img { animation: none !important; transform: none !important; }
-  .hero-bg-slide { transition: opacity .6s ease-in-out, visibility .6s ease-in-out !important; }
-}
-
-@media (max-width: 575.98px) {
-  .hero-section { min-height: 70vh; }
-}
-
-/* Respect user preference: reduce motion */
-@media (prefers-reduced-motion: reduce) {
-  .hero-bg-slide, .hero-bg-slide * { transition: none !important; animation: none !important; }
-}
-
-/* Ken Burns and dynamic effects */
-@keyframes kenZoomIn { 0% { transform: scale(1.05); } 100% { transform: scale(1.18); } }
-@keyframes kenZoomOut { 0% { transform: scale(1.15); } 100% { transform: scale(1.0); } }
-@keyframes panLeft { 0% { transform: scale(1.1) translateX(2%); } 100% { transform: scale(1.1) translateX(-2%); } }
-@keyframes panRight { 0% { transform: scale(1.1) translateX(-2%); } 100% { transform: scale(1.1) translateX(2%); } }
-@keyframes panUp { 0% { transform: scale(1.1) translateY(2%); } 100% { transform: scale(1.1) translateY(-2%); } }
-@keyframes panDown { 0% { transform: scale(1.1) translateY(-2%); } 100% { transform: scale(1.1) translateY(2%); } }
-@keyframes focusIn { 0% { filter: blur(8px) brightness(0.8); transform: scale(1.08); } 100% { filter: blur(0) brightness(1); transform: scale(1.1); } }
-
-/* 🔥 EFFETS ULTRA-DYNAMIQUES AVANCÉS 🔥 */
-
-/* Image 1 - Effet zoom et rotation dynamique (couleurs naturelles) */
-@keyframes ultraMatrix {
-    0% {
-        transform: scale(1) rotate(0deg);
-    }
-    20% {
-        transform: scale(1.08) rotate(0.5deg);
-    }
-    40% {
-        transform: scale(1.12) rotate(-0.3deg) translateX(-1%);
-    }
-    60% {
-        transform: scale(1.05) rotate(0.2deg) translateX(1%);
-    }
-    80% {
-        transform: scale(1.1) rotate(-0.1deg);
-    }
-    100% {
-        transform: scale(1) rotate(0deg);
-    }
-}
-
-/* EFFETS SPECTACULAIRES POUR N1 - Plus dynamique (couleurs naturelles) */
-@keyframes dynamicN1 {
-    0% {
-        transform: scale(1.05) rotate(-1deg);
-    }
-    25% {
-        transform: scale(1.12) rotate(1deg) translateX(-3%);
-    }
-    50% {
-        transform: scale(1.08) rotate(0deg) translateX(2%) translateY(-1%);
-    }
-    75% {
-        transform: scale(1.15) rotate(-0.5deg) translateX(-1%);
-    }
-    100% {
-        transform: scale(1.1) rotate(0deg);
-    }
-}
-
-/* N2 - Effet diamant tournant 3D (couleurs naturelles) */
-@keyframes diamondSpin {
-    0% {
-        transform: scale(1) rotate(0deg) perspective(1000px) rotateY(0deg);
-    }
-    25% {
-        transform: scale(1.08) rotate(2deg) perspective(1000px) rotateY(5deg);
-    }
-    50% {
-        transform: scale(1.12) rotate(-1deg) perspective(1000px) rotateY(-3deg);
-    }
-    75% {
-        transform: scale(1.05) rotate(1deg) perspective(1000px) rotateY(2deg);
-    }
-    100% {
-        transform: scale(1) rotate(0deg) perspective(1000px) rotateY(0deg);
-    }
-}
-
-/* N3 - Effet onde de choc dynamique (couleurs naturelles) */
-@keyframes electricShock {
-    0%, 100% {
-        transform: scale(1.02) translateX(0) skewX(0deg);
-    }
-    10% {
-        transform: scale(1.06) translateX(2%) skewX(1deg);
-    }
-    20% {
-        transform: scale(1.1) translateX(-1%) skewX(-0.5deg);
-    }
-    35% {
-        transform: scale(1.08) translateX(1.5%) skewX(0.8deg);
-    }
-    50% {
-        transform: scale(1.12) translateX(-2%) skewX(-1deg);
-    }
-    65% {
-        transform: scale(1.07) translateX(1%) skewX(0.5deg);
-    }
-    80% {
-        transform: scale(1.05) translateX(-0.5%) skewX(-0.3deg);
-    }
-}
-
-/* N4 - Effet galaxie tourbillonnante (couleurs naturelles) */
-@keyframes galaxySwirl {
-    0% {
-        transform: scale(1.05) rotate(0deg);
-    }
-    25% {
-        transform: scale(1.12) rotate(3deg) translateY(-2%);
-    }
-    50% {
-        transform: scale(1.08) rotate(-2deg) translateY(1%);
-    }
-    75% {
-        transform: scale(1.15) rotate(1deg) translateY(-1%);
-    }
-    100% {
-        transform: scale(1.05) rotate(0deg);
-    }
-}
-
-/* N5 - Effet pulsation dynamique (couleurs naturelles) */
-@keyframes firePulse {
-    0%, 100% {
-        transform: scale(1.03) translateY(0);
-    }
-    15% {
-        transform: scale(1.08) translateY(-1%);
-    }
-    30% {
-        transform: scale(1.12) translateY(0.5%);
-    }
-    45% {
-        transform: scale(1.06) translateY(-0.5%);
-    }
-    60% {
-        transform: scale(1.1) translateY(1%);
-    }
-    75% {
-        transform: scale(1.07) translateY(-0.8%);
-    }
-}
-
-@keyframes rippleEffect {
-    0% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.02);
-        opacity: 0.8;
-    }
-    100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-/* Effet de particules flottantes */
-@keyframes particleFloat {
-    0%, 100% {
-        transform: translateY(0) translateX(0) scale(1);
-        opacity: 0.6;
-    }
-    25% {
-        transform: translateY(-20px) translateX(10px) scale(1.2);
-        opacity: 0.8;
-    }
-    50% {
-        transform: translateY(-10px) translateX(-15px) scale(0.9);
-        opacity: 1;
-    }
-    75% {
-        transform: translateY(-25px) translateX(5px) scale(1.1);
-        opacity: 0.7;
-    }
-}
-
-/* 🔥 MAPPING DES EFFETS ULTRA-DYNAMIQUES PAR IMAGE 🔥 */
-
-/* Image 1 - Effet Matrix avec lueur verte pulsante */
-.hero-bg-slide[data-index="0"].active img { 
-    inset: 0;
-    background: radial-gradient(circle at center, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
-    animation: rippleEffect 3s ease-in-out infinite;
-    pointer-events: none;
-    z-index: 1;
-}
-
-/* N2 - Effet diamant tournant avec cristaux bleus */
-.hero-bg-slide[data-index="2"].active img { 
-    animation: diamondSpin 12s ease-in-out infinite;
-}
-
-/* N3 - Effet onde de choc électrique */
-.hero-bg-slide[data-index="3"].active img { 
-    animation: electricShock 12s ease-in-out infinite;
-}
-
-/* N4 - Effet galaxie tourbillonnante violette */
-.hero-bg-slide[data-index="4"].active img { 
-    animation: galaxySwirl 12s ease-in-out infinite;
-}
-
-/* N5 - Effet feu pulsant avec chaleur intense */
-.hero-bg-slide[data-index="5"].active img { 
-    animation: firePulse 12s ease-in-out infinite;
-}
-
-/* Overlay sombre pour lisibilité du texte */
-.hero-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* Overlay équilibré pour lisibilité et visibilité des images */
-    background: linear-gradient(
-        135deg,
-        rgba(0, 0, 0, 0.35) 0%,
-        rgba(0, 0, 0, 0.25) 50%,
-        rgba(0, 0, 0, 0.35) 100%
-    );
-    z-index: 2;
-}
-
-/* Overlay plus fort en mode sombre */
-.dark .hero-overlay {
-    background: linear-gradient(
-        135deg,
-        rgba(0, 0, 0, 0.50) 0%,
-        rgba(0, 0, 0, 0.40) 50%,
-        rgba(0, 0, 0, 0.50) 100%
-    );
-}
-
-/* Navigation visible avec effets modernes */
-.hero-nav {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
-    background: rgba(34, 197, 94, 0.15);
-    backdrop-filter: blur(15px);
-    border: 2px solid rgba(34, 197, 94, 0.3);
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    cursor: pointer;
-    opacity: 0.7;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.hero-section:hover .hero-nav {
-    opacity: 1;
-}
-
-.hero-nav:hover {
-    background: rgba(34, 197, 94, 0.9);
-    border-color: rgba(34, 197, 94, 1);
-    transform: translateY(-50%) scale(1.2);
-    box-shadow: 0 15px 40px rgba(34, 197, 94, 0.5);
-}
-
-.hero-nav:active {
-    transform: translateY(-50%) scale(1.1);
-}
-
-.hero-nav i {
-    font-size: 1.3rem;
-    transition: transform 0.3s ease;
-}
-
-.hero-nav:hover i {
-    transform: scale(1.2);
-}
-
-.hero-nav.prev {
-    left: 30px;
-    animation: slide-in-left 1s ease-out;
-}
-
-.hero-nav.next {
-    right: 30px;
-    animation: slide-in-right 1s ease-out;
-}
-
-@keyframes slide-in-left {
-    0% {
-        transform: translateY(-50%) translateX(-100px);
-        opacity: 0;
-    }
-    100% {
-        transform: translateY(-50%) translateX(0);
-        opacity: 0.7;
-    }
-}
-
-@keyframes slide-in-right {
-    0% {
-        transform: translateY(-50%) translateX(100px);
-        opacity: 0;
-    }
-    100% {
-        transform: translateY(-50%) translateX(0);
-        opacity: 0.7;
-    }
-}
-
-/* Indicateurs (dots) améliorés et visibles */
-.hero-indicators {
-    position: absolute;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    display: flex;
-    gap: 12px;
-    padding: 15px 25px;
-    background: rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(10px);
-    border-radius: 50px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.hero-indicator {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    cursor: pointer;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    position: relative;
-}
-
-.hero-indicator::after {
-    content: '';
-    position: absolute;
-    inset: -5px;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-}
-
-.hero-indicator:hover {
-    background: rgba(255, 255, 255, 0.8);
-    transform: scale(1.3);
-    border-color: rgba(34, 197, 94, 0.5);
-}
-
-.hero-indicator:hover::after {
-    border-color: rgba(34, 197, 94, 0.3);
-    animation: pulse-ring 1.5s ease-out infinite;
-}
-
-.hero-indicator.active {
-    background: #22c55e;
-    transform: scale(1.4);
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.8);
-    border-color: #22c55e;
-}
-
-.hero-indicator.active::after {
-    border-color: rgba(34, 197, 94, 0.5);
-    animation: pulse-ring 2s ease-out infinite;
-}
-
-@keyframes pulse-ring {
-    0% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    100% {
-        transform: scale(2);
-        opacity: 0;
-    }
-}
-
-/* Smart Fill: afficher l'image complète avec fond flou artistique */
-.smart-fill {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-}
-
-.smart-fill .smart-fill-bg {
-    position: absolute;
-    inset: 0;
     background-size: cover;
     background-position: center;
-    filter: blur(40px) saturate(120%) brightness(0.6);
-    transform: scale(1.15);
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+    transform: scale(1);
     z-index: 0;
-    opacity: 0.8;
-    transition: all 3s ease-in-out;
+    will-change: opacity, transform;
 }
 
-.smart-fill.active .smart-fill-bg {
-    filter: blur(35px) saturate(130%) brightness(0.7);
-    transform: scale(1.2);
-}
-
-.smart-fill img {
-    position: relative;
-    z-index: 1;
-    /* Image complète visible sans coupure */
-    object-fit: contain !important;
-    max-width: 100%;
-    max-height: 100%;
-    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
-}
-
-/* Barre de progression animée et visible */
-.hero-progress {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 5px;
-    width: 0%;
-    background: linear-gradient(90deg, #22c55e 0%, #10b981 50%, #22c55e 100%);
-    background-size: 200% 100%;
-    z-index: 10;
-    transition: width 0.1s linear;
-    box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), 
-                0 -2px 10px rgba(34, 197, 94, 0.4);
-    animation: shimmer-progress 2s linear infinite;
-}
-
-@keyframes shimmer-progress {
-    0% {
-        background-position: -200% 0;
-    }
-    100% {
-        background-position: 200% 0;
-    }
-}
-
-/* Effet de pulsation sur la barre */
-.hero-progress::after {
+.hero-background::before {
     content: '';
     position: absolute;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 10px;
-    height: 10px;
-    background: #22c55e;
-    border-radius: 50%;
-    box-shadow: 0 0 15px rgba(34, 197, 94, 0.8);
-    animation: pulse-dot 1s ease-in-out infinite;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.35) 50%, rgba(0, 0, 0, 0.5) 100%);
+    z-index: 1;
 }
 
-@keyframes pulse-dot {
-    0%, 100% {
-        transform: translateY(-50%) scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: translateY(-50%) scale(1.3);
-        opacity: 0.7;
-    }
+/* Effet Ken Burns - Zoom progressif */
+.hero-background.active {
+    opacity: 1;
+    animation: kenBurnsEffect 7s ease-out forwards;
 }
 
-/* Animations de transition visibles et fluides */
-@keyframes fadeInSlide {
+@keyframes kenBurnsEffect {
     0% {
-        opacity: 0;
-        transform: scale(0.9) translateY(20px);
-        filter: blur(15px) brightness(0.5);
-    }
-    50% {
-        opacity: 0.5;
-        transform: scale(0.95) translateY(10px);
-        filter: blur(8px) brightness(0.75);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-        filter: blur(0) brightness(1);
-    }
-}
-
-@keyframes fadeOutSlide {
-    0% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-        filter: blur(0) brightness(1);
-    }
-    100% {
-        opacity: 0;
-        transform: scale(0.92) translateY(-20px);
-        filter: blur(15px) brightness(0.5);
-    }
-}
-
-/* Appliquer l'animation au changement avec effet visible */
-.hero-bg-slide.active {
-    animation: fadeInSlide 2.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-/* Animation pour la sortie */
-.hero-bg-slide.leaving {
-    animation: fadeOutSlide 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-/* Respect de prefers-reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-    .hero-bg-slide,
-    .hero-bg-slide img,
-    .hero-nav,
-    .hero-indicator {
-        transition: none !important;
-        animation: none !important;
-    }
-    
-    .hero-bg-slide img {
-        transform: scale(1) !important;
-    }
-}
-
-/* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
-
-/* Tablettes */
-@media (max-width: 1024px) {
-    .hero-section {
-        min-height: 80vh;
-    }
-    
-    .hero-nav {
-        width: 45px;
-        height: 45px;
-    }
-    
-    /* 🎯 ANIMATIONS TABLETTE ADOUCIES - EFFETS PROFESSIONNELS */
-    
-    /* Image 1 - Effet Matrix adouci pour tablette (6s au lieu de 5s) */
-    .hero-bg-slide[data-index="0"].active img { 
-        animation: ultraMatrixTablet 6s ease-in-out infinite;
-    }
-    
-    /* N1 - Effet doré adouci pour tablette */
-    .hero-bg-slide[data-index="1"].active img {
-        animation: dynamicN1Tablet 6s ease-in-out infinite;
-    }
-    
-    /* N2 - Effet diamant adouci pour tablette */
-    .hero-bg-slide[data-index="2"].active img { 
-        animation: diamondSpinTablet 6s ease-in-out infinite;
-    }
-    
-    /* N3 - Effet onde de choc adouci pour tablette */
-    .hero-bg-slide[data-index="3"].active img {
-        animation: shockwaveTablet 6s ease-in-out infinite;
-    }
-    
-    /* N4 - Effet tourbillon galactique adouci pour tablette */
-    .hero-bg-slide[data-index="4"].active img {
-        animation: galacticTablet 6s ease-in-out infinite;
-    }
-    
-    /* N5 - Effet pulsation adouci pour tablette */
-    .hero-bg-slide[data-index="5"].active img {
-        animation: pulseTablet 6s ease-in-out infinite;
-    }
-    
-    /* N6 - Effet rotation douce pour tablette */
-    .hero-bg-slide[data-index="6"].active img {
-        animation: rotationTablet 6s ease-in-out infinite;
-    }
-    
-    /* N7 - Effet zoom doux pour tablette */
-    .hero-bg-slide[data-index="7"].active img {
-        animation: zoomTablet 6s ease-in-out infinite;
-    }
-    
-    /* N8 - Effet fade doux pour tablette */
-    .hero-bg-slide[data-index="8"].active img {
-        animation: fadeTablet 6s ease-in-out infinite;
-    }
-    
-    .hero-nav.prev {
-        left: 20px;
-    }
-    
-    .hero-nav.next {
-        right: 20px;
-    }
-    
-    .hero-indicators {
-        bottom: 30px;
-        padding: 12px 20px;
-    }
-    
-    .hero-content {
-        padding: 0 1.5rem;
-    }
-    
-    .hero-title {
-        font-size: 2.5rem !important;
-    }
-    
-    .hero-subtitle {
-        font-size: 1rem !important;
-    }
-    
-    .hero-buttons {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .btn-hero {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .news-grid-2x2 {
-        grid-template-columns: 1fr !important;
-        gap: 2rem;
-    }
-    
-    .services-grid {
-        grid-template-columns: 1fr !important;
-    }
-}
-
-/* Mobile */
-@media (max-width: 768px) {
-    .hero-section {
-        min-height: 100vh;
-    }
-    
-    /* Cacher les flèches sur mobile */
-    .hero-nav {
-        display: none;
-    }
-    
-    .hero-indicators {
-        bottom: 80px;
-        gap: 8px;
-        padding: 10px 16px;
-    }
-    
-    .hero-indicator {
-        width: 8px;
-        height: 8px;
-    }
-    
-    /* 🎯 ANIMATIONS MOBILES ADOUCIES - EFFETS PROFESSIONNELS */
-    
-    /* Image 1 - Effet Matrix adouci pour mobile */
-    .hero-bg-slide[data-index="0"].active img { 
-        animation: ultraMatrixMobile 8s ease-in-out infinite;
-    }
-    
-    /* N1 - Effet doré adouci pour mobile */
-    .hero-bg-slide[data-index="1"].active img {
-        animation: dynamicN1Mobile 8s ease-in-out infinite;
-    }
-    
-    /* N2 - Effet diamant adouci pour mobile */
-    .hero-bg-slide[data-index="2"].active img { 
-        animation: diamondSpinMobile 8s ease-in-out infinite;
-    }
-    
-    /* N3 - Effet onde de choc adouci pour mobile */
-    .hero-bg-slide[data-index="3"].active img {
-        animation: shockwaveMobile 8s ease-in-out infinite;
-    }
-    
-    /* N4 - Effet tourbillon galactique adouci pour mobile */
-    .hero-bg-slide[data-index="4"].active img {
-        animation: galacticMobile 8s ease-in-out infinite;
-    }
-    
-    /* N5 - Effet pulsation adouci pour mobile */
-    .hero-bg-slide[data-index="5"].active img {
-        animation: pulseMobile 8s ease-in-out infinite;
-    }
-    
-    /* N6 - Effet rotation douce pour mobile */
-    .hero-bg-slide[data-index="6"].active img {
-        animation: rotationMobile 8s ease-in-out infinite;
-    }
-    
-    /* N7 - Effet zoom doux pour mobile */
-    .hero-bg-slide[data-index="7"].active img {
-        animation: zoomMobile 8s ease-in-out infinite;
-    }
-    
-    /* N8 - Effet fade doux pour mobile */
-    .hero-bg-slide[data-index="8"].active img {
-        animation: fadeMobile 8s ease-in-out infinite;
-    }
-    
-    .hero-progress {
-        height: 2px;
-    }
-    
-    /* Ajuster les images pour mobile - sans zoom */
-    .hero-bg-slide img {
-        object-position: center center;
         transform: scale(1);
     }
-    
-    .hero-bg-slide.active img {
-        transform: scale(1);
-        animation: none;
-    }
-    
-    /* Transitions plus douces sur mobile */
-    .hero-bg-slide {
-        transition: opacity 1s ease-in-out, 
-                    visibility 1s ease-in-out,
-                    transform 1s ease-in-out;
-    }
-    
-    .hero-title {
-        font-size: 2rem !important;
-    }
-    
-    .hero-subtitle {
-        font-size: 0.95rem !important;
-        line-height: 1.5;
-    }
-    
-    .container {
-        padding: 0 1rem;
-    }
-    
-    .stat-card-ultra {
-        padding: 2rem 1.5rem !important;
-    }
-    
-    .counter {
-        font-size: 3rem !important;
-    }
-    
-    .service-card-ultra {
-        padding: 2rem 1.5rem !important;
-    }
-    
-    .partner-card-pro {
-        padding: 1.5rem !important;
+    100% {
+        transform: scale(1.1);
     }
 }
 
-/* Très petits écrans */
-@media (max-width: 480px) {
-    .hero-indicators {
-        bottom: 70px;
-        gap: 6px;
+/* Animation de sortie */
+.hero-background.exiting {
+    opacity: 0;
+    transform: scale(1.15);
+}
+
+/* Effet de brillance qui traverse l'image */
+.hero-background::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    z-index: 2;
+    animation: shine 8s infinite;
+}
+
+@keyframes shine {
+    0% {
+        left: -100%;
     }
-    
-    .hero-indicator {
-        width: 6px;
-        height: 6px;
+    50%, 100% {
+        left: 150%;
     }
 }
 
@@ -2197,82 +154,33 @@ img, .img-fluid { max-width: 100%; height: auto; }
     max-width: 900px;
     padding: 0 2rem;
     color: white;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
 }
 
 .hero-title {
     font-size: 3.5rem;
     font-weight: 800;
     margin-bottom: 1.5rem;
-    /* Ombre de texte renforcée pour lisibilité avec overlay léger */
-    text-shadow: 
-        0 2px 4px rgba(0, 0, 0, 0.8),
-        0 4px 8px rgba(0, 0, 0, 0.6),
-        0 8px 16px rgba(0, 0, 0, 0.4),
-        2px 2px 4px rgba(0, 0, 0, 0.9);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
     line-height: 1.2;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: heroFadeIn 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
 }
 
 .hero-subtitle {
     font-size: 1.3rem;
     margin-bottom: 2.5rem;
-    /* Ombre de texte renforcée pour lisibilité avec overlay léger */
-    text-shadow: 
-        0 2px 4px rgba(0, 0, 0, 0.8),
-        0 4px 8px rgba(0, 0, 0, 0.5),
-        1px 1px 3px rgba(0, 0, 0, 0.9);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     line-height: 1.6;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: heroFadeIn 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.6s forwards;
 }
 
 .hero-buttons {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
     justify-content: center;
-    align-items: center;
     flex-wrap: wrap;
-    margin-top: 2rem;
-    width: 100%;
-    text-align: center;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: heroFadeIn 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.9s forwards;
-}
-
-/* Animation d'entrée douce */
-@keyframes heroFadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Désactiver les animations si prefers-reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-    .hero-title,
-    .hero-subtitle,
-    .hero-buttons {
-        animation: none !important;
-        opacity: 1 !important;
-        transform: none !important;
-    }
 }
 
 .btn-hero {
     padding: 1rem 2rem;
-    border-radius: 8px;
+    border-radius: 50px;
     font-weight: 600;
     text-decoration: none;
     display: inline-flex;
@@ -2280,29 +188,24 @@ img, .img-fluid { max-width: 100%; height: auto; }
     gap: 0.5rem;
     transition: all 0.3s ease;
     font-size: 1.1rem;
-    min-width: 200px;
-    justify-content: center;
-    /* Ombre portée pour visibilité sur fond clair */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .btn-primary-hero {
-    background: #3b82f6;
+    background: #22c55e;
     color: white;
-    border: 2px solid #3b82f6;
+    border: 2px solid #22c55e;
 }
 
 .btn-primary-hero:hover {
     background: #16a34a;
     border-color: #16a34a;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4);
 }
 
 .btn-secondary-hero {
-    background: white;
-    color: #6b7280;
+    background: transparent;
+    color: white;
     border: 2px solid white;
 }
 
@@ -2310,13 +213,20 @@ img, .img-fluid { max-width: 100%; height: auto; }
     background: white;
     color: #1f2937;
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255, 255, 255, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 /* Services Section */
 .services-section {
     padding: 5rem 0;
     background: #f8fafc;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 3rem;
 }
 
 .services-grid {
@@ -2470,34 +380,6 @@ img, .img-fluid { max-width: 100%; height: auto; }
     background: #f8fafc;
 }
 
-/* ====== Adoucissement global des animations de section ====== */
-.service-card-ultra,
-.news-card-ultra,
-.stat-card-ultra { animation-duration: 8s !important; }
-
-@media (max-width: 1024px) {
-  .service-card-ultra,
-  .news-card-ultra,
-  .stat-card-ultra { animation: none !important; transform: none !important; }
-}
-
-/* ====== Galerie: hauteur responsive et images contenues ====== */
-.gallery-slider { height: 70vh; max-height: 680px; min-height: 320px; }
-.gallery-slider img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
-
-@media (max-width: 1024px) { .gallery-slider { height: 50vh; max-height: 520px; } }
-@media (max-width: 576px)  { .gallery-slider { height: 38vh; max-height: 420px; } }
-
-/* Désactiver mouvements complexes de la galerie sur mobile/tablette */
-@media (max-width: 1024px) {
-  .gallery-section-pro .slider-slide,
-  .gallery-section-pro .gallery-image-hover,
-  .gallery-section-pro .color-overlay,
-  .gallery-section-pro .zoom-icon-gallery,
-  .gallery-section-pro .border-animation,
-  .gallery-section-pro .ripple-effect-gallery { animation: none !important; transition: opacity .4s ease, transform .4s ease !important; transform: none !important; }
-}
-
 /* Responsive */
 @media (max-width: 768px) {
     .hero-title {
@@ -2515,80 +397,32 @@ img, .img-fluid { max-width: 100%; height: auto; }
 }
 </style>
 
-<!-- Hero Section avec Diaporama d'Arrière-plan Ultra-Luxe -->
+<!-- Préchargement prioritaire de la première image -->
+<link rel="preload" as="image" href="{{ asset('images/arriere plan/N1.jpg') }}" fetchpriority="high">
+
+<!-- Hero Section -->
 <section class="hero-section">
-    <!-- Diaporama d'arrière-plan -->
-    <div class="hero-background-slider">
-        <!-- Slide 1 - Image originale du site -->
-        <div class="hero-bg-slide active" data-index="0">
-            <img src="{{ asset('img/1.jpg') }}" alt="CSAR - Image d'accueil" loading="eager" fetchpriority="high" decoding="async" sizes="100vw">
-        </div>
-        
-        <!-- Slide 2 - N1.jpg (préchargée) -->
-        <div class="hero-bg-slide next-up" data-index="1">
-            <img src="{{ asset('images/arriere plan/N1.jpg') }}" alt="CSAR Background 1" loading="eager" fetchpriority="high" decoding="async" sizes="100vw">
-        </div>
-        
-        <!-- Slide 3 - N2.jpg -->
-        <div class="hero-bg-slide" data-index="2">
-            <img src="{{ asset('images/arriere plan/N2.jpg') }}" alt="CSAR Background 2" loading="lazy" decoding="async" sizes="100vw">
-        </div>
-        
-        <!-- Slide 4 - N3.jpg -->
-        <div class="hero-bg-slide" data-index="3">
-            <img src="{{ asset('images/arriere plan/N3.jpg') }}" alt="CSAR Background 3" loading="lazy" decoding="async" sizes="100vw">
-        </div>
-        
-        <!-- Slide 5 - N4.jpg -->
-        <div class="hero-bg-slide" data-index="4">
-            <img src="{{ asset('images/arriere plan/N4.jpg') }}" alt="CSAR Background 4" loading="lazy" decoding="async" sizes="100vw">
-        </div>
-        
-        <!-- Slide 6 - N5.jpg -->
-        <div class="hero-bg-slide" data-index="5">
-            <img src="{{ asset('images/arriere plan/N5.jpg') }}" alt="CSAR Background 5" loading="lazy" decoding="async" sizes="100vw">
-        </div>
-    </div>
+    <!-- Arrière-plans rotatifs : images chargées via JS pour éviter le chargement multiple -->
+    <div class="hero-background active" data-bg="{{ asset('images/arriere plan/N1.jpg') }}" style='opacity: 1; background-image: url("{{ asset('images/arriere plan/N1.jpg') }}");'></div>
+    <div class="hero-background" data-bg="{{ asset('images/arriere plan/N2.jpg') }}"></div>
+    <div class="hero-background" data-bg="{{ asset('images/arriere plan/N3.jpg') }}"></div>
+    <div class="hero-background" data-bg="{{ asset('images/arriere plan/N5.jpg') }}"></div>
+    <div class="hero-background" data-bg="{{ asset('images/arriere plan/N8.jpg') }}"></div>
     
-    <!-- Overlay sombre pour lisibilité -->
-    <div class="hero-overlay"></div>
-    
-    <!-- Navigation discrète (visible au survol) -->
-    <div class="hero-nav prev" onclick="heroSlider.prev()">
-        <i class="fas fa-chevron-left"></i>
-    </div>
-    <div class="hero-nav next" onclick="heroSlider.next()">
-        <i class="fas fa-chevron-right"></i>
-    </div>
-    
-    <!-- Indicateurs (dots) -->
-    <div class="hero-indicators">
-        <div class="hero-indicator active" onclick="heroSlider.goTo(0)"></div>
-        <div class="hero-indicator" onclick="heroSlider.goTo(1)"></div>
-        <div class="hero-indicator" onclick="heroSlider.goTo(2)"></div>
-        <div class="hero-indicator" onclick="heroSlider.goTo(3)"></div>
-        <div class="hero-indicator" onclick="heroSlider.goTo(4)"></div>
-        <div class="hero-indicator" onclick="heroSlider.goTo(5)"></div>
-    </div>
-    
-    <!-- Barre de progression -->
-    <div class="hero-progress"></div>
-    
-    <!-- Contenu Hero -->
-    <div class="container">
-        <div class="hero-content">
-            <h1 class="hero-title" id="typewriter-title"></h1>
-            <p class="hero-subtitle">
-                {{ __('messages.home.subtitle') }}
+    <div class="container" style="max-width: 100%; display: flex; justify-content: center; align-items: center; position: relative; z-index: 10;">
+        <div class="hero-content" style="text-align: center; width: 100%; max-width: 1000px; margin: 0 auto;">
+            <h1 class="hero-title" id="typewriter-title" style="min-height: 80px; text-align: center;"></h1>
+            <p class="hero-subtitle" style="text-align: center; max-width: 900px; margin: 0 auto 2rem; font-size: 1.2rem; line-height: 1.8;">
+                Le Commissariat à la Sécurité Alimentaire et à la Résilience œuvre pour garantir l'accès à une alimentation suffisante et nutritive pour tous les Sénégalais, tout en renforçant leur capacité à faire face aux crises et aux défis climatiques
             </p>
-            <div class="hero-buttons">
+            <div class="hero-buttons" style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
                 <a href="{{ '/demande' }}" class="btn-hero btn-primary-hero">
                     <i class="fas fa-file-alt"></i>
-                    {{ __('messages.home.request_button') }}
+                    Effectuer une demande
                 </a>
-                <a href="{{ route('about', ['locale' => app()->getLocale()]) }}" class="btn-hero btn-secondary-hero">
+                <a href="{{ route('about') }}" class="btn-hero btn-secondary-hero">
                     <i class="fas fa-info-circle"></i>
-                    {{ __('messages.home.discover_button') }}
+                    Découvrir le CSAR
                 </a>
             </div>
         </div>
@@ -2596,367 +430,79 @@ img, .img-fluid { max-width: 100%; height: auto; }
 </section>
 
 <script>
-/* ============================================
-   DIAPORAMA HERO ULTRA-LUXE ET PERFORMANT
-   ============================================ */
-
-const heroSlider = (function() {
-    'use strict';
-    
-    // Configuration - Défilement automatique optimisé
-    const config = {
-        interval: 8000, // 8s par défaut (plus doux)
-        transitionDuration: 2500, // 2.5 secondes de transition fluide
-        enableAutoplay: true, // Démarrage automatique activé
-        respectReducedMotion: true
-    };
-    
-    // Variables d'état
-    let currentIndex = 0;
-    let totalSlides = 6;
-    let autoplayInterval = null;
-    let isAutoplayPaused = false;
-    let reducedMotion = false;
-    
-    // Éléments DOM
-    const slides = document.querySelectorAll('.hero-bg-slide');
-    const indicators = document.querySelectorAll('.hero-indicator');
-    const progressBar = document.querySelector('.hero-progress');
-    
-    // Vérifier la préférence de mouvement réduit
-    function checkReducedMotion() {
-        if (config.respectReducedMotion) {
-            const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-            reducedMotion = mediaQuery.matches;
-            
-            // Écouter les changements
-            mediaQuery.addEventListener('change', (e) => {
-                reducedMotion = e.matches;
-                if (reducedMotion) {
-                    stopAutoplay();
-                } else if (config.enableAutoplay) {
-                    startAutoplay();
-                }
-            });
-        }
-    }
-    
-    // Attendre que l'image d'une slide soit prête
-    function ensureImageReady(slide) {
-        return new Promise((resolve) => {
-            const img = slide.querySelector('img');
-            if (!img) return resolve();
-            if (img.complete && img.naturalWidth > 0) {
-                // Si supporte decode(), l'utiliser pour éviter flash
-                if (img.decode) {
-                    img.decode().then(resolve).catch(resolve);
-                } else {
-                    resolve();
-                }
-            } else {
-                img.addEventListener('load', () => resolve(), { once: true });
-                img.addEventListener('error', () => resolve(), { once: true });
-            }
-        });
-    }
-
-    // Changer de slide avec effets de transition visibles
-    async function changeSlide(newIndex) {
-        const oldIndex = currentIndex;
-        let targetIndex = newIndex;
-        
-        // Calculer l'index cible avec boucle
-        if (targetIndex >= totalSlides) targetIndex = 0;
-        if (targetIndex < 0) targetIndex = totalSlides - 1;
-
-        // Ne rien faire si on essaie d'aller à la même slide
-        if (targetIndex === currentIndex) {
-            console.log('⚠️ Même index, saut de transition');
-            return;
-        }
-
-        const oldSlide = slides[oldIndex];
-        const newSlide = slides[targetIndex];
-
-        console.log(`🔄 TRANSITION: slide ${oldIndex} → ${targetIndex}`);
-
-        // Assurer que la nouvelle image est prête avant la transition
-        await ensureImageReady(newSlide);
-
-        // Marquer l'ancienne slide comme sortante avec effet
-        if (oldSlide && oldSlide !== newSlide) {
-            oldSlide.classList.add('leaving');
-            oldSlide.classList.remove('active');
-        }
-
-        // Marquer tous les indicateurs inactifs
-        indicators.forEach(ind => ind.classList.remove('active'));
-
-        // Afficher la nouvelle slide avec effet d'entrée
-        newSlide.style.visibility = 'visible';
-        newSlide.classList.remove('leaving');
-        newSlide.classList.add('active');
-
-        // Forcer un reflow pour l'animation
-        void newSlide.offsetWidth;
-        
-        // Activer l'indicateur
-        if (indicators[targetIndex]) {
-        indicators[targetIndex].classList.add('active');
-        }
-
-        // Masquer complètement l'ancienne slide après la transition
-        setTimeout(() => {
-            if (oldSlide && oldSlide !== newSlide) {
-                oldSlide.classList.remove('leaving');
-                oldSlide.style.visibility = 'hidden';
-            }
-        }, 2500); // Attendre la fin de l'animation de sortie
-
-        currentIndex = targetIndex;
-
-        // Préparer la prochaine slide
-        const nextIndex = (currentIndex + 1) % totalSlides;
-        slides.forEach(slide => slide.classList.remove('next-up'));
-        if (slides[nextIndex]) {
-        slides[nextIndex].classList.add('next-up');
-        }
-
-        // Réinitialiser la barre de progression avec animation
-        if (progressBar && config.enableAutoplay) {
-            progressBar.style.width = '0%';
-            progressBar.style.transition = 'none';
-            setTimeout(() => {
-                progressBar.style.transition = `width ${config.interval}ms linear`;
-                progressBar.style.width = '100%';
-            }, 100);
-        }
-
-        console.log(`✅ Transition terminée - Slide ${targetIndex} active`);
-    }
-    
-    // Slide suivante
-    function next(fromAutoplay = false) {
-        console.log(`▶️ NEXT appelé (auto: ${fromAutoplay})`);
-        changeSlide(currentIndex + 1);
-        if (!fromAutoplay) {
-        resetAutoplay();
-        }
-    }
-    
-    // Slide précédente
-    function prev() {
-        console.log('◀️ PREV appelé');
-        changeSlide(currentIndex - 1);
-        resetAutoplay();
-    }
-    
-    // Aller à une slide spécifique
-    function goTo(index) {
-        console.log(`🎯 GOTO ${index} appelé`);
-        if (index >= 0 && index < totalSlides) {
-            changeSlide(index);
-            resetAutoplay();
-        }
-    }
-    
-    // Démarrer l'autoplay automatique
-    function startAutoplay() {
-        if (!config.enableAutoplay) {
-            console.log('⏸️  Autoplay désactivé dans la configuration');
-            return;
-        }
-        
-        // Arrêter tout autoplay existant d'abord
-        if (autoplayInterval) {
-            clearInterval(autoplayInterval);
-            console.log('🔄 Arrêt de l\'autoplay existant');
-        }
-        
-        console.log('▶️  DÉFILEMENT AUTOMATIQUE DÉMARRÉ');
-        console.log(`⏱️  Changement toutes les ${config.interval}ms (${config.interval/1000}s)`);
-        console.log('🎨  Effets dynamiques activés sur toutes les images');
-        
-        // Initialiser la barre de progression
-        if (progressBar) {
-            progressBar.style.width = '0%';
-            setTimeout(() => {
-                progressBar.style.transition = `width ${config.interval}ms linear`;
-                progressBar.style.width = '100%';
-            }, 100);
-        }
-        
-        // Créer l'intervalle d'autoplay - APPELER next(true) pour indiquer que c'est automatique
-        autoplayInterval = setInterval(() => {
-            if (!isAutoplayPaused) {
-                const nextSlide = (currentIndex + 1) % totalSlides;
-                console.log(`⏭️  AUTO-TRANSITION: ${currentIndex} → ${nextSlide}`);
-                next(true); // true = fromAutoplay, ne réinitialise pas l'autoplay
-            } else {
-                console.log('⏸️  Autoplay en pause (survol)');
-            }
-        }, config.interval);
-        
-        console.log(`✅ Autoplay activé - Interval ID: ${autoplayInterval}`);
-        console.log(`⏰ Prochaine transition dans ${config.interval/1000} secondes`);
-    }
-    
-    // Arrêter l'autoplay
-    function stopAutoplay() {
-        if (autoplayInterval) {
-            clearInterval(autoplayInterval);
-            autoplayInterval = null;
-            console.log('⏸️  Autoplay arrêté');
-        }
-    }
-    
-    // Redémarrer l'autoplay
-    function resetAutoplay() {
-        if (config.enableAutoplay) {
-            console.log('🔄 Redémarrage de l\'autoplay');
-            stopAutoplay();
-            startAutoplay();
-        }
-    }
-    
-    // Pause au survol de la section hero
-    function setupHoverPause() {
-        const heroSection = document.querySelector('.hero-section');
-        if (heroSection) {
-            heroSection.addEventListener('mouseenter', () => {
-                console.log('🖱️ Souris sur le hero - Pause autoplay');
-                isAutoplayPaused = true;
-                if (progressBar) {
-                    progressBar.style.transition = 'none';
-                }
-            });
-            
-            heroSection.addEventListener('mouseleave', () => {
-                console.log('🖱️ Souris quitte le hero - Reprise autoplay');
-                isAutoplayPaused = false;
-                if (progressBar) {
-                    progressBar.style.transition = `width ${config.interval}ms linear`;
-                    progressBar.style.width = '100%';
-                }
-            });
-        }
-    }
-    
-    // Navigation au clavier
-    function setupKeyboardNav() {
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') {
-                prev();
-            } else if (e.key === 'ArrowRight') {
-                next();
-            }
-        });
-    }
-    
-    // Précharger les images suivantes pour performance
-    function preloadNextImages() {
-        for (let i = 1; i <= 3; i++) {
-            const nextIndex = (currentIndex + i) % totalSlides;
-            const img = slides[nextIndex].querySelector('img');
-            if (img && img.loading === 'lazy') {
-                img.loading = 'eager';
-            }
-        }
-    }
-    
-    // Initialisation
-    function init() {
-        console.log('═══════════════════════════════════════════════');
-        console.log('🎬 INITIALISATION DU DIAPORAMA HERO CSAR');
-        console.log('═══════════════════════════════════════════════');
-        console.log(`📊 Configuration:`);
-        console.log(`   • ${totalSlides} images (1.jpg + N1-N5)`);
-        console.log(`   • Slides trouvées: ${slides.length}`);
-        console.log(`   • Indicateurs: ${indicators.length}`);
-        console.log(`   • Intervalle: ${config.interval}ms (${config.interval/1000}s)`);
-        console.log(`   • Transition: ${config.transitionDuration}ms`);
-        console.log(`   • Autoplay: ${config.enableAutoplay ? 'ACTIVÉ ✅' : 'DÉSACTIVÉ ❌'}`);
-        
-        // Vérifier que les slides existent
-        if (slides.length === 0) {
-            console.error('❌ ERREUR: Aucune slide trouvée!');
-            return;
-        }
-        
-        // Ignorer complètement reducedMotion pour forcer l'autoplay
-        reducedMotion = false;
-        console.log(`🔥 FORÇAGE AUTOPLAY: reducedMotion désactivé`);
-        
-        // Configurer les événements
-            setupHoverPause();
-            setupKeyboardNav();
-            
-        // FORCER LE DÉMARRAGE IMMÉDIAT DE L'AUTOPLAY
-        console.log('🚀🚀🚀 DÉMARRAGE IMMÉDIAT DE L\'AUTOPLAY 🚀🚀🚀');
-        console.log(`⏰ Changement automatique toutes les ${config.interval}ms (${config.interval/1000}s)`);
-        
-        // Démarrer immédiatement sans délai
-                startAutoplay();
-        console.log('✅ Autoplay activé - Les images vont changer automatiquement');
-        
-        // Précharger les images suivantes
-        preloadNextImages();
-        
-        console.log('═══════════════════════════════════════════════');
-        console.log('✅ DIAPORAMA PRÊT ET EN DÉFILEMENT AUTOMATIQUE');
-        console.log('   🔥 6 images avec animations dynamiques');
-        console.log('   ⚡ Changement automatique toutes les 5 secondes');
-        console.log('   🎯 Surveillez la console pour voir les transitions');
-        console.log('═══════════════════════════════════════════════');
-    }
-    
-    // API publique
-    return {
-        init,
-        next,
-        prev,
-        goTo,
-        start: startAutoplay,
-        stop: stopAutoplay
-    };
-})();
-
-// Effet machine à écrire en boucle pour le titre
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialiser le diaporama
-    heroSlider.init();
-    
-    const titleElement = document.getElementById('typewriter-title');
-    const text = '{{ __('messages.home.title') }}';
-    let index = 0;
-    let isDeleting = false;
-    
-    function typeWriter() {
-        if (!isDeleting && index < text.length) {
-            // Phase d'écriture
-            titleElement.textContent += text.charAt(index);
-            index++;
-            setTimeout(typeWriter, 80); // Vitesse de frappe (80ms par caractère)
-        } else if (!isDeleting && index === text.length) {
-            // Pause à la fin de l'écriture
-            setTimeout(function() {
-                isDeleting = true;
-                typeWriter();
-            }, 2000); // Pause de 2 secondes avant d'effacer
-        } else if (isDeleting && index > 0) {
-            // Phase d'effacement
-            titleElement.textContent = text.substring(0, index - 1);
-            index--;
-            setTimeout(typeWriter, 50); // Vitesse d'effacement (50ms par caractère)
-        } else if (isDeleting && index === 0) {
-            // Pause avant de recommencer
-            isDeleting = false;
-            setTimeout(typeWriter, 500); // Pause de 0.5 seconde avant de recommencer
+    var backgrounds = document.querySelectorAll('.hero-background');
+    var currentBg = 0;
+
+    // Charger la première image immédiatement
+    function loadBg(el) {
+        if (!el.style.backgroundImage && el.dataset.bg) {
+            el.style.backgroundImage = "url('" + el.dataset.bg + "')";
         }
     }
-    
-    // Démarrer l'effet après un court délai
-    setTimeout(typeWriter, 500);
+
+    // Charger N1 tout de suite
+    loadBg(backgrounds[0]);
+
+    // Précharger les autres images en arrière-plan après 2s (ne pas bloquer le rendu initial)
+    setTimeout(function() {
+        for (var i = 1; i < backgrounds.length; i++) {
+            loadBg(backgrounds[i]);
+        }
+    }, 2000);
+
+    function rotateBackground() {
+        backgrounds[currentBg].classList.remove('active');
+        backgrounds[currentBg].classList.add('exiting');
+        var prev = currentBg;
+        currentBg = (currentBg + 1) % backgrounds.length;
+        loadBg(backgrounds[currentBg]);
+        setTimeout(function() {
+            backgrounds[prev].classList.remove('exiting');
+            backgrounds[currentBg].classList.add('active');
+        }, 100);
+    }
+
+    setInterval(rotateBackground, 7000);
+});
+</script>
+
+<script>
+// Effet machine à écrire avec boucle toutes les 4 secondes
+document.addEventListener('DOMContentLoaded', function() {
+    const titleElement = document.getElementById('typewriter-title');
+    const text = 'Commissariat à la Sécurité Alimentaire et à la Résilience';
+    let index = 0;
+    let erasing = false;
+
+    titleElement.textContent = '';
+
+    function tick() {
+        if (!erasing) {
+            // Phase frappe
+            if (index < text.length) {
+                titleElement.textContent += text.charAt(index);
+                index++;
+                setTimeout(tick, 40);
+            } else {
+                // Texte complet — pause 4s puis effacement
+                setTimeout(function() { erasing = true; tick(); }, 4000);
+            }
+        } else {
+            // Phase effacement
+            if (titleElement.textContent.length > 0) {
+                titleElement.textContent = titleElement.textContent.slice(0, -1);
+                setTimeout(tick, 20);
+            } else {
+                // Texte effacé — recommencer la frappe
+                erasing = false;
+                index = 0;
+                setTimeout(tick, 300);
+            }
+        }
+    }
+
+    tick();
 });
 </script>
 
@@ -2973,11 +519,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shine-badge 3s infinite;"></div>
                 <span style="color: #22c55e; font-weight: 700; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1.5px; position: relative; z-index: 1;">
                     <i class="fas fa-concierge-bell" style="margin-right: 8px; animation: ring-bell 3s ease-in-out infinite;"></i>
-                    {{ __('home.services.badge') }}
+                    Nos Services
                 </span>
                 </div>
             <h2 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, #1f2937 0%, #22c55e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                {{ __('home.services.title') }}
+                Au Service de la Population
             </h2>
         </div>
         
@@ -3024,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </a>
             
             <!-- Service Card 3 -->
-            <a href="{{ route('suivi.direct') }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="400" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite; animation-delay: 2s;">
+            <a href="{{ route('track', ['locale' => app()->getLocale()]) }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="400" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite; animation-delay: 2s;">
                 <div class="service-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #8b5cf6, #ec4899, #8b5cf6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-rotate 4s linear infinite;"></div>
                 <div class="service-glow" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent); opacity: 0; filter: blur(30px); transition: opacity 0.6s ease; z-index: 0;"></div>
                 
@@ -3045,428 +591,1492 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 </section>
 
-<!-- Publications et Rapports SIM Section -->
-@if((isset($publications) && $publications->count() > 0) || (isset($simReports) && $simReports->count() > 0))
-<section class="publications-section fade-in-left" style="padding: 100px 0; background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%); position: relative; overflow: hidden;">
-    <!-- Animated Particles -->
-    <div style="position: absolute; top: 15%; left: 8%; width: 180px; height: 180px; background: radial-gradient(circle, rgba(34, 197, 94, 0.06), transparent); border-radius: 50%; filter: blur(35px); animation: float-particle-slow 18s ease-in-out infinite;"></div>
-    <div style="position: absolute; bottom: 25%; right: 12%; width: 220px; height: 220px; background: radial-gradient(circle, rgba(59, 130, 246, 0.05), transparent); border-radius: 50%; filter: blur(45px); animation: float-particle-slow 22s ease-in-out infinite reverse;"></div>
-    
-    <div class="container" style="position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 20px;">
-        <!-- Title Section -->
-        <div style="text-align: center; margin-bottom: 60px;">
-            <div style="display: inline-block; position: relative;">
-                <h2 style="font-size: 3rem; font-weight: 800; color: #1f2937; margin-bottom: 20px; position: relative; z-index: 2;">
-                    Publications & Rapports SIM
-                </h2>
-                <div style="position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); width: 120px; height: 4px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 2px; z-index: 1;"></div>
-            </div>
-            <p style="font-size: 1.2rem; color: #6b7280; max-width: 700px; margin: 0 auto; line-height: 1.6;">
-                Découvrez nos rapports SIM, études de marché et documents officiels du CSAR
-            </p>
+<!-- ===== ACTUALITÉS SECTION - Style SONAGED ===== -->
+<section style="padding: 80px 0; background: #f8f9fa; position: relative; overflow: hidden;">
+    <div class="container" style="max-width: 1300px; margin: 0 auto; padding: 0 20px;">
+        <!-- Titre -->
+        <div style="margin-bottom: 3rem;" data-aos="fade-up">
+            <h2 style="font-size: 2.8rem; font-weight: 800; color: #1f2937; text-transform: uppercase; letter-spacing: 1px; position: relative; display: inline-block;">
+                ACTUALITÉS
+                <div style="position: absolute; bottom: -8px; left: 0; width: 80px; height: 4px; background: #22c55e; border-radius: 2px;"></div>
+            </h2>
         </div>
-        
-        <!-- Publications et Rapports Grid -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-bottom: 50px;">
-            
-            <!-- Rapports SIM -->
-            @if(isset($simReports) && $simReports->count() > 0)
-                @foreach($simReports->take(4) as $report)
-                <div class="sim-report-card" style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; transition: all 0.4s ease; position: relative;">
-                    <!-- Image de couverture -->
-                    <div style="height: 220px; overflow: hidden; position: relative;">
-                        @if($report->cover_image)
-                        <img src="{{ asset('storage/' . $report->cover_image) }}" 
-                             alt="{{ $report->title }}" 
-                             class="news-image-hover"
-                             style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;"
-                             onerror="this.parentElement.innerHTML='<div style=\'width: 100%; height: 100%; background: linear-gradient(135deg, #059669 0%, #047857 100%); display: flex; align-items: center; justify-content: center; flex-direction: column;\'><i class=\'fas fa-chart-line\' style=\'color: #fff; font-size: 50px; margin-bottom: 10px;\'></i><span style=\'color: #fff; font-weight: 600;\'>Rapport SIM</span></div>'">
+
+        @if(isset($latestNews) && $latestNews->count() > 0)
+        <div class="actu-sonaged-grid" data-aos="fade-up" data-aos-delay="100">
+            <!-- Colonne gauche : Article principal (Featured) -->
+            @php $featured = $latestNews->first(); @endphp
+            <div class="actu-featured-card">
+                <div class="actu-featured-img">
+                    @php
+                        $fImg = $featured->cover_image ?? $featured->featured_image ?? null;
+                    @endphp
+                    @if($fImg)
+                        @php
+                            $fp = trim((string) $fImg);
+                            $fUrl = preg_match('/^https?:\/\//i', $fp) ? $fp : asset('storage/' . ltrim($fp, '/'));
+                        @endphp
+                        <img src="{{ $fUrl }}" alt="{{ $featured->title }}" class="home-image-cover" loading="eager" fetchpriority="high" decoding="async" onerror="this.src='{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}'">
+                    @else
+                        <div style="width:100%;height:100%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;">
+                            <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" alt="CSAR" class="home-image-contain" style="width:50%;max-width:200px;opacity:0.7;" loading="lazy" decoding="async">
+                        </div>
+                    @endif
+                    <div class="actu-featured-overlay">
+                        <span class="actu-date-badge"><i class="fas fa-calendar-alt"></i> {{ $featured->published_at ? $featured->published_at->format('d/m/Y') : $featured->created_at->format('d/m/Y') }}</span>
+                        <h3 class="actu-featured-title">{{ $featured->title }}</h3>
+                        <p class="actu-featured-excerpt">{{ \Illuminate\Support\Str::limit(strip_tags(html_entity_decode($featured->excerpt ?? $featured->content)), 160) }}</p>
+                        <a href="{{ route('news.show', $featured->id) }}" class="actu-read-btn"><i class="fas fa-arrow-right"></i> Lire la suite</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colonne droite : Liste des articles récents -->
+            <div class="actu-list-col">
+                @foreach($latestNews->skip(1)->take(4) as $idx => $news)
+                <a href="{{ route('news.show', $news->id) }}" class="actu-list-item" data-aos="fade-left" data-aos-delay="{{ ($idx + 1) * 100 }}">
+                    <div class="actu-list-thumb">
+                        @php
+                            $nImg = $news->cover_image ?? $news->featured_image ?? null;
+                        @endphp
+                        @if($nImg)
+                            @php
+                                $np = trim((string) $nImg);
+                                $nUrl = preg_match('/^https?:\/\//i', $np) ? $np : asset('storage/' . ltrim($np, '/'));
+                            @endphp
+                            <img src="{{ $nUrl }}" alt="{{ $news->title }}" class="home-image-cover" loading="lazy" decoding="async" onerror="this.src='{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}'">
                         @else
-                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #059669 0%, #047857 100%); display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                            <i class="fas fa-chart-line" style="color: #fff; font-size: 50px; margin-bottom: 10px;"></i>
-                            <span style="color: #fff; font-weight: 600; font-size: 14px;">Rapport SIM</span>
-                        </div>
-                        @endif
-                        
-                        <!-- Overlay avec gradient -->
-                        <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(transparent, rgba(0,0,0,0.7));"></div>
-                        
-                        <!-- Badge Type de Rapport -->
-                        <div style="position: absolute; top: 15px; right: 15px; background: rgba(5, 150, 105, 0.95); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; backdrop-filter: blur(10px);">
-                            <i class="fas fa-chart-bar" style="margin-right: 5px;"></i>{{ $report->report_type_label ?? 'SIM' }}
-                        </div>
-                        
-                        <!-- Badge Période -->
-                        @if($report->formatted_period)
-                        <div style="position: absolute; top: 15px; left: 15px; background: rgba(0, 0, 0, 0.7); color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.75rem; font-weight: 500; backdrop-filter: blur(10px);">
-                            {{ $report->formatted_period }}
-                        </div>
+                            <div style="width:100%;height:100%;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;">
+                                <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" alt="CSAR" class="home-image-contain" style="width:60%;opacity:0.5;" loading="lazy" decoding="async">
+                            </div>
                         @endif
                     </div>
-                    
-                    <!-- Contenu -->
-                    <div style="padding: 25px;">
-                        <h3 style="font-size: 1.3rem; font-weight: 700; color: #1f2937; margin-bottom: 12px; line-height: 1.4;">
-                            {{ Str::limit($report->title, 60) }}
-                        </h3>
-                        
-                        <p style="color: #6b7280; font-size: 0.95rem; line-height: 1.6; margin-bottom: 20px;">
-                            {{ $report->excerpt }}
-                        </p>
-                        
-                        <!-- Statistiques -->
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 12px; background: #f8fafc; border-radius: 10px;">
-                            <div style="text-align: center;">
-                                <div style="font-weight: 700; color: #059669; font-size: 1.1rem;">{{ $report->view_count ?? 0 }}</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">Vues</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-weight: 700; color: #3b82f6; font-size: 1.1rem;">{{ $report->download_count ?? 0 }}</div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">Téléchargements</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="font-weight: 700; color: #f59e0b; font-size: 1.1rem;">
-                                    {{ $report->published_at ? $report->published_at->format('M Y') : 'Récent' }}
-                                </div>
-                                <div style="font-size: 0.75rem; color: #6b7280;">Publication</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Actions -->
-                        <div style="display: flex; gap: 10px;">
-                            <a href="{{ route('sim.show', ['locale' => app()->getLocale(), 'simReport' => $report->id]) }}" 
-                               style="flex: 1; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; text-decoration: none; padding: 12px 20px; border-radius: 10px; font-weight: 600; text-align: center; transition: all 0.3s ease; font-size: 0.9rem;">
-                                <i class="fas fa-eye" style="margin-right: 6px;"></i>Consulter
-                            </a>
-                            @if($report->document_file || $report->file_path)
-                            <a href="{{ route('sim.download', ['locale' => app()->getLocale(), 'simReport' => $report->id]) }}" 
-                               style="background: #f59e0b; color: white; text-decoration: none; padding: 12px 16px; border-radius: 10px; font-weight: 600; transition: all 0.3s ease;">
-                                <i class="fas fa-download"></i>
-                            </a>
+                    <div class="actu-list-info">
+                        <div class="actu-list-date">
+                            <i class="fas fa-clock"></i>
+                            {{ $news->published_at ? $news->published_at->format('d/m/Y') : $news->created_at->format('d/m/Y') }}
+                            @if($news->category)
+                            <span class="actu-list-cat">{{ ucfirst($news->category) }}</span>
                             @endif
                         </div>
+                        <h4 class="actu-list-title">{{ $news->title }}</h4>
+                        <p class="actu-list-excerpt">{{ \Illuminate\Support\Str::limit(strip_tags(html_entity_decode($news->excerpt ?? $news->content)), 80) }}</p>
                     </div>
-                </div>
+                </a>
                 @endforeach
-            @endif
-            
-            <!-- Publications traditionnelles -->
-            @if(isset($publications) && $publications->count() > 0)
-                @foreach($publications->take(2) as $publication)
-            <div class="publication-card" style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 1px solid #f1f5f9; transition: all 0.4s ease; position: relative;">
-                <!-- Image de couverture -->
-                <div style="height: 200px; overflow: hidden; position: relative;">
-                    @if($publication->document_cover_image)
-                    @php
-                        $pubImgPath = ltrim((string) $publication->document_cover_image, '/');
-                        $pubImgUrl = (str_starts_with($pubImgPath, 'images/') || str_starts_with($pubImgPath, 'http')) ? asset($pubImgPath) : asset('storage/' . $pubImgPath);
-                    @endphp
-                    <img src="{{ $pubImgUrl }}" 
-                         alt="{{ $publication->document_title }}" 
-                         style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease;"
-                         onerror="this.src='{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}'">
-                    @else
-                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-file-pdf" style="color: #fff; font-size: 60px;"></i>
-                    </div>
-                    @endif
-                    
-                    <!-- Overlay avec gradient -->
-                    <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 60px; background: linear-gradient(transparent, rgba(0,0,0,0.7));"></div>
-                    
-                    <!-- Badge PDF -->
-                    <div style="position: absolute; top: 15px; right: 15px; background: rgba(239, 68, 68, 0.9); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; backdrop-filter: blur(10px);">
-                        <i class="fas fa-file-pdf" style="margin-right: 5px;"></i>PDF
-                    </div>
-                </div>
-                
-                <!-- Contenu -->
-                <div style="padding: 25px;">
-                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #1f2937; margin-bottom: 10px; line-height: 1.4;">
-                        {{ $publication->document_title }}
-                    </h3>
-                    
-                    <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.5;">
-                        {{ Str::limit(strip_tags($publication->content), 100) }}
-                    </p>
-                    
-                    <!-- Métadonnées -->
-                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; font-size: 0.8rem; color: #9ca3af;">
-                        <div style="display: flex; align-items: center; gap: 5px;">
-                            <i class="fas fa-calendar" style="color: #22c55e;"></i>
-                            <span>{{ $publication->published_at->format('d F Y') }}</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 5px;">
-                            <i class="fas fa-user" style="color: #3b82f6;"></i>
-                            <span>{{ $publication->creator->name ?? 'CSAR' }}</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Bouton de téléchargement -->
-                    <a href="{{ $publication->document_url }}" target="_blank" 
-                       style="display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);"
-                       onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(245, 158, 11, 0.4)'"
-                       onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(245, 158, 11, 0.3)'">
-                        <i class="fas fa-download"></i>
-                        Télécharger
-                    </a>
-                </div>
             </div>
-            @endforeach
-            @endif
         </div>
-        
-        <!-- Bouton "Voir toutes les publications" -->
-        <div style="text-align: center;">
-            <a href="{{ route('news', ['locale' => app()->getLocale()]) }}?filter=publications" 
-               style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; padding: 15px 30px; border-radius: 15px; text-decoration: none; font-weight: 700; font-size: 1.1rem; transition: all 0.3s ease; box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);"
-               onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(245, 158, 11, 0.4)'"
-               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(245, 158, 11, 0.3)'">
-                <i class="fas fa-book-open"></i>
-                Voir toutes les publications
-            </a>
-        </div>
-    </div>
-</section>
-@endif
 
-<!-- Actualités Section ULTRA PRO -->
-<section class="news-section-ultra" data-aos="fade-up" style="padding: 100px 0; background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); position: relative; overflow: hidden;">
-    <!-- Animated Particles -->
-    <div style="position: absolute; top: 10%; left: 5%; width: 200px; height: 200px; background: radial-gradient(circle, rgba(34, 197, 94, 0.05), transparent); border-radius: 50%; filter: blur(40px); animation: float-particle-slow 20s ease-in-out infinite;"></div>
-    <div style="position: absolute; bottom: 20%; right: 10%; width: 250px; height: 250px; background: radial-gradient(circle, rgba(59, 130, 246, 0.04), transparent); border-radius: 50%; filter: blur(50px); animation: float-particle-slow 25s ease-in-out infinite reverse;"></div>
-    
-    <div class="container" style="position: relative; z-index: 1; max-width: 1400px; margin: 0 auto; padding: 0 20px;">
-        <!-- Title Section -->
-        <div style="text-align: center; margin-bottom: 5rem;" data-aos="fade-down" data-aos-duration="600">
-            <h2 style="font-size: 3.5rem; font-weight: 700; margin-bottom: 1rem; color: #5a7d70; letter-spacing: 2px; text-transform: uppercase;">
-                ACTUALITÉS
-            </h2>
-            <!-- Ligne décorative -->
-            <div style="width: 200px; height: 2px; background: #5a7d70; margin: 0 auto 3rem;"></div>
-        </div>
-        
-        <div class="news-grid-2x2" style="margin-bottom: 3rem;">
-        @php $newsCount = isset($latestNews) ? $latestNews->count() : 0; @endphp
-            @if(isset($latestNews) && $latestNews->count() > 0)
-                @foreach($latestNews as $index => $news)
-                <div class="news-card-ultra" data-aos="fade-up" data-aos-delay="{{ $index * 150 }}" style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); position: relative; cursor: pointer; animation: float-news 5s ease-in-out infinite; animation-delay: {{ $index * 1 }}s;">
-                    <!-- Glow on hover -->
-                    <div style="position: absolute; inset: -3px; background: linear-gradient(135deg, #3b82f6, #22c55e, #3b82f6); background-size: 200% 200%; border-radius: 24px; opacity: 0; z-index: -1; animation: gradient-news 4s ease infinite; transition: opacity 0.5s ease;"></div>
-                    
-                    @if($news->featured_image || $news->cover_image)
-                    <div style="position: relative; height: 220px; overflow: hidden;">
-                        @php
-                            // Priorité : cover_image > featured_image
-                            $imagePath = $news->cover_image ?: $news->featured_image;
-                            $imagePath = trim((string) $imagePath);
-                            if (preg_match('/^https?:\/\//i', $imagePath)) {
-                                $imageUrl = $imagePath;
-                            } elseif (str_starts_with(ltrim($imagePath, '/'), 'images/')) {
-                                $imageUrl = asset(ltrim($imagePath, '/'));
-                            } else {
-                                $imageUrl = asset('storage/' . ltrim($imagePath, '/'));
-                            }
-                        @endphp
-                        <img src="{{ $imageUrl }}" alt="{{ $news->title }}" 
-                             style="width: 100%; height: 100%; object-fit: cover; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);"
-                             class="news-image-hover"
-                             onerror="this.src='{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}'">
-                        
-                        <!-- Overlay gradient -->
-                        <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.3) 100%); transition: all 0.5s ease;"></div>
-                        
-                        <!-- Date Badge -->
-                        <div style="position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                            <i class="fas fa-calendar-alt" style="color: #3b82f6; font-size: 0.9rem;"></i>
-                            <span style="color: #1f2937; font-weight: 600; font-size: 0.85rem;">
-                                {{ $news->published_at ? $news->published_at->format('d/m/Y') : $news->created_at->format('d/m/Y') }}
-                            </span>
-                    </div>
-                    </div>
-                    @else
-                    <div style="position: relative; height: 220px; background: linear-gradient(135deg, #3b82f6, #2563eb); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                        <i class="far fa-newspaper" style="font-size: 4rem; color: rgba(255, 255, 255, 0.3); animation: pulse-news-icon 3s ease-in-out infinite;"></i>
-                        <div style="position: absolute; top: 15px; right: 15px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-calendar-alt" style="color: #3b82f6; font-size: 0.9rem;"></i>
-                            <span style="color: #1f2937; font-weight: 600; font-size: 0.85rem;">
-                                {{ $news->published_at ? $news->published_at->format('d/m/Y') : $news->created_at->format('d/m/Y') }}
-                            </span>
-                        </div>
-                    </div>
-                    @endif
-                    
-                    <div style="padding: 2rem; position: relative;">
-                        <!-- Badge ACTUALITÉ -->
-                        <div style="display: inline-block; background: #5a7d70; color: white; padding: 6px 16px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 1rem;">
-                            ACTUALITÉ
-                        </div>
-                        
-                        <h3 style="font-size: 1.4rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem; line-height: 1.4; transition: color 0.3s ease;">
-                            {{ $news->title }}
-                        </h3>
-                        <p style="color: #6b7280; line-height: 1.7; margin-bottom: 1.5rem; font-size: 0.95rem;">
-                            {{ $news->excerpt ?? \Illuminate\Support\Str::limit(strip_tags($news->content), 120) }}
-                        </p>
-                        
-                        <a href="/fr/actualites/{{ $news->id }}" style="display: inline-block; padding: 10px 24px; background: transparent; color: #d4a574; border: 2px solid #d4a574; border-radius: 25px; font-weight: 600; text-decoration: none; transition: all 0.3s ease; font-size: 0.9rem;">
-                            Lire la suite
-                        </a>
-                    </div>
-                </div>
-                @endforeach
-            @else
-                <div class="news-empty-state" data-aos="zoom-in" data-aos-duration="600" style="grid-column: 1 / -1; text-align: center; padding: 60px 24px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 20px; border: 2px dashed #cbd5e1;">
-                    <i class="fas fa-newspaper" style="font-size: 3.5rem; color: #94a3b8; margin-bottom: 1.25rem;"></i>
-                    <h3 style="color: #475569; font-size: 1.35rem; font-weight: 700; margin-bottom: 0.75rem;">Aucune actualité disponible pour le moment</h3>
-                    <p style="color: #64748b; font-size: 1.05rem; max-width: 480px; margin: 0 auto;">Les actualités du CSAR seront publiées ici dès qu'elles seront disponibles.</p>
-                </div>
-            @endif
-        </div>
-        
-        @if(isset($latestNews) && $latestNews->count() > 0)
-        <div style="text-align: center; margin-top: 3rem;">
-            <a href="{{ route('news', ['locale' => app()->getLocale()]) }}" class="btn btn-success" style="padding: 0.75rem 2rem; border-radius: 50px;">
-                <i class="fas fa-arrow-right"></i>
-                Voir toutes les actualités
+        <!-- Bouton voir toutes les actualités -->
+        <div style="text-align: center; margin-top: 3rem;" data-aos="fade-up">
+            <a href="{{ route('news') }}" style="display:inline-flex;align-items:center;gap:10px;background:#22c55e;color:white;padding:14px 36px;border-radius:50px;font-weight:700;text-decoration:none;font-size:1rem;box-shadow:0 6px 20px rgba(34,197,94,0.35);transition:all 0.3s ease;">
+                <i class="fas fa-arrow-right"></i> Voir toutes les actualités
             </a>
+        </div>
+        @else
+        <div style="text-align: center; padding: 60px 20px;">
+            <i class="fas fa-newspaper" style="font-size: 3rem; color: #9ca3af; margin-bottom: 1rem;"></i>
+            <h3 style="color: #6b7280;">Aucune actualité disponible</h3>
+            <p style="color: #9ca3af;">Revenez bientôt pour découvrir nos dernières actualités.</p>
         </div>
         @endif
     </div>
 </section>
 
-<!-- Stats Section ULTRA PRO with Counter Animation -->
-<section class="stats-section-ultra slide-in-bottom" style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); padding: 100px 0; position: relative; overflow: hidden;">
-    <!-- Animated Background Elements -->
-    <div style="position: absolute; top: -100px; left: -100px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(34, 197, 94, 0.15), transparent); border-radius: 50%; filter: blur(80px); animation: pulse-orb-stats 8s ease-in-out infinite;"></div>
-    <div style="position: absolute; bottom: -150px; right: -150px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59, 130, 246, 0.12), transparent); border-radius: 50%; filter: blur(100px); animation: pulse-orb-stats 10s ease-in-out infinite reverse;"></div>
-    
-    <!-- Particle Stars -->
-    <div class="stars-container" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none;">
-        @for($i = 0; $i < 30; $i++)
-        <div class="star" style="position: absolute; width: {{ rand(2, 4) }}px; height: {{ rand(2, 4) }}px; background: white; border-radius: 50%; top: {{ rand(0, 100) }}%; left: {{ rand(0, 100) }}%; opacity: {{ rand(30, 80) / 100 }}; animation: twinkle-star {{ rand(2, 5) }}s ease-in-out infinite; animation-delay: {{ rand(0, 50) / 10 }}s;"></div>
-        @endfor
-    </div>
-    
-    <div class="container" style="position: relative; z-index: 1;">
-        <!-- Title Section -->
-        <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-down">
-            <div style="display: inline-block; padding: 6px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2)); border-radius: 50px; margin-bottom: 1rem; position: relative; overflow: hidden; border: 1px solid rgba(34, 197, 94, 0.3);">
-                <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: shine-badge 3s infinite;"></div>
-                <span style="color: #22c55e; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.2px; position: relative; z-index: 1;">
-                    <i class="fas fa-chart-line" style="margin-right: 6px; animation: pulse-chart 2s ease-in-out infinite;"></i>
-                    {{ __('home.stats.badge') }}
+<!-- ===== OBJECTIFS STRATÉGIQUES (jusqu'en 2028) ===== -->
+<section style="padding: 80px 0; background: linear-gradient(135deg, #1f6f45 0%, #22c55e 50%, #16a34a 100%); position: relative; overflow: hidden;">
+    <!-- Decorative circles -->
+    <div style="position:absolute;top:-80px;right:-80px;width:300px;height:300px;border:2px solid rgba(255,255,255,0.1);border-radius:50%;"></div>
+    <div style="position:absolute;bottom:-60px;left:-60px;width:200px;height:200px;border:2px solid rgba(255,255,255,0.08);border-radius:50%;"></div>
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:500px;border:1px solid rgba(255,255,255,0.05);border-radius:50%;"></div>
+
+    <div class="container" style="max-width: 1300px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1;">
+        <!-- Header -->
+        <div style="text-align:center;margin-bottom:3.5rem;">
+            <div data-aos="fade-up">
+                <span style="display:inline-block;background:rgba(255,255,255,0.15);backdrop-filter:blur(8px);padding:8px 20px;border-radius:50px;color:white;font-size:0.85rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:1rem;">
+                    <i class="fas fa-bullseye" style="margin-right:8px;"></i> Objectifs stratégiques
                 </span>
             </div>
-            <h2 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 0.8rem; color: white; text-shadow: 0 0 20px rgba(34, 197, 94, 0.2);">
-                {{ __('home.stats.title') }}
+            <h2 style="font-size: 2.5rem; font-weight: 800; color: white; margin: 0 0 1rem;" data-aos="fade-up" data-aos-delay="100">
+                Nos actions concrètes pour la sécurité alimentaire de demain
             </h2>
-            <p style="color: rgba(255, 255, 255, 0.75); font-size: 1rem; max-width: 650px; margin: 0 auto; line-height: 1.6;">
-                {{ __('home.stats.subtitle') }}
-            </p>
+            <div style="width:80px;height:4px;background:white;border-radius:2px;margin:0 auto;" data-aos="fade-up" data-aos-delay="150"></div>
         </div>
-        
-        <!-- Stats Grid - 4 colonnes sur une ligne -->
-        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; max-width: 1400px; margin: 0 auto;">
-            <!-- Stat 1: Agents -->
-            <div class="stat-card-ultra" data-aos="zoom-in" data-aos-delay="100" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(34, 197, 94, 0.2); border-radius: 24px; padding: 3rem 2rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
-                <!-- Glow Effect -->
-                <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(34, 197, 94, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
-                <!-- Icon -->
-                <div style="position: relative; z-index: 2; margin-bottom: 1.5rem;">
-                    <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #22c55e, #10b981); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 40px rgba(34, 197, 94, 0.4); position: relative;">
-                        <i class="fas fa-users" style="font-size: 2.5rem; color: white; animation: float-icon 3s ease-in-out infinite;"></i>
-                        <div style="position: absolute; inset: -10px; border: 3px dashed rgba(34, 197, 94, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
-                    </div>
+
+        <!-- 5 Axes Grid -->
+        <div class="axes-grid-5" data-aos="fade-up" data-aos-delay="200">
+            <!-- Axe 1 -->
+            <div class="axe-card-v2" style="--axe-delay: 0s;">
+                <div class="axe-num">01</div>
+                <div class="axe-icon-wrap" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                    <i class="fas fa-warehouse"></i>
                 </div>
-                
-                <!-- Counter -->
-                <div style="position: relative; z-index: 2;">
-                    <div class="counter-wrapper" style="margin-bottom: 0.5rem;">
-                        <span class="counter" data-target="{{ $stats['agents'] }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #22c55e, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
-                    </div>
-                    <p style="color: rgba(255, 255, 255, 0.95); font-size: 1.4rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                        Agents recensés
-                    </p>
-                </div>
-                
-                <!-- Animated Border -->
-                <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #22c55e, #10b981, #22c55e); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
+                <h4>Renforcer les capacités de stockage et distribution</h4>
+                <p>Développer et moderniser l'infrastructure de stockage stratégique pour garantir une disponibilité alimentaire continue.</p>
             </div>
-            
-            <!-- Stat 2: Magasins -->
-            <div class="stat-card-ultra" data-aos="zoom-in" data-aos-delay="250" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(59, 130, 246, 0.2); border-radius: 24px; padding: 3rem 2rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
-                <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(59, 130, 246, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
-                <div style="position: relative; z-index: 2; margin-bottom: 1.5rem;">
-                    <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 40px rgba(59, 130, 246, 0.4); position: relative;">
-                        <i class="fas fa-warehouse" style="font-size: 2.5rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 0.5s;"></i>
-                        <div style="position: absolute; inset: -10px; border: 3px dashed rgba(59, 130, 246, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
-                    </div>
+            <!-- Axe 2 -->
+            <div class="axe-card-v2" style="--axe-delay: 0.1s;">
+                <div class="axe-num">02</div>
+                <div class="axe-icon-wrap" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+                    <i class="fas fa-seedling"></i>
                 </div>
-                
-                <div style="position: relative; z-index: 2;">
-                    <div class="counter-wrapper" style="margin-bottom: 0.5rem;">
-                        <span class="counter" data-target="{{ $stats['warehouses'] }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #3b82f6, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
-                    </div>
-                    <p style="color: rgba(255, 255, 255, 0.95); font-size: 1.4rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                        Magasins de stockage
-                    </p>
-                </div>
-                
-                <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
+                <h4>Promouvoir des innovations agricoles</h4>
+                <p>Encourager l'adoption de technologies modernes et de pratiques durables pour améliorer la productivité agricole.</p>
             </div>
-            
-            <!-- Stat 3: Capacité -->
-            <div class="stat-card-ultra" data-aos="zoom-in" data-aos-delay="400" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(139, 92, 246, 0.2); border-radius: 24px; padding: 3rem 2rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
-                <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(139, 92, 246, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
-                <div style="position: relative; z-index: 2; margin-bottom: 1.5rem;">
-                    <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 40px rgba(139, 92, 246, 0.4); position: relative;">
-                        <i class="fas fa-boxes" style="font-size: 2.5rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 1s;"></i>
-                        <div style="position: absolute; inset: -10px; border: 3px dashed rgba(139, 92, 246, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
-                    </div>
+            <!-- Axe 3 -->
+            <div class="axe-card-v2" style="--axe-delay: 0.2s;">
+                <div class="axe-num">03</div>
+                <div class="axe-icon-wrap" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                    <i class="fas fa-bell"></i>
                 </div>
-                
-                <div style="position: relative; z-index: 2;">
-                    <div class="counter-wrapper" style="margin-bottom: 0.5rem;">
-                        <span class="counter" data-target="{{ $stats['capacity'] }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #8b5cf6, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
-                    </div>
-                    <p style="color: rgba(255, 255, 255, 0.95); font-size: 1.4rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                        {{ number_format((float) ($stats['capacity'] ?? 0)) }} tonnes de capacité
-                    </p>
-                </div>
-                
-                <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #8b5cf6, #7c3aed, #8b5cf6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
+                <h4>Améliorer les systèmes d'alerte précoce</h4>
+                <p>Développer des mécanismes de surveillance et d'alerte pour anticiper et prévenir les crises alimentaires.</p>
             </div>
-            
-            <!-- Stat 4: Expérience -->
-            <div class="stat-card-ultra" data-aos="zoom-in" data-aos-delay="550" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(236, 72, 153, 0.2); border-radius: 24px; padding: 3rem 2rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
-                <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(236, 72, 153, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
-                <div style="position: relative; z-index: 2; margin-bottom: 1.5rem;">
-                    <div style="width: 100px; height: 100px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 40px rgba(236, 72, 153, 0.4); position: relative;">
-                        <i class="fas fa-award" style="font-size: 2.5rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 1.5s;"></i>
-                        <div style="position: absolute; inset: -10px; border: 3px dashed rgba(236, 72, 153, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
-                    </div>
+            <!-- Axe 4 -->
+            <div class="axe-card-v2" style="--axe-delay: 0.3s;">
+                <div class="axe-num">04</div>
+                <div class="axe-icon-wrap" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                    <i class="fas fa-hands-helping"></i>
                 </div>
-                
-                <div style="position: relative; z-index: 2;">
-                    <div class="counter-wrapper" style="display: flex; align-items: center; justify-content: center; gap: 0.3rem; margin-bottom: 0.5rem;">
-                        <span class="counter" data-target="{{ $stats['experience'] }}" style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #ec4899, #db2777); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: pulse-number 2s ease-in-out infinite;">0</span>
-                        <span style="font-size: 4.5rem; font-weight: 900; background: linear-gradient(135deg, #ec4899, #db2777); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; line-height: 1; animation: bounce 2s ease-in-out infinite;">+</span>
-                    </div>
-                    <p style="color: rgba(255, 255, 255, 0.95); font-size: 1.4rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
-                        Années d'expérience
-                    </p>
+                <h4>Renforcer les capacités communautaires</h4>
+                <p>Former et accompagner les communautés locales pour développer leur autonomie et leur résilience alimentaire.</p>
+            </div>
+            <!-- Axe 5 -->
+            <div class="axe-card-v2" style="--axe-delay: 0.4s;">
+                <div class="axe-num">05</div>
+                <div class="axe-icon-wrap" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                    <i class="fas fa-project-diagram"></i>
                 </div>
-                
-                <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #ec4899, #db2777, #ec4899); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
+                <h4>Optimiser la gouvernance et la coordination</h4>
+                <p>Améliorer la coordination entre les différents acteurs pour une réponse plus efficace aux défis alimentaires.</p>
             </div>
         </div>
     </div>
 </section>
+
+<!-- ===== MÉTÉO EN TEMPS RÉEL (One Call 3.0) ===== -->
+<section style="padding: 60px 0 40px; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); position: relative; overflow: hidden;">
+    <div style="position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(59,130,246,0.15),transparent);border-radius:50%;filter:blur(60px);"></div>
+    <div style="position:absolute;bottom:-80px;left:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(16,185,129,0.1),transparent);border-radius:50%;filter:blur(50px);"></div>
+    <div class="container" style="max-width: 1300px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1;">
+        <div style="text-align:center;margin-bottom:2rem;" data-aos="fade-up">
+            <span style="display:inline-block;background:rgba(59,130,246,0.2);padding:6px 18px;border-radius:50px;color:#60a5fa;font-size:0.82rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:0.8rem;">
+                <i class="fas fa-cloud-sun" style="margin-right:6px;"></i> Météo en direct
+            </span>
+            <h2 style="color:white;font-size:1.8rem;font-weight:700;margin:0;">Conditions météorologiques actuelles</h2>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem;max-width:1300px;margin:0 auto;align-items:start;" class="meteo-action-grid">
+            <!-- Colonne gauche : Météo -->
+            <div id="weather-widget" data-aos="fade-up" data-aos-delay="100">
+                <!-- Loading -->
+                <div id="weather-loading" style="text-align:center;padding:40px;color:rgba(255,255,255,0.6);">
+                    <i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:10px;display:block;"></i>
+                    <p style="margin:0;">Chargement de la météo géolocalisée...</p>
+                </div>
+                <!-- Content -->
+                <div id="weather-content" style="display:none;">
+                    <!-- Current weather card -->
+                    <div class="weather-main-card">
+                        <div class="weather-left">
+                            <div class="weather-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span id="weather-city">--</span>
+                            </div>
+                            <div class="weather-temp-wrap">
+                                <img id="weather-icon" src="" alt="météo" style="width:80px;height:80px;">
+                                <span id="weather-temp" class="weather-temp">--°</span>
+                            </div>
+                            <p id="weather-desc" style="color:rgba(255,255,255,0.8);font-size:1rem;margin:0;text-transform:capitalize;">--</p>
+                        </div>
+                        <div class="weather-right">
+                            <div class="weather-detail">
+                                <i class="fas fa-tint"></i>
+                                <div><span class="weather-detail-label">Humidité</span><span id="weather-humidity" class="weather-detail-val">--%</span></div>
+                            </div>
+                            <div class="weather-detail">
+                                <i class="fas fa-wind"></i>
+                                <div><span class="weather-detail-label">Vent</span><span id="weather-wind" class="weather-detail-val">-- km/h</span></div>
+                            </div>
+                            <div class="weather-detail">
+                                <i class="fas fa-thermometer-half"></i>
+                                <div><span class="weather-detail-label">Ressenti</span><span id="weather-feels" class="weather-detail-val">--°</span></div>
+                            </div>
+                            <div class="weather-detail">
+                                <i class="fas fa-sun"></i>
+                                <div><span class="weather-detail-label">UV Index</span><span id="weather-uvi" class="weather-detail-val">--</span></div>
+                            </div>
+                            <div class="weather-detail">
+                                <i class="fas fa-eye"></i>
+                                <div><span class="weather-detail-label">Visibilité</span><span id="weather-visibility" class="weather-detail-val">-- km</span></div>
+                            </div>
+                            <div class="weather-detail">
+                                <i class="fas fa-compress-arrows-alt"></i>
+                                <div><span class="weather-detail-label">Pression</span><span id="weather-pressure" class="weather-detail-val">-- hPa</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 3-day forecast -->
+                    <div id="weather-forecast" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.2rem;"></div>
+                    <!-- Alerts -->
+                    <div id="weather-alerts" style="margin-top:1rem;display:none;"></div>
+                </div>
+                <!-- Error -->
+                <div id="weather-error" style="display:none;text-align:center;padding:20px;color:rgba(255,255,255,0.6);">
+                    <i class="fas fa-exclamation-triangle" style="font-size:1.5rem;margin-bottom:8px;display:block;color:#f59e0b;"></i>
+                    <p style="margin:0;">Impossible de charger la météo. Vérifiez votre connexion.</p>
+                </div>
+            </div>
+
+            <!-- Colonne droite : CSAR EN ACTION (petite fenêtre) -->
+            <div data-aos="fade-left" data-aos-delay="200" style="background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:1.5rem;overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;">
+                    <div style="width:8px;height:8px;background:#22c55e;border-radius:50%;animation:pulse-dot 2s infinite;"></div>
+                    <h4 style="color:white;font-size:1rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.5px;">
+                        <span style="color:#22c55e;">CSAR</span> EN ACTION
+                    </h4>
+                </div>
+                <div style="border-radius:14px;overflow:hidden;margin-bottom:1rem;border:1px solid rgba(255,255,255,0.1);">
+                    <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" alt="CSAR en action" style="width:100%;height:160px;object-fit:contain;background:rgba(255,255,255,0.95);padding:10px;">
+                </div>
+                <p style="color:rgba(255,255,255,0.75);font-size:0.82rem;line-height:1.6;margin:0 0 1rem;">
+                    Opérations de distribution alimentaire et de soutien aux communautés. Le CSAR est à votre disposition sur l'ensemble du territoire.
+                </p>
+                <a href="{{ route('about') }}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(34,197,94,0.2);color:#22c55e;font-size:0.8rem;font-weight:600;border-radius:10px;border:1px solid rgba(34,197,94,0.3);text-decoration:none;transition:all 0.3s ease;" onmouseover="this.style.background='rgba(34,197,94,0.4)'" onmouseout="this.style.background='rgba(34,197,94,0.2)'">
+                    <i class="fas fa-arrow-right"></i> En savoir plus
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== DOCUMENTATIONS (Dynamique) ===== -->
+<section style="padding: 80px 0; background: #f1f5f9; position: relative; overflow: hidden;">
+    <div class="container" style="max-width: 1300px; margin: 0 auto; padding: 0 20px;">
+        <div style="text-align:center;margin-bottom:2.5rem;" data-aos="fade-up">
+            <h3 style="font-size:1.8rem;font-weight:800;color:#1f2937;text-transform:uppercase;">
+                DOCUMENTATIONS
+            </h3>
+            <p style="color:#6b7280;font-size:1rem;margin-top:0.5rem;">Documents officiels et avis de recrutement</p>
+        </div>
+        <div class="doc-list" style="max-width:900px;margin:0 auto;">
+            @if(isset($publicDocuments) && $publicDocuments->count() > 0)
+                @foreach($publicDocuments as $idx => $doc)
+                <div class="doc-item" data-aos="fade-up" data-aos-delay="{{ ($idx + 1) * 100 }}">
+                    <div class="doc-item-icon">
+                        <i class="{{ $doc->icon_class }}"></i>
+                    </div>
+                    <div class="doc-item-info">
+                        <p class="doc-item-label">{{ $doc->type_label }}</p>
+                        <h5 class="doc-item-title">{{ $doc->title }}</h5>
+                        @if($doc->file_url)
+                        <a href="{{ $doc->file_url }}" target="_blank" class="doc-download-link"><i class="fas fa-download"></i> Télécharger</a>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            @else
+                <div style="background:white;border-radius:12px;padding:40px 20px;text-align:center;">
+                    <i class="fas fa-folder-open" style="font-size:2.5rem;color:#d1d5db;margin-bottom:12px;"></i>
+                    <p style="color:#9ca3af;margin:0;font-size:0.95rem;">Aucun document disponible pour le moment.</p>
+                </div>
+            @endif
+        </div>
+    </div>
+</section>
+
+<style>
+/* ===== ACTUALITÉS SONAGED STYLE ===== */
+.actu-sonaged-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: stretch;
+}
+.actu-featured-card {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+    position: relative;
+    height: 100%;
+    min-height: 480px;
+}
+.actu-featured-img {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.actu-featured-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+.actu-featured-card:hover .actu-featured-img img {
+    transform: scale(1.05);
+}
+.actu-featured-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 30px;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 60%, transparent 100%);
+    color: white;
+}
+.actu-date-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(8px);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+.actu-featured-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0 0 10px;
+    line-height: 1.4;
+}
+.actu-featured-excerpt {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    line-height: 1.6;
+    margin: 0 0 15px;
+}
+.actu-read-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    background: #22c55e;
+    padding: 10px 22px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+.actu-read-btn:hover {
+    background: #16a34a;
+    transform: translateX(5px);
+    color: white;
+}
+
+/* Liste articles à droite */
+.actu-list-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.actu-list-item {
+    display: flex;
+    gap: 16px;
+    padding: 18px;
+    background: white;
+    text-decoration: none;
+    border-bottom: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+    position: relative;
+}
+.actu-list-item:first-child {
+    border-radius: 12px 12px 0 0;
+}
+.actu-list-item:last-child {
+    border-radius: 0 0 12px 12px;
+    border-bottom: none;
+}
+.actu-list-item:hover {
+    background: #f0fdf4;
+    transform: translateX(5px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+}
+.actu-list-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #22c55e;
+    border-radius: 0 3px 3px 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.actu-list-item:hover::before {
+    opacity: 1;
+}
+.actu-list-thumb {
+    width: 100px;
+    min-width: 100px;
+    height: 80px;
+    border-radius: 10px;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+.actu-list-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+.actu-list-item:hover .actu-list-thumb img {
+    transform: scale(1.08);
+}
+.actu-list-info {
+    flex: 1;
+    min-width: 0;
+}
+.actu-list-date {
+    font-size: 0.78rem;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+.actu-list-cat {
+    background: #dcfce7;
+    color: #166534;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: 6px;
+}
+.actu-list-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 4px;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.actu-list-excerpt {
+    font-size: 0.82rem;
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ===== OBJECTIFS STRATÉGIQUES ===== */
+.axes-grid-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.3rem;
+}
+.axe-card-v2 {
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 16px;
+    padding: 2rem 1.3rem;
+    text-align: center;
+    transition: all 0.4s ease;
+    animation: axeFadeIn 0.6s ease forwards;
+    animation-delay: var(--axe-delay);
+    opacity: 0;
+    transform: translateY(20px);
+    position: relative;
+}
+@keyframes axeFadeIn {
+    to { opacity: 1; transform: translateY(0); }
+}
+.axe-card-v2:hover {
+    background: rgba(255,255,255,0.22);
+    transform: translateY(-8px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+}
+.axe-num {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    font-size: 2rem;
+    font-weight: 900;
+    color: rgba(255,255,255,0.1);
+    line-height: 1;
+    transition: color 0.3s ease;
+}
+.axe-card-v2:hover .axe-num {
+    color: rgba(255,255,255,0.25);
+}
+.axe-icon-wrap {
+    width: 65px;
+    height: 65px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.2rem;
+    font-size: 1.6rem;
+    color: white;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+}
+.axe-card-v2:hover .axe-icon-wrap {
+    transform: scale(1.1) rotate(5deg);
+}
+.axe-card-v2 h4 {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin: 0 0 10px;
+    line-height: 1.4;
+}
+.axe-card-v2 p {
+    color: rgba(255,255,255,0.8);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* ===== DOCUMENTATION & RECRUTEMENT ===== */
+.doc-recruit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 3rem;
+    align-items: start;
+}
+.doc-action-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+.doc-action-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+}
+.doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+.doc-item {
+    display: flex;
+    gap: 16px;
+    padding: 18px 20px;
+    background: white;
+    border-bottom: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+    align-items: flex-start;
+}
+.doc-item:first-child {
+    border-radius: 12px 12px 0 0;
+}
+.doc-item:last-child {
+    border-radius: 0 0 12px 12px;
+    border-bottom: none;
+}
+.doc-item:hover {
+    background: #f0fdf4;
+    transform: translateX(4px);
+}
+.doc-item-icon {
+    width: 45px;
+    min-width: 45px;
+    height: 45px;
+    background: #fef2f2;
+    color: #ef4444;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+.doc-item-info {
+    flex: 1;
+    min-width: 0;
+}
+.doc-item-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #22c55e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px;
+}
+.doc-item-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 8px;
+    line-height: 1.4;
+}
+.doc-download-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #3b82f6;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+.doc-download-link:hover {
+    color: #1d4ed8;
+}
+
+/* ===== MÉTÉO WIDGET ===== */
+.weather-main-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 20px;
+    padding: 2rem 2.5rem;
+    gap: 2rem;
+}
+.weather-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.weather-location {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #60a5fa;
+    font-size: 1rem;
+    font-weight: 600;
+}
+.weather-temp-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.weather-temp {
+    font-size: 3.5rem;
+    font-weight: 800;
+    color: white;
+    line-height: 1;
+}
+.weather-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+.weather-detail {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 12px 16px;
+    min-width: 160px;
+}
+.weather-detail i {
+    color: #60a5fa;
+    font-size: 1.1rem;
+    width: 20px;
+    text-align: center;
+}
+.weather-detail-label {
+    display: block;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 2px;
+}
+.weather-detail-val {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: white;
+}
+@media (max-width: 768px) {
+    .weather-main-card {
+        flex-direction: column;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    .weather-left {
+        align-items: center;
+    }
+    .weather-location {
+        justify-content: center;
+    }
+    .weather-temp-wrap {
+        justify-content: center;
+    }
+    .weather-right {
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+    }
+}
+@media (max-width: 480px) {
+    .weather-right {
+        grid-template-columns: 1fr;
+    }
+}
+/* Meteo + CSAR EN ACTION grid responsive */
+.meteo-action-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
+    align-items: start;
+}
+@media (max-width: 992px) {
+    .meteo-action-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+}
+/* Forecast cards */
+.weather-forecast-card {
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 1.2rem 1rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+.weather-forecast-card:hover {
+    background: rgba(255,255,255,0.12);
+    transform: translateY(-4px);
+}
+.wf-day {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #60a5fa;
+    margin-bottom: 4px;
+}
+.wf-temps {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 4px 0;
+}
+.wf-max {
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+.wf-min {
+    color: rgba(255,255,255,0.5);
+    font-weight: 500;
+    font-size: 1rem;
+}
+.wf-desc {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.6);
+    text-transform: capitalize;
+}
+/* Weather alerts */
+.weather-alert-card {
+    background: rgba(245,158,11,0.15);
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: #fbbf24;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    margin-bottom: 8px;
+}
+.weather-alert-card i {
+    color: #f59e0b;
+    margin-right: 6px;
+}
+@media (max-width: 576px) {
+    #weather-forecast {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+    .axes-grid-5 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+@media (max-width: 992px) {
+    .actu-sonaged-grid {
+        grid-template-columns: 1fr;
+    }
+    .actu-featured-card {
+        min-height: 350px;
+    }
+    .axes-grid-5 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .doc-recruit-grid {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 576px) {
+    .axes-grid-5 {
+        grid-template-columns: 1fr;
+    }
+    .actu-list-thumb {
+        width: 80px;
+        min-width: 80px;
+        height: 65px;
+    }
+}
+</style>
+
+<!-- Rapports et Bulletins SIM Section -->
+<section class="reports-sim-section" style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); padding: 100px 0; position: relative; overflow: hidden;">
+    <!-- Animated Background -->
+    <div style="position: absolute; inset: 0; opacity: 0.1;">
+        <div style="position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(34, 197, 94, 0.3), transparent); border-radius: 50%; top: -200px; left: -100px; animation: float-orb 20s ease-in-out infinite; filter: blur(80px);"></div>
+        <div style="position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59, 130, 246, 0.2), transparent); border-radius: 50%; bottom: -150px; right: -50px; animation: float-orb 25s ease-in-out infinite reverse; filter: blur(100px);"></div>
+    </div>
+    
+    <div class="container" style="position: relative; z-index: 1;">
+        <!-- Section Header -->
+        <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-up">
+            <div style="display: inline-flex; align-items: center; gap: 12px; padding: 12px 28px; background: rgba(34, 197, 94, 0.15); backdrop-filter: blur(10px); border-radius: 50px; margin-bottom: 1.5rem; border: 1px solid rgba(34, 197, 94, 0.3);">
+                <i class="fas fa-file-chart-line" style="font-size: 1.5rem; color: #22c55e;"></i>
+                <span style="color: #22c55e; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1.5px;">
+                    Publications & Données
+                </span>
+            </div>
+            
+            <h2 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 1.2rem; color: white; text-shadow: 0 4px 20px rgba(34, 197, 94, 0.3); line-height: 1.2;">
+                Rapports et Bulletins SIM
+            </h2>
+            
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 1.15rem; max-width: 700px; margin: 0 auto; line-height: 1.7;">
+                Accédez à nos rapports d'activités et bulletins du Système d'Information des Marchés pour suivre l'évolution des prix et la sécurité alimentaire
+            </p>
+        </div>
+        
+        <!-- Reports Grid -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; max-width: 1200px; margin: 0 auto;">
+            <!-- Rapport Annuel Card -->
+            <a href="{{ route('reports', ['locale' => app()->getLocale()]) }}" class="report-card" data-aos="fade-up" data-aos-delay="100" style="display:block; text-decoration:none; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(34, 197, 94, 0.2); border-radius: 24px; padding: 2.5rem; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
+                <!-- Glow Effect -->
+                <div class="report-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(34, 197, 94, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
+                
+                <div style="position: relative; z-index: 2; text-align: center;">
+                    <!-- Logo -->
+                    <div style="width: 120px; height: 120px; border-radius: 20px; overflow: hidden; margin: 0 auto 1.5rem; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4); border: 2px solid rgba(34, 197, 94, 0.3); background: rgba(255,255,255,0.95);">
+                        <img src="{{ asset('images/PTA/rapport.jpeg') }}" alt="Rapports Annuels" class="home-image-contain home-logo-tile" style="padding: 8px;" loading="lazy" decoding="async">
+                    </div>
+                    
+                    <!-- Title -->
+                    <h3 style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 1rem;">
+                        Rapports Annuels
+                    </h3>
+                    
+                    <!-- Description -->
+                    <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.7; margin-bottom: 1.5rem;">
+                        Consultez nos rapports d'activités annuels détaillant nos interventions et résultats
+                    </p>
+                    
+                    <!-- Button -->
+                    <span class="btn-report" style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; background: rgba(34, 197, 94, 0.2); color: #22c55e; font-weight: 600; border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.3); transition: all 0.3s; cursor: pointer;">
+                        <i class="fas fa-eye"></i>
+                        Consulter
+                    </span>
+                </div>
+            </a>
+            
+            <!-- Bulletin SIM Card -->
+            <a href="{{ route('sim.index', ['locale' => app()->getLocale()]) }}" class="report-card" data-aos="fade-up" data-aos-delay="250" style="display:block; text-decoration:none; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(59, 130, 246, 0.2); border-radius: 24px; padding: 2.5rem; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
+                <div class="report-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(59, 130, 246, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
+                
+                <div style="position: relative; z-index: 2; text-align: center;">
+                    <div style="width: 120px; height: 120px; border-radius: 20px; overflow: hidden; margin: 0 auto 1.5rem; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4); border: 2px solid rgba(59, 130, 246, 0.3); background: rgba(255,255,255,0.95);">
+                        <img src="{{ asset('images/PTA/SIM.jpeg') }}" alt="Bulletins SIM" class="home-image-contain home-logo-tile" style="padding: 8px;" loading="lazy" decoding="async">
+                    </div>
+                    
+                    <h3 style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 1rem;">
+                        Bulletins SIM
+                    </h3>
+                    
+                    <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.7; margin-bottom: 1.5rem;">
+                        Suivez l'évolution des prix des denrées alimentaires sur les marchés du Sénégal
+                    </p>
+                    
+                    <span class="btn-report" style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; background: rgba(59, 130, 246, 0.2); color: #3b82f6; font-weight: 600; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.3); transition: all 0.3s; cursor: pointer;">
+                        <i class="fas fa-eye"></i>
+                        Consulter
+                    </span>
+                </div>
+            </a>
+            
+            <!-- Données Statistiques Card -->
+            <a href="{{ route('sim.dashboard', ['locale' => app()->getLocale()]) }}" class="report-card" data-aos="fade-up" data-aos-delay="400" style="display:block; text-decoration:none; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(139, 92, 246, 0.2); border-radius: 24px; padding: 2.5rem; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
+                <div class="report-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(139, 92, 246, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
+                
+                <div style="position: relative; z-index: 2; text-align: center;">
+                    <div style="width: 120px; height: 120px; border-radius: 20px; overflow: hidden; margin: 0 auto 1.5rem; box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); border: 2px solid rgba(139, 92, 246, 0.3); background: rgba(255,255,255,0.95);">
+                        <img src="{{ asset('images/PTA/zone itervention.jpeg') }}" alt="Données Statistiques" class="home-image-contain home-logo-tile" style="padding: 8px;" loading="lazy" decoding="async">
+                    </div>
+                    
+                    <h3 style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 1rem;">
+                        Données Statistiques
+                    </h3>
+                    
+                    <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.7; margin-bottom: 1.5rem;">
+                        Accédez aux données détaillées sur la sécurité alimentaire et les interventions
+                    </p>
+                    
+                    <span class="btn-report" style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; background: rgba(139, 92, 246, 0.2); color: #8b5cf6; font-weight: 600; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.3); transition: all 0.3s; cursor: pointer;">
+                        <i class="fas fa-eye"></i>
+                        Consulter
+                    </span>
+                </div>
+            </a>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Report Cards Hover Effects */
+.report-card:hover {
+    transform: translateY(-10px) scale(1.03);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.3);
+}
+
+.report-card:hover .report-glow {
+    opacity: 1;
+}
+
+.btn-report:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+/* Modal Styles */
+.report-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    overflow-y: auto;
+}
+
+.report-modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+    border-radius: 24px;
+    max-width: 1200px;
+    width: 90%;
+    max-height: 90vh;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+    padding: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-body {
+    padding: 2rem;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.close-modal {
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #ef4444;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.close-modal:hover {
+    background: rgba(239, 68, 68, 0.3);
+    transform: rotate(90deg);
+}
+
+.slideshow-container {
+    position: relative;
+}
+
+.slide {
+    display: none;
+    animation: slideIn 0.5s ease;
+}
+
+.slide.active {
+    display: block;
+}
+
+.slide-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.nav-btn {
+    background: rgba(34, 197, 94, 0.2);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #22c55e;
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-btn:hover {
+    background: rgba(34, 197, 94, 0.3);
+    transform: translateX(5px);
+}
+
+.nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { 
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to { 
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+</style>
+
+<!-- Modal pour afficher les rapports en diaporama -->
+<div id="reportModal" class="report-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div>
+                <h2 id="modalTitle" style="color: white; font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;"></h2>
+                <p id="modalSubtitle" style="color: rgba(255, 255, 255, 0.7); font-size: 1rem;"></p>
+            </div>
+            <button class="close-modal" onclick="closeReportModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="slideshow-container" id="slideshowContainer">
+                <!-- Les slides seront injectées ici dynamiquement -->
+            </div>
+            
+            <div class="slide-navigation">
+                <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">
+                    <i class="fas fa-chevron-left"></i>
+                    Précédent
+                </button>
+                
+                <div style="color: rgba(255, 255, 255, 0.7); font-weight: 600;">
+                    <span id="currentSlide">1</span> / <span id="totalSlides">1</span>
+                </div>
+                
+                <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">
+                    Suivant
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Données des rapports et bulletins (exemple - à remplacer par vos vraies données)
+const reportsData = {
+    rapports: {
+        title: "Rapports Annuels du CSAR",
+        subtitle: "Historique des rapports d'activités",
+        slides: [
+            {
+                year: "2024",
+                title: "Rapport Annuel 2024",
+                description: "Bilan des activités et interventions du CSAR pour l'année 2024",
+                stats: [
+                    { label: "Bénéficiaires", value: "150,000+" },
+                    { label: "Tonnes distribuées", value: "25,000" },
+                    { label: "Régions couvertes", value: "14" }
+                ]
+            },
+            {
+                year: "2023",
+                title: "Rapport Annuel 2023",
+                description: "Synthèse des actions menées en 2023 pour la sécurité alimentaire",
+                stats: [
+                    { label: "Bénéficiaires", value: "135,000+" },
+                    { label: "Tonnes distribuées", value: "22,500" },
+                    { label: "Régions couvertes", value: "14" }
+                ]
+            },
+            {
+                year: "2022",
+                title: "Rapport Annuel 2022",
+                description: "Résultats et impact des interventions du CSAR en 2022",
+                stats: [
+                    { label: "Bénéficiaires", value: "120,000+" },
+                    { label: "Tonnes distribuées", value: "20,000" },
+                    { label: "Régions couvertes", value: "13" }
+                ]
+            }
+        ]
+    },
+    bulletins: {
+        title: "Bulletins SIM",
+        subtitle: "Système d'Information des Marchés",
+        slides: [
+            {
+                year: "Janvier 2025",
+                title: "Bulletin SIM - Janvier 2025",
+                description: "Évolution des prix des denrées alimentaires sur les marchés du Sénégal",
+                stats: [
+                    { label: "Riz (kg)", value: "350 FCFA" },
+                    { label: "Mil (kg)", value: "280 FCFA" },
+                    { label: "Huile (L)", value: "1,200 FCFA" }
+                ]
+            },
+            {
+                year: "Décembre 2024",
+                title: "Bulletin SIM - Décembre 2024",
+                description: "Analyse des prix et tendances du marché alimentaire",
+                stats: [
+                    { label: "Riz (kg)", value: "340 FCFA" },
+                    { label: "Mil (kg)", value: "275 FCFA" },
+                    { label: "Huile (L)", value: "1,180 FCFA" }
+                ]
+            }
+        ]
+    },
+    donnees: {
+        title: "Données Statistiques",
+        subtitle: "Données détaillées sur la sécurité alimentaire",
+        slides: [
+            {
+                year: "2024",
+                title: "Statistiques 2024",
+                description: "Données complètes sur les interventions et la sécurité alimentaire",
+                stats: [
+                    { label: "Demandes traitées", value: "5,000+" },
+                    { label: "Taux de satisfaction", value: "95%" },
+                    { label: "Magasins actifs", value: "71" }
+                ]
+            },
+            {
+                year: "2023",
+                title: "Statistiques 2023",
+                description: "Recensement des données de sécurité alimentaire",
+                stats: [
+                    { label: "Demandes traitées", value: "4,500+" },
+                    { label: "Taux de satisfaction", value: "93%" },
+                    { label: "Magasins actifs", value: "68" }
+                ]
+            }
+        ]
+    }
+};
+
+let currentSlideIndex = 0;
+let currentCategory = '';
+
+function openReportModal(category) {
+    currentCategory = category;
+    currentSlideIndex = 0;
+    
+    const modal = document.getElementById('reportModal');
+    const data = reportsData[category];
+    
+    document.getElementById('modalTitle').textContent = data.title;
+    document.getElementById('modalSubtitle').textContent = data.subtitle;
+    
+    renderSlides(data.slides);
+    showSlide(0);
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeReportModal() {
+    const modal = document.getElementById('reportModal');
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+function renderSlides(slides) {
+    const container = document.getElementById('slideshowContainer');
+    container.innerHTML = slides.map((slide, index) => `
+        <div class="slide ${index === 0 ? 'active' : ''}" data-slide="${index}">
+            <div style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.05)); border: 2px solid rgba(34, 197, 94, 0.2); border-radius: 20px; padding: 3rem;">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <span style="display: inline-block; padding: 8px 20px; background: rgba(34, 197, 94, 0.2); color: #22c55e; border-radius: 50px; font-weight: 600; margin-bottom: 1rem;">
+                        ${slide.year}
+                    </span>
+                    <h3 style="font-size: 2rem; font-weight: 700; color: white; margin-bottom: 1rem;">
+                        ${slide.title}
+                    </h3>
+                    <p style="color: rgba(255, 255, 255, 0.7); font-size: 1.1rem; line-height: 1.6;">
+                        ${slide.description}
+                    </p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 2rem;">
+                    ${slide.stats.map(stat => `
+                        <div style="text-align: center; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <div style="font-size: 2.5rem; font-weight: 900; color: #22c55e; margin-bottom: 0.5rem;">
+                                ${stat.value}
+                            </div>
+                            <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.95rem;">
+                                ${stat.label}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('totalSlides').textContent = slides.length;
+}
+
+function showSlide(index) {
+    const slides = document.querySelectorAll('.slide');
+    const data = reportsData[currentCategory];
+    
+    if (index >= data.slides.length) currentSlideIndex = 0;
+    if (index < 0) currentSlideIndex = data.slides.length - 1;
+    
+    slides.forEach(slide => slide.classList.remove('active'));
+    slides[currentSlideIndex].classList.add('active');
+    
+    document.getElementById('currentSlide').textContent = currentSlideIndex + 1;
+    
+    // Désactiver les boutons si nécessaire
+    document.getElementById('prevBtn').disabled = currentSlideIndex === 0;
+    document.getElementById('nextBtn').disabled = currentSlideIndex === data.slides.length - 1;
+}
+
+function changeSlide(direction) {
+    currentSlideIndex += direction;
+    showSlide(currentSlideIndex);
+}
+
+// Fermer la modal en cliquant en dehors
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('reportModal');
+    if (e.target === modal) {
+        closeReportModal();
+    }
+});
+
+// Navigation avec les flèches du clavier
+document.addEventListener('keydown', function(e) {
+    const modal = document.getElementById('reportModal');
+    if (modal.classList.contains('active')) {
+        if (e.key === 'ArrowLeft') changeSlide(-1);
+        if (e.key === 'ArrowRight') changeSlide(1);
+        if (e.key === 'Escape') closeReportModal();
+    }
+});
+</script>
+
+<!-- ===== CARTE DES MARCHÉS SUIVIS SIM CSAR ===== -->
+<section style="padding: 100px 0; background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 40%, #0f766e 100%); position: relative; overflow: hidden;">
+    <!-- Animated floating particles -->
+    <div style="position:absolute;inset:0;pointer-events:none;">
+        <div style="position:absolute;top:10%;left:5%;width:300px;height:300px;background:radial-gradient(circle,rgba(34,211,238,0.12),transparent);border-radius:50%;filter:blur(60px);animation:float-orb 12s ease-in-out infinite;"></div>
+        <div style="position:absolute;bottom:10%;right:5%;width:400px;height:400px;background:radial-gradient(circle,rgba(16,185,129,0.1),transparent);border-radius:50%;filter:blur(80px);animation:float-orb 16s ease-in-out infinite reverse;"></div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:500px;height:500px;background:radial-gradient(circle,rgba(59,130,246,0.08),transparent);border-radius:50%;filter:blur(100px);animation:pulse-orb-stats 10s ease-in-out infinite;"></div>
+        <!-- Grid pattern overlay -->
+        <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.04;" xmlns="http://www.w3.org/2000/svg">
+            <defs><pattern id="mapGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/></pattern></defs>
+            <rect width="100%" height="100%" fill="url(#mapGrid)"/>
+        </svg>
+    </div>
+
+    <div class="container" style="max-width:1300px;margin:0 auto;padding:0 20px;position:relative;z-index:2;">
+        <!-- Header -->
+        <div style="text-align:center;margin-bottom:3rem;" data-aos="fade-up">
+            <div style="display:inline-flex;align-items:center;gap:10px;background:rgba(34,211,238,0.15);border:1px solid rgba(34,211,238,0.3);border-radius:50px;padding:8px 20px;margin-bottom:1.5rem;">
+                <div style="width:8px;height:8px;background:#22d3ee;border-radius:50%;animation:pulse-dot 2s infinite;"></div>
+                <span style="color:#22d3ee;font-size:0.85rem;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;">Données en temps réel</span>
+            </div>
+            <h2 style="font-size:2.8rem;font-weight:800;color:white;margin-bottom:0.8rem;line-height:1.2;">
+                <span style="background:linear-gradient(135deg,#22d3ee,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">CARTE DES MARCHÉS</span><br>
+                <span style="font-size:1.8rem;font-weight:600;color:rgba(255,255,255,0.85);">Suivis SIM CSAR</span>
+            </h2>
+            <p style="color:rgba(255,255,255,0.6);font-size:1.1rem;max-width:650px;margin:0 auto;">
+                Visualisez l'ensemble des marchés suivis par le Système d'Information sur les Marchés sur tout le territoire sénégalais
+            </p>
+        </div>
+
+        <!-- Carte Leaflet directe -->
+        <div class="row g-4 align-items-stretch">
+            <!-- Colonne carte -->
+            <div class="col-lg-8" data-aos="fade-right">
+                <div style="position:relative;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);height:100%;min-height:420px;">
+                    <div id="home-sim-map" style="width:100%;height:100%;min-height:420px;z-index:1;"></div>
+                </div>
+            </div>
+            <!-- Colonne infos -->
+            <div class="col-lg-4" data-aos="fade-left">
+                <div style="display:flex;flex-direction:column;gap:1.2rem;height:100%;justify-content:center;">
+                    <!-- Stat 1 -->
+                    <div style="display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:20px 24px;transition:all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.transform='translateX(5px)'" onmouseout="this.style.background='rgba(255,255,255,0.07)';this.style.transform='none'">
+                        <div style="width:52px;height:52px;background:linear-gradient(135deg,#22d3ee,#06b6d4);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fas fa-map-marker-alt" style="color:white;font-size:1.3rem;"></i>
+                        </div>
+                        <div>
+                            <div style="color:white;font-size:1.5rem;font-weight:800;">14 Régions</div>
+                            <div style="color:rgba(255,255,255,0.5);font-size:0.8rem;">Couverture nationale</div>
+                        </div>
+                    </div>
+                    <!-- Stat 2 -->
+                    <div style="display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:20px 24px;transition:all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.transform='translateX(5px)'" onmouseout="this.style.background='rgba(255,255,255,0.07)';this.style.transform='none'">
+                        <div style="width:52px;height:52px;background:linear-gradient(135deg,#10b981,#059669);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fas fa-store" style="color:white;font-size:1.3rem;"></i>
+                        </div>
+                        <div>
+                            <div style="color:white;font-size:1.5rem;font-weight:800;">68+ Marchés</div>
+                            <div style="color:rgba(255,255,255,0.5);font-size:0.8rem;">Suivis en permanence</div>
+                        </div>
+                    </div>
+                    <!-- Stat 3 -->
+                    <div style="display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);border-radius:18px;padding:20px 24px;transition:all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.transform='translateX(5px)'" onmouseout="this.style.background='rgba(255,255,255,0.07)';this.style.transform='none'">
+                        <div style="width:52px;height:52px;background:linear-gradient(135deg,#3b82f6,#2563eb);border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fas fa-chart-bar" style="color:white;font-size:1.3rem;"></i>
+                        </div>
+                        <div>
+                            <div style="color:white;font-size:1.5rem;font-weight:800;">50+ Produits</div>
+                            <div style="color:rgba(255,255,255,0.5);font-size:0.8rem;">Prix relevés chaque semaine</div>
+                        </div>
+                    </div>
+                    <!-- CTA -->
+                    <a href="{{ route('sim.carte-marches', ['locale' => app()->getLocale()]) }}" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:18px 28px;background:linear-gradient(135deg,#22d3ee,#10b981);color:white;font-weight:700;font-size:1.05rem;border-radius:18px;text-decoration:none;box-shadow:0 8px 30px rgba(34,211,238,0.3);transition:all 0.3s ease;margin-top:0.5rem;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 14px 40px rgba(34,211,238,0.5)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 8px 30px rgba(34,211,238,0.3)'">
+                        <i class="fas fa-expand-arrows-alt"></i> Voir la carte complète
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Leaflet carte SIM : chargement différé (lazy) -->
+<script>
+(function() {
+    var mapLoaded = false;
+
+    function initSimMap() {
+        if (mapLoaded) return;
+        mapLoaded = true;
+
+        // Charger le CSS Leaflet
+        var css = document.createElement('link');
+        css.rel = 'stylesheet';
+        css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(css);
+
+        // Charger le JS Leaflet puis initialiser
+        var js = document.createElement('script');
+        js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        js.onload = function() {
+            var mapEl = document.getElementById('home-sim-map');
+            if (!mapEl) return;
+
+            var map = L.map('home-sim-map', {
+                scrollWheelZoom: false,
+                dragging: true,
+                zoomControl: true
+            }).setView([14.5, -14.45], 7);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            var regions = [
+                {name: 'Dakar', lat: 14.7167, lng: -17.4677},
+                {name: 'Thiès', lat: 14.7886, lng: -16.9260},
+                {name: 'Saint-Louis', lat: 16.0179, lng: -16.4896},
+                {name: 'Diourbel', lat: 14.6553, lng: -16.2314},
+                {name: 'Kaolack', lat: 14.1652, lng: -16.0758},
+                {name: 'Fatick', lat: 14.3390, lng: -16.4041},
+                {name: 'Ziguinchor', lat: 12.5681, lng: -16.2719},
+                {name: 'Kolda', lat: 12.8835, lng: -14.9504},
+                {name: 'Tambacounda', lat: 13.7709, lng: -13.6673},
+                {name: 'Kédougou', lat: 12.5605, lng: -12.1747},
+                {name: 'Matam', lat: 15.6559, lng: -13.2554},
+                {name: 'Louga', lat: 15.6173, lng: -16.2240},
+                {name: 'Kaffrine', lat: 14.1059, lng: -15.5506},
+                {name: 'Sédhiou', lat: 12.7081, lng: -15.5569}
+            ];
+            var colors = ['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22','#34495e','#16a085','#2980b9','#8e44ad','#27ae60','#c0392b','#d35400'];
+
+            regions.forEach(function(r, i) {
+                L.circleMarker([r.lat, r.lng], {
+                    radius: 8, fillColor: colors[i % colors.length],
+                    color: '#fff', weight: 2, opacity: 1, fillOpacity: 0.9
+                }).bindPopup('<strong>' + r.name + '</strong><br>Région du Sénégal').addTo(map);
+            });
+
+            setTimeout(function() { map.invalidateSize(); }, 300);
+        };
+        document.head.appendChild(js);
+    }
+
+    // Observer : charger Leaflet seulement quand la section carte est visible
+    var sentinel = document.getElementById('home-sim-map');
+    if (sentinel && 'IntersectionObserver' in window) {
+        var obs = new IntersectionObserver(function(entries) {
+            if (entries[0].isIntersecting) {
+                initSimMap();
+                obs.disconnect();
+            }
+        }, { rootMargin: '200px' });
+        obs.observe(sentinel);
+    } else {
+        // Fallback pour navigateurs anciens
+        window.addEventListener('scroll', function handler() {
+            initSimMap();
+            window.removeEventListener('scroll', handler);
+        }, { passive: true });
+    }
+})();
+</script>
 
 <!-- Galerie Section PRO -->
 <section class="gallery-section-pro fade-in-right" style="background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%); padding: 100px 0; position: relative; overflow: hidden;">
@@ -3481,14 +2091,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shine-effect 3s infinite;"></div>
                 <span style="color: #22c55e; font-weight: 700; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1.5px; position: relative; z-index: 1;">
                     <i class="fas fa-camera-retro" style="margin-right: 8px; animation: pulse-icon 2s ease-in-out infinite;"></i>
-                    {{ __('home.gallery.badge') }}
+                    Nos Missions
                 </span>
             </div>
             <h2 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 1.2rem; background: linear-gradient(135deg, #1f2937 0%, #22c55e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                {{ __('home.gallery.title') }}
+                Galerie de missions
             </h2>
             <p style="color: #6b7280; font-size: 1.2rem; max-width: 700px; margin: 0 auto; line-height: 1.8;">
-                {{ __('home.gallery.subtitle') }}
+                Découvrez nos actions sur le terrain à travers ces moments capturés
             </p>
         </div>
         
@@ -3499,7 +2109,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="gallery-slider" style="position: relative; height: 600px; overflow: hidden;">
                 @foreach($galleryImages as $index => $image)
                 <!-- Slide {{ $index + 1 }} -->
-                <div class="slider-slide {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}" data-effect="{{ $index % 6 }}" onclick="changeSlide(1)" style="position: absolute; inset: 0; opacity: {{ $index === 0 ? '1' : '0' }}; transform: {{ $index === 0 ? 'scale(1)' : 'scale(1.1)' }}; transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;"
+                <div class="slider-slide {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}" style="position: absolute; inset: 0; opacity: {{ $index === 0 ? '1' : '0' }}; transform: {{ $index === 0 ? 'scale(1)' : 'scale(1.1)' }}; transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);"
                 
                 <!-- Glow Effect Background -->
                 <div class="glow-bg" style="position: absolute; inset: -30px; background: radial-gradient(circle at center, rgba(34, 197, 94, 0.4), transparent 70%); opacity: 0; filter: blur(20px); transition: all 0.6s ease; z-index: -1;"></div>
@@ -3521,20 +2131,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     <!-- Image with Multiple Layers -->
                     <div style="position: relative; width: 100%; height: 100%;">
-                        @php
-                            $galPath = $image->file_path ? ltrim((string) $image->file_path, '/') : '';
-                            $galUrl = $galPath ? ((str_starts_with($galPath, 'images/') || str_starts_with($galPath, 'http')) ? asset($galPath) : asset('storage/' . $galPath)) : '';
-                        @endphp
                         <!-- Main Image -->
-                        <img src="{{ $galUrl }}" 
+                        <img src="{{ asset('storage/' . $image->file_path) }}" 
                              alt="{{ $image->alt_text ?? $image->title }}" 
-                             style="width: 100%; height: 100%; object-fit: cover; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); filter: brightness(0.95) contrast(1.05);"
-                             class="gallery-image-hover"
-                             onerror="this.style.display='none'; this.nextElementSibling && (this.nextElementSibling.style.display='flex');">
-                        <div class="gallery-image-fallback" style="display: none; position: absolute; inset: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); align-items: center; justify-content: center; flex-direction: column;">
-                            <i class="fas fa-image" style="color: rgba(255,255,255,0.8); font-size: 3rem;"></i>
-                            <span style="color: rgba(255,255,255,0.9); font-size: 0.9rem;">{{ $image->title }}</span>
-                        </div>
+                             style="width: 100%; height: 100%; object-fit: cover; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); filter: brightness(0.98) contrast(1.04);"
+                             loading="lazy" decoding="async"
+                             class="gallery-image-hover">
                         
                         <!-- Color Overlay Effect -->
                         <div class="color-overlay" style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(59, 130, 246, 0.2)); mix-blend-mode: overlay; opacity: 0; transition: opacity 0.5s ease;"></div>
@@ -3577,19 +2179,6 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             @endforeach
         </div>
-        
-        <!-- Indicateurs minimalistes (sans boutons) -->
-        <div class="slider-dots" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; z-index: 100;">
-            @foreach($galleryImages as $index => $image)
-            <div class="slider-dot {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}" style="width: 8px; height: 8px; border-radius: 50%; background: {{ $index === 0 ? '#22c55e' : 'rgba(255, 255, 255, 0.4)' }}; transition: all 0.4s ease; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);"></div>
-            @endforeach
-        </div>
-        
-        <!-- Progress Bar -->
-        <div class="slider-progress-container" style="position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: rgba(255, 255, 255, 0.3); z-index: 100; overflow: hidden;">
-            <div class="slider-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #22c55e, #10b981); transition: width 0.1s linear;"></div>
-        </div>
-    </div>
         @else
         <div style="text-align: center; padding: 4rem 0;">
             <i class="fas fa-images" style="font-size: 4rem; color: #d1d5db; margin-bottom: 1rem;"></i>
@@ -3665,62 +2254,6 @@ document.addEventListener('DOMContentLoaded', function() {
     50% {
         transform: scale(1.15);
     }
-}
-
-/* ======================================
-   STYLES POUR TRANSITIONS DYNAMIQUES
-   ====================================== */
-
-/* Container du slider avec perspective 3D */
-.gallery-slider-container {
-    perspective: 2000px;
-    transform-style: preserve-3d;
-}
-
-.gallery-slider {
-    transform-style: preserve-3d;
-}
-
-/* Slides avec transitions fluides */
-.slider-slide {
-    transform-style: preserve-3d;
-    backface-visibility: hidden;
-    will-change: transform, opacity, filter;
-    transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.slider-slide.active {
-    z-index: 2;
-}
-
-.slider-slide:not(.active) {
-    z-index: 1;
-    pointer-events: none;
-}
-
-/* Animation du hover sur le slider */
-.slider-slide:hover .gallery-image-hover {
-    transform: scale(1.05);
-    filter: brightness(1.05) contrast(1.1);
-}
-
-.slider-slide:hover .color-overlay {
-    opacity: 0.3;
-}
-
-/* Curseur pointer pour indiquer la cliquabilité */
-.slider-slide {
-    cursor: pointer;
-    transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Dots avec animations fluides */
-.slider-dot {
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slider-dot.active {
-    transform: scale(1.3);
 }
 
 /* Rotating Border Wave */
@@ -4070,24 +2603,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-/* Service Card Hover Effects */
+/* Service Card Hover Effects - Enhanced Visibility */
 .service-card-ultra:hover {
-    transform: translateY(-20px) scale(1.05) !important;
-    box-shadow: 0 30px 80px rgba(34, 197, 94, 0.3) !important;
+    transform: translateY(-20px) scale(1.08) !important;
+    box-shadow: 0 40px 100px rgba(34, 197, 94, 0.5) !important;
     animation-play-state: paused !important;
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%) !important;
 }
 
 .service-card-ultra:hover .service-border {
     opacity: 1 !important;
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
 }
 
 .service-card-ultra:hover .service-glow {
     opacity: 1 !important;
+    width: 300px;
+    height: 300px;
 }
 
 .service-card-ultra:hover .service-icon-ultra {
-    transform: scale(1.15) rotate(360deg);
-    box-shadow: 0 15px 40px rgba(34, 197, 94, 0.5) !important;
+    transform: scale(1.2) rotate(360deg);
+    box-shadow: 0 20px 60px rgba(34, 197, 94, 0.7) !important;
 }
 
 .service-card-ultra:hover .service-icon-ultra div {
@@ -4096,7 +2633,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .service-card-ultra:hover h3 {
     color: #22c55e !important;
-    transform: scale(1.05);
+    transform: scale(1.08);
+    text-shadow: 0 2px 10px rgba(34, 197, 94, 0.3);
+}
+
+.service-card-ultra:hover p {
+    color: #1f2937 !important;
+    font-weight: 500;
 }
 
 /* ========================================
@@ -4267,34 +2810,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 }
 
-/* Pulse Number Animation - Ultra Smooth */
-@keyframes pulse-number {
-    0%, 100% {
-        transform: scale(1);
-        filter: brightness(1);
-    }
-    50% {
-        transform: scale(1.05);
-        filter: brightness(1.2);
-    }
-}
-
-/* Bounce Animation */
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0) rotate(0deg);
-    }
-    25% {
-        transform: translateY(-8px) rotate(5deg);
-    }
-    50% {
-        transform: translateY(0) rotate(0deg);
-    }
-    75% {
-        transform: translateY(-4px) rotate(-5deg);
-    }
-}
-
 /* Border Flow */
 @keyframes border-flow {
     0% {
@@ -4342,33 +2857,13 @@ document.addEventListener('DOMContentLoaded', function() {
 /* Counter Animation State */
 .counter.counting {
     animation: counter-pulse 0.3s ease;
-    transform: scale(1.05);
-}
-
-.counter.completed {
-    animation: completion-bounce 0.5s ease;
-}
-
-@keyframes completion-bounce {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.15); }
-    100% { transform: scale(1); }
 }
 
 /* Responsive Stats */
-/* Tablettes - 2 colonnes */
-@media (max-width: 1024px) {
-    .stats-section-ultra > div > div:last-child {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 2rem !important;
-    }
-}
-
-/* Mobile - 1 colonne */
 @media (max-width: 768px) {
     .stats-section-ultra > div > div:last-child {
-        grid-template-columns: 1fr !important;
-        gap: 1.5rem !important;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+        gap: 2rem !important;
     }
     
     .stat-card-ultra {
@@ -4377,20 +2872,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     .counter {
         font-size: 3rem !important;
-        line-height: 1.1 !important;
-        display: block !important;
-        text-align: center !important;
-    }
-    
-    .counter-wrapper {
-        margin-bottom: 1rem !important;
-    }
-    
-    /* Forcer l'affichage des compteurs sur mobile */
-    .counter[data-target] {
-        visibility: visible !important;
-        opacity: 1 !important;
-        display: block !important;
     }
 }
 
@@ -4403,71 +2884,6 @@ document.addEventListener('DOMContentLoaded', function() {
         transform: translateY(-10px) scale(1.02) !important;
     }
 }
-
-/* ========================================
-   SLIDER NAVIGATION STYLES
-   ======================================== */
-
-.slider-nav:hover {
-    background: #22c55e !important;
-    transform: translateY(-50%) scale(1.1) !important;
-    box-shadow: 0 12px 32px rgba(34, 197, 94, 0.4) !important;
-}
-
-.slider-nav:hover i {
-    color: white !important;
-    transform: scale(1.2);
-}
-
-.slider-nav:active {
-    transform: translateY(-50%) scale(0.95) !important;
-}
-
-.slider-dot:hover {
-    transform: scale(1.4);
-    background: #22c55e !important;
-    border-color: #22c55e !important;
-}
-
-.slider-dot.active {
-    width: 40px !important;
-    border-radius: 10px !important;
-    background: #22c55e !important;
-    border-color: #22c55e !important;
-}
-
-/* Ken Burns Effect - Zoom Animation on Active Slide */
-.slider-slide.active .gallery-image-hover {
-    animation: kenBurns 20s ease-in-out infinite;
-}
-
-@keyframes kenBurns {
-    0%, 100% {
-        transform: scale(1);
-    }
-    50% {
-        transform: scale(1.1);
-    }
-}
-
-/* Content Fade In on Active Slide */
-.slider-slide.active .gallery-content {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-}
-
-.slider-slide.active .gallery-content h3 {
-    transform: translateX(0) !important;
-}
-
-.slider-slide.active .gallery-content div {
-    transform: scale(1) !important;
-}
-
-.slider-slide.active .gallery-content p {
-    transform: translateY(0) !important;
-}
-
 </style>
 
 <script>
@@ -4583,7 +2999,362 @@ const statsSection = document.querySelector('.stats-section-ultra');
 if (statsSection) {
     counterObserver.observe(statsSection);
 }
+
+// ========================================
+// ROTATION AUTOMATIQUE DES STATS (toutes les 5 secondes)
+// ========================================
+let currentStatIndex = 0;
+const statCards = document.querySelectorAll('.stat-card-ultra');
+
+function highlightStat(index) {
+    // Retirer la mise en évidence de toutes les cartes
+    statCards.forEach(card => {
+        card.style.transform = 'scale(1)';
+        card.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.08)';
+        card.querySelector('.stat-glow').style.opacity = '0';
+        card.querySelector('.stat-border').style.opacity = '0';
+    });
+    
+    // Mettre en évidence la carte actuelle
+    const currentCard = statCards[index];
+    currentCard.style.transform = 'scale(1.08)';
+    currentCard.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.2)';
+    currentCard.querySelector('.stat-glow').style.opacity = '1';
+    currentCard.querySelector('.stat-border').style.opacity = '1';
+    
+    // Réanimer le compteur avec effet chrono (de 0 à la valeur cible)
+    const counter = currentCard.querySelector('.counter');
+    const target = parseInt(counter.getAttribute('data-target'));
+    animateCounter(counter, 0, target, 1500); // Animation de 1.5 secondes
+    
+    console.log(`📊 Statistique ${index + 1}/6 - Effet chrono activé`);
+}
+
+// Démarrer la rotation automatique après 3 secondes
+setTimeout(() => {
+    setInterval(() => {
+        currentStatIndex = (currentStatIndex + 1) % statCards.length;
+        highlightStat(currentStatIndex);
+    }, 5000); // Toutes les 5 secondes
+    
+    console.log('🔄 Rotation automatique des statistiques activée');
+}, 3000);
 </script>
+
+<!-- Stats Section ULTRA PRO with Counter Animation -->
+<section class="stats-section-ultra slide-in-bottom" style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); padding: 100px 0; position: relative; overflow: hidden;">
+    <!-- Animated Background Elements -->
+    <div style="position: absolute; top: -100px; left: -100px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(34, 197, 94, 0.15), transparent); border-radius: 50%; filter: blur(80px); animation: pulse-orb-stats 8s ease-in-out infinite;"></div>
+    <div style="position: absolute; bottom: -150px; right: -150px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59, 130, 246, 0.12), transparent); border-radius: 50%; filter: blur(100px); animation: pulse-orb-stats 10s ease-in-out infinite reverse;"></div>
+    
+    <!-- Particle Stars -->
+    <div class="stars-container" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none;">
+        @for($i = 0; $i < 30; $i++)
+        <div class="star" style="position: absolute; width: {{ rand(2, 4) }}px; height: {{ rand(2, 4) }}px; background: white; border-radius: 50%; top: {{ rand(0, 100) }}%; left: {{ rand(0, 100) }}%; opacity: {{ rand(30, 80) / 100 }}; animation: twinkle-star {{ rand(2, 5) }}s ease-in-out infinite; animation-delay: {{ rand(0, 50) / 10 }}s;"></div>
+        @endfor
+    </div>
+    
+    <div class="container" style="position: relative; z-index: 1;">
+        <!-- Title Section -->
+        <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-down">
+            <div style="display: inline-block; padding: 6px 20px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(16, 185, 129, 0.2)); border-radius: 50px; margin-bottom: 1rem; position: relative; overflow: hidden; border: 1px solid rgba(34, 197, 94, 0.3);">
+                <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: shine-badge 3s infinite;"></div>
+                <span style="color: #22c55e; font-weight: 600; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.2px; position: relative; z-index: 1;">
+                    <i class="fas fa-chart-line" style="margin-right: 6px; animation: pulse-chart 2s ease-in-out infinite;"></i>
+                    Chiffres Clés Dynamiques
+                </span>
+            </div>
+            <h2 style="font-size: 2.2rem; font-weight: 700; margin-bottom: 0.8rem; color: white; text-shadow: 0 0 20px rgba(34, 197, 94, 0.2);">
+                L'Impact du CSAR en Chiffres
+            </h2>
+            <p style="color: rgba(255, 255, 255, 0.75); font-size: 1rem; max-width: 650px; margin: 0 auto; line-height: 1.6;">
+                Des résultats concrets au service de la sécurité alimentaire
+            </p>
+        </div>
+        
+        <!-- Stats Grid -->
+        <div id="statsGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; max-width: 1200px; margin: 0 auto;">
+            <!-- Stat 1: Agents -->
+            <div class="stat-card-ultra" data-stat="agents" data-aos="zoom-in" data-aos-delay="100" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(34, 197, 94, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
+                <!-- Glow Effect -->
+                <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(34, 197, 94, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
+                
+                <!-- Icon -->
+                <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
+                    <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #22c55e, #10b981); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4); position: relative;">
+                        <i class="fas fa-users" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite;"></i>
+                        <div style="position: absolute; inset: -10px; border: 3px dashed rgba(34, 197, 94, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
+                    </div>
+                </div>
+                
+                <!-- Counter -->
+                <div style="position: relative; z-index: 2;">
+                    <div class="counter-wrapper">
+                        <span class="counter" data-target="{{ $stats['agents'] }}" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(34, 197, 94, 0.6), 0 0 60px rgba(34, 197, 94, 0.3);">0</span>
+                    </div>
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px;">
+                        Agents recensés
+                    </p>
+                </div>
+                
+                <!-- Animated Border -->
+                <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #22c55e, #10b981, #22c55e); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
+            </div>
+            
+            <!-- Stat 2: Magasins -->
+            <div class="stat-card-ultra" data-stat="warehouses" data-aos="zoom-in" data-aos-delay="250" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(59, 130, 246, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
+                <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(59, 130, 246, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
+                
+                <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
+                    <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4); position: relative;">
+                        <i class="fas fa-warehouse" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 0.5s;"></i>
+                        <div style="position: absolute; inset: -10px; border: 3px dashed rgba(59, 130, 246, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
+                    </div>
+                </div>
+                
+                <div style="position: relative; z-index: 2;">
+                    <div class="counter-wrapper">
+                        <span class="counter" data-target="{{ $stats['warehouses'] }}" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 60px rgba(59, 130, 246, 0.3);">0</span>
+                    </div>
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px;">
+                        Magasins de stockage
+                    </p>
+                </div>
+                
+                <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
+            </div>
+            
+            <!-- Stat 3: Demandes traitées -->
+            <div class="stat-card-ultra" data-stat="demandes" data-aos="zoom-in" data-aos-delay="400" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(249, 115, 22, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
+                <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(249, 115, 22, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
+                
+                <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
+                    <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #f97316, #ea580c); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(249, 115, 22, 0.4); position: relative;">
+                        <i class="fas fa-check-circle" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 1s;"></i>
+                        <div style="position: absolute; inset: -10px; border: 3px dashed rgba(249, 115, 22, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
+                    </div>
+                </div>
+                
+                <div style="position: relative; z-index: 2;">
+                    <div class="counter-wrapper">
+                        <span class="counter" data-target="{{ $stats['demandes_traitees'] ?? '0' }}" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(249, 115, 22, 0.6), 0 0 60px rgba(249, 115, 22, 0.3);">0</span>
+                        <span style="font-size: 3.5rem; font-weight: 900; color: #ffffff; text-shadow: 0 0 30px rgba(249, 115, 22, 0.6), 0 0 60px rgba(249, 115, 22, 0.3);">+</span>
+                    </div>
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px;">
+                        Demandes traitées
+                    </p>
+                </div>
+                
+                <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #f97316, #ea580c, #f97316); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
+            </div>
+            
+            <!-- Stat 4: Capacité -->
+            <div class="stat-card-ultra" data-stat="capacity" data-aos="zoom-in" data-aos-delay="550" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(139, 92, 246, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
+                <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(139, 92, 246, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
+                
+                <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
+                    <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4); position: relative;">
+                        <i class="fas fa-boxes" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 1.5s;"></i>
+                        <div style="position: absolute; inset: -10px; border: 3px dashed rgba(139, 92, 246, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
+                    </div>
+                </div>
+                
+                <div style="position: relative; z-index: 2;">
+                    <div class="counter-wrapper">
+                        <span class="counter" data-target="{{ $stats['capacity'] }}" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(139, 92, 246, 0.3);">0</span>
+                    </div>
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px;">
+                        000 tonnes de capacité
+                    </p>
+                </div>
+                
+                <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #8b5cf6, #7c3aed, #8b5cf6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
+            </div>
+            
+            <!-- Stat 5: Régions -->
+            <div class="stat-card-ultra" data-stat="regions" data-aos="zoom-in" data-aos-delay="700" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(236, 72, 153, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
+                <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(236, 72, 153, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
+                
+                <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
+                    <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(236, 72, 153, 0.4); position: relative;">
+                        <i class="fas fa-map-marked-alt" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 2s;"></i>
+                        <div style="position: absolute; inset: -10px; border: 3px dashed rgba(236, 72, 153, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
+                    </div>
+                </div>
+                
+                <div style="position: relative; z-index: 2;">
+                    <div class="counter-wrapper">
+                        <span class="counter" data-target="14" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(236, 72, 153, 0.6), 0 0 60px rgba(236, 72, 153, 0.3);">0</span>
+                    </div>
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px;">
+                        Régions couvertes
+                    </p>
+                </div>
+                
+                <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #ec4899, #db2777, #ec4899); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
+            </div>
+            
+            <!-- Stat 6: Taux de satisfaction -->
+            <div class="stat-card-ultra" data-stat="satisfaction" data-aos="zoom-in" data-aos-delay="850" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(16, 185, 129, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
+                <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
+                
+                <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
+                    <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4); position: relative;">
+                        <i class="fas fa-smile" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 2.5s;"></i>
+                        <div style="position: absolute; inset: -10px; border: 3px dashed rgba(16, 185, 129, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
+                    </div>
+                </div>
+                
+                <div style="position: relative; z-index: 2;">
+                    <div class="counter-wrapper">
+                        <span class="counter" data-target="{{ $stats['taux_satisfaction'] ?? '95' }}" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.3);">0</span>
+                        <span style="font-size: 3.5rem; font-weight: 900; color: #ffffff; text-shadow: 0 0 30px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.3);">%</span>
+                    </div>
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; font-weight: 600; margin-top: 0.8rem; letter-spacing: 0.5px;">
+                        Taux de satisfaction
+                    </p>
+                </div>
+                
+                <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #10b981, #059669, #10b981); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- LinkedIn Section - Suivez-nous sur LinkedIn -->
+<section class="linkedin-section-pro" style="background: linear-gradient(135deg, #0077b5 0%, #00a0dc 50%, #0077b5 100%); background-size: 200% 200%; animation: gradient-shift 15s ease infinite; padding: 100px 0; position: relative; overflow: hidden;">
+    <!-- Animated Background with Enhanced Effects -->
+    <div style="position: absolute; inset: 0; opacity: 0.15;">
+        <div style="position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(255,255,255,0.4), transparent); border-radius: 50%; top: -250px; right: -150px; animation: float-orb 20s ease-in-out infinite; filter: blur(60px);"></div>
+        <div style="position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,160,220,0.5), transparent); border-radius: 50%; bottom: -200px; left: -100px; animation: float-orb 25s ease-in-out infinite reverse; filter: blur(80px);"></div>
+        <div style="position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.3), transparent); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: pulse-orb-stats 10s ease-in-out infinite; filter: blur(100px);"></div>
+    </div>
+    
+    <!-- Particle Effects -->
+    <div class="linkedin-particles" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none;">
+        @for($i = 0; $i < 15; $i++)
+        <div style="position: absolute; width: {{ rand(3, 8) }}px; height: {{ rand(3, 8) }}px; background: rgba(255,255,255,{{ rand(30, 70) / 100 }}); border-radius: 50%; top: {{ rand(0, 100) }}%; left: {{ rand(0, 100) }}%; animation: float-particle {{ rand(15, 30) }}s ease-in-out infinite; animation-delay: {{ rand(0, 10) }}s;"></div>
+        @endfor
+    </div>
+    
+    <div class="container" style="position: relative; z-index: 1;">
+        <!-- Section Header -->
+        <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-up">
+            <div style="display: inline-flex; align-items: center; gap: 12px; padding: 12px 28px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 50px; margin-bottom: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.2);">
+                <i class="fab fa-linkedin" style="font-size: 1.5rem; color: white;"></i>
+                <span style="color: white; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1.5px;">
+                    Suivez-nous sur LinkedIn
+                </span>
+            </div>
+            
+            <h2 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 1.2rem; color: white; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); line-height: 1.2;">
+                Restez Connecté à Notre Impact
+            </h2>
+            
+            <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.15rem; max-width: 700px; margin: 0 auto; line-height: 1.7;">
+                Découvrez nos dernières actualités, projets et initiatives pour la sécurité alimentaire et la résilience au Sénégal
+            </p>
+        </div>
+        
+        <!-- LinkedIn Feed Widget -->
+        <div style="max-width: 1200px; margin: 0 auto;" data-aos="fade-up" data-aos-delay="200">
+            <div style="background: white; border-radius: 24px; padding: 3rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
+                <!-- Decorative Corner -->
+                <div style="position: absolute; top: 0; right: 0; width: 150px; height: 150px; background: linear-gradient(135deg, rgba(10, 102, 194, 0.1), transparent); border-radius: 0 24px 0 100%;"></div>
+                
+                <!-- LinkedIn Widget -->
+                <div style="position: relative; z-index: 1;">
+                    <script src="https://elfsightcdn.com/platform.js" async></script>
+                    <div class="elfsight-app-b8e60e2e-9795-4930-974e-fc3bb6e9c79b" data-elfsight-app-lazy></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Call to Action -->
+        <div style="text-align: center; margin-top: 3rem;" data-aos="fade-up" data-aos-delay="400">
+            <a href="https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/" target="_blank" rel="noopener noreferrer" class="btn-linkedin-follow" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 45px; background: white; color: #0077b5; font-weight: 700; font-size: 1.05rem; border-radius: 50px; text-decoration: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; border: 2px solid transparent;">
+                <span class="btn-text" style="position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; transition: color 0.3s;">
+                    <i class="fab fa-linkedin" style="font-size: 1.3rem;"></i>
+                    Suivre le CSAR sur LinkedIn
+                    <i class="fas fa-arrow-right" style="transition: transform 0.3s;"></i>
+                </span>
+                <div class="btn-bg-hover" style="position: absolute; inset: 0; background: linear-gradient(135deg, #0077b5, #005582); opacity: 0; transition: opacity 0.4s; z-index: 1;"></div>
+            </a>
+            
+            <!-- Hashtags -->
+            <div style="margin-top: 2rem; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+                <span style="padding: 8px 16px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 20px; color: white; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255, 255, 255, 0.2);">#CSAR</span>
+                <span style="padding: 8px 16px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 20px; color: white; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255, 255, 255, 0.2);">#SécuritéAlimentaire</span>
+                <span style="padding: 8px 16px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 20px; color: white; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255, 255, 255, 0.2);">#Résilience</span>
+                <span style="padding: 8px 16px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 20px; color: white; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255, 255, 255, 0.2);">#SIM</span>
+                <span style="padding: 8px 16px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 20px; color: white; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255, 255, 255, 0.2);">#PartenariatInternational</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* LinkedIn Section Styles */
+.btn-linkedin-follow {
+    position: relative;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-linkedin-follow:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 20px 60px rgba(255, 255, 255, 0.8);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-linkedin-follow:hover .btn-text > i:last-child {
+    transform: translateX(8px);
+}
+
+/* Gradient Animation for LinkedIn Background */
+@keyframes gradient-shift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@keyframes float-orb {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(30px, -30px) scale(1.1);
+    }
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+}
+
+/* LinkedIn Particles Animation */
+@keyframes float-particle {
+    0%, 100% {
+        transform: translate(0, 0);
+        opacity: 0.3;
+    }
+    25% {
+        transform: translate(20px, -30px);
+        opacity: 0.6;
+    }
+    50% {
+        transform: translate(-15px, -60px);
+        opacity: 0.8;
+    }
+    75% {
+        transform: translate(30px, -90px);
+        opacity: 0.4;
+    }
+}
+</style>
 
 <!-- Partners Section with PRO Effects -->
 @if(isset($partners) && $partners->count() > 0)
@@ -4649,31 +3420,14 @@ if (statsSection) {
                         
                         <!-- Partner Logo -->
                         <div style="position: relative; z-index: 2; margin-bottom: 1.5rem;">
-                            @php
-                                $logoFile = null;
-                                switch(strtolower($partner->name)) {
-                                    case 'fsrp':
-                                        $logoFile = 'fsrp.png';
-                                        break;
-                                    case 'jica':
-                                        $logoFile = 'jica.jpg';
-                                        break;
-                                    case 'ansd':
-                                        $logoFile = 'ANSD.png';
-                                        break;
-                                    case 'fongip':
-                                        $logoFile = 'fongip.jpeg';
-                                        break;
-                                }
-                            @endphp
-                            
-                            @if($logoFile && file_exists(public_path('images/partners/' . $logoFile)))
-                            <div style="width: 140px; height: 140px; margin: 0 auto; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 20px; padding: 1.5rem; transition: all 0.4s ease; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);">
-                                <img src="{{ asset('images/partners/' . $logoFile) }}" 
+                            @if($partner->logo)
+                            <div style="width: 140px; height: 140px; margin: 0 auto; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 20px; padding: 1.5rem; transition: all 0.4s ease;">
+                                <img src="{{ asset('images/' . $partner->logo) }}" 
                                      alt="{{ $partner->name }}" 
                                      title="{{ $partner->name }}"
                                      class="partner-logo-img"
-                                     style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; transition: all 0.4s ease;">
+                                     style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; transition: all 0.4s ease;"
+                                     loading="lazy" decoding="async">
                             </div>
                             @else
                             <div style="width: 120px; height: 120px; margin: 0 auto; background: linear-gradient(135deg, #22c55e, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.4s ease;">
@@ -5146,346 +3900,131 @@ if (statsSection) {
 </style>
 @endif
 
-<!-- ===================================================
-     DIAPORAMA AUTOMATIQUE ULTRA-DYNAMIQUE AVEC EFFETS 3D
-     =================================================== -->
+<!-- Script Météo One Call 3.0 géolocalisée -->
 <script>
-@if(isset($galleryImages) && $galleryImages->count() > 0)
-// Variables du diaporama
-let currentSlideIndex = 0;
-let totalSlides = {{ $galleryImages->count() }};
-let autoplayInterval = null;
-let isAutoplayRunning = true;
-let autoplayDelay = 4000; // 4 secondes par image
+(function() {
+    var OWM_KEY = '2b283a0dda3db4a7a9ebe7cdbef5728c';
+    var defaultLat = 14.6928;
+    var defaultLon = -17.4467;
+    var joursFr = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
 
-// 6 effets de transition différents ultra-dynamiques
-const transitionEffects = [
-    // Effet 1: Zoom + Rotation
-    {
-        out: { opacity: 0, transform: 'scale(0.8) rotate(-5deg)', filter: 'blur(10px)' },
-        in: { opacity: 1, transform: 'scale(1) rotate(0deg)', filter: 'blur(0px)' }
-    },
-    // Effet 2: Slide de gauche avec rotation 3D
-    {
-        out: { opacity: 0, transform: 'translateX(100%) rotateY(45deg) scale(0.8)' },
-        in: { opacity: 1, transform: 'translateX(0) rotateY(0deg) scale(1)' }
-    },
-    // Effet 3: Flip vertical
-    {
-        out: { opacity: 0, transform: 'perspective(1000px) rotateX(-90deg) scale(0.9)' },
-        in: { opacity: 1, transform: 'perspective(1000px) rotateX(0deg) scale(1)' }
-    },
-    // Effet 4: Explosion de zoom
-    {
-        out: { opacity: 0, transform: 'scale(1.5)', filter: 'blur(20px) brightness(1.5)' },
-        in: { opacity: 1, transform: 'scale(1)', filter: 'blur(0px) brightness(1)' }
-    },
-    // Effet 5: Rotation 3D complète
-    {
-        out: { opacity: 0, transform: 'perspective(1000px) rotateY(180deg) scale(0.7)' },
-        in: { opacity: 1, transform: 'perspective(1000px) rotateY(0deg) scale(1)' }
-    },
-    // Effet 6: Fondu avec rotation et échelle
-    {
-        out: { opacity: 0, transform: 'scale(1.2) rotate(10deg)', filter: 'blur(15px)' },
-        in: { opacity: 1, transform: 'scale(1) rotate(0deg)', filter: 'blur(0px)' }
-    }
-];
-
-// Fonction pour changer de slide avec effets variés
-function changeSlide(direction) {
-    const slides = document.querySelectorAll('.slider-slide');
-    const dots = document.querySelectorAll('.slider-dot');
-    const progressBar = document.querySelector('.slider-progress-bar');
-    
-    if (slides.length === 0) return;
-    
-    const currentSlide = slides[currentSlideIndex];
-    const currentEffect = transitionEffects[currentSlideIndex % 6];
-    
-    // Retirer l'active de la slide actuelle avec effet
-    currentSlide.classList.remove('active');
-    Object.assign(currentSlide.style, currentEffect.out);
-    dots[currentSlideIndex].classList.remove('active');
-    dots[currentSlideIndex].style.background = 'rgba(255, 255, 255, 0.4)';
-    
-    // Calculer le nouvel index
-    currentSlideIndex += direction;
-    
-    if (currentSlideIndex >= totalSlides) {
-        currentSlideIndex = 0;
-    } else if (currentSlideIndex < 0) {
-        currentSlideIndex = totalSlides - 1;
-    }
-    
-    const newSlide = slides[currentSlideIndex];
-    const newEffect = transitionEffects[currentSlideIndex % 6];
-    
-    // Activer la nouvelle slide avec effet
-    setTimeout(() => {
-        newSlide.classList.add('active');
-        Object.assign(newSlide.style, newEffect.in);
-        dots[currentSlideIndex].classList.add('active');
-        dots[currentSlideIndex].style.background = '#22c55e';
-        dots[currentSlideIndex].style.transform = 'scale(1.4)';
-        
-        // Réinitialiser le scale du dot après animation
-        setTimeout(() => {
-            dots[currentSlideIndex].style.transform = 'scale(1)';
-        }, 300);
-        
-        // Activer les effets de la slide active
-        activateSlideEffects(currentSlideIndex);
-    }, 100);
-    
-    // Réinitialiser la barre de progression
-    if (progressBar) {
-        progressBar.style.width = '0%';
-        setTimeout(() => {
-            progressBar.style.width = '100%';
-            progressBar.style.transition = `width ${autoplayDelay}ms linear`;
-        }, 100);
-    }
-    
-    // Redémarrer l'autoplay
-    if (isAutoplayRunning) {
-        restartAutoplay();
-    }
-}
-
-// Fonction pour aller à une slide spécifique
-function goToSlide(index) {
-    const direction = index > currentSlideIndex ? 1 : -1;
-    currentSlideIndex = index - direction;
-    changeSlide(direction);
-}
-
-// Fonction pour activer les effets de la slide
-function activateSlideEffects(index) {
-    const slide = document.querySelectorAll('.slider-slide')[index];
-    if (!slide) return;
-    
-    // Animer les coins
-    const corners = slide.querySelectorAll('.corner');
-    corners.forEach((corner, i) => {
-        setTimeout(() => {
-            corner.style.opacity = '1';
-            corner.style.transform = 'translate(0, 0)';
-        }, i * 100);
-    });
-    
-    // Animer le contenu
-    const content = slide.querySelector('.gallery-content');
-    if (content) {
-        setTimeout(() => {
-            content.style.opacity = '1';
-            content.style.transform = 'translateY(0)';
-            
-            // Animer les enfants du contenu
-            const children = content.querySelectorAll('h3, div, p');
-            children.forEach((child, i) => {
-                child.style.opacity = '1';
-                child.style.transform = 'translateX(0) translateY(0) scale(1)';
-            });
-        }, 200);
-    }
-    
-    // Animer l'icône zoom
-    const zoomIcon = slide.querySelector('.zoom-icon-gallery');
-    if (zoomIcon) {
-        setTimeout(() => {
-            zoomIcon.style.opacity = '1';
-            zoomIcon.style.transform = 'scale(1) rotate(0deg)';
-        }, 400);
-    }
-    
-    // Activer le glow
-    const glow = slide.querySelector('.glow-bg');
-    if (glow) {
-        glow.style.opacity = '0.6';
-    }
-    
-    // Activer les sparkles
-    const sparkles = slide.querySelector('.sparkles');
-    if (sparkles) {
-        setTimeout(() => {
-            sparkles.style.opacity = '1';
-        }, 300);
-    }
-    
-    // Activer la scan line
-    const scanLine = slide.querySelector('.scan-line');
-    if (scanLine) {
-        scanLine.style.opacity = '1';
-        scanLine.style.top = '-100%';
-        setTimeout(() => {
-            scanLine.style.top = '100%';
-        }, 50);
-        setTimeout(() => {
-            scanLine.style.opacity = '0';
-        }, 800);
-    }
-}
-
-// Fonction pour démarrer l'autoplay
-function startAutoplay() {
-    if (totalSlides <= 1) return;
-    
-    // Initialiser la barre de progression
-    const progressBar = document.querySelector('.slider-progress-bar');
-    if (progressBar) {
-        progressBar.style.width = '0%';
-        setTimeout(() => {
-            progressBar.style.width = '100%';
-            progressBar.style.transition = `width ${autoplayDelay}ms linear`;
-        }, 50);
-    }
-    
-    autoplayInterval = setInterval(() => {
-        if (isAutoplayRunning) {
-            changeSlide(1);
-        }
-    }, autoplayDelay);
-}
-
-// Fonction pour arrêter l'autoplay
-function stopAutoplay() {
-    if (autoplayInterval) {
-        clearInterval(autoplayInterval);
-        autoplayInterval = null;
-    }
-}
-
-// Fonction pour redémarrer l'autoplay
-function restartAutoplay() {
-    stopAutoplay();
-    startAutoplay();
-}
-
-// Initialisation au chargement de la page
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🎬 Diaporama galerie initialisé avec', totalSlides, 'images');
-    
-    if (totalSlides > 1) {
-        // Activer les effets de la première slide
-        setTimeout(() => {
-            activateSlideEffects(0);
-        }, 500);
-        
-        // Démarrer l'autoplay
-        startAutoplay();
-        
-        // Pause au survol du slider
-        const sliderContainer = document.querySelector('.gallery-slider-container');
-        if (sliderContainer) {
-            sliderContainer.addEventListener('mouseenter', () => {
-                isAutoplayRunning = false;
-                const progressBar = document.querySelector('.slider-progress-bar');
-                if (progressBar) {
-                    progressBar.style.transition = 'none';
+    function getCityName(lat, lon, callback) {
+        fetch('https://api.openweathermap.org/geo/1.0/reverse?lat=' + lat + '&lon=' + lon + '&limit=1&appid=' + OWM_KEY)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data[0]) {
+                    callback(data[0].name + ', ' + (data[0].country || 'SN'));
+                } else {
+                    callback('Position actuelle');
                 }
-            });
-            
-            sliderContainer.addEventListener('mouseleave', () => {
-                isAutoplayRunning = true;
-                restartAutoplay();
-            });
-        }
-        
-        // Navigation au clavier (optionnel)
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowRight' || e.key === ' ') {
-                e.preventDefault();
-                changeSlide(1);
-            }
-        });
-        
-        // Animation des dots au survol
-        const dots = document.querySelectorAll('.slider-dot');
-        dots.forEach((dot, index) => {
-            dot.addEventListener('mouseenter', function() {
-                if (!this.classList.contains('active')) {
-                    this.style.transform = 'scale(1.5)';
-                    this.style.background = 'rgba(34, 197, 94, 0.6)';
-                }
-            });
-            
-            dot.addEventListener('mouseleave', function() {
-                if (!this.classList.contains('active')) {
-                    this.style.transform = 'scale(1)';
-                    this.style.background = 'rgba(255, 255, 255, 0.4)';
-                }
-            });
-        });
-        
-        // Curseur pointer sur les slides
-        const slideContainer = document.querySelector('.gallery-slider');
-        if (slideContainer) {
-            slideContainer.style.cursor = 'pointer';
-        }
+            })
+            .catch(function() { callback('Position actuelle'); });
     }
-});
 
-// Nettoyage lors du déchargement
-window.addEventListener('beforeunload', function() {
-    stopAutoplay();
-});
-@endif
+    function fetchWeather(lat, lon) {
+        var url = 'https://api.openweathermap.org/data/3.0/onecall?lat=' + lat + '&lon=' + lon + '&units=metric&lang=fr&appid=' + OWM_KEY;
+        fetch(url)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data.current) {
+                    getCityName(lat, lon, function(cityName) {
+                        document.getElementById('weather-city').textContent = cityName;
+                    });
+                    var c = data.current;
+                    document.getElementById('weather-temp').textContent = Math.round(c.temp) + '°C';
+                    document.getElementById('weather-desc').textContent = c.weather && c.weather[0] ? c.weather[0].description : '';
+                    document.getElementById('weather-humidity').textContent = c.humidity + '%';
+                    document.getElementById('weather-wind').textContent = Math.round((c.wind_speed || 0) * 3.6) + ' km/h';
+                    document.getElementById('weather-feels').textContent = Math.round(c.feels_like) + '°C';
+                    document.getElementById('weather-uvi').textContent = c.uvi !== undefined ? c.uvi.toFixed(1) : '--';
+                    document.getElementById('weather-visibility').textContent = c.visibility ? (c.visibility / 1000).toFixed(1) + ' km' : '--';
+                    document.getElementById('weather-pressure').textContent = c.pressure + ' hPa';
+                    if (c.weather && c.weather[0]) {
+                        document.getElementById('weather-icon').src = 'https://openweathermap.org/img/wn/' + c.weather[0].icon + '@2x.png';
+                    }
+                    if (data.daily && data.daily.length > 1) {
+                        var forecastHtml = '';
+                        for (var i = 1; i <= 3 && i < data.daily.length; i++) {
+                            var d = data.daily[i];
+                            var dt = new Date(d.dt * 1000);
+                            var jour = joursFr[dt.getDay()];
+                            var dateStr = dt.getDate() + '/' + (dt.getMonth() + 1);
+                            var ico = d.weather && d.weather[0] ? d.weather[0].icon : '01d';
+                            var desc = d.weather && d.weather[0] ? d.weather[0].description : '';
+                            forecastHtml += '<div class="weather-forecast-card">' +
+                                '<div class="wf-day">' + jour + ' ' + dateStr + '</div>' +
+                                '<img src="https://openweathermap.org/img/wn/' + ico + '@2x.png" alt="' + desc + '" style="width:50px;height:50px;">' +
+                                '<div class="wf-temps"><span class="wf-max">' + Math.round(d.temp.max) + '°</span><span class="wf-min">' + Math.round(d.temp.min) + '°</span></div>' +
+                                '<div class="wf-desc">' + desc + '</div>' +
+                                '</div>';
+                        }
+                        document.getElementById('weather-forecast').innerHTML = forecastHtml;
+                    }
+                    if (data.alerts && data.alerts.length > 0) {
+                        var alertsEl = document.getElementById('weather-alerts');
+                        var alertHtml = '';
+                        for (var a = 0; a < data.alerts.length && a < 2; a++) {
+                            alertHtml += '<div class="weather-alert-card">' +
+                                '<i class="fas fa-exclamation-triangle"></i> ' +
+                                '<strong>' + data.alerts[a].event + '</strong> — ' +
+                                data.alerts[a].description.substring(0, 150) + '...' +
+                                '</div>';
+                        }
+                        alertsEl.innerHTML = alertHtml;
+                        alertsEl.style.display = 'block';
+                    }
+                    document.getElementById('weather-loading').style.display = 'none';
+                    document.getElementById('weather-content').style.display = 'block';
+                } else if (data && data.cod === 401) {
+                    fallbackWeather(lat, lon);
+                } else {
+                    showWeatherError();
+                }
+            })
+            .catch(function() { fallbackWeather(lat, lon); });
+    }
+
+    function fallbackWeather(lat, lon) {
+        var url = 'https://api.openweathermap.org/data/2.5/weather?lat=' + lat + '&lon=' + lon + '&units=metric&lang=fr&appid=' + OWM_KEY;
+        fetch(url)
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data && data.main) {
+                    document.getElementById('weather-city').textContent = data.name + ', ' + (data.sys && data.sys.country ? data.sys.country : 'SN');
+                    document.getElementById('weather-temp').textContent = Math.round(data.main.temp) + '°C';
+                    document.getElementById('weather-desc').textContent = data.weather && data.weather[0] ? data.weather[0].description : '';
+                    document.getElementById('weather-humidity').textContent = data.main.humidity + '%';
+                    document.getElementById('weather-wind').textContent = Math.round((data.wind && data.wind.speed ? data.wind.speed : 0) * 3.6) + ' km/h';
+                    document.getElementById('weather-feels').textContent = Math.round(data.main.feels_like) + '°C';
+                    document.getElementById('weather-uvi').textContent = '--';
+                    document.getElementById('weather-visibility').textContent = data.visibility ? (data.visibility / 1000).toFixed(1) + ' km' : '--';
+                    document.getElementById('weather-pressure').textContent = data.main.pressure + ' hPa';
+                    if (data.weather && data.weather[0]) {
+                        document.getElementById('weather-icon').src = 'https://openweathermap.org/img/wn/' + data.weather[0].icon + '@2x.png';
+                    }
+                    document.getElementById('weather-loading').style.display = 'none';
+                    document.getElementById('weather-content').style.display = 'block';
+                } else {
+                    showWeatherError();
+                }
+            })
+            .catch(function() { showWeatherError(); });
+    }
+
+    function showWeatherError() {
+        document.getElementById('weather-loading').style.display = 'none';
+        document.getElementById('weather-error').style.display = 'block';
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            function(pos) { fetchWeather(pos.coords.latitude, pos.coords.longitude); },
+            function() { fetchWeather(defaultLat, defaultLon); },
+            { timeout: 5000 }
+        );
+    } else {
+        fetchWeather(defaultLat, defaultLon);
+    }
+})();
 </script>
-
-<!-- Section La Directrice Générale -->
-<section class="minister-section" data-aos="fade-up" data-aos-duration="700">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-10">
-                <h2 class="text-center mb-2 minister-title" data-aos="fade-down" data-aos-duration="500">
-                    <span class="minister-title-text">LA DIRECTRICE GÉNÉRALE</span>
-                </h2>
-                <p class="text-center mb-4" style="color: #4b5563; font-size: 1.1rem; font-weight: 600;">La Directrice Générale</p>
-                
-                <div class="minister-card" data-aos="fade-up" data-aos-delay="150" data-aos-duration="600">
-                    <div class="row align-items-center">
-                        <!-- Image de la DG -->
-                        <div class="col-lg-5" data-aos="fade-right" data-aos-duration="600">
-                            <div class="minister-image-container">
-                                <div class="minister-image-wrapper">
-                                    <img src="{{ asset('images/DG csar.jpg') }}" alt="Marieme Soda NDIAYE, Directrice Générale du CSAR" class="minister-image" onerror="this.src='{{ asset('images/personnel/DG csar.jpg') }}';">
-                                    <div class="minister-glow"></div>
-                                </div>
-                                <p class="text-center mt-3 mb-0" style="font-size: 1.1rem; font-weight: 700; color: #1f2937;">Marieme Soda NDIAYE</p>
-                                <p class="text-center" style="font-size: 0.95rem; color: #6b7280;">Directrice Générale du CSAR</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Contenu de la DG -->
-                        <div class="col-lg-7" data-aos="fade-left" data-aos-duration="600" data-aos-delay="100">
-                            <div class="minister-content">
-                                <div class="minister-subtitle">
-                                    <div class="subtitle-line"></div>
-                                    <span class="subtitle-text">MOTS DE LA DIRECTRICE GÉNÉRALE</span>
-                                </div>
-                                
-                                <div class="minister-message">
-                                    <p class="greeting">Chères citoyennes, chers citoyens,</p>
-                                    
-                                    <p>Bienvenue sur la plateforme officielle d'information et de communication du <strong>Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)</strong>.</p>
-                                    
-                                    <p>Cet espace a pour mission de vous informer sur les activités et initiatives du CSAR, chargé de garantir la sécurité alimentaire et de renforcer la résilience des populations vulnérables au Sénégal.</p>
-                                    
-                                    <p>Nous vous invitons à explorer ce site pour mieux connaître nos actions, nos programmes et les projets dédiés à la sécurité alimentaire et au renforcement de la résilience nationale.</p>
-                                    
-                                    <p class="closing">Bonne visite !</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- Script de correction pour l'animation des compteurs -->
-<script src="{{ asset('js/counter-animation-fix.js') }}?v={{ time() }}"></script>
-
 @endsection

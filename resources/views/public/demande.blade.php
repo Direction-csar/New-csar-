@@ -1,5 +1,5 @@
 @extends('layouts.public')
-@section('title', 'Formulaire de demande - CSAR')
+@section('title', __('pages.demande'))
 @section('content')
 <div class="demande-container" style="max-width:720px;margin:40px auto 60px auto;background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%);border-radius:18px;box-shadow:0 10px 30px rgba(2,132,199,0.08), 0 4px 12px rgba(0,0,0,0.04);padding:38px 28px 28px 28px;">
 <style>

@@ -17,7 +17,7 @@
             <a href="{{ route('public.actualites') }}" class="btn btn-info me-2" target="_blank">
                 <i class="fas fa-external-link-alt me-2"></i>Voir la page publique
             </a>
-            <a href="{{ route('admin.actualites.create') }}" class="btn btn-success">
+            <a href="{{ route(route_prefix() . '.actualites.create') }}" class="btn btn-success">
                 <i class="fas fa-plus me-2"></i>Nouvelle Actualité
             </a>
         </div>
@@ -141,13 +141,13 @@
                                 <td>{{ $actualite->created_at->format('d/m/Y H:i') }}</td>
                                 <td>
                                     <div class="btn-group" role="group">
-                                        <a href="{{ route('admin.actualites.show', $actualite->id) }}" class="btn btn-info btn-sm" title="Voir">
+                                        <a href="{{ route(route_prefix() . '.actualites.show', $actualite->id) }}" class="btn btn-info btn-sm" title="Voir">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="{{ route('admin.actualites.edit', $actualite->id) }}" class="btn btn-warning btn-sm" title="Modifier">
+                                        <a href="{{ route(route_prefix() . '.actualites.edit', $actualite->id) }}" class="btn btn-warning btn-sm" title="Modifier">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <form action="{{ route('admin.actualites.destroy', $actualite->id) }}" method="POST" style="display:inline;">
+                                        <form action="{{ route(route_prefix() . '.actualites.destroy', $actualite->id) }}" method="POST" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette actualité ?')">

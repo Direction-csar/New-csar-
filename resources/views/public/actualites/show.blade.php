@@ -418,15 +418,95 @@
                     </div>
                 @endif
 
-                <!-- Actions de partage -->
-                <div class="d-flex gap-3 flex-wrap mt-4">
-                    <button class="btn btn-outline-primary" onclick="shareArticle()">
+                <!-- Actions sociales -->
+                <div class="d-flex gap-3 flex-wrap mt-4 pt-4" style="border-top: 1px solid #e5e7eb;">
+                    <button class="btn btn-outline-danger" id="likeBtn" onclick="toggleLike()">
+                        <i class="far fa-heart me-2"></i>Aimer
+                    </button>
+                    <a href="#comments" class="btn btn-outline-primary">
+                        <i class="far fa-comment me-2"></i>Commenter ({{ isset($comments) ? $comments->count() : 0 }})
+                    </a>
+                    <button class="btn btn-outline-success" onclick="shareArticle()">
                         <i class="fas fa-share-alt me-2"></i>Partager
                     </button>
-                    <button class="btn btn-outline-secondary" onclick="window.print()">
-                        <i class="fas fa-print me-2"></i>Imprimer
-                    </button>
                 </div>
+            </div>
+
+            <!-- Section Commentaires -->
+            <div id="comments" style="background: white; border-radius: 20px; padding: 2.5rem; margin-top: 2rem; box-shadow: 0 10px 40px rgba(0,0,0,0.12);">
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin-bottom: 30px;">
+                    <i class="fas fa-comments me-2" style="color: #3498db;"></i>
+                    Commentaires ({{ isset($comments) ? $comments->count() : 0 }})
+                </h3>
+
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                <!-- Formulaire d'ajout de commentaire -->
+                <div style="background: #f8f9fa; border-radius: 15px; padding: 25px; margin-bottom: 30px;">
+                    <h5 style="font-weight: 600; margin-bottom: 20px; color: #1f2937;">
+                        <i class="fas fa-pen me-2" style="color: #22c55e;"></i>
+                        Laisser un commentaire
+                    </h5>
+                    <form action="{{ route('news.comment.store', ['locale' => app()->getLocale(), 'id' => $actualite->id]) }}" method="POST">
+                        @csrf
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <input type="text" name="author_name" class="form-control" placeholder="Votre nom *" required
+                                       style="border-radius: 10px; padding: 12px 15px; border: 2px solid #e5e7eb;">
+                            </div>
+                            <div class="col-md-6">
+                                <input type="email" name="author_email" class="form-control" placeholder="Votre email *" required
+                                       style="border-radius: 10px; padding: 12px 15px; border: 2px solid #e5e7eb;">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <textarea name="content" class="form-control" rows="4" placeholder="Votre commentaire..." required
+                                      style="border-radius: 10px; padding: 12px 15px; border: 2px solid #e5e7eb; resize: vertical;"></textarea>
+                        </div>
+                        <button type="submit" class="btn" style="background: linear-gradient(135deg, #22c55e, #16a34a); color: white; padding: 12px 30px; border-radius: 10px; font-weight: 600; border: none;">
+                            <i class="fas fa-paper-plane me-2"></i>Publier le commentaire
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Liste des commentaires -->
+                @if(isset($comments) && $comments->count() > 0)
+                    @foreach($comments as $comment)
+                        <div class="comment-item" style="background: white; border: 1px solid #e5e7eb; border-radius: 15px; padding: 20px; margin-bottom: 15px; transition: all 0.3s ease;" id="comment-{{ $comment->id }}">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <div style="width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, #3498db, #2ecc71); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.1rem;">
+                                        {{ strtoupper(substr($comment->author_name, 0, 1)) }}
+                                    </div>
+                                    <div>
+                                        <h6 style="margin: 0; font-weight: 600; color: #1f2937;">{{ $comment->author_name }}</h6>
+                                        <small style="color: #9ca3af;">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ $comment->created_at->diffForHumans() }}
+                                        </small>
+                                    </div>
+                                </div>
+                                
+                                @auth
+                                    <button onclick="deleteComment({{ $comment->id }})" class="btn btn-sm btn-outline-danger" title="Supprimer ce commentaire" style="border-radius: 8px;">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                @endauth
+                            </div>
+                            <p style="color: #4b5563; line-height: 1.7; margin: 0; padding-left: 58px;">{{ $comment->content }}</p>
+                        </div>
+                    @endforeach
+                @else
+                    <div style="text-align: center; padding: 40px 20px; color: #9ca3af;">
+                        <i class="far fa-comment-dots" style="font-size: 3rem; margin-bottom: 15px; display: block;"></i>
+                        <p style="font-size: 1.1rem;">Aucun commentaire pour le moment. Soyez le premier à commenter !</p>
+                    </div>
+                @endif
             </div>
 
             <!-- Actualités similaires -->
@@ -476,28 +556,57 @@
 function shareArticle() {
     if (navigator.share) {
         navigator.share({
-            title: '{{ $actualite->titre }}',
-            text: '{{ Str::limit(strip_tags($actualite->contenu), 150) }}',
+            title: '{{ addslashes($actualite->titre) }}',
             url: window.location.href
-        }).then(() => {
-            console.log('Article partagé avec succès!');
-        }).catch((error) => {
-            console.log('Erreur lors du partage:', error);
-            fallbackShare();
-        });
+        }).catch(function(err) { console.log(err); });
     } else {
-        fallbackShare();
+        navigator.clipboard.writeText(window.location.href).then(function() {
+            alert('Lien copié dans le presse-papiers !');
+        });
     }
 }
 
-function fallbackShare() {
-    // Copier le lien dans le presse-papiers
-    const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-        alert('Lien copié dans le presse-papiers !');
-    }).catch(() => {
-        alert('Impossible de copier le lien. URL: ' + url);
-    });
+function toggleLike() {
+    var btn = document.getElementById('likeBtn');
+    var icon = btn.querySelector('i');
+    if (icon.classList.contains('far')) {
+        icon.classList.remove('far');
+        icon.classList.add('fas');
+        btn.classList.remove('btn-outline-danger');
+        btn.classList.add('btn-danger');
+        btn.innerHTML = '<i class="fas fa-heart me-2"></i>Aimé';
+    } else {
+        icon = btn.querySelector('i');
+        btn.classList.remove('btn-danger');
+        btn.classList.add('btn-outline-danger');
+        btn.innerHTML = '<i class="far fa-heart me-2"></i>Aimer';
+    }
+}
+
+function deleteComment(commentId) {
+    if (!confirm('Voulez-vous vraiment supprimer ce commentaire ?')) return;
+    
+    fetch('/admin/news-comments/' + commentId, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.success) {
+            var el = document.getElementById('comment-' + commentId);
+            el.style.transition = 'all 0.3s ease';
+            el.style.opacity = '0';
+            el.style.transform = 'translateX(50px)';
+            setTimeout(function() { el.remove(); }, 300);
+        } else {
+            alert('Erreur: ' + data.message);
+        }
+    })
+    .catch(function(err) { alert('Erreur lors de la suppression.'); });
 }
 </script>
 @endpush

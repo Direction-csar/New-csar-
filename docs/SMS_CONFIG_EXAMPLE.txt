@@ -1,24 +1,20 @@
 # Configuration SMS pour la plateforme CSAR
 # Ajoutez ces lignes à votre fichier .env
 
-# Activer/désactiver le service SMS
-SMS_ENABLED=false
-
-# Fournisseur SMS (orange, wave, generic)
+# Fournisseur SMS (orange, twilio, vonage, infobip, africastalking)
 SMS_PROVIDER=orange
 
-# Configuration générale
-SMS_API_KEY=your_api_key_here
-SMS_API_URL=https://api.orange.com/smsmessaging/v1/outbound
-SMS_SENDER_NAME=CSAR
-
-# Comportement en cas d'erreur SMS
-SMS_FAIL_ON_ERROR=false
-
-# Configuration Orange SMS
-ORANGE_SMS_API_URL=https://api.orange.com/smsmessaging/v1/outbound
-ORANGE_SMS_API_KEY=your_orange_api_key
+# ============================================
+# ORANGE SMS SÉNÉGAL API 2.0
+# Credentials depuis developer.orange.com > Mes applications > CSAR-SMS-Service
+# ============================================
+ORANGE_SMS_CLIENT_ID=votre_client_id_developer_orange
+ORANGE_SMS_CLIENT_SECRET=votre_secret_client_developer_orange
 ORANGE_SMS_SENDER=CSAR
+ORANGE_SMS_SENDER_NUMBER=2210000
+
+# Quota mensuel (optionnel)
+SMS_MAX_PER_MONTH=1000
 
 # Configuration Wave SMS
 WAVE_SMS_API_URL=https://api.wave.com/sms

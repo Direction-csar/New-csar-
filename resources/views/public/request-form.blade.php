@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Faire une demande')
+@section('title', __('pages.demande'))
 
 @section('content')
 <style>

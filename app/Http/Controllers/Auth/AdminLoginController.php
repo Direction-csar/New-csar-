@@ -100,9 +100,7 @@ class AdminLoginController extends Controller
             
             // Mettre à jour les informations de connexion
             $user->update([
-                'last_login' => Carbon::now(),
-                'last_login_ip' => $request->ip(),
-                'last_activity' => Carbon::now()
+                'last_login_at' => Carbon::now(),
             ]);
 
             Log::info('Connexion Admin réussie', [

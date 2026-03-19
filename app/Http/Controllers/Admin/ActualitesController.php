@@ -127,7 +127,7 @@ class ActualitesController extends Controller
                 'status' => $request->status
             ]);
 
-            return redirect()->route('admin.actualites.index')->with('success', 'Actualité créée avec succès.');
+            return redirect()->route(route_prefix() . '.actualites.index')->with('success', 'Actualité créée avec succès.');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la création de l\'actualité', [
                 'error' => $e->getMessage(),
@@ -222,7 +222,7 @@ class ActualitesController extends Controller
 
             Log::info('Actualité mise à jour par Admin', ['user_id' => auth()->id(), 'actualite_id' => $id, 'data' => $request->all()]);
 
-            return redirect()->route('admin.actualites.index')->with('success', 'Actualité mise à jour avec succès.');
+            return redirect()->route(route_prefix() . '.actualites.index')->with('success', 'Actualité mise à jour avec succès.');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la mise à jour de l\'actualité', ['error' => $e->getMessage()]);
             return redirect()->back()->with('error', 'Erreur lors de la mise à jour de l\'actualité.');
@@ -249,7 +249,7 @@ class ActualitesController extends Controller
 
             Log::info('Actualité supprimée par Admin', ['user_id' => auth()->id(), 'actualite_id' => $id]);
 
-            return redirect()->route('admin.actualites.index')->with('success', 'Actualité supprimée avec succès.');
+            return redirect()->route(route_prefix() . '.actualites.index')->with('success', 'Actualité supprimée avec succès.');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la suppression de l\'actualité', ['error' => $e->getMessage()]);
             return redirect()->back()->with('error', 'Erreur lors de la suppression de l\'actualité.');

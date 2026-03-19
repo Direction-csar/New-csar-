@@ -78,9 +78,10 @@ class SeoService
                 'availableLanguage' => ['fr', 'en']
             ],
             'sameAs' => [
+                'https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/',
                 'https://www.facebook.com/csar.sn',
-                'https://twitter.com/csar_sn',
-                // Ajouter autres réseaux sociaux
+                'https://x.com/csar_sn',
+                'https://www.instagram.com/csar.sn/',
             ]
         ];
     }

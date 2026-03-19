@@ -7,13 +7,64 @@
     <!-- En-tête -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h1 class="h3 mb-2 text-gray-800">📱 Communications</h1>
-            <p class="text-muted">Gestion centralisée des communications internes et externes</p>
+            <h1 class="h3 mb-2 text-gray-800">📱 Centre de Communication & Publications</h1>
+            <p class="text-muted">Gérez toutes les publications de la plateforme : actualités, rapports, newsletter, messages</p>
         </div>
         <div>
             <button class="btn btn-primary" id="refreshStats">
                 <i class="fas fa-sync-alt"></i> Actualiser
             </button>
+        </div>
+    </div>
+
+    <!-- Hub Publications - Accès rapide -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h6 class="mb-0"><i class="fas fa-th-large me-2"></i>Accès rapide aux publications</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4 col-lg-2">
+                            <a href="{{ route('admin.actualites.index') }}" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center py-3">
+                                <i class="fas fa-newspaper fa-2x mb-2"></i>
+                                <span>Actualités</span>
+                            </a>
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <a href="{{ route('admin.sim-reports.index') }}" class="btn btn-outline-success w-100 d-flex flex-column align-items-center py-3">
+                                <i class="fas fa-file-alt fa-2x mb-2"></i>
+                                <span>Rapports</span>
+                            </a>
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <a href="{{ route('admin.newsletter.index') }}" class="btn btn-outline-info w-100 d-flex flex-column align-items-center py-3">
+                                <i class="fas fa-mail-bulk fa-2x mb-2"></i>
+                                <span>Newsletter</span>
+                            </a>
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <a href="{{ route('admin.galerie.index') }}" class="btn btn-outline-secondary w-100 d-flex flex-column align-items-center py-3">
+                                <i class="fas fa-images fa-2x mb-2"></i>
+                                <span>Galerie</span>
+                            </a>
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <a href="{{ route('admin.messages.index') }}" class="btn btn-outline-warning w-100 d-flex flex-column align-items-center py-3">
+                                <i class="fas fa-envelope fa-2x mb-2"></i>
+                                <span>Messages</span>
+                            </a>
+                        </div>
+                        <div class="col-md-4 col-lg-2">
+                            <a href="{{ route('admin.communication.index') }}" class="btn btn-outline-dark w-100 d-flex flex-column align-items-center py-3">
+                                <i class="fas fa-comments fa-2x mb-2"></i>
+                                <span>Communication</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -174,7 +225,7 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Expéditeur</th>
-                                    <th>Destinataire</th>
+                                    <th>Email</th>
                                     <th>Objet</th>
                                     <th>Statut</th>
                                     <th>Date</th>
@@ -185,9 +236,9 @@
                                 @forelse($recentMessages as $message)
                                 <tr class="{{ !$message->lu ? 'table-info' : '' }}">
                                     <td>{{ $message->id }}</td>
-                                    <td>{{ $message->expediteur_nom ?? 'N/A' }}</td>
-                                    <td>{{ $message->destinataire_nom ?? 'N/A' }}</td>
-                                    <td>{{ $message->objet ?? 'Sans objet' }}</td>
+                                    <td>{{ $message->expediteur ?? 'N/A' }}</td>
+                                    <td>{{ $message->email_expediteur ?? '—' }}</td>
+                                    <td>{{ $message->sujet ?? 'Sans objet' }}</td>
                                     <td>
                                         @if($message->lu)
                                             <span class="badge badge-success">Lu</span>
@@ -433,13 +484,13 @@
                                     <td>{{ $subscriber->email ?? 'N/A' }}</td>
                                     <td>{{ $subscriber->name ?? 'N/A' }}</td>
                                     <td>
-                                        @if($subscriber->status === 'subscribed')
+                                        @if(in_array($subscriber->status ?? '', ['subscribed', 'active']))
                                             <span class="badge badge-success">Actif</span>
                                         @else
-                                            <span class="badge badge-secondary">{{ ucfirst($subscriber->status) }}</span>
+                                            <span class="badge badge-secondary">{{ ucfirst($subscriber->status ?? 'N/A') }}</span>
                                         @endif
                                     </td>
-                                    <td>{{ $subscriber->subscribed_at ? \Carbon\Carbon::parse($subscriber->subscribed_at)->format('d/m/Y H:i') : 'N/A' }}</td>
+                                    <td>{{ isset($subscriber->subscribed_at) ? \Carbon\Carbon::parse($subscriber->subscribed_at)->format('d/m/Y H:i') : ($subscriber->created_at ? \Carbon\Carbon::parse($subscriber->created_at)->format('d/m/Y H:i') : 'N/A') }}</td>
                                     <td>{{ $subscriber->source ?? 'N/A' }}</td>
                                 </tr>
                                 @empty

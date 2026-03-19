@@ -5,7 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
-    <title>@yield('title', 'CSAR - Comité de Secours et d\'Assistance aux Réfugiés')</title>
+    <title>@yield('title', __('messages.meta.default_title'))</title>
+    <meta name="description" content="@yield('meta_description', __('messages.meta.default_description'))">
+    <meta name="keywords" content="@yield('meta_keywords', __('messages.meta.default_keywords'))">
+    <meta name="robots" content="@yield('robots', 'index, follow')">
+    <meta name="author" content="CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience">
+    <!-- Open Graph / LinkedIn -->
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="@yield('title', __('messages.meta.default_title'))">
+    <meta property="og:description" content="@yield('meta_description', __('messages.meta.default_description'))">
+    <meta property="og:image" content="@yield('og_image', asset('images/logos/LOGO CSAR vectoriel-01.png'))">
+    <meta property="og:site_name" content="CSAR">
+    <meta property="og:locale" content="{{ app()->getLocale() == 'fr' ? 'fr_SN' : 'en_US' }}">
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('title', __('messages.meta.twitter_title'))">
+    <meta name="twitter:description" content="@yield('meta_description', 'CSAR Sénégal - Sécurité alimentaire et résilience.')">
+    @stack('head')
+    <!-- Schema.org Organization (SEO) -->
+    <script type="application/ld+json">@json(\App\Services\SeoService::generateOrganizationSchema())</script>
     
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/csar-logo.png') }}">
@@ -29,18 +48,18 @@
     @stack('styles')
     <style>
         :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #00b894;
+            --primary-color: #00a86b;
+            --secondary-color: #0078d4;
+            --success-color: #00a86b;
             --warning-color: #fdcb6e;
-            --danger-color: #e17055;
-            --info-color: #74b9ff;
+            --danger-color: #c41e3a;
+            --info-color: #0078d4;
             --light-color: #f8f9fa;
             --dark-color: #2d3436;
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-success: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+            --gradient-primary: linear-gradient(135deg, #00a86b 0%, #0078d4 100%);
+            --gradient-success: linear-gradient(135deg, #00a86b 0%, #008f5a 100%);
             --gradient-warning: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
-            --gradient-danger: linear-gradient(135deg, #e17055 0%, #d63031 100%);
+            --gradient-danger: linear-gradient(135deg, #c41e3a 0%, #a01830 100%);
             --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
             --shadow-md: 0 4px 8px rgba(0,0,0,0.1);
             --shadow-lg: 0 8px 16px rgba(0,0,0,0.1);
@@ -51,183 +70,245 @@
             font-family: 'Figtree', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .navbar {
-            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%) !important;
-            box-shadow: var(--shadow-md);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid #e9ecef;
-            padding: 0.75rem 0;
+        /* ========== NAVBAR style WFP/CSAR (utilitaire + principale, FAITES UN DON) ========== */
+        /* Barre utilitaire : Recherche, FAQ, Médias & ressources, Langue */
+        .nav-top-bar {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.8125rem;
+            padding: 0.4rem 0;
         }
-
-        .navbar-brand {
-            font-weight: 700;
-            font-size: 1.5rem;
-            margin-right: 2rem;
-            color: #00a86b !important;
-            text-decoration: none;
-            position: relative;
+        .nav-top-bar .container-fluid {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-left: 1rem;
+            padding-right: 1rem;
             display: flex;
             align-items: center;
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            text-shadow: 0 2px 4px rgba(0, 168, 107, 0.3);
+            justify-content: flex-end;
         }
-
-        .navbar-brand:hover {
-            color: #00c851 !important;
-            transform: scale(1.1) translateY(-2px);
-            text-shadow: 0 4px 8px rgba(0, 168, 107, 0.5);
-            filter: drop-shadow(0 4px 12px rgba(0, 200, 81, 0.4));
+        .nav-top-utils {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
         }
-
-        .navbar-brand::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(45deg, rgba(0, 168, 107, 0.1), rgba(0, 200, 81, 0.1));
-            border-radius: 8px;
-            opacity: 0;
-            transition: all 0.3s ease;
-            z-index: -1;
+        .nav-top-search, .nav-top-faq {
+            color: #6b7280;
+            text-decoration: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: color 0.2s;
         }
-
-        .navbar-brand:hover::before {
-            opacity: 1;
-            transform: scale(1.05);
+        .nav-top-search:hover, .nav-top-faq:hover { color: #00a86b; }
+        .nav-top-dropdown {
+            color: #6b7280 !important;
+            font-weight: 600;
+            font-size: 0.75rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            text-decoration: none !important;
+            padding: 0.25rem 0.5rem;
+            background: none !important;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
         }
-
-        .navbar-brand::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 50%;
-            width: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #00a86b, #00c851, #00a86b);
-            border-radius: 2px;
-            transition: all 0.4s ease;
-            transform: translateX(-50%);
-            box-shadow: 0 2px 8px rgba(0, 168, 107, 0.4);
+        .nav-top-dropdown:hover { color: #374151 !important; }
+        .nav-top-dropdown::after { margin-left: 0.25rem; }
+        .nav-top-bar {
+            position: relative;
+            z-index: 1200;
         }
-
-        .navbar-brand:hover::after {
-            width: 100%;
+        .nav-top-bar .dropdown-menu {
+            font-size: 0.875rem;
+            text-transform: none;
+            border-radius: 6px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            z-index: 1201 !important;
         }
-
-        /* Effets pour le logo image */
-        .navbar-brand img {
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-            filter: drop-shadow(0 2px 4px rgba(0, 168, 107, 0.3));
+        .nav-top-bar .dropdown { position: relative; }
+        .nav-top-bar .dropdown-item { padding: 0.4rem 1rem; }
+        @media (max-width: 991.98px) {
+            .nav-top-bar { display: none; }
         }
-
-        .navbar-brand:hover img {
-            transform: scale(1.15) rotate(5deg);
-            filter: drop-shadow(0 4px 12px rgba(0, 200, 81, 0.5)) brightness(1.1);
+        /* Barre principale */
+        .navbar {
+            background: #fff !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            padding: 0.5rem 0;
+            font-size: 0.9375rem;
+            border-bottom: 2px solid #00a86b;
         }
-
-        /* Animation pulsante pour attirer l'attention */
-        @keyframes pulse-csar {
-            0% {
-                transform: scale(1);
-                filter: drop-shadow(0 2px 4px rgba(0, 168, 107, 0.3));
-            }
-            50% {
-                transform: scale(1.05);
-                filter: drop-shadow(0 4px 8px rgba(0, 168, 107, 0.5));
-            }
-            100% {
-                transform: scale(1);
-                filter: drop-shadow(0 2px 4px rgba(0, 168, 107, 0.3));
-            }
+        .navbar .container-fluid {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-left: 1rem;
+            padding-right: 1rem;
         }
-
         .navbar-brand {
-            animation: pulse-csar 3s ease-in-out infinite;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 1.35rem;
+            color: #00a86b !important;
+            text-decoration: none;
+            letter-spacing: -0.02em;
+            transition: color 0.2s ease;
         }
-
         .navbar-brand:hover {
-            animation: none;
+            color: #008f5a !important;
         }
-
-        /* Style pour le texte CSAR */
+        .navbar-brand img {
+            height: 42px;
+            width: auto;
+            object-fit: contain;
+        }
         .csar-text {
             font-weight: 700;
-            font-size: 1.5rem;
-            color: #00a86b;
-            text-shadow: 0 2px 4px rgba(0, 168, 107, 0.3);
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            color: inherit;
+            letter-spacing: 0.02em;
         }
-
-        .navbar-brand:hover .csar-text {
-            color: #00c851;
-            text-shadow: 0 4px 8px rgba(0, 168, 107, 0.5);
+        .navbar-toggler {
+            border: 1px solid rgba(0, 168, 107, 0.35);
+            border-radius: 6px;
+            padding: 0.5rem 0.65rem;
         }
-
+        .navbar-toggler:focus { box-shadow: 0 0 0 2px rgba(0, 168, 107, 0.2); }
+        .navbar-toggler-icon { width: 1.25em; height: 1.25em; }
         .navbar-nav {
             display: flex;
-            justify-content: center;
-            flex: 1;
+            align-items: center;
+            gap: 0.05rem;
             margin: 0 auto;
-            max-width: 800px;
         }
-
-        .navbar-nav .nav-item {
-            margin: 0 0.5rem;
-        }
-
+        .navbar-nav .nav-item { margin: 0; }
         .navbar-nav .nav-link {
-            color: #495057 !important;
-            font-weight: 500;
-            padding: 0.75rem 1.25rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            position: relative;
+            color: #374151 !important;
+            font-weight: 600;
+            padding: 0.55rem 0.9rem;
+            border-radius: 0;
+            transition: color 0.2s ease, box-shadow 0.2s ease;
             white-space: nowrap;
+            border-bottom: 3px solid transparent;
         }
-
         .navbar-nav .nav-link:hover {
-            color: #007bff !important;
-            background: rgba(0, 123, 255, 0.1);
-            transform: translateY(-2px);
+            color: #00a86b !important;
+            background: transparent;
+            border-bottom-color: rgba(4, 120, 87, 0.35);
         }
-
-        .navbar-nav .nav-link::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background: #007bff;
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
+        .navbar-nav .nav-link.show,
+        .navbar-nav .nav-item.dropdown.show .nav-link {
+            color: #00a86b !important;
+            background: transparent;
+            border-bottom-color: #00a86b;
         }
-
-        .navbar-nav .nav-link:hover::after {
-            width: 100%;
+        .navbar-nav .nav-item.dropdown .nav-link::after { display: inline-block; margin-left: 0.35em; }
+        .navbar-nav .nav-item.dropdown .nav-link:not(.dropdown-toggle)::after { display: none; }
+        .navbar-nav .dropdown-toggle::after {
+            border-width: 0.35em;
+            opacity: 0.8;
         }
-
-        /* Responsive navbar */
+        /* Mega-menu style (PAM) - dropdowns larges */
+        .navbar-nav .dropdown-menu {
+            margin-top: 0;
+            padding: 0;
+            min-width: 280px;
+            border: 1px solid #e2e8f0;
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+            border-top: 3px solid #00a86b;
+            z-index: 1100 !important;
+        }
+        .navbar-nav .dropdown {
+            position: relative;
+        }
+        .navbar .d-flex.align-items-center {
+            position: relative;
+            z-index: 1;
+        }
+        .navbar-nav .dropdown-menu .dropdown-item {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            color: #374151;
+            transition: background 0.15s ease, color 0.15s ease;
+            border-left: 3px solid transparent;
+        }
+        .navbar-nav .dropdown-menu .dropdown-item i {
+            width: 1.1em; margin-right: 0.6rem; opacity: 0.7;
+        }
+        .navbar-nav .dropdown-menu .dropdown-item:hover,
+        .navbar-nav .dropdown-menu .dropdown-item:focus {
+            background: rgba(0, 168, 107, 0.08);
+            color: #00a86b;
+            border-left-color: #00a86b;
+        }
+        .nav-btn-don {
+            background: #c41e3a !important;
+            color: #fff !important;
+            font-weight: 700;
+            font-size: 0.8125rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            padding: 0.5rem 1.25rem;
+            border-radius: 6px;
+            border: none;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .nav-btn-don:hover {
+            background: #a01830 !important;
+            color: #fff !important;
+            transform: translateY(-1px);
+        }
+        .navbar-nav .nav-link {
+            font-weight: 700;
+            color: #1f2937 !important;
+        }
+        .language-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-left: 0.75rem;
+            padding-left: 0.75rem;
+            border-left: 1px solid #e2e8f0;
+        }
+        .language-selector .language-flag {
+            width: 22px;
+            height: auto;
+            opacity: 0.9;
+        }
+        .language-selector a:hover .language-flag,
+        .language-selector .language-flag.active { opacity: 1; }
         @media (max-width: 991.98px) {
             .navbar-nav {
                 flex-direction: column;
-                align-items: center;
-                margin: 1rem 0;
+                align-items: stretch;
+                gap: 0;
+                margin: 0.75rem 0 0;
+                padding-top: 0.5rem;
+                border-top: 1px solid #e2e8f0;
             }
-            
-            .navbar-nav .nav-item {
-                margin: 0.25rem 0;
-                width: 100%;
-                text-align: center;
+            .navbar-nav .nav-link { border-bottom: none !important; padding: 0.65rem 1rem; }
+            .navbar-nav .nav-item { border-bottom: 1px solid #e2e8f0; }
+            .navbar-nav .nav-item:last-child { border-bottom: 0; }
+            .navbar-nav .dropdown-menu {
+                margin: 0.25rem 0 0.5rem 1rem;
+                border-radius: 8px;
+                background: #f8fafc;
+                border: 1px solid #e2e8f0;
+                border-top: 3px solid #00a86b;
             }
-            
-            .navbar-nav .nav-link {
-                padding: 0.75rem 1rem;
-                margin: 0;
+            .nav-btn-don { margin: 0.5rem 1rem 0; text-align: center; }
+            .language-selector {
+                margin-left: 0; padding-left: 0; border-left: 0;
+                padding-top: 0.5rem; margin-top: 0.5rem;
+                justify-content: center;
             }
         }
 
@@ -676,8 +757,8 @@
         }
 
         .institutional-logo {
-            height: 80px;
-            width: 80px;
+            height: 180px;
+            width: 180px;
             object-fit: contain;
             filter: brightness(1.1);
             transition: all 0.3s ease;
@@ -689,19 +770,7 @@
         }
 
         .logo-label {
-            margin-top: 0.5rem;
-            font-size: 0.85rem;
-            color: #ffffff;
-            text-align: center;
-            max-width: 120px;
-            font-weight: 500;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-            transition: all 0.3s ease;
-        }
-
-        .logo-item-link:hover .logo-label {
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
-            font-weight: 600;
+            display: none;
         }
 
         .footer-bottom {
@@ -740,8 +809,8 @@
             }
             
             .institutional-logo {
-                height: 60px;
-                width: 60px;
+                height: 130px;
+                width: 130px;
             }
             
             .footer-title {
@@ -886,71 +955,93 @@
     @stack('styles')
 </head>
 <body>
-    <!-- Navigation -->
+    {{-- Barre utilitaire : Recherche, FAQ, Médias & ressources, Langue --}}
+    <div class="nav-top-bar">
+        <div class="container-fluid">
+            <div class="nav-top-utils">
+                <a href="{{ route('search.index', ['locale' => app()->getLocale()]) }}" class="nav-top-search" title="{{ __('messages.nav.search') }}"><i class="fas fa-search"></i> {{ __('messages.nav.search') }}</a>
+                <a href="{{ route('faq.index', ['locale' => app()->getLocale()]) }}" class="nav-top-faq" title="{{ __('messages.nav.faq') }}"><i class="fas fa-question-circle"></i> {{ __('messages.nav.faq') }}</a>
+                <div class="dropdown">
+                    <button class="nav-top-dropdown dropdown-toggle" type="button" id="dropdownMedias" data-bs-toggle="dropdown" aria-expanded="false">{{ __('messages.nav.media_resources') }}</button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMedias">
+                        <li><a class="dropdown-item" href="{{ route('news.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.news') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ route('ressources.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.resources') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ route('reports', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.reports') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ route('gallery', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.gallery') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ route('speeches', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.speeches') }}</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown">
+                    <button class="nav-top-dropdown dropdown-toggle" type="button" id="dropdownLang" data-bs-toggle="dropdown" aria-expanded="false">{{ app()->getLocale() == 'fr' ? __('messages.language.french') : __('messages.language.english') }}</button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownLang">
+                        <li><a class="dropdown-item" href="{{ locale_url('fr') }}">{{ __('messages.language.french') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ locale_url('en') }}">{{ __('messages.language.english') }}</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Barre principale (style WFP/CSAR : Qui sommes-nous, Notre mission, Interventions, Impliquez-vous, FAITES UN DON) --}}
     <nav class="navbar navbar-expand-lg navbar-light sticky-top">
         <div class="container-fluid">
-            <!-- Logo CSAR à gauche -->
-            <a class="navbar-brand" href="{{ route('home', ['locale' => 'fr']) }}">
-                <img src="{{ asset('images/csar-logo.png') }}" alt="Logo CSAR" style="height: 45px; width: auto; margin-right: 10px;" onerror="this.src='{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}';">
+            <a class="navbar-brand" href="{{ route('home', ['locale' => app()->getLocale()]) }}">
+                <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR" onerror="this.src='{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}';">
                 <span class="csar-text">CSAR</span>
             </a>
-            
-            <!-- Bouton toggle pour mobile -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Menu">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
-            <!-- Contenu de la navbar -->
+
             <div class="collapse navbar-collapse" id="navbarNav">
-                <!-- Navigation principale centrée -->
-                <ul class="navbar-nav mx-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('home', ['locale' => app()->getLocale()]) }}">
-                            <i class="fas fa-home me-1"></i>{{ __('messages.nav.home') }}
-                        </a>
+                <ul class="navbar-nav mx-auto align-items-lg-center">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="{{ route('about', ['locale' => app()->getLocale()]) }}" id="menuQui" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ __('messages.nav.who_we_are') }}</a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuQui">
+                            <li><a class="dropdown-item" href="{{ route('home', ['locale' => app()->getLocale()]) }}"><i class="fas fa-home me-2 text-muted"></i>{{ __('messages.nav.home') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('about', ['locale' => app()->getLocale()]) }}"><i class="fas fa-info-circle me-2 text-muted"></i>{{ __('messages.nav.about') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('institution', ['locale' => app()->getLocale()]) }}"><i class="fas fa-building me-2 text-muted"></i>{{ __('messages.nav.institution') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('about', ['locale' => app()->getLocale()]) }}#gouvernance"><i class="fas fa-users me-2 text-muted"></i>{{ __('messages.nav.governance') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('about', ['locale' => app()->getLocale()]) }}#histoire"><i class="fas fa-history me-2 text-muted"></i>{{ __('messages.nav.history') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('about', ['locale' => app()->getLocale()]) }}#mot-introductif"><i class="fas fa-comment-dots me-2 text-muted"></i>{{ __('messages.nav.mot_introductif') }}</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('about', ['locale' => app()->getLocale()]) }}">
-                            <i class="fas fa-info-circle me-1"></i>{{ __('messages.nav.about') }}
-                        </a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="{{ route('projets.index', ['locale' => app()->getLocale()]) }}" id="menuMission" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ __('messages.nav.our_mission') }}</a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuMission">
+                            <li><a class="dropdown-item" href="{{ route('projets.index', ['locale' => app()->getLocale()]) }}"><i class="fas fa-bullseye me-2 text-muted"></i>{{ __('messages.nav.food_security') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('map', ['locale' => app()->getLocale()]) }}"><i class="fas fa-warehouse me-2 text-muted"></i>{{ __('messages.nav.stock_management') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('demande.create', ['locale' => app()->getLocale()]) }}"><i class="fas fa-hand-holding-heart me-2 text-muted"></i>{{ __('messages.nav.humanitarian_assistance') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('projets.index', ['locale' => app()->getLocale()]) }}#resilience"><i class="fas fa-shield-alt me-2 text-muted"></i>{{ __('messages.nav.resilience') }}</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('news.index', ['locale' => app()->getLocale()]) }}">
-                            <i class="fas fa-newspaper me-1"></i>{{ __('messages.nav.news') }}
-                        </a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="{{ route('sim.index', ['locale' => app()->getLocale()]) }}" id="menuInterventions" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ __('messages.nav.interventions') }}</a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuInterventions">
+                            <li><a class="dropdown-item" href="{{ route('sim.index', ['locale' => app()->getLocale()]) }}"><i class="fas fa-chart-line me-2 text-muted"></i>{{ __('messages.nav.sim') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('projets.index', ['locale' => app()->getLocale()]) }}"><i class="fas fa-tasks me-2 text-muted"></i>{{ __('messages.nav.ongoing_programs') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('sim.carte-marches', ['locale' => app()->getLocale()]) }}"><i class="fas fa-map-marked-alt me-2 text-muted"></i>{{ __('messages.nav.carte_marches_sim') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('reports', ['locale' => app()->getLocale()]) }}"><i class="fas fa-file-alt me-2 text-muted"></i>{{ __('messages.nav.reports') }}</a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('sim-reports.index') }}">
-                            <i class="fas fa-chart-line me-1"></i>{{ __('messages.nav.sim') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('institution', ['locale' => app()->getLocale()]) }}">
-                            <i class="fas fa-building me-1"></i>{{ __('messages.nav.institution') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('partners.index', ['locale' => app()->getLocale()]) }}">
-                            <i class="fas fa-handshake me-1"></i>{{ __('messages.nav.partners') }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ route('contact', ['locale' => app()->getLocale()]) }}">
-                            <i class="fas fa-envelope me-1"></i>{{ __('messages.nav.contact') }}
-                        </a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="{{ route('demande.create', ['locale' => app()->getLocale()]) }}" id="menuImpliquez" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{ __('messages.nav.get_involved') }}</a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="menuImpliquez">
+                            <li><a class="dropdown-item" href="{{ route('demande.create', ['locale' => app()->getLocale()]) }}"><i class="fas fa-hand-holding-heart me-2 text-muted"></i>{{ __('messages.nav.request_assistance') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('partners.index', ['locale' => app()->getLocale()]) }}"><i class="fas fa-handshake me-2 text-muted"></i>{{ __('messages.nav.partners') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('contact', ['locale' => app()->getLocale()]) }}#collaborer"><i class="fas fa-users me-2 text-muted"></i>{{ __('messages.nav.collaboration') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ route('contact', ['locale' => app()->getLocale()]) }}"><i class="fas fa-envelope me-2 text-muted"></i>{{ __('messages.nav.contact') }}</a></li>
+                        </ul>
                     </li>
                 </ul>
-                
-                <!-- Sélecteur de langue à droite -->
-                <div class="language-selector">
-                    <a href="{{ route('home', ['locale' => 'fr']) }}" class="d-flex align-items-center text-decoration-none" title="Français">
-                        <img src="{{ asset('images/flags/fr.svg') }}" alt="Français" class="language-flag {{ app()->getLocale() == 'fr' ? 'active' : '' }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                        <span class="language-text" style="display: none;">FR</span>
-                    </a>
-                    <a href="{{ route('home', ['locale' => 'en']) }}" class="d-flex align-items-center text-decoration-none" title="English">
-                        <img src="{{ asset('images/flags/en.svg') }}" alt="English" class="language-flag {{ app()->getLocale() == 'en' ? 'active' : '' }}" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';">
-                        <span class="language-text" style="display: none;">EN</span>
-                    </a>
+
+                <div class="d-flex align-items-center gap-2 ms-lg-3">
+                    <a href="{{ route('don.index', ['locale' => app()->getLocale()]) }}" class="nav-btn-don text-decoration-none">{{ __('messages.nav.make_donation') }}</a>
+                    {{-- Sur mobile : langue (la barre utilitaire est masquée) --}}
+                    <div class="language-selector d-lg-none ms-2">
+                        <a href="{{ locale_url('fr') }}" class="d-flex align-items-center text-decoration-none text-dark" title="Français"><span class="small fw-bold">FR</span></a>
+                        <a href="{{ locale_url('en') }}" class="d-flex align-items-center text-decoration-none text-dark ms-2" title="English"><span class="small fw-bold">EN</span></a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -973,10 +1064,10 @@
                             <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" alt="Logo CSAR" class="footer-logo" onerror="this.style.display='none';">
                         </div>
                         <div class="typing-text-container">
-                            <p class="typing-text" id="typing-text">Commissariat à la Sécurité Alimentaire et à la Résilience</p>
+                            <p class="typing-text" id="typing-text" data-typing-text="{{ __('messages.home.title') }}">{{ __('messages.home.title') }}</p>
                         </div>
                     <div class="social-links">
-                            <a href="https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/" target="_blank" title="LinkedIn">
+                            <a href="https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/" target="_blank" rel="noopener" title="Suivez-nous sur LinkedIn">
                                 <i class="fab fa-linkedin-in"></i>
                             </a>
                             <a href="https://www.facebook.com/people/Commissariat-%C3%A0-la-S%C3%A9curit%C3%A9-Alimentaire-et-%C3%A0-la-R%C3%A9silience/61562947586356/?mibextid=wwXIfr&rdid=rdi0HoJAMnm5SUWB&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1A15LpvcqT%2F%3Fmibextid%3DwwXIfr" target="_blank" title="Facebook">
@@ -994,11 +1085,15 @@
                 
                 <!-- Colonne 2: Liens rapides -->
                 <div class="col-lg-4 mb-4">
-                    <h5 class="footer-section-title">Liens rapides</h5>
+                    <h5 class="footer-section-title">{{ __('messages.nav.quick_links') }}</h5>
                     <ul class="footer-links">
                         <li><a href="{{ route('home', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.home') }}</a></li>
                         <li><a href="{{ route('about', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.about') }}</a></li>
                         <li><a href="{{ route('news.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.news') }}</a></li>
+                        <li><a href="{{ route('don.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.make_donation_short') }}</a></li>
+                        <li><a href="{{ route('projets.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.projects') }}</a></li>
+                        <li><a href="{{ route('ressources.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.resources') }}</a></li>
+                        <li><a href="{{ route('faq.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.faq') }}</a></li>
                         <li><a href="{{ route('sim-reports.index') }}">{{ __('messages.nav.sim') }}</a></li>
                         <li><a href="{{ route('partners.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.partners') }}</a></li>
                         <li><a href="{{ route('contact', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.contact') }}</a></li>
@@ -1007,12 +1102,12 @@
                 
                 <!-- Colonne 3: Newsletter -->
                 <div class="col-lg-4 mb-4">
-                    <h5 class="footer-section-title">Newsletter</h5>
-                    <p class="footer-newsletter-desc">Restez informé de nos dernières actualités</p>
+                    <h5 class="footer-section-title">{{ __('messages.footer.newsletter') }}</h5>
+                    <p class="footer-newsletter-desc">{{ __('messages.footer.newsletter_desc') }}</p>
                     <form id="newsletter-form" class="newsletter-form">
                         @csrf
                         <div class="input-group">
-                            <input type="email" name="email" class="form-control newsletter-input" placeholder="Votre adresse email" required>
+                            <input type="email" name="email" class="form-control newsletter-input" placeholder="{{ __('messages.footer.email_placeholder') }}" required>
                             <button type="submit" class="btn newsletter-btn">
                                 <i class="fas fa-paper-plane"></i>
                             </button>
@@ -1027,24 +1122,16 @@
                 <div class="col-12">
                     <hr class="footer-divider">
                     <div class="institutional-logos">
-                        <h6 class="logos-title">Nos partenaires institutionnels</h6>
+                        <h6 class="logos-title">{{ __('messages.footer.institutional_partners') }}</h6>
                         <div class="logos-container">
-                            <a href="https://primature.sn/" target="_blank" class="logo-item-link">
+                            <a href="https://femme.gouv.sn/" target="_blank" class="logo-item-link" title="Ministère de la Famille et des Solidarités">
                                 <div class="logo-item">
-                                    <img src="{{ asset('images/primature.jpg') }}" alt="Primature" class="institutional-logo" onerror="this.style.display='none';">
-                                    <span class="logo-label">Primature</span>
+                                    <img src="{{ asset('images/mfs.png') }}" alt="Ministère de la Famille et des Solidarités" class="institutional-logo" onerror="this.style.display='none';">
                                 </div>
                             </a>
-                            <a href="https://femme.gouv.sn/" target="_blank" class="logo-item-link">
+                            <a href="https://www.finances.gouv.sn/" target="_blank" class="logo-item-link" title="Ministère des Finances et du Budget">
                                 <div class="logo-item">
-                                    <img src="{{ asset('images/mfs.png') }}" alt="Ministère de la famille de l'action sociale et des solidarités" class="institutional-logo" onerror="this.style.display='none';">
-                                    <span class="logo-label">Ministère de la famille de l'action sociale et des solidarités</span>
-                                </div>
-                            </a>
-                            <a href="https://www.presidence.sn/fr/" target="_blank" class="logo-item-link">
-                                <div class="logo-item">
-                                    <img src="{{ asset('images/presidence.png') }}" alt="Présidence" class="institutional-logo" onerror="this.style.display='none';">
-                                    <span class="logo-label">Présidence</span>
+                                    <img src="{{ asset('images/ministere-des-finances-et-du-budget.png') }}" alt="Ministère des Finances et du Budget" class="institutional-logo" onerror="this.style.display='none';">
                                 </div>
                             </a>
                         </div>
@@ -1059,14 +1146,14 @@
                     <div class="footer-bottom">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                                <p class="copyright">&copy; {{ date('Y') }} CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience. Tous droits réservés.</p>
+                                <p class="copyright">&copy; {{ date('Y') }} CSAR - {{ __('messages.home.title') }}. {{ __('messages.footer.copyright') }}</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                                 <a href="{{ route('privacy', ['locale' => app()->getLocale()]) }}" class="legal-link me-3">
-                                    <i class="fas fa-shield-alt me-1"></i>Politique de confidentialité
+                                    <i class="fas fa-shield-alt me-1"></i>{{ __('messages.footer.privacy') }}
                                 </a>
                                 <a href="{{ route('terms', ['locale' => app()->getLocale()]) }}" class="legal-link">
-                                    <i class="fas fa-file-contract me-1"></i>Conditions d'utilisation
+                                    <i class="fas fa-file-contract me-1"></i>{{ __('messages.footer.terms') }}
                                 </a>
                             </div>
                         </div>
@@ -1075,6 +1162,8 @@
             </div>
         </div>
     </footer>
+
+    @include('partials.chatbot')
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -1106,7 +1195,7 @@
         function initTypeWriter() {
             const typingElement = document.getElementById('typing-text');
             if (typingElement) {
-                const text = 'Commissariat à la Sécurité Alimentaire et à la Résilience';
+                const text = typingElement.getAttribute('data-typing-text') || typingElement.textContent;
                 console.log('✅ Element typing-text trouvé, démarrage de l\'effet machine à écrire...');
                 console.log('📝 Texte à afficher:', text);
                 
@@ -1130,7 +1219,8 @@
             // Backup au cas où
             setTimeout(() => {
                 const element = document.getElementById('typing-text');
-                if (element && element.innerHTML === 'Commissariat à la Sécurité Alimentaire et à la Résilience') {
+                const expectedText = element ? element.getAttribute('data-typing-text') : '';
+                if (element && expectedText && element.innerHTML === expectedText) {
                     console.log('🔄 Backup: Redémarrage de l\'effet machine à écrire...');
                     initTypeWriter();
                 }
@@ -1317,6 +1407,198 @@
       });
     </script>
     
+    <!-- Fenêtre de consentement cookies -->
+    <div id="cookie-consent-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99999; backdrop-filter:blur(3px);">
+        <div id="cookie-consent-box" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border-radius:16px; max-width:520px; width:90%; box-shadow:0 25px 60px rgba(0,0,0,0.3); overflow:hidden; animation:cookieSlideIn 0.4s ease;">
+            <!-- Header -->
+            <div style="padding:25px 30px 15px; display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:15px;">
+                    <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" alt="CSAR" style="height:45px; width:auto;">
+                    <h3 style="margin:0; font-size:1.15rem; font-weight:700; color:#1f2937;">Gérer le consentement</h3>
+                </div>
+                <button onclick="closeCookieConsent()" style="background:none; border:none; font-size:1.5rem; color:#9ca3af; cursor:pointer; padding:5px; line-height:1;">&times;</button>
+            </div>
+
+            <!-- Description -->
+            <div style="padding:0 30px 20px;">
+                <p style="font-size:0.9rem; color:#4b5563; line-height:1.7; margin:0;">
+                    Pour offrir les meilleures expériences, nous utilisons des technologies telles que les cookies pour stocker et/ou accéder aux informations des appareils. Le fait de consentir à ces technologies nous permettra de traiter des données telles que le comportement de navigation ou les ID uniques sur ce site. Le fait de ne pas consentir ou de retirer son consentement peut avoir un effet négatif sur certaines caractéristiques et fonctions.
+                </p>
+            </div>
+
+            <!-- Options -->
+            <div style="padding:0 30px;">
+                <!-- Fonctionnel -->
+                <div class="cookie-option" style="border-top:1px solid #e5e7eb; padding:16px 0; display:flex; align-items:center; justify-content:space-between;">
+                    <span style="font-weight:600; color:#1f2937; font-size:0.95rem;">Fonctionnel</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="color:#22c55e; font-weight:600; font-size:0.85rem;">Toujours activé</span>
+                        <button onclick="toggleCookieDetail('functional')" style="background:none; border:none; cursor:pointer; color:#9ca3af; font-size:1.2rem; padding:0;">
+                            <i class="fas fa-chevron-down" id="icon-functional"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="detail-functional" style="display:none; padding:0 0 15px; font-size:0.85rem; color:#6b7280; line-height:1.6;">
+                    L'accès ou le stockage technique est strictement nécessaire dans la finalité d'intérêt légitime de permettre l'utilisation d'un service spécifique explicitement demandé par l'abonné ou l'utilisateur, ou dans le seul but d'effectuer la transmission d'une communication sur un réseau de communications électroniques.
+                </div>
+
+                <!-- Statistiques -->
+                <div class="cookie-option" style="border-top:1px solid #e5e7eb; padding:16px 0; display:flex; align-items:center; justify-content:space-between;">
+                    <span style="font-weight:600; color:#1f2937; font-size:0.95rem;">Statistiques</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <label class="cookie-toggle" style="position:relative; display:inline-block; width:44px; height:24px; cursor:pointer;">
+                            <input type="checkbox" id="cookie-stats" checked style="opacity:0; width:0; height:0;">
+                            <span class="cookie-slider" style="position:absolute; top:0; left:0; right:0; bottom:0; background:#22c55e; border-radius:24px; transition:0.3s;"></span>
+                        </label>
+                        <button onclick="toggleCookieDetail('stats')" style="background:none; border:none; cursor:pointer; color:#9ca3af; font-size:1.2rem; padding:0;">
+                            <i class="fas fa-chevron-down" id="icon-stats"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="detail-stats" style="display:none; padding:0 0 15px; font-size:0.85rem; color:#6b7280; line-height:1.6;">
+                    Le stockage ou l'accès technique qui est utilisé exclusivement à des fins statistiques.
+                </div>
+
+                <!-- Marketing -->
+                <div class="cookie-option" style="border-top:1px solid #e5e7eb; padding:16px 0; display:flex; align-items:center; justify-content:space-between;">
+                    <span style="font-weight:600; color:#1f2937; font-size:0.95rem;">Marketing</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <label class="cookie-toggle" style="position:relative; display:inline-block; width:44px; height:24px; cursor:pointer;">
+                            <input type="checkbox" id="cookie-marketing" checked style="opacity:0; width:0; height:0;">
+                            <span class="cookie-slider" style="position:absolute; top:0; left:0; right:0; bottom:0; background:#22c55e; border-radius:24px; transition:0.3s;"></span>
+                        </label>
+                        <button onclick="toggleCookieDetail('marketing')" style="background:none; border:none; cursor:pointer; color:#9ca3af; font-size:1.2rem; padding:0;">
+                            <i class="fas fa-chevron-down" id="icon-marketing"></i>
+                        </button>
+                    </div>
+                </div>
+                <div id="detail-marketing" style="display:none; padding:0 0 15px; font-size:0.85rem; color:#6b7280; line-height:1.6;">
+                    L'accès ou le stockage technique est nécessaire pour créer des profils d'internautes afin d'envoyer des publicités, ou pour suivre l'utilisateur sur un site web ou sur plusieurs sites web ayant des finalités marketing similaires.
+                </div>
+            </div>
+
+            <!-- Boutons -->
+            <div style="padding:20px 30px 25px; display:flex; gap:10px; border-top:1px solid #e5e7eb; margin-top:10px;">
+                <button onclick="acceptAllCookies()" style="flex:1; background:#22c55e; color:white; border:none; padding:14px; border-radius:10px; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.3s ease;">
+                    Accepter
+                </button>
+                <button onclick="refuseAllCookies()" style="flex:1; background:#f3f4f6; color:#1f2937; border:1px solid #e5e7eb; padding:14px; border-radius:10px; font-weight:600; font-size:0.95rem; cursor:pointer; transition:all 0.3s ease;">
+                    Refuser
+                </button>
+                <button onclick="savePreferences()" style="flex:1; background:#f3f4f6; color:#1f2937; border:1px solid #e5e7eb; padding:14px; border-radius:10px; font-weight:600; font-size:0.95rem; cursor:pointer; transition:all 0.3s ease; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    Enregistrer les préf...
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    @keyframes cookieSlideIn {
+        from { opacity:0; transform:translate(-50%,-50%) scale(0.9); }
+        to { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    }
+    .cookie-slider::before {
+        content:'';
+        position:absolute;
+        height:18px;
+        width:18px;
+        left:3px;
+        bottom:3px;
+        background:white;
+        border-radius:50%;
+        transition:0.3s;
+    }
+    .cookie-toggle input:checked + .cookie-slider {
+        background:#22c55e;
+    }
+    .cookie-toggle input:not(:checked) + .cookie-slider {
+        background:#d1d5db;
+    }
+    .cookie-toggle input:checked + .cookie-slider::before {
+        transform:translateX(20px);
+    }
+    .cookie-option:hover {
+        background:#f9fafb;
+    }
+    #cookie-consent-box button:hover {
+        opacity:0.85;
+    }
+    @media (max-width:576px) {
+        #cookie-consent-box {
+            width:95% !important;
+            max-height:90vh;
+            overflow-y:auto;
+        }
+        #cookie-consent-box > div:last-child {
+            flex-direction:column !important;
+        }
+    }
+    </style>
+
+    <script>
+    (function() {
+        // Afficher le popup de consentement après 90 secondes si l'utilisateur n'a pas encore choisi
+        if (!localStorage.getItem('csar_cookie_consent')) {
+            setTimeout(function() {
+                var overlay = document.getElementById('cookie-consent-overlay');
+                if (overlay) {
+                    overlay.style.display = 'block';
+                    overlay.style.opacity = '0';
+                    overlay.style.transition = 'opacity 0.5s ease';
+                    setTimeout(function() {
+                        overlay.style.opacity = '1';
+                    }, 50);
+                }
+            }, 90000); // 90 secondes = 1min30
+        }
+    })();
+
+    function toggleCookieDetail(type) {
+        var detail = document.getElementById('detail-' + type);
+        var icon = document.getElementById('icon-' + type);
+        if (detail.style.display === 'none') {
+            detail.style.display = 'block';
+            icon.classList.remove('fa-chevron-down');
+            icon.classList.add('fa-chevron-up');
+        } else {
+            detail.style.display = 'none';
+            icon.classList.remove('fa-chevron-up');
+            icon.classList.add('fa-chevron-down');
+        }
+    }
+
+    function closeCookieConsent() {
+        var overlay = document.getElementById('cookie-consent-overlay');
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.3s ease';
+        setTimeout(function() { overlay.style.display = 'none'; }, 300);
+    }
+
+    function acceptAllCookies() {
+        localStorage.setItem('csar_cookie_consent', JSON.stringify({
+            functional: true, statistics: true, marketing: true, date: new Date().toISOString()
+        }));
+        closeCookieConsent();
+    }
+
+    function refuseAllCookies() {
+        localStorage.setItem('csar_cookie_consent', JSON.stringify({
+            functional: true, statistics: false, marketing: false, date: new Date().toISOString()
+        }));
+        closeCookieConsent();
+    }
+
+    function savePreferences() {
+        localStorage.setItem('csar_cookie_consent', JSON.stringify({
+            functional: true,
+            statistics: document.getElementById('cookie-stats').checked,
+            marketing: document.getElementById('cookie-marketing').checked,
+            date: new Date().toISOString()
+        }));
+        closeCookieConsent();
+    }
+    </script>
+
     @stack('scripts')
 </body>
 </html>

@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Nos Partenaires - CSAR')
+@section('title', __('pages.partners'))
 
 @section('content')
 <style>
@@ -453,6 +453,35 @@
     @endforeach
   </div>
 </div>
+
+<!-- Devenir partenaire & Opportunités -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <h2 class="h4 mb-3">Devenir partenaire</h2>
+            <p class="text-muted mb-4">Vous souhaitez soutenir la sécurité alimentaire et la résilience au Sénégal ? Contactez-nous via le formulaire ci-dessous ou écrivez à <a href="mailto:contact@csar.sn">contact@csar.sn</a>.</p>
+            <a href="{{ route('contact', ['locale' => app()->getLocale()]) }}?sujet=partenariat" class="btn btn-success">
+              <i class="fas fa-envelope me-2"></i>Formulaire contact / partenariat
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-body p-4">
+            <h2 class="h4 mb-3">Opportunités de financement & appels à experts</h2>
+            <p class="text-muted mb-4">Les opportunités de financement et appels à experts sont publiés sur le site et dans notre newsletter. Inscrivez-vous à la newsletter ou consultez la page <a href="{{ route('news.index', ['locale' => app()->getLocale()]) }}">Actualités</a>.</p>
+            <a href="{{ route('news.index', ['locale' => app()->getLocale()]) }}" class="btn btn-outline-success me-2">Actualités</a>
+            <a href="{{ route('contact', ['locale' => app()->getLocale()]) }}?sujet=financement" class="btn btn-outline-success">Nous contacter</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 @push('scripts')
 <script>

@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'À propos du CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience')
+@section('title', __('pages.about'))
 
 @section('content')
 <style>
@@ -16,6 +16,11 @@
         animation: none !important;
         transform: none !important;
     }
+}
+
+/* Ancres pour navigation (Gouvernance, Histoire, Stratégie) - évite masquage par navbar sticky */
+#gouvernance, #histoire, #strategie, #mot-introductif {
+    scroll-margin-top: 120px;
 }
 
 /* Variables CSS pour la cohérence des couleurs */
@@ -1600,8 +1605,8 @@
 <section class="hero-section" data-aos="fade-down" data-aos-duration="600">
     <div class="container">
         <div class="hero-content text-center">
-            <h1 class="hero-title text-reveal text-gradient">À propos du CSAR</h1>
-            <p class="hero-subtitle slide-up-fade animate-delay-1">Découvrez notre mission, notre vision, nos valeurs et notre historique.</p>
+            <h1 class="hero-title text-reveal text-gradient">{{ __('about.hero_title') }}</h1>
+            <p class="hero-subtitle slide-up-fade animate-delay-1">{{ __('about.hero_subtitle') }}</p>
         </div>
     </div>
 </section>
@@ -1613,19 +1618,19 @@
             <div class="col-lg-8">
                 <div class="csar-card slide-diagonal hover-lift morphing-shape">
                     <h2 class="mb-4 text-reveal animate-delay-1" style="font-size: 2rem; font-weight: 800; color: var(--gray-800);">
-                        Le Commissariat à la Sécurité Alimentaire et à la Résilience
+                        {{ __('about.csar_title') }}
                     </h2>
                     <div class="row">
                         <div class="col-md-6">
                             <div class="d-flex align-items-start mb-3 slide-up-fade animate-delay-2">
                                 <div class="me-3 pulse-animation bounce-in" style="width: 12px; height: 12px; background: var(--primary-green); border-radius: 50%; margin-top: 8px;"></div>
-                                <p class="mb-0">Le CSAR est une institution publique chargée de garantir la sécurité alimentaire et de renforcer la résilience des populations vulnérables au Sénégal.</p>
+                                <p class="mb-0">{{ __('about.csar_intro') }}</p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex align-items-start mb-3 slide-up-fade animate-delay-3">
                                 <div class="me-3 pulse-animation bounce-in" style="width: 12px; height: 12px; background: var(--blue); border-radius: 50%; margin-top: 8px;"></div>
-                                <p class="mb-0">Notre mission consiste à coordonner les interventions d'urgence, gérer les stocks stratégiques et développer des programmes de résilience durable.</p>
+                                <p class="mb-0">{{ __('about.csar_mission') }}</p>
                             </div>
                         </div>
                     </div>
@@ -1636,20 +1641,20 @@
                     <img src="{{ asset('images/csar-logo.png') }}" alt="Logo CSAR" style="height: 120px; width: auto; max-width: 120px;" onerror="this.src='{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}';">
                 </div>
                 <h4 class="text-reveal animate-delay-4" style="color: var(--gray-800); font-weight: 700;">CSAR</h4>
-                <p class="slide-up-fade animate-delay-5" style="color: var(--gray-600);">Commissariat à la Sécurité Alimentaire et à la Résilience</p>
+                <p class="slide-up-fade animate-delay-5" style="color: var(--gray-600);">{{ __('about.csar_full_name') }}</p>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Section Fondation -->
-<section class="foundation-section" data-aos="fade-up" data-aos-duration="600">
+<!-- Section Fondation (Gouvernance : mission, vision, valeurs) -->
+<section id="gouvernance" class="foundation-section" data-aos="fade-up" data-aos-duration="600">
     <div class="container">
         <h2 class="text-center mb-2 text-reveal text-gradient" style="font-size: 2.5rem; font-weight: 800; color: var(--gray-800);">
-            Notre Fondation
+            {{ __('about.foundation_title') }}
         </h2>
         <p class="text-center mb-5 slide-up-fade animate-delay-1" style="color: var(--gray-600); font-size: 1.1rem;">
-            Les piliers qui guident nos actions au quotidien
+            {{ __('about.foundation_subtitle') }}
         </p>
         
         <div class="row g-4">
@@ -1658,8 +1663,8 @@
                     <div class="foundation-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--primary-green), var(--dark-green));">
                         <i class="fas fa-bullseye"></i>
                     </div>
-                    <h3 class="foundation-title text-reveal">Mission</h3>
-                    <p class="slide-up-fade">Assurer la sécurité alimentaire et nutritionnelle des populations sénégalaises, particulièrement les plus vulnérables, en développant des systèmes de prévention, d'alerte précoce et d'intervention d'urgence.</p>
+                    <h3 class="foundation-title text-reveal">{{ __('about.foundation_mission') }}</h3>
+                    <p class="slide-up-fade">{{ __('about.foundation_mission_text') }}</p>
                 </div>
             </div>
             
@@ -1668,8 +1673,8 @@
                     <div class="foundation-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--blue), #1e40af);">
                         <i class="fas fa-globe-africa"></i>
                     </div>
-                    <h3 class="foundation-title text-reveal">Vision</h3>
-                    <p class="slide-up-fade">Devenir le leader régional en matière de sécurité alimentaire et de résilience, en créant un Sénégal où chaque citoyen a accès à une alimentation suffisante, saine et nutritive en toutes circonstances.</p>
+                    <h3 class="foundation-title text-reveal">{{ __('about.foundation_vision') }}</h3>
+                    <p class="slide-up-fade">{{ __('about.foundation_vision_text') }}</p>
                 </div>
             </div>
             
@@ -1678,13 +1683,13 @@
                     <div class="foundation-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--purple), #7c3aed);">
                         <i class="fas fa-star"></i>
                     </div>
-                    <h3 class="foundation-title text-reveal">Valeurs</h3>
+                    <h3 class="foundation-title text-reveal">{{ __('about.foundation_values') }}</h3>
                     <ul class="list-unstyled text-start">
-                        <li class="mb-2 slide-up-fade animate-delay-5"><i class="fas fa-check text-success me-2 bounce-in"></i>Équité</li>
-                        <li class="mb-2 slide-up-fade animate-delay-6"><i class="fas fa-check text-success me-2 bounce-in"></i>Intégrité</li>
-                        <li class="mb-2 slide-up-fade animate-delay-1"><i class="fas fa-check text-success me-2 bounce-in"></i>Transparence</li>
-                        <li class="mb-2 slide-up-fade animate-delay-2"><i class="fas fa-check text-success me-2 bounce-in"></i>Engagement</li>
-                        <li class="mb-2 slide-up-fade animate-delay-3"><i class="fas fa-check text-success me-2 bounce-in"></i>Innovation</li>
+                        <li class="mb-2 slide-up-fade animate-delay-5"><i class="fas fa-check text-success me-2 bounce-in"></i>{{ __('about.foundation_value_equity') }}</li>
+                        <li class="mb-2 slide-up-fade animate-delay-6"><i class="fas fa-check text-success me-2 bounce-in"></i>{{ __('about.foundation_value_integrity') }}</li>
+                        <li class="mb-2 slide-up-fade animate-delay-1"><i class="fas fa-check text-success me-2 bounce-in"></i>{{ __('about.foundation_value_transparency') }}</li>
+                        <li class="mb-2 slide-up-fade animate-delay-2"><i class="fas fa-check text-success me-2 bounce-in"></i>{{ __('about.foundation_value_commitment') }}</li>
+                        <li class="mb-2 slide-up-fade animate-delay-3"><i class="fas fa-check text-success me-2 bounce-in"></i>{{ __('about.foundation_value_innovation') }}</li>
                     </ul>
                 </div>
             </div>
@@ -1692,14 +1697,14 @@
     </div>
 </section>
 
-<!-- Section Objectifs Stratégiques -->
-<section class="objectives-section" data-aos="fade-up" data-aos-duration="600">
+<!-- Section Objectifs Stratégiques (Stratégie) -->
+<section id="strategie" class="objectives-section" data-aos="fade-up" data-aos-duration="600">
     <div class="container">
         <h2 class="text-center mb-2 text-reveal text-gradient" style="font-size: 2.5rem; font-weight: 800; color: var(--gray-800);">
-            Objectifs stratégiques (jusqu'en 2028)
+            {{ __('about.objectives_title') }}
         </h2>
         <p class="text-center mb-5 slide-up-fade animate-delay-1" style="color: var(--gray-600); font-size: 1.1rem;">
-            Nos actions concrètes pour la sécurité alimentaire de demain
+            {{ __('about.objectives_subtitle') }}
         </p>
         
         <div class="row g-4">
@@ -1708,8 +1713,8 @@
                     <div class="objective-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--primary-green), var(--dark-green));">
                         <i class="fas fa-leaf"></i>
                     </div>
-                    <h4 class="objective-title text-reveal">Renforcer les capacités de stockage et distribution</h4>
-                    <p class="slide-up-fade">Développer et moderniser l'infrastructure de stockage stratégique pour garantir une disponibilité alimentaire continue.</p>
+                    <h4 class="objective-title text-reveal">{{ __('about.obj_storage') }}</h4>
+                    <p class="slide-up-fade">{{ __('about.obj_storage_text') }}</p>
                 </div>
             </div>
             
@@ -1718,8 +1723,8 @@
                     <div class="objective-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--blue), #1e40af);">
                         <i class="fas fa-file-alt"></i>
                     </div>
-                    <h4 class="objective-title text-reveal">Promouvoir des innovations agricoles</h4>
-                    <p class="slide-up-fade">Encourager l'adoption de technologies modernes et de pratiques durables pour améliorer la productivité agricole.</p>
+                    <h4 class="objective-title text-reveal">{{ __('about.obj_innovation') }}</h4>
+                    <p class="slide-up-fade">{{ __('about.obj_innovation_text') }}</p>
                 </div>
             </div>
             
@@ -1728,8 +1733,8 @@
                     <div class="objective-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--orange), #ea580c);">
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
-                    <h4 class="objective-title text-reveal">Améliorer les systèmes d'alerte précoce</h4>
-                    <p class="slide-up-fade">Développer des mécanismes de surveillance et d'alerte pour anticiper et prévenir les crises alimentaires.</p>
+                    <h4 class="objective-title text-reveal">{{ __('about.obj_alert') }}</h4>
+                    <p class="slide-up-fade">{{ __('about.obj_alert_text') }}</p>
                 </div>
             </div>
             
@@ -1738,8 +1743,8 @@
                     <div class="objective-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--purple), #7c3aed);">
                         <i class="fas fa-users"></i>
                     </div>
-                    <h4 class="objective-title text-reveal">Renforcer les capacités communautaires</h4>
-                    <p class="slide-up-fade">Former et accompagner les communautés locales pour développer leur autonomie et leur résilience alimentaire.</p>
+                    <h4 class="objective-title text-reveal">{{ __('about.obj_community') }}</h4>
+                    <p class="slide-up-fade">{{ __('about.obj_community_text') }}</p>
                 </div>
             </div>
             
@@ -1748,102 +1753,57 @@
                     <div class="objective-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--cyan), #0891b2);">
                         <i class="fas fa-cogs"></i>
                     </div>
-                    <h4 class="objective-title text-reveal">Optimiser la gouvernance et la coordination</h4>
-                    <p class="slide-up-fade">Améliorer la coordination entre les différents acteurs pour une réponse plus efficace aux défis alimentaires.</p>
+                    <h4 class="objective-title text-reveal">{{ __('about.obj_governance') }}</h4>
+                    <p class="slide-up-fade">{{ __('about.obj_governance_text') }}</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Section Chiffres Clés Dynamiques -->
-<section class="stats-section" data-aos="zoom-in" data-aos-duration="600">
-    <div class="container">
-        <h2 class="stats-title text-reveal text-gradient">Chiffres clés dynamiques</h2>
-        <p class="stats-subtitle slide-up-fade animate-delay-1">L'impact du CSAR en chiffres</p>
-        
-        <div class="row g-4">
-            @php
-                $animationClasses = ['bounce-in', 'zoom-in', 'slide-diagonal', 'counter-up', 'slide-up-fade', 'card-flip'];
-                $animationIndex = 0;
-                $chronoDelays = [0, 500, 1000, 1500, 2000, 2500]; // Délais en millisecondes
-            @endphp
-            
-            @foreach($stats as $key => $stat)
-                @if($key !== 'derniere_mise_a_jour' && $key !== 'status')
-                <div class="col-lg-2 col-md-4 col-sm-6">
-                    <div class="stats-card {{ $animationClasses[$animationIndex % 6] }} card-glow hover-lift" data-delay="{{ $chronoDelays[$animationIndex % 6] }}">
-                        <div class="stats-icon icon-bounce" style="background: linear-gradient(135deg, {{ $stat['color'] }}, {{ $stat['color'] }}dd);">
-                            <i class="{{ $stat['icon'] ?? 'fas fa-chart-bar' }}"></i>
-                        </div>
-                        <div class="stats-number chrono-counter" data-target="{{ is_numeric(str_replace(',', '', $stat['value'])) ? str_replace(',', '', $stat['value']) : 0 }}">
-                            @if(is_numeric(str_replace(',', '', $stat['value'])))
-                                0
-                            @else
-                                {{ $stat['value'] }}
-                            @endif
-                        </div>
-                        <div class="stats-label text-shimmer-effect">{{ $stat['description'] }}</div>
-                    </div>
-                </div>
-                @php $animationIndex++; @endphp
-                @endif
-            @endforeach
-        </div>
-    </div>
-</section>
-
 <!-- Section Historique -->
-<section class="history-section" data-aos="fade-up" data-aos-duration="600">
+<section id="histoire" class="history-section" data-aos="fade-up" data-aos-duration="600">
     <div class="container">
         <h2 class="text-center mb-2 text-reveal text-gradient" style="font-size: 2.5rem; font-weight: 800; color: var(--gray-800);">
-            Notre Historique
+            {{ __('about.history_title') }}
         </h2>
         <p class="text-center mb-5 slide-up-fade animate-delay-1" style="color: var(--gray-600); font-size: 1.1rem;">
-            Les étapes clés de notre évolution à travers le temps
+            {{ __('about.history_subtitle') }}
         </p>
         
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="timeline">
-                    <!-- 2025 - Objectif 2028 -->
-                    <div class="timeline-item timeline-slide timeline-glow animate-delay-2">
-                        <div class="timeline-year year-pulse year-morph" 
-                             style="background: var(--primary-green);">2025</div>
-                        <h4 class="timeline-title content-reveal animate-delay-3">Objectif 2028</h4>
-                        <p class="content-reveal animate-delay-4">Engagement vers la souveraineté alimentaire du Sénégal d'ici 2028</p>
-                    </div>
-                    
-                    <!-- 2024 - CSAR Nouvelle ère -->
+                    <!-- 2024 - CSAR -->
                     <div class="timeline-item timeline-slide timeline-glow timeline-float animate-delay-3">
                         <div class="timeline-year year-pulse year-morph depth-zoom" 
                              style="background: var(--blue);">2024</div>
-                        <h4 class="timeline-title content-reveal animate-delay-4">CSAR - Nouvelle ère</h4>
-                        <p class="content-reveal animate-delay-5">Création du CSAR par décret N°2024-11 du 05 2024 avec autonomie administrative et financière</p>
+                        <h4 class="timeline-title content-reveal animate-delay-4">{{ __('about.history_2024') }}</h4>
+                        <p class="content-reveal animate-delay-5">{{ __('about.history_2024_text') }}</p>
                     </div>
                     
-                    <!-- 1984 - Commissariat à la Sécurité Alimentaire -->
+                    <!-- 1984 - Commissariat à la Sécurité Alimentaire (CSA) -->
                     <div class="timeline-item timeline-slide timeline-glow animate-delay-4">
                         <div class="timeline-year year-pulse year-morph sonar-pulse" 
                              style="background: var(--purple);">1984</div>
-                        <h4 class="timeline-title content-reveal animate-delay-5">Commissariat à la Sécurité Alimentaire et à la Résilience</h4>
-                        <p class="content-reveal animate-delay-6">Réorganisation en Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)</p>
+                        <h4 class="timeline-title content-reveal animate-delay-5">{{ __('about.history_1984') }}</h4>
+                        <p class="content-reveal animate-delay-6">{{ __('about.history_1984_text') }}</p>
                     </div>
                     
                     <!-- 1976 - Commissariat à l'Aide Alimentaire -->
                     <div class="timeline-item timeline-slide timeline-glow timeline-float animate-delay-5">
                         <div class="timeline-year year-pulse year-morph rotate-3d" 
                              style="background: var(--orange);">1976</div>
-                        <h4 class="timeline-title content-reveal animate-delay-6">Commissariat à l'Aide Alimentaire</h4>
-                        <p class="content-reveal animate-delay-1">Evolution vers le Commissariat à l'Aide Alimentaire (CAA)</p>
+                        <h4 class="timeline-title content-reveal animate-delay-6">{{ __('about.history_1976') }}</h4>
+                        <p class="content-reveal animate-delay-1">{{ __('about.history_1976_text') }}</p>
                     </div>
                     
-                    <!-- 1973-1974 - Bureau des Aides -->
+                    <!-- 1973-1974 - Commissariat aux Sinistrés de la Sécheresse -->
                     <div class="timeline-item timeline-slide timeline-glow animate-delay-6">
                         <div class="timeline-year year-pulse year-morph" 
                              style="background: var(--cyan);">1973-1974</div>
-                        <h4 class="timeline-title content-reveal animate-delay-1">Bureau des Aides</h4>
-                        <p class="content-reveal animate-delay-2">Transformation du Bureau des Aides en Commissariat aux Sinistres de la Sécheresse</p>
+                        <h4 class="timeline-title content-reveal animate-delay-1">{{ __('about.history_1973') }}</h4>
+                        <p class="content-reveal animate-delay-2">{{ __('about.history_1973_text') }}</p>
                     </div>
                 </div>
             </div>
@@ -1852,66 +1812,65 @@
 </section>
 
 <!-- Section Message de la Direction Générale -->
-<section class="message-section" data-aos="fade-up" data-aos-duration="600">
+<section id="mot-introductif" class="message-section" data-aos="fade-up" data-aos-duration="600">
     <div class="container">
         <h2 class="text-center mb-2" style="font-size: 2.5rem; font-weight: 800; color: white;">
-            Message de la Direction Générale
+            {{ __('about.message_dg_title') }}
         </h2>
         <p class="text-center mb-5" style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
-            Les mots de Madame Marieme Soda NDIAYE, Directrice Générale du CSAR
+            {{ __('about.message_dg_subtitle') }}
         </p>
         
         <div class="row align-items-center">
             <div class="col-lg-4 text-center">
-                <img src="{{ asset('images/dg.jpg') }}" alt="Madame Marieme Soda NDIAYE" class="message-image">
-                <h4 class="message-name">Madame Marieme Soda NDIAYE</h4>
-                <p class="message-title">Directrice Générale du CSAR</p>
+                <img src="{{ asset('images/dg.jpg') }}" alt="{{ __('about.dg_name') }}" class="message-image">
+                <h4 class="message-name">{{ __('about.dg_name') }}</h4>
+                <p class="message-title">{{ __('about.dg_title') }}</p>
             </div>
             <div class="col-lg-8">
                 <div class="message-card slide-in-right">
-                    <h5 style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 0.5rem;">Mot Introductif</h5>
-                    <h6 style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1.5rem;">Rapport Annuel 2024</h6>
+                    <h5 style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1.5rem;">{{ __('about.dg_intro') }}</h5>
                     
-                    <p>L'année 2024 a marqué une étape déterminante pour le Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR), une année de transition et de défis, mais aussi d'opportunités pour renforcer notre engagement en faveur de la sécurité alimentaire et de la résilience des populations vulnérables.</p>
+                    <p>{{ __('about.dg_para1') }}</p>
                     
-                    <p>Ma prise de fonction en juin 2024 a coïncidé avec la relance effective des activités du CSAR, après une période d'ajustements institutionnels. Dès lors, nous avons mis tout en œuvre pour assurer la mise en place des programmes stratégiques et garantir la continuité des missions essentielles du CSAR.</p>
+                    <p>{{ __('about.dg_para2') }}</p>
                     
-                    <p>Face à ces enjeux, l'année 2025 devra être celle de l'action et de la transformation, avec un accent mis sur quatre priorités :</p>
+                    <p>{{ __('about.dg_para3') }}</p>
                     
                     <div class="row mt-4">
                         <div class="col-md-6">
                             <div class="d-flex align-items-start mb-3">
                                 <div class="me-3" style="width: 30px; height: 30px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.9rem;">1</div>
-                                <p class="mb-0">Le renforcement institutionnel du CSAR, pour améliorer notre efficacité opérationnelle et optimiser la gestion de nos ressources.</p>
+                                <p class="mb-0">{{ __('about.dg_priority1') }}</p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex align-items-start mb-3">
                                 <div class="me-3" style="width: 30px; height: 30px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.9rem;">2</div>
-                                <p class="mb-0">Le déploiement effectif des programmes de résilience, en particulier à travers le Projet PASAR, afin de développer des solutions durables pour la sécurité alimentaire.</p>
+                                <p class="mb-0">{{ __('about.dg_priority2') }}</p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex align-items-start mb-3">
                                 <div class="me-3" style="width: 30px; height: 30px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.9rem;">3</div>
-                                <p class="mb-0">Une coopération renforcée avec nos partenaires nationaux et internationaux, pour garantir un financement plus stable et une mutualisation des efforts en matière de lutte contre l'insécurité alimentaire.</p>
+                                <p class="mb-0">{{ __('about.dg_priority3') }}</p>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex align-items-start mb-3">
                                 <div class="me-3" style="width: 30px; height: 30px; background: var(--primary-green); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.9rem;">4</div>
-                                <p class="mb-0">La Reconstitution du Stock national de sécurité alimentaire du Sénégal</p>
+                                <p class="mb-0">{{ __('about.dg_priority4') }}</p>
                             </div>
                         </div>
                     </div>
                     
                     <div class="message-quote">
-                        "Ensemble, poursuivons notre engagement pour une sécurité alimentaire durable et résiliente au service des populations sénégalaises."
+                        "{{ __('about.dg_quote') }}"
                     </div>
                     
                     <div class="message-signature">
-                        <div>Marieme Soda NDIAYE</div>
-                        <div style="font-size: 0.9rem; color: var(--gray-600);">Directrice Générale du CSAR</div>
+                        <div>{{ __('about.dg_signature') }}</div>
+                        <div style="font-size: 0.9rem; color: var(--gray-600);">{{ __('about.dg_title') }}</div>
                     </div>
                 </div>
             </div>
@@ -1923,38 +1882,37 @@
 <section class="message-section" data-aos="fade-up" data-aos-duration="600" style="background: var(--dark-blue);">
     <div class="container">
         <h2 class="text-center mb-2" style="font-size: 2.5rem; font-weight: 800; color: white;">
-            Message du Ministère
+            {{ __('about.message_minister_title') }}
         </h2>
         <p class="text-center mb-5" style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
-            Les mots de Madame Maimouna DIEYE, Ministre de la Famille et des Solidarités
+            {{ __('about.message_minister_subtitle') }}
         </p>
         
         <div class="row align-items-center">
             <div class="col-lg-8">
                 <div class="message-card slide-in-left">
-                    <h5 style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 0.5rem;">Mot Introductif</h5>
-                    <h6 style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1.5rem;">Rapport Annuel 2024</h6>
+                    <h5 style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1.5rem;">{{ __('about.dg_intro') }}</h5>
                     
-                    <p>Le Sénégal est à la croisée des chemins après 64 ans d'indépendance au cours desquels le pays a mis en place plusieurs documents de politique économique et sociale pour prendre en charge son développement.</p>
+                    <p>{{ __('about.minister_para1') }}</p>
                     
-                    <p>En dépit de tous ces plans et programmes qui se sont succédé, les résultats n'ont pas été à la hauteur des ambitions du pays, avec un taux de croissance moyen d'environ 3,2% sur la période 1960-2023. L'économie a été marquée par la prédominance d'un secteur primaire qui n'a pas réussi à tirer la croissance et assurer un développement inclusif et durable. L'objectif de sécurité alimentaire n'a toujours pas été atteint.</p>
+                    <p>{{ __('about.minister_para2') }}</p>
                     
-                    <p>Ainsi, l'avènement de la troisième alternance en 2024, avec l'accession à la magistrature suprême, de son Excellence Monsieur Bassirou Diomaye Diakhar FAYE, constitue une bonne opportunité pour le Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR), de relever des défis importants en matière de sécurité alimentaire et de résilience en faveur des groupes vulnérables.</p>
+                    <p>{{ __('about.minister_para3') }}</p>
                     
                     <div class="message-quote" style="background: linear-gradient(135deg, var(--gray-800), var(--gray-600));">
-                        "Ensemble, pour une sécurité alimentaire durable, dans un Sénégal juste, souverain et prospère !"
+                        "{{ __('about.minister_quote') }}"
                     </div>
                     
                     <div class="message-signature">
-                        <div>Le Ministre</div>
-                        <div style="font-size: 0.9rem; color: var(--gray-600);">Maimouna DIEYE</div>
+                        <div>{{ __('about.minister_signature') }}</div>
+                        <div style="font-size: 0.9rem; color: var(--gray-600);">{{ __('about.minister_name_short') }}</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-4 text-center">
-                <img src="{{ asset('images/ministre.JPG') }}" alt="Madame Maimouna DIEYE" class="message-image">
-                <h4 class="message-name">Madame Maimouna DIEYE</h4>
-                <p class="message-title">Ministre de la Famille et des Solidarités</p>
+                <img src="{{ asset('images/ministre.JPG') }}" alt="{{ __('about.minister_name') }}" class="message-image">
+                <h4 class="message-name">{{ __('about.minister_name') }}</h4>
+                <p class="message-title">{{ __('about.minister_title') }}</p>
             </div>
         </div>
     </div>

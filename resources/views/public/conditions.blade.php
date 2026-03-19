@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Conditions d\'utilisation - CSAR')
+@section('title', __('pages.conditions'))
 
 @section('content')
 <div class="legal-page">

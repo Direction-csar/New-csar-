@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Contact')
+@section('title', __('pages.contact'))
 
 @push('styles')
 <style>
@@ -37,9 +37,9 @@
     <div class="row">
         <div class="col-12 text-center mb-5">
                 <h1 class="display-4 fw-bold text-primary mb-3">
-                    <i class="fas fa-envelope me-3"></i>Contactez-nous
+                    <i class="fas fa-envelope me-3"></i>{{ __('messages.contact.title') }}
                 </h1>
-                <p class="lead text-muted">Nous sommes là pour vous aider et répondre à vos questions</p>
+                <p class="lead text-muted">{{ __('messages.contact.subtitle') }}</p>
             </div>
         </div>
 
@@ -53,7 +53,7 @@
                     </h3>
                     
                     <div class="mb-3">
-                        <strong>Adresse</strong><br>
+                        <strong>{{ __('messages.contact.address') }}</strong><br>
                         <a href="https://maps.google.com/?q=Rue+El+Hadji+Amadou+Assane+Ndoye+29+Dakar+Senegal" 
                            target="_blank" 
                            class="text-decoration-none text-primary">
@@ -69,12 +69,12 @@
                         </div>
                         
                     <div class="mb-3">
-                        <strong>Téléphone</strong><br>
+                        <strong>{{ __('messages.contact.phone') }}</strong><br>
                         <a href="tel:+221331234567" class="text-decoration-none">+221 33 123 45 67</a>
                         </div>
                         
                     <div class="mb-3">
-                        <strong>Email</strong><br>
+                        <strong>{{ __('messages.contact.email') }}</strong><br>
                         <a href="mailto:contact@csar.sn" class="text-decoration-none">contact@csar.sn</a>
                         </div>
                         
@@ -99,7 +99,7 @@
             <div class="card h-100">
                 <div class="card-body">
                     <h3 class="card-title">
-                        <i class="fas fa-paper-plane me-2"></i>Envoyez-nous un message
+                        <i class="fas fa-paper-plane me-2"></i>{{ __('messages.contact.form_title') }}
                     </h3>
                     
                     @if(session('success'))
@@ -153,6 +153,8 @@
                                     <option value="Demande d'information" {{ old('subject') == 'Demande d\'information' ? 'selected' : '' }}>Demande d'information</option>
                                     <option value="Demande d'assistance" {{ old('subject') == 'Demande d\'assistance' ? 'selected' : '' }}>Demande d'assistance</option>
                                     <option value="Partenariat" {{ old('subject') == 'Partenariat' ? 'selected' : '' }}>Partenariat</option>
+                                    <option value="Don / Soutien" {{ old('subject', request('sujet')) == 'Don / Soutien' || request('sujet') == 'don' ? 'selected' : '' }}>Don / Soutien</option>
+                                    <option value="Presse / Interview / Accréditation" {{ old('subject') == 'Presse / Interview / Accréditation' ? 'selected' : '' }}>Presse / Interview / Accréditation</option>
                                     <option value="Média" {{ old('subject') == 'Média' ? 'selected' : '' }}>Média</option>
                                     <option value="Autre" {{ old('subject') == 'Autre' ? 'selected' : '' }}>Autre</option>
                                 </select>
@@ -191,19 +193,36 @@
                 </div>
             </div>
 
+    <!-- Section Presse -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-info">
+                <div class="card-body">
+                    <h4 class="card-title">
+                        <i class="fas fa-microphone me-2"></i>{{ __('messages.contact.press') }}
+                    </h4>
+                    <p class="card-text mb-2">Demande d'interview, accréditation ou dossier de presse : utilisez le formulaire ci-dessus en choisissant le sujet <strong>« Presse / Interview / Accréditation »</strong> ou écrivez à <a href="mailto:contact@csar.sn">contact@csar.sn</a>.</p>
+                    <a href="https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/" target="_blank" rel="noopener" class="btn btn-outline-info btn-sm">
+                        <i class="fab fa-linkedin-in me-1"></i>Suivez-nous sur LinkedIn
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Section urgences -->
     <div class="row mt-4">
         <div class="col-12">
             <div class="card border-danger">
                 <div class="card-body text-center">
                     <h4 class="card-title text-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Urgences
+                        <i class="fas fa-exclamation-triangle me-2"></i>{{ __('messages.contact.emergencies') }}
                     </h4>
                     <p class="card-text">
-                        Pour les situations d'urgence, contactez-nous directement par téléphone.
+                        {{ __('messages.contact.emergencies_desc') }}
                     </p>
                     <a href="tel:+221776459242" class="btn btn-danger btn-lg">
-                        <i class="fas fa-phone me-2"></i>Appeler maintenant: +221 77 645 92 42
+                        <i class="fas fa-phone me-2"></i>{{ __('messages.contact.call_now') }}: +221 77 645 92 42
                             </a>
                             </div>
                             </div>

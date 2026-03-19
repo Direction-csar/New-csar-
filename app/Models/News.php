@@ -57,6 +57,22 @@ class News extends Model
     }
 
     /**
+     * Obtenir les commentaires de l'actualité
+     */
+    public function comments()
+    {
+        return $this->hasMany(NewsComment::class)->approved()->latest();
+    }
+
+    /**
+     * Obtenir tous les commentaires (y compris non approuvés) - pour admin
+     */
+    public function allComments()
+    {
+        return $this->hasMany(NewsComment::class)->latest();
+    }
+
+    /**
      * Obtenir l'utilisateur qui a modifié l'actualité
      */
     public function updater()

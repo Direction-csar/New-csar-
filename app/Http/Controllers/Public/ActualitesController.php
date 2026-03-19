@@ -20,6 +20,7 @@ class ActualitesController extends Controller
                 ->orderBy('published_at', 'desc')
                 ->get()
                 ->map(function($news) {
+                    $img = $news->cover_image ?? $news->featured_image ?? null;
                     return (object)[
                         'id' => $news->id,
                         'titre' => $news->title,
@@ -27,7 +28,8 @@ class ActualitesController extends Controller
                         'statut' => $news->status,
                         'featured' => $news->is_featured,
                         'contenu' => $news->content,
-                        'image' => $news->featured_image ? asset('storage/' . $news->featured_image) : null,
+                        'extrait' => \Illuminate\Support\Str::limit(strip_tags(html_entity_decode($news->excerpt ?? $news->content)), 150),
+                        'image' => $img ? asset('storage/' . $img) : null,
                         'auteur' => $news->author->name ?? 'CSAR Communication',
                         'vues' => $news->views_count,
                         'created_at' => $news->created_at,
@@ -119,6 +121,9 @@ class ActualitesController extends Controller
                 'cover_choice' => $news->cover_choice ?? 'auto'
             ];
 
+            // Commentaires approuvés
+            $comments = $news->comments()->get();
+
             // Actualités similaires (même catégorie)
             $related = \App\Models\News::published()
                 ->where('id', '!=', $id)
@@ -142,7 +147,7 @@ class ActualitesController extends Controller
                 'ip' => request()->ip()
             ]);
 
-            return view('public.actualites.show', compact('actualite', 'related'));
+            return view('public.actualites.show', compact('actualite', 'related', 'comments'));
 
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'affichage de l\'actualité publique', [

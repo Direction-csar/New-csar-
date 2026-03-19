@@ -111,8 +111,8 @@
       <div style="padding-left:12px; border-left:1px solid rgba(255,255,255,0.15);">
         <div style="font-weight:700; font-size:16px; margin-bottom:12px; letter-spacing:.3px; text-shadow: 0 1px 3px rgba(0,0,0,0.3);">Contact</div>
         <ul style="font-size:15px; margin:0; padding:0; list-style:none; line-height:1.8;">
-          <li style="margin-bottom:8px;"><a href="{{ route('demande.selection') }}" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Effectuer une demande</a></li>
-          <li style="margin-bottom:10px;"><a href="{{ route('contact.simple') }}" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Nous contacter</a></li>
+          <li style="margin-bottom:8px;"><a href="{{ route('action', ['locale' => app()->getLocale()]) }}" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">{{ __('messages.home.request_button') }}</a></li>
+          <li style="margin-bottom:10px;"><a href="{{ route('contact', ['locale' => app()->getLocale()]) }}" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">{{ __('messages.nav.contact_us') }}</a></li>
           <li style="margin-bottom:8px; font-size:14px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"><i class="fas fa-envelope" style="margin-right:8px;"></i>contact@csar.sn</li>
           <li style="margin-bottom:8px; font-size:14px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"><i class="fas fa-phone" style="margin-right:8px;"></i>+221 33 123 45 67</li>
           <li style="font-size:14px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"><i class="fas fa-map-marker-alt" style="margin-right:8px;"></i>Dakar, Sénégal</li>
@@ -121,7 +121,7 @@
     </div>
   </div>
   <div style="text-align:center; font-size:14px; padding:16px 0; background:rgba(0,0,0,0.15); color:#fff; text-shadow: 0 1px 3px rgba(0,0,0,0.4); font-weight: 500;">
-    © 2025 CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience. Tous droits réservés.
+    © {{ date('Y') }} CSAR - {{ __('messages.home.title') }}. {{ __('messages.footer.copyright') }}
   </div>
 
   <script>

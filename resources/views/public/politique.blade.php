@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Politique de confidentialité - CSAR')
+@section('title', __('pages.privacy'))
 
 @section('content')
 <div class="legal-page">
@@ -283,7 +283,7 @@
 
                                 <div class="alert alert-warning">
                                     <i class="fas fa-exclamation-triangle me-2"></i>
-                                    <strong>Comment exercer vos droits :</strong> Contactez-nous par email à <a href="mailto:contact@csar.sn">contact@csar.sn</a> ou par courrier postal. Nous vous répondrons dans un délai de 30 jours.
+                                    <strong>Comment exercer vos droits :</strong> Contactez-nous par email à <a href="mailto:mohamed.sow@csar.sn">mohamed.sow@csar.sn</a> ou par courrier postal. Nous vous répondrons dans un délai de 30 jours.
                                 </div>
                             </div>
                         </div>
@@ -304,8 +304,8 @@
                                         <h4>Délégué à la protection des données</h4>
                                         <div class="contact-info">
                                             <p><i class="fas fa-user me-2"></i><strong>Responsable :</strong> Délégué CSAR</p>
-                                            <p><i class="fas fa-envelope me-2"></i><strong>Email :</strong> <a href="mailto:dpo@csar.sn">dpo@csar.sn</a></p>
-                                            <p><i class="fas fa-phone me-2"></i><strong>Téléphone :</strong> +221 XX XXX XX XX</p>
+                                            <p><i class="fas fa-envelope me-2"></i><strong>Email :</strong> <a href="mailto:mohamed.sow@csar.sn">mohamed.sow@csar.sn</a></p>
+                                            <p><i class="fas fa-phone me-2"></i><strong>Téléphone :</strong> <a href="tel:+221786009760">+221 78 600 97 60</a></p>
                                         </div>
                                     </div>
                                     <div class="col-md-6">

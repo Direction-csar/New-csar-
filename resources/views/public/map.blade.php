@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Carte Interactive - CSAR')
+@section('title', __('pages.map'))
 
 @section('content')
 <!-- Hero Section -->

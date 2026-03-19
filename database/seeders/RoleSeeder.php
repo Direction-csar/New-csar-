@@ -29,6 +29,11 @@ class RoleSeeder extends Seeder
                 'name' => 'agent',
                 'display_name' => 'Agent CSAR',
                 'description' => 'Accès limité en lecture seule'
+            ],
+            [
+                'name' => 'ctc',
+                'display_name' => 'Conseil Technique de la Communication',
+                'description' => 'Gestion des publications, actualités, rapports, newsletter et contenu public'
             ]
         ];
 

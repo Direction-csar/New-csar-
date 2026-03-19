@@ -8,7 +8,7 @@ use App\Models\SmsNotification;
 
 /**
  * Service d'envoi SMS
- * Supporte : Twilio, Vonage (Nexmo), InfoBip, AfricasTalking
+ * Supporte : Orange (Sénégal), Twilio, Vonage (Nexmo), InfoBip, AfricasTalking
  */
 class SmsService
 {
@@ -37,6 +37,7 @@ class SmsService
 
             // Envoyer selon le provider
             $result = match($this->provider) {
+                'orange' => $this->sendViaOrange($to, $message),
                 'twilio' => $this->sendViaTwilio($to, $message),
                 'vonage' => $this->sendViaVonage($to, $message),
                 'infobip' => $this->sendViaInfoBip($to, $message),
@@ -96,6 +97,129 @@ class SmsService
         $message = "Code de vérification CSAR: {$code}\n\nValable {$expiresIn} minutes.\nNe partagez pas ce code.";
         
         return $this->send($to, $message, 'high');
+    }
+
+    /**
+     * Envoyer une confirmation de demande (alias pour les formulaires publics)
+     * @param string|object $phoneOrRequest Numéro ou objet PublicRequest
+     * @param string|null $trackingCode Code de suivi (si $phoneOrRequest est un numéro)
+     * @param string $type Type de demande (si $phoneOrRequest est un numéro)
+     */
+    public function sendRequestConfirmation($phoneOrRequest, $trackingCode = null, $type = 'demande')
+    {
+        if (is_object($phoneOrRequest)) {
+            $phone = $phoneOrRequest->phone ?? $phoneOrRequest->phone_number ?? null;
+            $trackingCode = $phoneOrRequest->tracking_code ?? $phoneOrRequest->trackingCode ?? '';
+            $type = $phoneOrRequest->type ?? 'autre';
+        } else {
+            $phone = $phoneOrRequest;
+        }
+        if (!$phone) {
+            throw new \Exception('Numéro de téléphone requis pour l\'envoi SMS');
+        }
+        $messages = [
+            'aide' => "Votre demande d'aide a bien été transmise au CSAR. Code de suivi: {$trackingCode}. Nous vous contacterons sous 24-48h.",
+            'partenariat' => "Votre demande de partenariat a bien été transmise au CSAR. Code de suivi: {$trackingCode}.",
+            'audience' => "Votre demande d'audience a bien été transmise au CSAR. Code de suivi: {$trackingCode}.",
+            'autre' => "Votre demande a bien été transmise au CSAR. Code de suivi: {$trackingCode}. Nous vous contacterons prochainement.",
+        ];
+        $message = $messages[$type] ?? $messages['autre'];
+        return $this->send($phone, $message);
+    }
+
+    /**
+     * Alias pour send() - compatibilité avec le code existant
+     */
+    public function sendSms($phone, $message, $type = 'notification')
+    {
+        return $this->send($phone, $message);
+    }
+
+    /**
+     * Envoyer via SmsNotification (pour ProcessSmsNotification job)
+     */
+    public function sendToProvider(SmsNotification $notification)
+    {
+        $result = $this->send($notification->phone_number, $notification->message);
+        return ['success' => $result['success'] ?? false, 'error' => null];
+    }
+
+    // ==================== ORANGE SMS SÉNÉGAL ====================
+
+    private function sendViaOrange($to, $message)
+    {
+        $clientId = $this->config['client_id'] ?? null;
+        $clientSecret = $this->config['client_secret'] ?? null;
+        $senderNumber = $this->config['sender_number'] ?? '2210000';
+
+        if (!$clientId || !$clientSecret) {
+            throw new \Exception('Orange SMS: Client ID et Client Secret requis dans .env (ORANGE_SMS_CLIENT_ID, ORANGE_SMS_CLIENT_SECRET)');
+        }
+
+        $token = $this->getOrangeAccessToken($clientId, $clientSecret);
+        $senderEncoded = 'tel%3A%2B' . $senderNumber;
+        $url = "https://api.orange.com/smsmessaging/v1/outbound/{$senderEncoded}/requests";
+
+        $body = [
+            'outboundSMSMessageRequest' => [
+                'address' => 'tel:' . $to,
+                'senderAddress' => 'tel:+' . $senderNumber,
+                'outboundSMSTextMessage' => [
+                    'message' => $message,
+                ],
+            ],
+        ];
+
+        $response = Http::withToken($token)
+            ->asJson()
+            ->post($url, $body);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            $resourceUrl = $data['outboundSMSMessageRequest']['resourceURL'] ?? null;
+            $resourceId = $resourceUrl ? basename(parse_url($resourceUrl, PHP_URL_PATH)) : null;
+
+            return [
+                'success' => true,
+                'provider' => 'orange',
+                'message_id' => $resourceId,
+                'status' => 'sent',
+            ];
+        }
+
+        $errorBody = $response->json();
+        $errorMsg = $errorBody['message'] ?? $errorBody['description'] ?? 'Orange SMS error';
+        if ($response->status() === 401 && ($errorBody['code'] ?? 0) === 42) {
+            throw new \Exception('Orange SMS: Token expiré. Réessayez.');
+        }
+        throw new \Exception('Orange SMS: ' . $errorMsg);
+    }
+
+    private function getOrangeAccessToken($clientId, $clientSecret)
+    {
+        $cacheKey = 'orange_sms_token';
+        $cached = \Illuminate\Support\Facades\Cache::get($cacheKey);
+        if ($cached) {
+            return $cached;
+        }
+
+        $response = Http::withBasicAuth($clientId, $clientSecret)
+            ->asForm()
+            ->post('https://api.orange.com/oauth/v3/token', [
+                'grant_type' => 'client_credentials',
+            ]);
+
+        if (!$response->successful()) {
+            $err = $response->json();
+            throw new \Exception('Orange OAuth: ' . ($err['message'] ?? $err['error_description'] ?? 'Échec authentification'));
+        }
+
+        $data = $response->json();
+        $token = $data['access_token'];
+        $expiresIn = (int) ($data['expires_in'] ?? 3600);
+        \Illuminate\Support\Facades\Cache::put($cacheKey, $token, now()->addSeconds($expiresIn - 60));
+
+        return $token;
     }
 
     // ==================== TWILIO ====================
@@ -286,15 +410,18 @@ class SmsService
      */
     private function logSms($to, $message, $result)
     {
-        SmsNotification::create([
-            'to' => $to,
-            'message' => $message,
-            'provider' => $result['provider'] ?? $this->provider,
-            'message_id' => $result['message_id'] ?? null,
-            'status' => $result['status'] ?? 'unknown',
-            'success' => $result['success'] ?? false,
-            'sent_at' => now(),
-        ]);
+        try {
+            SmsNotification::create([
+                'phone_number' => $to,
+                'message' => $message,
+                'type' => 'system_alert',
+                'status' => ($result['success'] ?? false) ? 'sent' : 'failed',
+                'sent_at' => ($result['success'] ?? false) ? now() : null,
+                'error_message' => ($result['success'] ?? false) ? null : ($result['error'] ?? 'Unknown'),
+            ]);
+        } catch (\Exception $e) {
+            Log::warning('Impossible d\'enregistrer le SMS dans sms_notifications', ['error' => $e->getMessage()]);
+        }
     }
 
     /**
@@ -313,13 +440,10 @@ class SmsService
         return [
             'total_sent' => SmsNotification::where('created_at', '>=', $since)->count(),
             'successful' => SmsNotification::where('created_at', '>=', $since)
-                ->where('success', true)->count(),
+                ->whereIn('status', ['sent', 'delivered'])->count(),
             'failed' => SmsNotification::where('created_at', '>=', $since)
-                ->where('success', false)->count(),
-            'by_provider' => SmsNotification::where('created_at', '>=', $since)
-                ->selectRaw('provider, COUNT(*) as count')
-                ->groupBy('provider')
-                ->get(),
+                ->where('status', 'failed')->count(),
+            'by_provider' => collect([['provider' => $this->provider, 'count' => SmsNotification::where('created_at', '>=', $since)->count()]]),
         ];
     }
 }

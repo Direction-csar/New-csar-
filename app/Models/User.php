@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'google_id',
         'role',
         'role_id',
         'status',
@@ -115,7 +116,8 @@ class User extends Authenticatable
             2 => 'dg',
             3 => 'responsable',
             4 => 'agent',
-            5 => 'drh'
+            5 => 'drh',
+            6 => 'ctc'
         ];
         return $roleMap[$roleId] ?? 'agent';
     }
@@ -134,20 +136,14 @@ class User extends Authenticatable
     public function getRoleAttribute()
     {
         // Si la colonne 'role' existe directement, l'utiliser
-        if (isset($this->attributes['role'])) {
+        if (!empty($this->attributes['role'])) {
             return $this->attributes['role'];
         }
         
-        // Sinon, utiliser role_id pour déterminer le rôle
+        // Sinon, utiliser la table roles pour obtenir le nom réel (évite les maps hardcodées)
         if (isset($this->attributes['role_id'])) {
-            $roleMap = [
-                1 => 'admin',
-                2 => 'dg',
-                3 => 'responsable',
-                4 => 'agent',
-                5 => 'drh'
-            ];
-            return $roleMap[$this->attributes['role_id']] ?? 'agent';
+            $role = \App\Models\Role::find($this->attributes['role_id']);
+            return $role ? $role->name : 'agent';
         }
         
         return 'agent';

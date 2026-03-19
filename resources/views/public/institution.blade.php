@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Organisation institutionnelle - CSAR')
+@section('title', __('pages.institution'))
 
 @section('content')
 <div class="institution-page">
@@ -9,9 +9,9 @@
         <div class="inst-hero-shine"></div>
         <div class="container position-relative" style="max-width: 900px;">
             <div class="inst-hero-box">
-                <h1 class="inst-hero-title">Organisation Institutionnelle</h1>
-                <p class="inst-hero-subtitle">Structure et organisation du Commissariat à la Sécurité Alimentaire et à la Résilience.</p>
-                <a href="#statut-juridique" class="btn btn-light inst-hero-btn">En savoir plus</a>
+                <h1 class="inst-hero-title">{{ __('institution.hero_title') }}</h1>
+                <p class="inst-hero-subtitle">{{ __('institution.hero_subtitle') }}</p>
+                <a href="#statut-juridique" class="btn btn-light inst-hero-btn">{{ __('institution.hero_btn') }}</a>
             </div>
         </div>
     </section>
@@ -19,32 +19,31 @@
     {{-- Statut juridique — carte avec bannière verte et encadré missions --}}
     <section id="statut-juridique" class="inst-section inst-section-gray inst-reveal">
         <div class="container" style="max-width: 1000px;">
-            <h2 class="inst-section-title">Statut juridique</h2>
-            <p class="inst-section-subtitle">Cadre légal et institutionnel du CSAR</p>
+            <h2 class="inst-section-title">{{ __('institution.legal_status_title') }}</h2>
+            <p class="inst-section-subtitle">{{ __('institution.legal_status_subtitle') }}</p>
 
             <div class="inst-card-legal card border-0">
-                {{-- Bannière verte en haut avec icône et titre --}}
                 <div class="inst-legal-banner">
                     <div class="inst-legal-banner-icon"><i class="fas fa-chart-line text-white"></i></div>
-                    <h3 class="inst-legal-banner-title">Cadre juridique et mission principale</h3>
+                    <h3 class="inst-legal-banner-title">{{ __('institution.legal_banner_title') }}</h3>
                 </div>
                 <div class="card-body p-4 p-md-5 inst-card-body-readable">
-                    <p class="inst-legal-intro">Le Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR) est un établissement public à caractère administratif, doté de l'autonomie administrative et financière, placé sous la tutelle technique du Ministère de la Famille et des Solidarités et sous la tutelle financière du Ministère des Finances et du Budget.</p>
+                    <p class="inst-legal-intro">{{ __('institution.legal_intro') }}</p>
                     <div class="inst-missions-box">
-                        <h4 class="inst-missions-title">Missions principales :</h4>
+                        <h4 class="inst-missions-title">{{ __('institution.missions_title') }}</h4>
                         <div class="row">
                             <div class="col-md-6">
                                 <ul class="inst-missions-list">
-                                    <li><span class="inst-bullet">●</span>Réguler les marchés de céréales locales et étudier le marché céréalier</li>
-                                    <li><span class="inst-bullet">●</span>Assurer le suivi et l'interprétation des prix pratiqués sur les marchés</li>
-                                    <li><span class="inst-bullet">●</span>Gérer les stocks de sécurité alimentaire de l'État</li>
+                                    <li><span class="inst-bullet">●</span>{{ __('institution.mission_1') }}</li>
+                                    <li><span class="inst-bullet">●</span>{{ __('institution.mission_2') }}</li>
+                                    <li><span class="inst-bullet">●</span>{{ __('institution.mission_3') }}</li>
                                 </ul>
                             </div>
                             <div class="col-md-6">
                                 <ul class="inst-missions-list">
-                                    <li><span class="inst-bullet">●</span>Participer à l'établissement du bilan céréalier annuel</li>
-                                    <li><span class="inst-bullet">●</span>Identifier et suivre les groupes à risques alimentaires</li>
-                                    <li><span class="inst-bullet">●</span>Élaborer et mettre en œuvre des plans de réponse à l'insécurité alimentaire</li>
+                                    <li><span class="inst-bullet">●</span>{{ __('institution.mission_4') }}</li>
+                                    <li><span class="inst-bullet">●</span>{{ __('institution.mission_5') }}</li>
+                                    <li><span class="inst-bullet">●</span>{{ __('institution.mission_6') }}</li>
                                 </ul>
                             </div>
                         </div>
@@ -57,8 +56,8 @@
     {{-- Tutelles — avec logos et effets dynamiques --}}
     <section class="inst-section inst-section-light inst-reveal" id="inst-tutelles">
         <div class="container" style="max-width: 1000px;">
-            <h2 class="inst-section-title">Tutelles</h2>
-            <p class="inst-section-subtitle">Cadre de supervision et de coordination</p>
+            <h2 class="inst-section-title">{{ __('institution.tutelles_title') }}</h2>
+            <p class="inst-section-subtitle">{{ __('institution.tutelles_subtitle') }}</p>
 
             <div class="row g-4">
                 <div class="col-md-6">
@@ -67,13 +66,13 @@
                             <div class="inst-tutelle-bar"></div>
                             <div class="card-body p-4 text-center">
                                 <div class="inst-tutelle-logo inst-tutelle-logo-green">
-                                    <img src="{{ asset('images/mfs.png') }}" alt="Ministère de la Famille et des Solidarités" class="inst-tutelle-logo-img" onerror="this.style.display='none'; this.nextElementSibling.classList.add('inst-tutelle-logo-fallback-show');">
+                                    <img src="{{ asset('images/mfs.png') }}" alt="{{ __('institution.mfs_name') }}" class="inst-tutelle-logo-img" onerror="this.style.display='none'; this.nextElementSibling.classList.add('inst-tutelle-logo-fallback-show');">
                                     <div class="inst-tutelle-logo-fallback"><i class="fas fa-landmark"></i></div>
                                 </div>
-                                <span class="inst-tutelle-badge">Tutelle technique</span>
-                                <h3 class="h5 fw-bold text-dark mb-2 mt-2">Ministère de la Famille et des Solidarités</h3>
-                                <p class="text-muted small mb-3">Supervision technique des politiques de solidarité et de sécurité alimentaire.</p>
-                                <span class="inst-tutelle-link">Visiter le site <i class="fas fa-external-link-alt ms-1 small"></i></span>
+                                <span class="inst-tutelle-badge">{{ __('institution.tutelle_tech') }}</span>
+                                <h3 class="h5 fw-bold text-dark mb-2 mt-2">{{ __('institution.mfs_name') }}</h3>
+                                <p class="text-muted small mb-3">{{ __('institution.mfs_desc') }}</p>
+                                <span class="inst-tutelle-link">{{ __('institution.visit_site') }} <i class="fas fa-external-link-alt ms-1 small"></i></span>
                             </div>
                         </div>
                     </a>
@@ -84,13 +83,13 @@
                             <div class="inst-tutelle-bar"></div>
                             <div class="card-body p-4 text-center">
                                 <div class="inst-tutelle-logo inst-tutelle-logo-blue">
-                                    <img src="{{ asset('images/ministere-des-finances-et-du-budget.png') }}" alt="Ministère des Finances et du Budget" class="inst-tutelle-logo-img" onerror="this.style.display='none'; this.nextElementSibling.classList.add('inst-tutelle-logo-fallback-show');">
+                                    <img src="{{ asset('images/ministere-des-finances-et-du-budget.png') }}" alt="{{ __('institution.mfb_name') }}" class="inst-tutelle-logo-img" onerror="this.style.display='none'; this.nextElementSibling.classList.add('inst-tutelle-logo-fallback-show');">
                                     <div class="inst-tutelle-logo-fallback"><i class="fas fa-coins"></i></div>
                                 </div>
-                                <span class="inst-tutelle-badge">Tutelle financière</span>
-                                <h3 class="h5 fw-bold text-dark mb-2 mt-2">Ministère des Finances et du Budget</h3>
-                                <p class="text-muted small mb-3">Gestion budgétaire et allocation des ressources financières.</p>
-                                <span class="inst-tutelle-link">Visiter le site <i class="fas fa-external-link-alt ms-1 small"></i></span>
+                                <span class="inst-tutelle-badge">{{ __('institution.tutelle_fin') }}</span>
+                                <h3 class="h5 fw-bold text-dark mb-2 mt-2">{{ __('institution.mfb_name') }}</h3>
+                                <p class="text-muted small mb-3">{{ __('institution.mfb_desc') }}</p>
+                                <span class="inst-tutelle-link">{{ __('institution.visit_site') }} <i class="fas fa-external-link-alt ms-1 small"></i></span>
                             </div>
                         </div>
                     </a>
@@ -102,16 +101,16 @@
     {{-- Organisation administrative — Bilan Social 2024 --}}
     <section class="inst-section inst-section-green inst-reveal">
         <div class="container" style="max-width: 1000px;">
-            <h2 class="inst-section-title">Organisation administrative</h2>
-            <p class="inst-section-subtitle">Structure organisationnelle du CSAR selon le Bilan Social 2024</p>
+            <h2 class="inst-section-title">{{ __('institution.org_title') }}</h2>
+            <p class="inst-section-subtitle">{{ __('institution.org_subtitle') }}</p>
 
             <div class="row g-3">
                 <div class="col-md-6 col-lg-3">
                     <div class="inst-org-card card border-0 h-100">
                         <div class="card-body p-3 text-center">
                             <div class="inst-org-icon" style="background: linear-gradient(135deg, #16a34a, #15803d);"><i class="fas fa-landmark text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Conseil d'administration</h4>
-                            <p class="text-muted small mb-0">Organe de gouvernance</p>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.org_board') }}</h4>
+                            <p class="text-muted small mb-0">{{ __('institution.org_board_desc') }}</p>
                         </div>
                     </div>
                 </div>
@@ -119,8 +118,8 @@
                     <div class="inst-org-card card border-0 h-100">
                         <div class="card-body p-3 text-center">
                             <div class="inst-org-icon" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);"><i class="fas fa-building text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Direction Générale</h4>
-                            <p class="text-muted small mb-0">Coordination générale</p>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.org_dg') }}</h4>
+                            <p class="text-muted small mb-0">{{ __('institution.org_dg_desc') }}</p>
                         </div>
                     </div>
                 </div>
@@ -128,8 +127,8 @@
                     <div class="inst-org-card card border-0 h-100">
                         <div class="card-body p-3 text-center">
                             <div class="inst-org-icon" style="background: #64748b;"><i class="fas fa-file-alt text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Secrétariat général</h4>
-                            <p class="text-muted small mb-0">Administration centrale</p>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.org_sg') }}</h4>
+                            <p class="text-muted small mb-0">{{ __('institution.org_sg_desc') }}</p>
                         </div>
                     </div>
                 </div>
@@ -137,7 +136,7 @@
                     <div class="inst-org-card card border-0 h-100">
                         <div class="card-body p-3 text-center">
                             <div class="inst-org-icon" style="background: #16a34a;"><i class="fas fa-seedling text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Direction Sécurité Alimentaire et Résilience</h4>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.org_dsar') }}</h4>
                             <p class="text-muted small mb-0">DSAR</p>
                         </div>
                     </div>
@@ -146,7 +145,7 @@
                     <div class="inst-org-card card border-0 h-100">
                         <div class="card-body p-3 text-center">
                             <div class="inst-org-icon" style="background: #2563eb;"><i class="fas fa-coins text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Direction Financière et de la Coopération</h4>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.org_dfc') }}</h4>
                             <p class="text-muted small mb-0">DFC</p>
                         </div>
                     </div>
@@ -155,7 +154,7 @@
                     <div class="inst-org-card card border-0 h-100">
                         <div class="card-body p-3 text-center">
                             <div class="inst-org-icon" style="background: #dc2626;"><i class="fas fa-bullseye text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Direction Planification & Suivi Évaluation</h4>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.org_dpse') }}</h4>
                             <p class="text-muted small mb-0">DPSE</p>
                         </div>
                     </div>
@@ -164,7 +163,7 @@
                     <div class="inst-org-card card border-0 h-100">
                         <div class="card-body p-3 text-center">
                             <div class="inst-org-icon" style="background: #0891b2;"><i class="fas fa-users text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Direction des Ressources Humaines</h4>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.org_drh') }}</h4>
                             <p class="text-muted small mb-0">DRH</p>
                         </div>
                     </div>
@@ -173,7 +172,7 @@
                     <div class="inst-org-card card border-0 h-100">
                         <div class="card-body p-3 text-center">
                             <div class="inst-org-icon" style="background: #ea580c;"><i class="fas fa-truck text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Direction Technique et Logistique</h4>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.org_dtl') }}</h4>
                             <p class="text-muted small mb-0">DTL</p>
                         </div>
                     </div>
@@ -185,17 +184,17 @@
     {{-- Cellules spécialisées — unités techniques --}}
     <section class="inst-section inst-section-light inst-reveal">
         <div class="container" style="max-width: 1000px;">
-            <h2 class="inst-section-title inst-section-title-green">Cellules spécialisées</h2>
-            <p class="inst-section-subtitle">Unités techniques spécialisées pour l'efficacité opérationnelle du CSAR</p>
+            <h2 class="inst-section-title inst-section-title-green">{{ __('institution.cellules_title') }}</h2>
+            <p class="inst-section-subtitle">{{ __('institution.cellules_subtitle') }}</p>
 
             <div class="row g-4">
                 <div class="col-md-6 col-lg-3">
                     <div class="inst-cellule-card card border-0 h-100">
                         <div class="card-body p-3">
                             <div class="inst-cellule-icon" style="background: #16a34a;"><i class="fas fa-chart-pie text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Cellule Contrôle de Gestion</h4>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.cell_ccg') }}</h4>
                             <p class="text-muted small mb-1"><strong>CCG</strong></p>
-                            <p class="text-muted small mb-0">Suivi et contrôle des performances opérationnelles</p>
+                            <p class="text-muted small mb-0">{{ __('institution.cell_ccg_desc') }}</p>
                         </div>
                     </div>
                 </div>
@@ -203,9 +202,9 @@
                     <div class="inst-cellule-card card border-0 h-100">
                         <div class="card-body p-3">
                             <div class="inst-cellule-icon" style="background: #0ea5e9;"><i class="fas fa-search text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Cellule Audit Interne</h4>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.cell_cia') }}</h4>
                             <p class="text-muted small mb-1"><strong>CIA</strong></p>
-                            <p class="text-muted small mb-0">Vérification et évaluation des processus internes</p>
+                            <p class="text-muted small mb-0">{{ __('institution.cell_cia_desc') }}</p>
                         </div>
                     </div>
                 </div>
@@ -213,9 +212,9 @@
                     <div class="inst-cellule-card card border-0 h-100">
                         <div class="card-body p-3">
                             <div class="inst-cellule-icon" style="background: #ea580c;"><i class="fas fa-file-contract text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Cellule Passation des Marchés</h4>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.cell_cpm') }}</h4>
                             <p class="text-muted small mb-1"><strong>CPM</strong></p>
-                            <p class="text-muted small mb-0">Gestion et supervision des procédures d'achat</p>
+                            <p class="text-muted small mb-0">{{ __('institution.cell_cpm_desc') }}</p>
                         </div>
                     </div>
                 </div>
@@ -223,9 +222,9 @@
                     <div class="inst-cellule-card card border-0 h-100">
                         <div class="card-body p-3">
                             <div class="inst-cellule-icon" style="background: #7c3aed;"><i class="fas fa-laptop-code text-white"></i></div>
-                            <h4 class="h6 fw-bold mb-1">Cellule Informatique</h4>
+                            <h4 class="h6 fw-bold mb-1">{{ __('institution.cell_ci') }}</h4>
                             <p class="text-muted small mb-1"><strong>CI</strong></p>
-                            <p class="text-muted small mb-0">Support technique et développement des systèmes</p>
+                            <p class="text-muted small mb-0">{{ __('institution.cell_ci_desc') }}</p>
                         </div>
                     </div>
                 </div>

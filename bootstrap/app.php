@@ -7,7 +7,13 @@ use Illuminate\Foundation\Configuration\Middleware;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
+        then: function () {
+            Route::middleware('api')
+                ->prefix('mobile')
+                ->group(base_path('routes/mobile-api.php'));
+        },
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -31,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'dg' => \App\Http\Middleware\DGMiddleware::class,
+            'collector' => \App\Http\Middleware\CollectorMiddleware::class,
+            'ctc-admin' => \App\Http\Middleware\CTCAdminMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

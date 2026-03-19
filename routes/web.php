@@ -57,6 +57,7 @@ use App\Http\Controllers\DG\DashboardController as DGDashboardController;
 
 // Contrôleurs Auth
 use App\Http\Controllers\Auth\AdminLoginController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\DGLoginController;
 
 // Contrôleurs Public
@@ -96,6 +97,7 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middlew
     Route::get('/actualites', [\App\Http\Controllers\Public\ActualitesController::class, 'index'])->name('news.index');
     Route::get('/actualites/{id}', [\App\Http\Controllers\Public\ActualitesController::class, 'show'])->name('news.show');
     Route::get('/actualites/{id}/download', [\App\Http\Controllers\Public\ActualitesController::class, 'downloadDocument'])->name('news.download');
+    Route::post('/actualites/{id}/comment', [\App\Http\Controllers\Public\NewsCommentController::class, 'store'])->name('news.comment.store');
     Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
     Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
     Route::get('/rapports/{id}/download', [\App\Http\Controllers\Public\ReportsController::class, 'download'])->name('public.reports.download');
@@ -103,6 +105,11 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middlew
     // Contact routes
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
+
+    // Testimonials routes (public)
+    Route::get('/temoignages', [\App\Http\Controllers\TestimonialController::class, 'index'])->name('testimonials.index');
+    Route::get('/temoignages/create', [\App\Http\Controllers\TestimonialController::class, 'create'])->name('testimonials.create');
+    Route::post('/temoignages', [\App\Http\Controllers\TestimonialController::class, 'store'])->name('testimonials.store');
 
     // Action routes
     Route::get('/effectuer-une-action', [ActionController::class, 'index'])->name('action');
@@ -122,6 +129,21 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middlew
 
     // Public partners
     Route::get('/partenaires', [PartnersController::class, 'index'])->name('partners.index');
+
+    // Projets et interventions
+    Route::get('/projets', [\App\Http\Controllers\Public\ProjetsController::class, 'index'])->name('projets.index');
+
+    // Ressources (espace documentaire)
+    Route::get('/ressources', [\App\Http\Controllers\Public\RessourcesController::class, 'index'])->name('ressources.index');
+
+    // FAQ
+    Route::get('/faq', [\App\Http\Controllers\Public\FaqController::class, 'index'])->name('faq.index');
+
+    // Recherche (outil de recherche plateforme)
+    Route::get('/recherche', [\App\Http\Controllers\Public\SearchController::class, 'index'])->name('search.index');
+
+    // Faire un don
+    Route::get('/faire-un-don', [\App\Http\Controllers\Public\DonController::class, 'index'])->name('don.index');
 
     // Legal pages
     Route::get('/politique-confidentialite', [\App\Http\Controllers\Public\LegalController::class, 'privacy'])->name('privacy');
@@ -314,6 +336,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Authentification Admin
     Route::get('/login', [AdminLoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AdminLoginController::class, 'login'])->name('login.submit');
+    Route::get('/login/google', [GoogleAuthController::class, 'redirect'])->name('login.google');
+    Route::get('/login/google/callback', [GoogleAuthController::class, 'callback'])->name('login.google.callback');
     Route::post('/logout', [AdminLoginController::class, 'logout'])->name('logout');
     
     // Routes protégées Admin
@@ -328,6 +352,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         
         // Gestion des demandes (sans création - les demandes viennent du public)
         Route::resource('demandes', DemandesController::class)->except(['create', 'store']);
+        Route::get('/carte-demandes', [\App\Http\Controllers\Admin\CarteDemandesController::class, 'index'])->name('carte-demandes.index');
+        Route::get('/carte-demandes/api', [\App\Http\Controllers\Admin\CarteDemandesController::class, 'getMapData'])->name('carte-demandes.api');
         Route::get('/demandes/{id}/pdf', [DemandesController::class, 'downloadPdf'])->name('demandes.pdf');
         Route::post('/demandes/export', [DemandesController::class, 'export'])->name('demandes.export');
         Route::post('/demandes/bulk-delete', [DemandesController::class, 'bulkDelete'])->name('demandes.bulk-delete');
@@ -412,6 +438,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/news/{id}/toggle-status', [\App\Http\Controllers\Admin\NewsController::class, 'toggleStatus'])->name('news.toggle-status');
         Route::post('/news/{id}/toggle-featured', [\App\Http\Controllers\Admin\NewsController::class, 'toggleFeatured'])->name('news.toggle-featured');
         Route::get('/news-preview', [\App\Http\Controllers\Admin\NewsController::class, 'preview'])->name('news.preview');
+        Route::delete('/news-comments/{id}', [\App\Http\Controllers\Admin\NewsCommentController::class, 'destroy'])->name('news.comments.destroy');
+        Route::get('/news/{id}/comments', [\App\Http\Controllers\Admin\NewsCommentController::class, 'index'])->name('news.comments.index');
         
         // Gestion de la galerie
         Route::resource('gallery', \App\Http\Controllers\Admin\GalleryController::class);
@@ -460,6 +488,16 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/sim-reports/{id}/status', [\App\Http\Controllers\Admin\SimReportsController::class, 'getStatus'])->name('sim-reports.status');
         Route::get('/sim-reports/export-all', [\App\Http\Controllers\Admin\SimReportsController::class, 'exportAll'])->name('sim-reports.export-all');
         Route::get('/sim-reports/stats', [\App\Http\Controllers\Admin\SimReportsController::class, 'getStats'])->name('sim-reports.stats');
+
+        // Gestion des témoignages
+        Route::prefix('testimonials')->name('testimonials.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'index'])->name('index');
+            Route::get('/{id}', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'show'])->name('show');
+            Route::post('/{id}/approve', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'approve'])->name('approve');
+            Route::post('/{id}/reject', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'reject'])->name('reject');
+            Route::post('/{id}/toggle-featured', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'toggleFeatured'])->name('toggle-featured');
+            Route::delete('/{id}', [\App\Http\Controllers\Admin\AdminTestimonialController::class, 'destroy'])->name('destroy');
+        });
 
         // Gestion opérationnelle du SIM
         Route::prefix('sim')->name('sim.')->group(function () {
@@ -594,6 +632,51 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Route::post('messages/mark-all-read', [AdminMessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
         Route::post('messages/{id}/reply', [AdminMessageController::class, 'reply'])->name('messages.reply');
         Route::delete('messages/{id}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
+    });
+});
+
+// Routes CTC - Conseil Technique de la Communication (publications, actualités, rapports, newsletter, galerie)
+Route::prefix('ctc')->name('ctc.')->group(function () {
+    Route::get('/login', [\App\Http\Controllers\Auth\CTCLoginController::class, 'showLoginForm'])->name('login');
+    Route::get('/login/reset-rate-limit', [\App\Http\Controllers\Auth\CTCLoginController::class, 'resetRateLimit'])->name('login.reset-rate-limit');
+    Route::post('/login', [\App\Http\Controllers\Auth\CTCLoginController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [\App\Http\Controllers\Auth\CTCLoginController::class, 'logout'])->name('logout');
+
+    Route::middleware(['auth', 'ctc-admin'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\Admin\CommunicationsController::class, 'index'])->name('dashboard');
+        Route::get('/communications', [\App\Http\Controllers\Admin\CommunicationsController::class, 'index'])->name('communications.index');
+        Route::get('/communications/realtime-stats', [\App\Http\Controllers\Admin\CommunicationsController::class, 'realtimeStats'])->name('communications.realtime-stats');
+
+        Route::resource('actualites', \App\Http\Controllers\Admin\ActualitesController::class);
+        Route::get('actualites/{id}/download', [\App\Http\Controllers\Admin\ActualitesController::class, 'downloadDocument'])->name('actualites.download');
+        Route::get('actualites/{id}/preview', [\App\Http\Controllers\Admin\ActualitesController::class, 'preview'])->name('actualites.preview');
+
+        Route::resource('galerie', \App\Http\Controllers\Admin\GalerieController::class);
+        Route::post('/galerie/{id}/toggle-status', [\App\Http\Controllers\Admin\GalerieController::class, 'toggleStatus'])->name('galerie.toggle-status');
+
+        Route::get('/newsletter', [\App\Http\Controllers\Admin\NewsletterController::class, 'index'])->name('newsletter.index');
+        Route::get('/newsletter/export', [\App\Http\Controllers\Admin\NewsletterController::class, 'exportSubscribers'])->name('newsletter.export');
+        Route::get('/newsletter/stats', [\App\Http\Controllers\Admin\NewsletterController::class, 'getStats'])->name('newsletter.stats');
+        Route::get('/newsletter/analytics', [\App\Http\Controllers\Admin\NewsletterController::class, 'getAnalytics'])->name('newsletter.analytics');
+
+        Route::get('/messages', [\App\Http\Controllers\Admin\MessageController::class, 'index'])->name('messages.index');
+        Route::get('/messages/{id}', [\App\Http\Controllers\Admin\MessageController::class, 'show'])->name('messages.show');
+        Route::post('/messages/{id}/mark-read', [\App\Http\Controllers\Admin\MessageController::class, 'markAsRead'])->name('messages.mark-read');
+        Route::post('/messages/mark-all-read', [\App\Http\Controllers\Admin\MessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
+        Route::post('/messages/{id}/reply', [\App\Http\Controllers\Admin\MessageController::class, 'reply'])->name('messages.reply');
+
+        Route::get('/sim-reports', [\App\Http\Controllers\Admin\SimReportsController::class, 'index'])->name('sim-reports.index');
+        Route::get('/sim-reports/create', [\App\Http\Controllers\Admin\SimReportsController::class, 'create'])->name('sim-reports.create');
+        Route::post('/sim-reports', [\App\Http\Controllers\Admin\SimReportsController::class, 'store'])->name('sim-reports.store');
+        Route::get('/sim-reports/{id}', [\App\Http\Controllers\Admin\SimReportsController::class, 'show'])->name('sim-reports.show');
+        Route::get('/sim-reports/{id}/edit', [\App\Http\Controllers\Admin\SimReportsController::class, 'edit'])->name('sim-reports.edit');
+        Route::put('/sim-reports/{id}', [\App\Http\Controllers\Admin\SimReportsController::class, 'update'])->name('sim-reports.update');
+        Route::delete('/sim-reports/{id}', [\App\Http\Controllers\Admin\SimReportsController::class, 'destroy'])->name('sim-reports.destroy');
+        Route::post('/sim-reports/upload', [\App\Http\Controllers\Admin\SimReportsController::class, 'uploadDocument'])->name('sim-reports.upload');
+        Route::post('/sim-reports/generate', [\App\Http\Controllers\Admin\SimReportsController::class, 'generateReport'])->name('sim-reports.generate');
+        Route::get('/sim-reports/{id}/download', [\App\Http\Controllers\Admin\SimReportsController::class, 'download'])->name('sim-reports.download');
+
+        Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('notifications.index');
     });
 });
 
@@ -746,6 +829,18 @@ Route::prefix('agent')->name('agent.')->group(function () {
 
 Route::get('/entrepot', fn () => view('auth.interface-desactivee'));
 Route::match(['get', 'post'], '/entrepot/{path}', fn () => view('auth.interface-desactivee'))->where('path', '.*');
+
+// Interface Collecteurs SIM (web)
+Route::prefix('collecteur')->name('collector.')->group(function () {
+    Route::get('/login', [\App\Http\Controllers\Auth\CollectorLoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\Auth\CollectorLoginController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [\App\Http\Controllers\Auth\CollectorLoginController::class, 'logout'])->name('logout');
+
+    Route::middleware(['collector'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\Collector\CollectorDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/dashboard', [\App\Http\Controllers\Collector\CollectorDashboardController::class, 'index'])->name('dashboard.alt');
+    });
+});
 
 // Routes globales pour les nouvelles fonctionnalités
 Route::middleware(['auth'])->group(function () {

@@ -15,6 +15,7 @@ use App\Models\TechnicalPartner;
 use App\Models\GalleryImage;
 use Illuminate\Support\Facades\Schema;
 use App\Models\SimReport;
+use App\Models\PublicDocument;
 use App\Models\Notification;
 use App\Services\NotificationService;
 use App\Services\EmailService;
@@ -58,7 +59,9 @@ class HomeController extends Controller
                     'agents' => '0',
                     'warehouses' => '0', 
                     'capacity' => '0',
-                    'experience' => '0'
+                    'communes' => '0',
+                    'demandes_traitees' => '0',
+                    'taux_satisfaction' => '0'
                 ];
             } else {
                 // Essayer de récupérer les chiffres clés, avec fallback en cas d'erreur
@@ -68,8 +71,10 @@ class HomeController extends Controller
                     $stats = [
                         'agents' => $chiffresCles->get('Agents recensés', (object)['valeur' => '137'])->valeur ?? '137',
                         'warehouses' => $chiffresCles->get('Magasins de stockage', (object)['valeur' => '71'])->valeur ?? '71',
-                        'capacity' => $chiffresCles->get('Capacité de stockage', (object)['valeur' => '79 000 tonnes'])->valeur ?? '79 000 tonnes',
-                        'experience' => $chiffresCles->get('Années d\'expérience', (object)['valeur' => '50+'])->valeur ?? '50+'
+                        'capacity' => $chiffresCles->get('Capacité de stockage', (object)['valeur' => '79'])->valeur ?? '79',
+                        'communes' => $chiffresCles->get('Communes et régions servies', (object)['valeur' => '51'])->valeur ?? '51',
+                        'demandes_traitees' => $chiffresCles->get('Demandes traitées', (object)['valeur' => '0'])->valeur ?? '0',
+                        'taux_satisfaction' => $chiffresCles->get('Taux de satisfaction', (object)['valeur' => '0'])->valeur ?? '0',
                     ];
                 } catch (\Exception $e) {
                     // En cas d'erreur lors de la récupération, utiliser les valeurs par défaut
@@ -77,7 +82,9 @@ class HomeController extends Controller
                         'agents' => '0',
                         'warehouses' => '0', 
                         'capacity' => '0',
-                        'experience' => '0'
+                        'communes' => '0',
+                        'demandes_traitees' => '0',
+                        'taux_satisfaction' => '0'
                     ];
                 }
             }
@@ -87,7 +94,9 @@ class HomeController extends Controller
                 'agents' => '0',
                 'warehouses' => '0', 
                 'capacity' => '0',
-                'experience' => '0'
+                'communes' => '0',
+                'demandes_traitees' => '0',
+                'taux_satisfaction' => '0'
             ];
         }
         
@@ -168,6 +177,17 @@ class HomeController extends Controller
         } catch (\Exception $e) {
             $publications = collect([]);
         }
+        
+        // Récupération des documents publics (recrutement, rapports, etc.)
+        try {
+            $publicDocuments = PublicDocument::published()
+                ->notExpired()
+                ->orderBy('published_at', 'desc')
+                ->take(6)
+                ->get();
+        } catch (\Exception $e) {
+            $publicDocuments = collect([]);
+        }
             
         // Préparation des données pour la vue
         $viewData = [
@@ -183,6 +203,7 @@ class HomeController extends Controller
             'galleryImages' => $galleryImages,
             'simReports' => $simReports,
             'publications' => $publications,
+            'publicDocuments' => $publicDocuments,
             'requests' => []
         ];
         

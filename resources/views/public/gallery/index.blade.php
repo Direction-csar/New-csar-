@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Missions en images')
+@section('title', __('pages.gallery'))
 
 @section('content')
 <!-- Hero Section -->

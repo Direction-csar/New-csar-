@@ -51,10 +51,10 @@
             <!-- Images du diaporama -->
             <div class="slideshow-images" style="position: relative; height: 600px; overflow: hidden;">
                 
-                <!-- Slide 1 -->
+                <!-- Slide 1 - Image N1 -->
                 <div class="slide active" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 1; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
-                    <img src="{{ asset('img/1.jpg') }}" alt="Actions Humanitaires" 
-                         style="width: 100%; height: 100%; object-fit: cover; object-position: center top;">
+                    <img src="{{ asset('images/arriere plan/N1.jpg') }}" alt="Actions Humanitaires" 
+                         style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                     <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(34,197,94,0.3) 100%);"></div>
                     <div class="slide-text-overlay" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: #fff; padding: 50px; z-index: 2;">
                         <h3 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 15px; text-shadow: 0 4px 8px rgba(0,0,0,0.5);">Actions Humanitaires</h3>
@@ -66,10 +66,10 @@
                     </div>
                 </div>
 
-                <!-- Slide 2 -->
+                <!-- Slide 2 - Image N2 -->
                 <div class="slide" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
-                    <img src="{{ asset('img/2.jpg') }}" alt="Interventions de Résilience" 
-                         style="width: 100%; height: 100%; object-fit: cover; object-position: center top;">
+                    <img src="{{ asset('images/arriere plan/N2.jpg') }}" alt="Interventions de Résilience" 
+                         style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                     <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(59,130,246,0.3) 100%);"></div>
                     <div class="slide-text-overlay" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: #fff; padding: 50px; z-index: 2;">
                         <h3 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 15px; text-shadow: 0 4px 8px rgba(0,0,0,0.5);">Interventions de Résilience</h3>
@@ -81,10 +81,10 @@
                     </div>
                 </div>
 
-                <!-- Slide 3 -->
+                <!-- Slide 3 - Image N3 -->
                 <div class="slide" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
-                    <img src="{{ asset('img/3.jpg') }}" alt="Mobilisations Locales" 
-                         style="width: 100%; height: 100%; object-fit: cover; object-position: center top;">
+                    <img src="{{ asset('images/arriere plan/N3.jpg') }}" alt="Mobilisations Locales" 
+                         style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                     <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(245,158,11,0.3) 100%);"></div>
                     <div class="slide-text-overlay" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: #fff; padding: 50px; z-index: 2;">
                         <h3 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 15px; text-shadow: 0 4px 8px rgba(0,0,0,0.5);">Mobilisations Locales</h3>
@@ -96,10 +96,10 @@
                     </div>
                 </div>
 
-                <!-- Slide 4 -->
+                <!-- Slide 4 - Image N5 -->
                 <div class="slide" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
-                    <img src="{{ asset('img/4.jpg') }}" alt="Programmes Nutritionnels" 
-                         style="width: 100%; height: 100%; object-fit: cover; object-position: center top;">
+                    <img src="{{ asset('images/arriere plan/N5.jpg') }}" alt="Programmes Nutritionnels" 
+                         style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
                     <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(139,92,246,0.3) 100%);"></div>
                     <div class="slide-text-overlay" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: #fff; padding: 50px; z-index: 2;">
                         <h3 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 15px; text-shadow: 0 4px 8px rgba(0,0,0,0.5);">Programmes Nutritionnels</h3>
@@ -107,6 +107,21 @@
                         <div style="display: flex; align-items: center; gap: 15px;">
                             <span style="background: rgba(139,92,246,0.3); color: #8b5cf6; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">Mission 2024</span>
                             <span style="font-size: 0.9rem; opacity: 0.8;">📍 Région de Kaolack</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Slide 5 - Image N8 -->
+                <div class="slide" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
+                    <img src="{{ asset('images/arriere plan/N8.jpg') }}" alt="Soutien aux Communautés" 
+                         style="width: 100%; height: 100%; object-fit: cover; object-position: center;">
+                    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(16,185,129,0.3) 100%);"></div>
+                    <div class="slide-text-overlay" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: #fff; padding: 50px; z-index: 2;">
+                        <h3 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 15px; text-shadow: 0 4px 8px rgba(0,0,0,0.5);">Soutien aux Communautés</h3>
+                        <p style="font-size: 1.2rem; line-height: 1.6; margin-bottom: 20px; opacity: 0.9;">Accompagnement des populations et renforcement de la résilience locale</p>
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <span style="background: rgba(16,185,129,0.3); color: #10b981; padding: 8px 16px; border-radius: 20px; font-size: 0.9rem; font-weight: 600;">Mission 2024</span>
+                            <span style="font-size: 0.9rem; opacity: 0.8;">📍 Région de Kolda</span>
                         </div>
                     </div>
                 </div>
@@ -127,6 +142,7 @@
                 <button class="indicator" onclick="goToSlide(1)" style="width: 12px; height: 12px; border-radius: 50%; border: none; background: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.3s ease;"></button>
                 <button class="indicator" onclick="goToSlide(2)" style="width: 12px; height: 12px; border-radius: 50%; border: none; background: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.3s ease;"></button>
                 <button class="indicator" onclick="goToSlide(3)" style="width: 12px; height: 12px; border-radius: 50%; border: none; background: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.3s ease;"></button>
+                <button class="indicator" onclick="goToSlide(4)" style="width: 12px; height: 12px; border-radius: 50%; border: none; background: rgba(255,255,255,0.5); cursor: pointer; transition: all 0.3s ease;"></button>
             </div>
         </div>
 
@@ -199,6 +215,196 @@
         </div>
     </div>
 </section>
+
+<!-- Galerie Photos de Missions -->
+<section class="section fade-in" style="background: #fff; padding: 100px 0;">
+    <div class="container" style="max-width: 1400px; margin: 0 auto;">
+        <div style="text-align: center; margin-bottom: 60px;">
+            <div style="display: inline-block; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1)); padding: 10px 24px; border-radius: 50px; margin-bottom: 20px;">
+                <span style="color: #22c55e; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.2px;">
+                    <i class="fas fa-images" style="margin-right: 8px;"></i>
+                    Nos Missions en Images
+                </span>
+            </div>
+            <h2 style="font-size: 3rem; font-weight: 800; color: #1f2937; margin-bottom: 20px;">
+                Galerie de Missions
+            </h2>
+            <p style="color: #6b7280; font-size: 1.2rem; max-width: 700px; margin: 0 auto; line-height: 1.7;">
+                Découvrez nos actions sur le terrain à travers ces images de nos différentes interventions
+            </p>
+        </div>
+
+        <!-- Grille d'images -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+            @php
+                $missionImages = [
+                    ['src' => 'images/bloc/csar1.jpg', 'title' => 'Distribution alimentaire', 'location' => 'Dakar'],
+                    ['src' => 'images/bloc/csar2.jpg', 'title' => 'Aide humanitaire', 'location' => 'Thiès'],
+                    ['src' => 'images/bloc/csar3.jpg', 'title' => 'Mission de terrain', 'location' => 'Saint-Louis'],
+                    ['src' => 'images/bloc/csar4.jpg', 'title' => 'Soutien aux communautés', 'location' => 'Kaolack'],
+                    ['src' => 'images/bloc/csar5..jpg', 'title' => 'Programme nutritionnel', 'location' => 'Kolda'],
+                    ['src' => 'images/bloc/csar6.jpg', 'title' => 'Intervention d\'urgence', 'location' => 'Ziguinchor'],
+                    ['src' => 'images/bloc/csar7.jpg', 'title' => 'Renforcement de capacités', 'location' => 'Tambacounda'],
+                    ['src' => 'images/bloc/csar8.jpg', 'title' => 'Mobilisation locale', 'location' => 'Louga'],
+                    ['src' => 'images/bloc/csar9.jpg', 'title' => 'Assistance alimentaire', 'location' => 'Fatick'],
+                    ['src' => 'images/bloc/csar10.jpg', 'title' => 'Sécurité alimentaire', 'location' => 'Diourbel'],
+                    ['src' => 'images/bloc/csar11.jpg', 'title' => 'Action humanitaire', 'location' => 'Matam'],
+                    ['src' => 'images/bloc/csar12.jpg', 'title' => 'Distribution de vivres', 'location' => 'Kédougou'],
+                ];
+            @endphp
+
+            @foreach($missionImages as $index => $image)
+            <div class="mission-photo-card" style="position: relative; border-radius: 15px; overflow: hidden; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.1); transition: all 0.4s ease; background: #f3f4f6;" 
+                 onclick="openLightbox('{{ asset($image['src']) }}', '{{ $image['title'] }}', '{{ $image['location'] }}')">
+                <img src="{{ asset($image['src']) }}" alt="{{ $image['title'] }}" 
+                     style="width: 100%; height: 350px; object-fit: cover; transition: transform 0.4s ease; display: block;"
+                     onerror="this.style.display='none'; this.parentElement.innerHTML='<div style=\'height:350px;display:flex;align-items:center;justify-content:center;color:#9ca3af;\'><i class=\'fas fa-image\' style=\'font-size:3rem;\'></i></div>';">
+                <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85)); padding: 25px 20px; color: white; transform: translateY(100%); transition: transform 0.4s ease;" class="photo-overlay">
+                    <h4 style="font-size: 1.1rem; font-weight: 700; margin: 0 0 8px 0;">{{ $image['title'] }}</h4>
+                    <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">
+                        <i class="fas fa-map-marker-alt"></i> {{ $image['location'] }}
+                    </p>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+
+<style>
+.mission-photo-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(34, 197, 94, 0.2);
+}
+
+.mission-photo-card:hover img {
+    transform: scale(1.1);
+}
+
+.mission-photo-card:hover .photo-overlay {
+    transform: translateY(0);
+}
+</style>
+
+<!-- Témoignages de Mission Section -->
+<section class="section fade-in" style="background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); padding: 100px 0; position: relative; overflow: hidden;">
+    <!-- Décoration arrière-plan -->
+    <div style="position: absolute; top: -100px; right: -100px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(34, 197, 94, 0.08), transparent); border-radius: 50%; filter: blur(80px);"></div>
+    
+    <div class="container" style="max-width: 1200px; margin: 0 auto; position: relative; z-index: 1;">
+        <!-- En-tête -->
+        <div style="text-align: center; margin-bottom: 60px;">
+            <div style="display: inline-block; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1)); padding: 10px 24px; border-radius: 50px; margin-bottom: 20px;">
+                <span style="color: #22c55e; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.2px;">
+                    <i class="fas fa-comments" style="margin-right: 8px;"></i>
+                    Témoignages de Nos Équipes
+                </span>
+            </div>
+            <h2 style="font-size: 3rem; font-weight: 800; color: #1f2937; margin-bottom: 20px; background: linear-gradient(135deg, #1f2937 0%, #22c55e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                Retours de Mission
+            </h2>
+            <p style="color: #6b7280; font-size: 1.2rem; max-width: 700px; margin: 0 auto; line-height: 1.7;">
+                Découvrez les témoignages de reconnaissance de nos membres envoyés en mission sur le terrain
+            </p>
+        </div>
+
+        <!-- Grille de témoignages -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; margin-bottom: 50px;">
+            @php
+                $missionTestimonials = \App\Models\Testimonial::approved()
+                    ->mission()
+                    ->latest()
+                    ->take(6)
+                    ->get();
+            @endphp
+
+            @forelse($missionTestimonials as $index => $testimonial)
+            <div class="testimonial-card" style="background: white; border-radius: 20px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); border: 2px solid #f3f4f6; transition: all 0.4s; position: relative; overflow: hidden;" data-aos="fade-up" data-aos-delay="{{ $index * 100 }}">
+                <!-- Accent coloré -->
+                <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(135deg, #22c55e, #10b981);"></div>
+                
+                <!-- Icône de citation -->
+                <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.1)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px;">
+                    <i class="fas fa-quote-left" style="font-size: 1.2rem; color: #22c55e;"></i>
+                </div>
+
+                <!-- Message -->
+                <p style="color: #4b5563; font-size: 1rem; line-height: 1.7; margin-bottom: 25px; font-style: italic;">
+                    "{{ Str::limit($testimonial->message, 150) }}"
+                </p>
+
+                <!-- Info mission -->
+                @if($testimonial->mission_location || $testimonial->mission_date)
+                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                    @if($testimonial->mission_location)
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(34, 197, 94, 0.1); color: #059669; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ $testimonial->mission_location }}
+                    </span>
+                    @endif
+                    
+                    @if($testimonial->mission_date)
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: rgba(59, 130, 246, 0.1); color: #2563eb; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+                        <i class="fas fa-calendar"></i>
+                        {{ $testimonial->mission_date->format('M Y') }}
+                    </span>
+                    @endif
+                </div>
+                @endif
+
+                <!-- Auteur -->
+                <div style="display: flex; align-items: center; gap: 15px; padding-top: 20px; border-top: 1px solid #f3f4f6;">
+                    <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #22c55e, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1.1rem;">
+                        {{ substr($testimonial->name, 0, 1) }}
+                    </div>
+                    <div>
+                        <h4 style="font-size: 1rem; font-weight: 700; color: #1f2937; margin: 0;">
+                            {{ $testimonial->name }}
+                        </h4>
+                        @if($testimonial->organization)
+                        <p style="font-size: 0.85rem; color: #6b7280; margin: 0;">
+                            {{ $testimonial->organization }}
+                        </p>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Note si disponible -->
+                @if($testimonial->rating)
+                <div style="margin-top: 15px; display: flex; gap: 4px;">
+                    @for($i = 1; $i <= 5; $i++)
+                        <i class="fas fa-star" style="color: {{ $i <= $testimonial->rating ? '#f59e0b' : '#e5e7eb' }}; font-size: 0.9rem;"></i>
+                    @endfor
+                </div>
+                @endif
+            </div>
+            @empty
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                <i class="fas fa-comments" style="font-size: 4rem; color: #d1d5db; margin-bottom: 20px;"></i>
+                <p style="color: #6b7280; font-size: 1.1rem;">
+                    Aucun témoignage de mission pour le moment.
+                </p>
+            </div>
+            @endforelse
+        </div>
+
+        <!-- Bouton pour partager son témoignage -->
+        <div style="text-align: center;">
+            <a href="{{ route('testimonials.create', ['locale' => app()->getLocale()]) }}" class="btn btn-success zoom-hover" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 35px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; text-decoration: none; border-radius: 50px; font-weight: 600; font-size: 1.1rem; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3); transition: all 0.3s;">
+                <i class="fas fa-pen"></i>
+                Partager votre témoignage de mission
+            </a>
+        </div>
+    </div>
+</section>
+
+<style>
+.testimonial-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 60px rgba(34, 197, 94, 0.15);
+    border-color: #22c55e;
+}
+</style>
 
 <!-- Contact Section -->
 <section class="section fade-in" style="background: linear-gradient(135deg, #1f2937 0%, #111827 100%); padding: 80px 0;">

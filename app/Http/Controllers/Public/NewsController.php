@@ -10,7 +10,8 @@ class NewsController extends Controller
 {
     public function index(Request $request)
     {
-        $query = News::where('is_published', true);
+        $query = News::where('is_published', true)
+                     ->where('is_public', true);
         
         // Filtre pour les publications (actualités avec documents)
         if ($request->has('filter') && $request->filter === 'publications') {
