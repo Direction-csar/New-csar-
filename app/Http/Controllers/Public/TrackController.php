@@ -3,8 +3,9 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\PublicRequest;
+use App\Models\Demande;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class TrackController extends Controller
@@ -23,7 +24,8 @@ class TrackController extends Controller
             'phone' => 'nullable|string|max:20',
         ]);
         
-        $publicRequest = PublicRequest::where('tracking_code', $request->tracking_code)->first();
+        Log::info('TRACK DEBUG: code=[' . $request->tracking_code . '] len=' . strlen($request->tracking_code));
+        $publicRequest = Demande::where('tracking_code', $request->tracking_code)->first();
         
         // Déterminer quelle vue utiliser
         $view = request()->is('suivi') || request()->is('*/suivi') ? 'public.suivi' : 'public.track';
@@ -33,16 +35,26 @@ class TrackController extends Controller
         }
         
         // Optional phone verification
-        if ($request->phone && $publicRequest->phone !== $request->phone) {
+        if ($request->phone && $publicRequest->telephone !== $request->phone) {
             return view($view, ['notFound' => true]);
         }
         
         return view($view, ['request' => $publicRequest]);
     }
     
+    public function verify($code)
+    {
+        $demande = Demande::where('tracking_code', $code)->first();
+        $view = 'public.track';
+        if (!$demande) {
+            return view($view, ['notFound' => true]);
+        }
+        return view($view, ['request' => $demande]);
+    }
+
     public function download($code)
     {
-        $publicRequest = PublicRequest::where('tracking_code', $code)->first();
+        $publicRequest = Demande::where('tracking_code', $code)->first();
         
         if (!$publicRequest) {
             abort(404);

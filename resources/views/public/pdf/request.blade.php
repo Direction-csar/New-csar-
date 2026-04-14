@@ -329,49 +329,63 @@
         Code de suivi : {{ $request->tracking_code }}
     </div>
 
+    @php
+        $typeLabels = [
+            'aide_alimentaire'    => 'Aide alimentaire',
+            'demande_audience'    => "Demande d'audience",
+            'information_generale'=> 'Information générale',
+            'autre'               => 'Autre demande',
+        ];
+        $typeLabel = $typeLabels[$request->type_demande] ?? ucfirst(str_replace('_', ' ', $request->type_demande ?? 'Non spécifié'));
+        $statutLabels = [
+            'pending'    => 'EN ATTENTE',
+            'en_cours'   => 'EN TRAITEMENT',
+            'traite'     => 'TRAITÉE',
+            'approuve'   => 'APPROUVÉE',
+            'rejete'     => 'REJETÉE',
+            'approved'   => 'APPROUVÉE',
+            'rejected'   => 'REJETÉE',
+        ];
+        $statutLabel = $statutLabels[$request->statut] ?? strtoupper($request->statut ?? 'Non défini');
+        $statutClass = in_array($request->statut, ['approved','approuve','traite']) ? 'status-approved'
+            : (in_array($request->statut, ['rejected','rejete']) ? 'status-rejected'
+            : (($request->statut === 'en_cours') ? 'status-completed' : 'status-pending'));
+        $verifyUrl = url('/fr/verifier/' . $request->tracking_code);
+        $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(100)->generate($verifyUrl);
+        $qrBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrCode);
+    @endphp
+
     <div class="info-section">
         <div class="info-grid">
             <div class="info-row">
                 <div class="info-label">TYPE DE DEMANDE</div>
-                <div class="info-value">{{ ucfirst(str_replace('_', ' ', $request->type ?? 'Non spécifié')) }}</div>
+                <div class="info-value">{{ $typeLabel }}</div>
             </div>
             <div class="info-row">
                 <div class="info-label">STATUT ACTUEL</div>
                 <div class="info-value">
-                    <span class="status-badge 
-                        @if($request->status === 'pending') status-pending
-                        @elseif($request->status === 'approved') status-approved
-                        @elseif($request->status === 'completed') status-completed
-                        @elseif($request->status === 'rejected') status-rejected
-                        @endif">
-                        @if($request->status === 'pending') EN ATTENTE
-                        @elseif($request->status === 'approved') APPROUVÉE
-                        @elseif($request->status === 'completed') TERMINÉE
-                        @elseif($request->status === 'rejected') REJETÉE
-                        @else {{ strtoupper($request->status ?? 'Non défini') }}
-                        @endif
-                    </span>
+                    <span class="status-badge {{ $statutClass }}">{{ $statutLabel }}</span>
                 </div>
             </div>
             <div class="info-row">
                 <div class="info-label">DATE DE SOUMISSION</div>
-                <div class="info-value">{{ $request->request_date ? \Carbon\Carbon::parse($request->request_date)->format('d/m/Y à H:i') : 'Non spécifiée' }}</div>
+                <div class="info-value">{{ $request->created_at ? $request->created_at->format('d/m/Y à H:i') : 'Non spécifiée' }}</div>
             </div>
-            @if($request->processed_date)
+            @if($request->date_traitement)
             <div class="info-row">
                 <div class="info-label">DATE DE TRAITEMENT</div>
-                <div class="info-value">{{ \Carbon\Carbon::parse($request->processed_date)->format('d/m/Y à H:i') }}</div>
+                <div class="info-value">{{ \Carbon\Carbon::parse($request->date_traitement)->format('d/m/Y à H:i') }}</div>
             </div>
             @endif
         </div>
     </div>
 
     <div class="info-section">
-        <div class="section-title">👤 INFORMATIONS DU DEMANDEUR</div>
+        <div class="section-title">INFORMATIONS DU DEMANDEUR</div>
         <div class="info-grid">
             <div class="info-row">
                 <div class="info-label">NOM COMPLET</div>
-                <div class="info-value">{{ $request->full_name ?? 'Non renseigné' }}</div>
+                <div class="info-value">{{ trim(($request->nom ?? '') . ' ' . ($request->prenom ?? '')) ?: 'Non renseigné' }}</div>
             </div>
             <div class="info-row">
                 <div class="info-label">ADRESSE EMAIL</div>
@@ -379,12 +393,12 @@
             </div>
             <div class="info-row">
                 <div class="info-label">NUMÉRO DE TÉLÉPHONE</div>
-                <div class="info-value">{{ $request->phone ?? 'Non renseigné' }}</div>
+                <div class="info-value">{{ $request->telephone ?? 'Non renseigné' }}</div>
             </div>
-            @if($request->address)
+            @if($request->adresse)
             <div class="info-row">
-                <div class="info-label">ADRESSE COMPLÈTE</div>
-                <div class="info-value">{{ $request->address }}</div>
+                <div class="info-label">ADRESSE</div>
+                <div class="info-value">{{ $request->adresse }}</div>
             </div>
             @endif
             @if($request->region)
@@ -394,55 +408,48 @@
             </div>
             @endif
         </div>
-        
         @if($request->latitude && $request->longitude)
         <div class="coordinates-info">
-            📍 <strong>Coordonnées GPS :</strong> 
-            Latitude {{ number_format($request->latitude, 6) }}° • 
-            Longitude {{ number_format($request->longitude, 6) }}°
+            Coordonnées GPS : Lat. {{ number_format($request->latitude, 6) }}° / Lon. {{ number_format($request->longitude, 6) }}°
         </div>
         @endif
     </div>
 
     @if($request->description)
     <div class="info-section">
-        <div class="section-title">📝 DESCRIPTION DE LA DEMANDE</div>
+        <div class="section-title">DESCRIPTION DE LA DEMANDE</div>
         <div class="description-box">
-            <div class="description-title">Objet de la demande</div>
-            <div class="description-content">{{ $request->type ? ucfirst(str_replace('_', ' ', $request->type)) : 'Non spécifié' }}</div>
-            
-            <div class="description-title" style="margin-top: 15px;">Description détaillée :</div>
+            @if($request->objet)
+            <div class="description-title">Objet : {{ $request->objet }}</div>
+            @endif
             <div class="description-content">{!! nl2br(e($request->description)) !!}</div>
         </div>
     </div>
     @endif
 
-    @if($request->admin_comment)
+    @if($request->commentaire_admin)
     <div class="info-section">
-        <div class="section-title">💬 Commentaire administratif</div>
+        <div class="section-title">Réponse / Commentaire administratif</div>
         <div class="description-box" style="background: #fef3c7; border-color: #f59e0b;">
-            {!! nl2br(e($request->admin_comment)) !!}
+            {!! nl2br(e($request->commentaire_admin)) !!}
         </div>
     </div>
     @endif
 
-    @if($request->assignedTo)
-    <div class="info-section">
-        <div class="section-title">👨‍💼 Agent assigné</div>
-        <div class="info-grid">
-            <div class="info-row">
-                <div class="info-label">Agent responsable</div>
-                <div class="info-value">{{ $request->assignedTo->name ?? 'Non assigné' }}</div>
+    <div class="info-section" style="margin-top: 20px;">
+        <div style="display: table; width: 100%; border: 1px solid #22c55e; border-radius: 6px; padding: 15px; background: #f0fdf4;">
+            <div style="display: table-cell; vertical-align: middle; width: 120px; text-align: center;">
+                <img src="{{ $qrBase64 }}" alt="QR Code" style="width: 100px; height: 100px;">
             </div>
-            @if($request->assignedTo->email)
-            <div class="info-row">
-                <div class="info-label">Contact email</div>
-                <div class="info-value">{{ $request->assignedTo->email }}</div>
+            <div style="display: table-cell; vertical-align: middle; padding-left: 20px;">
+                <div style="font-weight: bold; font-size: 12px; color: #1f2937; margin-bottom: 6px;">VÉRIFICATION D'AUTHENTICITÉ</div>
+                <div style="font-size: 10px; color: #374151; line-height: 1.5;">
+                    Scannez ce QR code pour vérifier l'authenticité de ce document sur le site officiel du CSAR.<br>
+                    URL : {{ $verifyUrl }}
+                </div>
             </div>
-            @endif
         </div>
     </div>
-    @endif
 
     <div class="security-note">
         ⚠️ <strong>Note de confidentialité :</strong> Ce document contient des informations personnelles confidentielles. 

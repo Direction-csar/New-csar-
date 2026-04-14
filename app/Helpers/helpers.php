@@ -27,7 +27,7 @@ if (!function_exists('locale_url')) {
         }
 
         // Si l'URL contient déjà une locale (/fr ou /fr/xxx)
-        if (preg_match('#^/(fr|en)(/|$)#', $path)) {
+        if (preg_match('#^/(fr|en|ar)(/|$)#', $path)) {
             $pattern = '#^/' . preg_quote($current, '#') . '(?=/|$)#';
             $newPath = preg_replace($pattern, '/' . $locale, $path);
             return $newPath . ($query ? '?' . $query : '');

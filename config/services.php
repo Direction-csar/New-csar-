@@ -99,6 +99,80 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | OpenWeatherMap API
+    |--------------------------------------------------------------------------
+    | Clé API depuis https://openweathermap.org/api
+    | Plan gratuit : 60 appels/minute, 1 000 000/mois — suffisant avec cache.
+    */
+    'openweather' => [
+        'key' => env('OPENWEATHER_API_KEY'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | PayPal Payment Gateway
+    |--------------------------------------------------------------------------
+    | Configuration pour l'intégration PayPal (paiement international)
+    | https://developer.paypal.com
+    |
+    | Mode: 'sandbox' pour test, 'live' pour production
+    */
+    'paypal' => [
+        'mode' => env('PAYPAL_MODE', 'sandbox'),
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'client_secret' => env('PAYPAL_CLIENT_SECRET'),
+        
+        // URLs de callback
+        'return_url' => env('PAYPAL_RETURN_URL'),
+        'cancel_url' => env('PAYPAL_CANCEL_URL'),
+        
+        // Webhook
+        'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
+        
+        // Configuration des montants (en USD)
+        'min_amount' => env('PAYPAL_MIN_AMOUNT', 1),
+        'max_amount' => env('PAYPAL_MAX_AMOUNT', 10000),
+        'currency' => env('PAYPAL_CURRENCY', 'USD'),
+        
+        // URLs API PayPal
+        'base_url_sandbox' => 'https://api-m.sandbox.paypal.com',
+        'base_url_live' => 'https://api-m.paypal.com',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | PayDunya Payment Gateway
+    |--------------------------------------------------------------------------
+    | Configuration pour l'intégration PayDunya (paiement mobile Sénégal)
+    | https://paydunya.com
+    |
+    | Mode: 'test' pour sandbox, 'live' pour production
+    | Clés disponibles sur le dashboard PayDunya après création d'application
+    */
+    'paydunya' => [
+        'mode' => env('PAYDUNYA_MODE', 'test'),
+        'api_key' => env('PAYDUNYA_API_KEY'),
+        'private_key' => env('PAYDUNYA_PRIVATE_KEY'),
+        'token' => env('PAYDUNYA_TOKEN'),
+        'master_key' => env('PAYDUNYA_MASTER_KEY'),
+
+        // URLs de callback (générées automatiquement si null)
+        'callback_url' => env('PAYDUNYA_CALLBACK_URL'),
+        'return_url' => env('PAYDUNYA_RETURN_URL'),
+        'cancel_url' => env('PAYDUNYA_CANCEL_URL'),
+
+        // Configuration des montants
+        'min_amount' => env('PAYDUNYA_MIN_AMOUNT', 500),
+        'max_amount' => env('PAYDUNYA_MAX_AMOUNT', 1000000),
+        'currency' => env('PAYDUNYA_CURRENCY', 'XOF'),
+
+        // URLs API PayDunya
+        'base_url_test' => 'https://app.paydunya.com/sandbox-api/v1',
+        'base_url_live' => 'https://app.paydunya.com/api/v1',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | LinkedIn Integration
     |--------------------------------------------------------------------------
     | URL de la page entreprise LinkedIn du CSAR.

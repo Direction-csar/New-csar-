@@ -1,6 +1,6 @@
 @extends('layouts.public')
 
-@section('title', 'Accueil - CSAR')
+@section('title', __('pages.home'))
 
 @section('content')
 <style>
@@ -75,7 +75,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    background: linear-gradient(135deg, #18392b 0%, #27533f 50%, #18392b 100%);
+    background: #111827;
 }
 
 .hero-background {
@@ -87,7 +87,7 @@
     background-size: cover;
     background-position: center;
     opacity: 0;
-    transition: opacity 1.5s ease-in-out;
+    transition: opacity 0.8s ease-in-out;
     transform: scale(1);
     z-index: 0;
     will-change: opacity, transform;
@@ -107,7 +107,7 @@
 /* Effet Ken Burns - Zoom progressif */
 .hero-background.active {
     opacity: 1;
-    animation: kenBurnsEffect 7s ease-out forwards;
+    animation: kenBurnsEffect 5s ease-out forwards;
 }
 
 @keyframes kenBurnsEffect {
@@ -122,30 +122,10 @@
 /* Animation de sortie */
 .hero-background.exiting {
     opacity: 0;
-    transform: scale(1.15);
+    transform: scale(1.05);
+    transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out;
 }
 
-/* Effet de brillance qui traverse l'image */
-.hero-background::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 50%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    z-index: 2;
-    animation: shine 8s infinite;
-}
-
-@keyframes shine {
-    0% {
-        left: -100%;
-    }
-    50%, 100% {
-        left: 150%;
-    }
-}
 
 .hero-content {
     text-align: center;
@@ -400,10 +380,32 @@
 <!-- Préchargement prioritaire de la première image -->
 <link rel="preload" as="image" href="{{ asset('images/arriere plan/N1.jpg') }}" fetchpriority="high">
 
+<!-- Bandeau texte défilant -->
+<div style="background: linear-gradient(90deg, #1a5c38 0%, #22c55e 50%, #1a5c38 100%); overflow: hidden; white-space: nowrap; padding: 10px 0; position: relative; z-index: 100; border-bottom: 2px solid rgba(255,255,255,0.15);">
+    <div class="marquee-track" style="display: inline-flex; align-items: center; animation: marquee-scroll 40s linear infinite; will-change: transform;">
+        @php
+            $marqueeText = 'Le Commissariat à la Sécurité Alimentaire et à la Résilience œuvre pour garantir l\'accès à une alimentation suffisante et nutritive pour tous les Sénégalais, tout en renforçant leur capacité à faire face aux crises et aux défis climatiques.';
+        @endphp
+        @for($i = 0; $i < 4; $i++)
+        <span style="display: inline-flex; align-items: center; padding: 0 3rem; font-size: 0.95rem; font-weight: 500; color: #ffffff; letter-spacing: 0.3px; font-family: 'Segoe UI', sans-serif;">
+            <span style="display: inline-block; width: 6px; height: 6px; background: rgba(255,255,255,0.7); border-radius: 50%; margin-right: 1.5rem; flex-shrink: 0;"></span>
+            {{ $marqueeText }}
+        </span>
+        @endfor
+    </div>
+    <style>
+    @keyframes marquee-scroll {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+    }
+    .marquee-track:hover { animation-play-state: paused; }
+    </style>
+</div>
+
 <!-- Hero Section -->
 <section class="hero-section">
     <!-- Arrière-plans rotatifs : images chargées via JS pour éviter le chargement multiple -->
-    <div class="hero-background active" data-bg="{{ asset('images/arriere plan/N1.jpg') }}" style='opacity: 1; background-image: url("{{ asset('images/arriere plan/N1.jpg') }}");'></div>
+    <div class="hero-background active" data-bg="{{ asset('images/arriere plan/N1.jpg') }}" style='background-image: url("{{ asset('images/arriere plan/N1.jpg') }}");'></div>
     <div class="hero-background" data-bg="{{ asset('images/arriere plan/N2.jpg') }}"></div>
     <div class="hero-background" data-bg="{{ asset('images/arriere plan/N3.jpg') }}"></div>
     <div class="hero-background" data-bg="{{ asset('images/arriere plan/N5.jpg') }}"></div>
@@ -411,18 +413,15 @@
     
     <div class="container" style="max-width: 100%; display: flex; justify-content: center; align-items: center; position: relative; z-index: 10;">
         <div class="hero-content" style="text-align: center; width: 100%; max-width: 1000px; margin: 0 auto;">
-            <h1 class="hero-title" id="typewriter-title" style="min-height: 80px; text-align: center;"></h1>
-            <p class="hero-subtitle" style="text-align: center; max-width: 900px; margin: 0 auto 2rem; font-size: 1.2rem; line-height: 1.8;">
-                Le Commissariat à la Sécurité Alimentaire et à la Résilience œuvre pour garantir l'accès à une alimentation suffisante et nutritive pour tous les Sénégalais, tout en renforçant leur capacité à faire face aux crises et aux défis climatiques
-            </p>
+            <h1 class="hero-title" id="typewriter-title" style="min-height: 120px; text-align: center; display: block; width: 100%;"></h1>
             <div class="hero-buttons" style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap;">
                 <a href="{{ '/demande' }}" class="btn-hero btn-primary-hero">
                     <i class="fas fa-file-alt"></i>
-                    Effectuer une demande
+                    {{ __('messages.home.hero.cta_secondary') }}
                 </a>
                 <a href="{{ route('about') }}" class="btn-hero btn-secondary-hero">
                     <i class="fas fa-info-circle"></i>
-                    Découvrir le CSAR
+                    {{ __('messages.home.hero.cta') }}
                 </a>
             </div>
         </div>
@@ -441,69 +440,101 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Charger N1 tout de suite
+    // Précharger les 2 premières images, le reste en différé
     loadBg(backgrounds[0]);
-
-    // Précharger les autres images en arrière-plan après 2s (ne pas bloquer le rendu initial)
+    if (backgrounds.length > 1) loadBg(backgrounds[1]);
     setTimeout(function() {
-        for (var i = 1; i < backgrounds.length; i++) {
+        for (var i = 2; i < backgrounds.length; i++) {
             loadBg(backgrounds[i]);
         }
     }, 2000);
 
     function rotateBackground() {
-        backgrounds[currentBg].classList.remove('active');
-        backgrounds[currentBg].classList.add('exiting');
         var prev = currentBg;
         currentBg = (currentBg + 1) % backgrounds.length;
-        loadBg(backgrounds[currentBg]);
+
+        // Nettoyer tout sauf prev et next
+        for (var i = 0; i < backgrounds.length; i++) {
+            if (i !== prev && i !== currentBg) {
+                backgrounds[i].classList.remove('active', 'exiting');
+                backgrounds[i].style.zIndex = '';
+            }
+        }
+
+        // Nouvelle image par-dessus
+        backgrounds[currentBg].classList.remove('exiting');
+        backgrounds[currentBg].classList.add('active');
+        backgrounds[currentBg].style.zIndex = '2';
+
+        // Ancienne image sort
+        backgrounds[prev].classList.remove('active');
+        backgrounds[prev].classList.add('exiting');
+        backgrounds[prev].style.zIndex = '1';
+
+        // Après le fondu, nettoyer
         setTimeout(function() {
             backgrounds[prev].classList.remove('exiting');
-            backgrounds[currentBg].classList.add('active');
-        }, 100);
+            backgrounds[prev].style.zIndex = '';
+            backgrounds[currentBg].style.zIndex = '';
+        }, 900);
     }
 
-    setInterval(rotateBackground, 7000);
+    setInterval(rotateBackground, 5000);
 });
 </script>
 
 <script>
-// Effet machine à écrire avec boucle toutes les 4 secondes
-document.addEventListener('DOMContentLoaded', function() {
-    const titleElement = document.getElementById('typewriter-title');
-    const text = 'Commissariat à la Sécurité Alimentaire et à la Résilience';
-    let index = 0;
-    let erasing = false;
-
-    titleElement.textContent = '';
-
-    function tick() {
-        if (!erasing) {
-            // Phase frappe
-            if (index < text.length) {
-                titleElement.textContent += text.charAt(index);
-                index++;
-                setTimeout(tick, 40);
+(function() {
+    'use strict';
+    
+    function startTypewriter() {
+        var titleElement = document.getElementById('typewriter-title');
+        if (!titleElement) {
+            console.error('typewriter-title element not found');
+            return;
+        }
+        
+        var text = '{{ __('messages.home.hero.title') }}';
+        var index = 0;
+        var erasing = false;
+        
+        titleElement.textContent = '';
+        titleElement.style.visibility = 'visible';
+        titleElement.style.opacity = '1';
+        
+        function tick() {
+            if (!erasing) {
+                if (index < text.length) {
+                    titleElement.textContent += text.charAt(index);
+                    index++;
+                    setTimeout(tick, 40);
+                } else {
+                    setTimeout(function() { 
+                        erasing = true; 
+                        tick(); 
+                    }, 4000);
+                }
             } else {
-                // Texte complet — pause 4s puis effacement
-                setTimeout(function() { erasing = true; tick(); }, 4000);
-            }
-        } else {
-            // Phase effacement
-            if (titleElement.textContent.length > 0) {
-                titleElement.textContent = titleElement.textContent.slice(0, -1);
-                setTimeout(tick, 20);
-            } else {
-                // Texte effacé — recommencer la frappe
-                erasing = false;
-                index = 0;
-                setTimeout(tick, 300);
+                if (titleElement.textContent.length > 0) {
+                    titleElement.textContent = titleElement.textContent.slice(0, -1);
+                    setTimeout(tick, 20);
+                } else {
+                    erasing = false;
+                    index = 0;
+                    setTimeout(tick, 300);
+                }
             }
         }
+        
+        tick();
     }
-
-    tick();
-});
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', startTypewriter);
+    } else {
+        startTypewriter();
+    }
+})();
 </script>
 
 <!-- Services Section ULTRA PRO -->
@@ -519,11 +550,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style="position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shine-badge 3s infinite;"></div>
                 <span style="color: #22c55e; font-weight: 700; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1.5px; position: relative; z-index: 1;">
                     <i class="fas fa-concierge-bell" style="margin-right: 8px; animation: ring-bell 3s ease-in-out infinite;"></i>
-                    Nos Services
+                    {{ __('messages.home.interventions.title') }}
                 </span>
                 </div>
             <h2 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 1rem; background: linear-gradient(135deg, #1f2937 0%, #22c55e 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                Au Service de la Population
+                {{ __('messages.home.interventions.description') }}
             </h2>
         </div>
         
@@ -542,10 +573,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div style="position: absolute; inset: -5px; border-radius: 50%; border: 3px dashed #22c55e; opacity: 0; animation: rotate-dashed 10s linear infinite;"></div>
                     </div>
                     <h3 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem; text-align: center; transition: all 0.3s ease;">
-                        Distributions alimentaires
+                        {{ __('messages.home.services.distribution') }}
                     </h3>
                     <p style="color: #6b7280; line-height: 1.7; text-align: center; transition: all 0.3s ease;">
-                    Nos équipes distribuent des denrées alimentaires aux populations dans le besoin à travers tout le Sénégal
+                    {{ __('messages.home.services.distribution_desc') }}
                 </p>
             </div>
             </a>
@@ -561,10 +592,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div style="position: absolute; inset: -5px; border-radius: 50%; border: 3px dashed #3b82f6; opacity: 0; animation: rotate-dashed 10s linear infinite;"></div>
                 </div>
                     <h3 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem; text-align: center; transition: all 0.3s ease;">
-                        Magasins de stockage CSAR
+                        {{ __('messages.home.services.storage') }}
                     </h3>
                     <p style="color: #6b7280; line-height: 1.7; text-align: center; transition: all 0.3s ease;">
-                    Notre réseau de magasins de stockage stratégiques assure le stockage et la distribution des denrées alimentaires
+                    {{ __('messages.home.services.storage_desc') }}
                 </p>
             </div>
             </a>
@@ -580,10 +611,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div style="position: absolute; inset: -5px; border-radius: 50%; border: 3px dashed #8b5cf6; opacity: 0; animation: rotate-dashed 10s linear infinite;"></div>
                 </div>
                     <h3 style="font-size: 1.5rem; font-weight: 700; color: #1f2937; margin-bottom: 1rem; text-align: center; transition: all 0.3s ease;">
-                        Suivre ma demande
+                        {{ __('messages.home.services.tracking') }}
                     </h3>
                     <p style="color: #6b7280; line-height: 1.7; text-align: center; transition: all 0.3s ease;">
-                    Consultez l'état d'avancement de votre demande avec votre code de suivi unique
+                    {{ __('messages.home.services.tracking_desc') }}
                 </p>
             </div>
             </a>
@@ -597,7 +628,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- Titre -->
         <div style="margin-bottom: 3rem;" data-aos="fade-up">
             <h2 style="font-size: 2.8rem; font-weight: 800; color: #1f2937; text-transform: uppercase; letter-spacing: 1px; position: relative; display: inline-block;">
-                ACTUALITÉS
+                {{ __('messages.home.news.title') }}
                 <div style="position: absolute; bottom: -8px; left: 0; width: 80px; height: 4px; background: #22c55e; border-radius: 2px;"></div>
             </h2>
         </div>
@@ -626,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span class="actu-date-badge"><i class="fas fa-calendar-alt"></i> {{ $featured->published_at ? $featured->published_at->format('d/m/Y') : $featured->created_at->format('d/m/Y') }}</span>
                         <h3 class="actu-featured-title">{{ $featured->title }}</h3>
                         <p class="actu-featured-excerpt">{{ \Illuminate\Support\Str::limit(strip_tags(html_entity_decode($featured->excerpt ?? $featured->content)), 160) }}</p>
-                        <a href="{{ route('news.show', $featured->id) }}" class="actu-read-btn"><i class="fas fa-arrow-right"></i> Lire la suite</a>
+                        <a href="{{ route('news.show', $featured->id) }}" class="actu-read-btn"><i class="fas fa-arrow-right"></i> {{ __('messages.home.news.link') }}</a>
                     </div>
                 </div>
             </div>
@@ -670,14 +701,14 @@ document.addEventListener('DOMContentLoaded', function() {
         <!-- Bouton voir toutes les actualités -->
         <div style="text-align: center; margin-top: 3rem;" data-aos="fade-up">
             <a href="{{ route('news') }}" style="display:inline-flex;align-items:center;gap:10px;background:#22c55e;color:white;padding:14px 36px;border-radius:50px;font-weight:700;text-decoration:none;font-size:1rem;box-shadow:0 6px 20px rgba(34,197,94,0.35);transition:all 0.3s ease;">
-                <i class="fas fa-arrow-right"></i> Voir toutes les actualités
+                <i class="fas fa-arrow-right"></i> {{ __('messages.home.news.view_all') }}
             </a>
         </div>
         @else
         <div style="text-align: center; padding: 60px 20px;">
             <i class="fas fa-newspaper" style="font-size: 3rem; color: #9ca3af; margin-bottom: 1rem;"></i>
-            <h3 style="color: #6b7280;">Aucune actualité disponible</h3>
-            <p style="color: #9ca3af;">Revenez bientôt pour découvrir nos dernières actualités.</p>
+            <h3 style="color: #6b7280;">{{ __('messages.home.news.none_available') }}</h3>
+            <p style="color: #9ca3af;">{{ __('messages.home.news.come_back_soon') }}</p>
         </div>
         @endif
     </div>
@@ -750,101 +781,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <h4>Optimiser la gouvernance et la coordination</h4>
                 <p>Améliorer la coordination entre les différents acteurs pour une réponse plus efficace aux défis alimentaires.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ===== MÉTÉO EN TEMPS RÉEL (One Call 3.0) ===== -->
-<section style="padding: 60px 0 40px; background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); position: relative; overflow: hidden;">
-    <div style="position:absolute;top:-100px;right:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(59,130,246,0.15),transparent);border-radius:50%;filter:blur(60px);"></div>
-    <div style="position:absolute;bottom:-80px;left:-80px;width:300px;height:300px;background:radial-gradient(circle,rgba(16,185,129,0.1),transparent);border-radius:50%;filter:blur(50px);"></div>
-    <div class="container" style="max-width: 1300px; margin: 0 auto; padding: 0 20px; position: relative; z-index: 1;">
-        <div style="text-align:center;margin-bottom:2rem;" data-aos="fade-up">
-            <span style="display:inline-block;background:rgba(59,130,246,0.2);padding:6px 18px;border-radius:50px;color:#60a5fa;font-size:0.82rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:0.8rem;">
-                <i class="fas fa-cloud-sun" style="margin-right:6px;"></i> Météo en direct
-            </span>
-            <h2 style="color:white;font-size:1.8rem;font-weight:700;margin:0;">Conditions météorologiques actuelles</h2>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 320px;gap:1.5rem;max-width:1300px;margin:0 auto;align-items:start;" class="meteo-action-grid">
-            <!-- Colonne gauche : Météo -->
-            <div id="weather-widget" data-aos="fade-up" data-aos-delay="100">
-                <!-- Loading -->
-                <div id="weather-loading" style="text-align:center;padding:40px;color:rgba(255,255,255,0.6);">
-                    <i class="fas fa-spinner fa-spin" style="font-size:2rem;margin-bottom:10px;display:block;"></i>
-                    <p style="margin:0;">Chargement de la météo géolocalisée...</p>
-                </div>
-                <!-- Content -->
-                <div id="weather-content" style="display:none;">
-                    <!-- Current weather card -->
-                    <div class="weather-main-card">
-                        <div class="weather-left">
-                            <div class="weather-location">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span id="weather-city">--</span>
-                            </div>
-                            <div class="weather-temp-wrap">
-                                <img id="weather-icon" src="" alt="météo" style="width:80px;height:80px;">
-                                <span id="weather-temp" class="weather-temp">--°</span>
-                            </div>
-                            <p id="weather-desc" style="color:rgba(255,255,255,0.8);font-size:1rem;margin:0;text-transform:capitalize;">--</p>
-                        </div>
-                        <div class="weather-right">
-                            <div class="weather-detail">
-                                <i class="fas fa-tint"></i>
-                                <div><span class="weather-detail-label">Humidité</span><span id="weather-humidity" class="weather-detail-val">--%</span></div>
-                            </div>
-                            <div class="weather-detail">
-                                <i class="fas fa-wind"></i>
-                                <div><span class="weather-detail-label">Vent</span><span id="weather-wind" class="weather-detail-val">-- km/h</span></div>
-                            </div>
-                            <div class="weather-detail">
-                                <i class="fas fa-thermometer-half"></i>
-                                <div><span class="weather-detail-label">Ressenti</span><span id="weather-feels" class="weather-detail-val">--°</span></div>
-                            </div>
-                            <div class="weather-detail">
-                                <i class="fas fa-sun"></i>
-                                <div><span class="weather-detail-label">UV Index</span><span id="weather-uvi" class="weather-detail-val">--</span></div>
-                            </div>
-                            <div class="weather-detail">
-                                <i class="fas fa-eye"></i>
-                                <div><span class="weather-detail-label">Visibilité</span><span id="weather-visibility" class="weather-detail-val">-- km</span></div>
-                            </div>
-                            <div class="weather-detail">
-                                <i class="fas fa-compress-arrows-alt"></i>
-                                <div><span class="weather-detail-label">Pression</span><span id="weather-pressure" class="weather-detail-val">-- hPa</span></div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- 3-day forecast -->
-                    <div id="weather-forecast" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.2rem;"></div>
-                    <!-- Alerts -->
-                    <div id="weather-alerts" style="margin-top:1rem;display:none;"></div>
-                </div>
-                <!-- Error -->
-                <div id="weather-error" style="display:none;text-align:center;padding:20px;color:rgba(255,255,255,0.6);">
-                    <i class="fas fa-exclamation-triangle" style="font-size:1.5rem;margin-bottom:8px;display:block;color:#f59e0b;"></i>
-                    <p style="margin:0;">Impossible de charger la météo. Vérifiez votre connexion.</p>
-                </div>
-            </div>
-
-            <!-- Colonne droite : CSAR EN ACTION (petite fenêtre) -->
-            <div data-aos="fade-left" data-aos-delay="200" style="background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;padding:1.5rem;overflow:hidden;">
-                <div style="display:flex;align-items:center;gap:8px;margin-bottom:1rem;">
-                    <div style="width:8px;height:8px;background:#22c55e;border-radius:50%;animation:pulse-dot 2s infinite;"></div>
-                    <h4 style="color:white;font-size:1rem;font-weight:700;margin:0;text-transform:uppercase;letter-spacing:0.5px;">
-                        <span style="color:#22c55e;">CSAR</span> EN ACTION
-                    </h4>
-                </div>
-                <div style="border-radius:14px;overflow:hidden;margin-bottom:1rem;border:1px solid rgba(255,255,255,0.1);">
-                    <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" alt="CSAR en action" style="width:100%;height:160px;object-fit:contain;background:rgba(255,255,255,0.95);padding:10px;">
-                </div>
-                <p style="color:rgba(255,255,255,0.75);font-size:0.82rem;line-height:1.6;margin:0 0 1rem;">
-                    Opérations de distribution alimentaire et de soutien aux communautés. Le CSAR est à votre disposition sur l'ensemble du territoire.
-                </p>
-                <a href="{{ route('about') }}" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(34,197,94,0.2);color:#22c55e;font-size:0.8rem;font-weight:600;border-radius:10px;border:1px solid rgba(34,197,94,0.3);text-decoration:none;transition:all 0.3s ease;" onmouseover="this.style.background='rgba(34,197,94,0.4)'" onmouseout="this.style.background='rgba(34,197,94,0.2)'">
-                    <i class="fas fa-arrow-right"></i> En savoir plus
-                </a>
             </div>
         </div>
     </div>
@@ -1914,6 +1850,107 @@ document.addEventListener('keydown', function(e) {
     }
 });
 </script>
+
+<!-- ===== MÉTÉO EN TEMPS RÉEL (One Call 3.0) ===== -->
+<section style="padding: 100px 0; background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #3b82f6 100%); position: relative; overflow: hidden;">
+    <div style="position: absolute; inset: 0; opacity: 0.1;">
+        <div style="position: absolute; width: 600px; height: 600px; background: radial-gradient(circle, rgba(96, 165, 250, 0.4), transparent); border-radius: 50%; top: -200px; right: -100px; animation: float-orb 15s ease-in-out infinite; filter: blur(80px);"></div>
+        <div style="position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(147, 197, 253, 0.3), transparent); border-radius: 50%; bottom: -150px; left: -50px; animation: float-orb 20s ease-in-out infinite reverse; filter: blur(100px);"></div>
+    </div>
+
+    <div class="container" style="position: relative; z-index: 1;">
+        <div style="text-align: center; margin-bottom: 3rem;" data-aos="fade-up">
+            <div style="display: inline-flex; align-items: center; gap: 12px; padding: 12px 28px; background: rgba(96, 165, 250, 0.15); backdrop-filter: blur(10px); border-radius: 50px; margin-bottom: 1.5rem; border: 1px solid rgba(96, 165, 250, 0.3);">
+                <i class="fas fa-cloud-sun" style="font-size: 1.5rem; color: #60a5fa;"></i>
+                <span style="color: #60a5fa; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1.5px;">
+                    Données Météorologiques
+                </span>
+            </div>
+            
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 1.15rem; max-width: 700px; margin: 0 auto; line-height: 1.7;">
+                Conditions météorologiques actuelles et prévisions pour votre région
+            </p>
+        </div>
+
+        <div class="meteo-action-grid">
+            <div data-aos="fade-right">
+                <div class="weather-main-card" id="weather-widget">
+                    <div class="weather-left">
+                        <div class="weather-location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span id="weather-city">Chargement...</span>
+                        </div>
+                        <div class="weather-temp-wrap">
+                            <div class="weather-temp" id="weather-temp">--°</div>
+                            <div>
+                                <div style="font-size: 1.1rem; color: rgba(255,255,255,0.9); font-weight: 600; text-transform: capitalize;" id="weather-desc">--</div>
+                                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Ressenti: <span id="weather-feels">--°</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="weather-right">
+                        <div class="weather-detail">
+                            <i class="fas fa-tint"></i>
+                            <div>
+                                <span class="weather-detail-label">Humidité</span>
+                                <span class="weather-detail-val" id="weather-humidity">--%</span>
+                            </div>
+                        </div>
+                        <div class="weather-detail">
+                            <i class="fas fa-wind"></i>
+                            <div>
+                                <span class="weather-detail-label">Vent</span>
+                                <span class="weather-detail-val" id="weather-wind">-- km/h</span>
+                            </div>
+                        </div>
+                        <div class="weather-detail">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                            <div>
+                                <span class="weather-detail-label">Pression</span>
+                                <span class="weather-detail-val" id="weather-pressure">-- hPa</span>
+                            </div>
+                        </div>
+                        <div class="weather-detail">
+                            <i class="fas fa-eye"></i>
+                            <div>
+                                <span class="weather-detail-label">Visibilité</span>
+                                <span class="weather-detail-val" id="weather-visibility">-- km</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="weather-forecast" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                </div>
+
+                <div id="weather-alerts" style="margin-top: 1.5rem;"></div>
+            </div>
+
+            <div data-aos="fade-left">
+                <div style="background: rgba(255,255,255,0.08); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.12); border-radius: 20px; padding: 2rem; height: 100%;">
+                    <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 10px;">
+                        <i class="fas fa-hands-helping" style="color: #22c55e;"></i>
+                        CSAR en Action
+                    </h3>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="background: rgba(255,255,255,0.06); border-radius: 12px; padding: 1rem; border-left: 3px solid #22c55e;">
+                            <div style="color: #22c55e; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem;">ASSISTANCE ALIMENTAIRE</div>
+                            <div style="color: white; font-size: 0.95rem; line-height: 1.5;">Distribution de vivres aux populations vulnérables</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.06); border-radius: 12px; padding: 1rem; border-left: 3px solid #3b82f6;">
+                            <div style="color: #60a5fa; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem;">SUIVI DES MARCHÉS</div>
+                            <div style="color: white; font-size: 0.95rem; line-height: 1.5;">Surveillance des prix des denrées alimentaires</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.06); border-radius: 12px; padding: 1rem; border-left: 3px solid #f59e0b;">
+                            <div style="color: #fbbf24; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem;">GESTION DES STOCKS</div>
+                            <div style="color: white; font-size: 0.95rem; line-height: 1.5;">Optimisation des réserves stratégiques</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- ===== CARTE DES MARCHÉS SUIVIS SIM CSAR ===== -->
 <section style="padding: 100px 0; background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 40%, #0f766e 100%); position: relative; overflow: hidden;">
@@ -3293,6 +3330,169 @@ setTimeout(() => {
     </div>
 </section>
 
+<!-- Nos Partenaires en Action Section -->
+<style>
+.logo-hero-home {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    padding: 80px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.logo-hero-home::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1" fill="rgba(5,150,105,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23dots)"/></svg>');
+    opacity: 0.6;
+}
+
+.logo-hero-home h2 {
+    font-weight: 800;
+    text-align: center;
+    margin: 0 0 50px 0;
+    font-size: 2.8rem;
+    color: #059669;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 2;
+}
+
+.logo-hero-home h2::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(90deg, #059669, #3b82f6, #f59e0b);
+    border-radius: 2px;
+}
+
+.marquee-home {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 25px;
+    padding: 40px 0;
+    box-shadow: 0 20px 40px rgba(5, 150, 105, 0.1);
+    border: 2px solid rgba(5, 150, 105, 0.1);
+}
+
+.marquee-home::before,
+.marquee-home::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    width: 100px;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.marquee-home::before {
+    left: 0;
+    background: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 0));
+}
+
+.marquee-home::after {
+    right: 0;
+    background: linear-gradient(to left, #ffffff, rgba(255, 255, 255, 0));
+}
+
+.marquee-home .track {
+    display: flex;
+    gap: 100px;
+    align-items: center;
+    animation: logos-scroll-home 60s linear infinite;
+    will-change: transform;
+}
+
+.marquee-home:hover .track {
+    animation-play-state: paused;
+}
+
+.marquee-home img {
+    height: 120px;
+    width: auto;
+    filter: grayscale(0%) contrast(1.4) brightness(1.1) saturate(1.2);
+    opacity: 1;
+    transition: all 0.4s ease;
+    border-radius: 12px;
+    padding: 20px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    border: 2px solid rgba(5, 150, 105, 0.1);
+    object-fit: contain;
+    max-width: 200px;
+}
+
+.marquee-home .track a { flex: 0 0 auto; }
+
+.marquee-home a:hover img {
+    filter: none;
+    opacity: 1;
+    transform: scale(1.15) translateY(-5px);
+    box-shadow: 0 15px 35px rgba(5, 150, 105, 0.2);
+    border-color: #059669;
+}
+
+@keyframes logos-scroll-home {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+@media (max-width: 768px) {
+    .logo-hero-home { padding: 60px 0; }
+    .marquee-home .track { gap: 50px; animation: logos-scroll-home 100s linear infinite !important; }
+    .marquee-home img { height: 56px; padding: 12px; max-width: 140px; }
+    .marquee-home a:hover img { transform: none; box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+}
+</style>
+
+<div class="logo-hero-home">
+  <div class="container">
+    <h2>Nos Partenaires en Action</h2>
+    <div class="marquee-home">
+      <div class="track">
+        @for($dup=0;$dup<2;$dup++)
+          <a href="https://fsrp.araa.org/fr" target="_blank" rel="noopener nofollow" title="FSRP">
+            <img src="{{ asset('images/partners/fsrp.png') }}" alt="FSRP">
+          </a>
+          <a href="https://www.jica.go.jp/french/" target="_blank" rel="noopener nofollow" title="JICA">
+            <img src="{{ asset('images/partners/jica.jpg') }}" alt="JICA">
+          </a>
+          <a href="https://www.araa.org/fr" target="_blank" rel="noopener nofollow" title="ARAA">
+            <img src="{{ asset('images/logos/logo arra.png') }}" alt="ARAA">
+          </a>
+          <a href="https://fr.wfp.org/" target="_blank" rel="noopener nofollow" title="PAM">
+            <img src="{{ asset('images/logos/logo pam.jpeg') }}" alt="PAM">
+          </a>
+          <a href="https://recrute.ansd.sn/" target="_blank" rel="noopener nofollow" title="ANSD">
+            <img src="{{ asset('images/partners/ansd.png') }}" alt="ANSD">
+          </a>
+          <a href="https://www.fongip.sn/" target="_blank" rel="noopener nofollow" title="FONGIP">
+            <img src="{{ asset('images/partners/fongip.jpeg') }}" alt="FONGIP">
+          </a>
+          <a href="https://www.saudia.com/" target="_blank" rel="noopener nofollow" title="Saudia">
+            <img src="{{ asset('images/logos/logo arabie saudia.png') }}" alt="Saudia">
+          </a>
+        @endfor
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 3rem;">
+      <a href="{{ route('partners.index', ['locale' => app()->getLocale()]) }}" style="display: inline-flex; align-items: center; gap: 10px; padding: 14px 32px; background: linear-gradient(135deg, #059669, #10b981); color: white; font-weight: 600; font-size: 1rem; border-radius: 50px; text-decoration: none; box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3); transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 12px 28px rgba(5, 150, 105, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 20px rgba(5, 150, 105, 0.3)';">
+        Voir tous nos partenaires
+        <i class="fas fa-arrow-right" style="transition: transform 0.3s;"></i>
+      </a>
+    </div>
+  </div>
+</div>
+
 <style>
 /* LinkedIn Section Styles */
 .btn-linkedin-follow {
@@ -3900,131 +4100,171 @@ setTimeout(() => {
 </style>
 @endif
 
-<!-- Script Météo One Call 3.0 géolocalisée -->
+<!-- Script Météo — proxy Laravel (clé sécurisée, cache 10 min, refresh auto) -->
 <script>
 (function() {
-    var OWM_KEY = '2b283a0dda3db4a7a9ebe7cdbef5728c';
-    var defaultLat = 14.6928;
-    var defaultLon = -17.4467;
-    var joursFr = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+    var DAKAR_LAT = 14.6928;
+    var DAKAR_LON = -17.4467;
+    var refreshInterval = null;
 
-    function getCityName(lat, lon, callback) {
-        fetch('https://api.openweathermap.org/geo/1.0/reverse?lat=' + lat + '&lon=' + lon + '&limit=1&appid=' + OWM_KEY)
-            .then(function(r) { return r.json(); })
+    function setEl(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+
+    function showLoading() {
+        var w = document.getElementById('weather-widget');
+        if (w) w.style.opacity = '0.6';
+        setEl('weather-city', 'Chargement...');
+        setEl('weather-temp', '--°');
+        setEl('weather-desc', '');
+        setEl('weather-feels', '--°');
+        setEl('weather-humidity', '--%');
+        setEl('weather-wind', '-- km/h');
+        setEl('weather-pressure', '-- hPa');
+        setEl('weather-visibility', '-- km');
+    }
+
+    function showError(msg) {
+        var w = document.getElementById('weather-widget');
+        if (w) w.style.opacity = '1';
+        setEl('weather-city', 'Dakar, SN');
+        setEl('weather-temp', '--°');
+        setEl('weather-desc', msg || 'Service indisponible');
+        setEl('weather-feels', '--°');
+        setEl('weather-humidity', '--%');
+        setEl('weather-wind', '-- km/h');
+        setEl('weather-pressure', '-- hPa');
+        setEl('weather-visibility', '-- km');
+        var fc = document.getElementById('weather-forecast');
+        if (fc) fc.innerHTML = '';
+    }
+
+    function renderWeather(d) {
+        var w = document.getElementById('weather-widget');
+        if (w) w.style.opacity = '1';
+
+        setEl('weather-city',       d.city + ', ' + d.country);
+        setEl('weather-temp',       d.temp + '°C');
+        setEl('weather-desc',       d.description);
+        setEl('weather-feels',      d.feels_like + '°C');
+        setEl('weather-humidity',   d.humidity + '%');
+        setEl('weather-wind',       d.wind + ' km/h');
+        setEl('weather-pressure',   d.pressure + ' hPa');
+        setEl('weather-visibility', d.visibility !== null ? d.visibility + ' km' : '-- km');
+
+        // Icône
+        var iconEl = document.getElementById('weather-icon');
+        if (!iconEl) {
+            iconEl = document.createElement('img');
+            iconEl.id = 'weather-icon';
+            iconEl.style.cssText = 'width:60px;height:60px;';
+            var wrap = document.getElementById('weather-temp');
+            if (wrap && wrap.parentNode) wrap.parentNode.insertBefore(iconEl, wrap);
+        }
+        if (d.icon) {
+            iconEl.src = 'https://openweathermap.org/img/wn/' + d.icon + '@2x.png';
+            iconEl.alt = d.description;
+        }
+
+        // Heure de mise à jour
+        var updEl = document.getElementById('weather-updated');
+        if (!updEl) {
+            updEl = document.createElement('div');
+            updEl.id = 'weather-updated';
+            updEl.style.cssText = 'color:rgba(255,255,255,0.4);font-size:0.72rem;margin-top:8px;';
+            var widget = document.getElementById('weather-widget');
+            if (widget) widget.appendChild(updEl);
+        }
+        updEl.textContent = 'Mis à jour à ' + d.updated_at;
+
+        var fc = document.getElementById('weather-forecast');
+        if (fc) fc.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:0.8rem;text-align:center;padding:8px;">Chargement des prévisions...</div>';
+        var al = document.getElementById('weather-alerts');
+        if (al) al.innerHTML = '';
+    }
+
+    function renderForecast(forecast) {
+        var fc = document.getElementById('weather-forecast');
+        if (!fc || !forecast || !forecast.length) return;
+
+        fc.innerHTML = forecast.map(function(day) {
+            return '<div class="weather-forecast-card">' +
+                '<div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.9);text-transform:capitalize;">' + day.day_label + '</div>' +
+                '<img src="https://openweathermap.org/img/wn/' + day.icon + '@2x.png" alt="' + day.description + '" style="width:48px;height:48px;margin:4px auto;display:block;">' +
+                '<div style="font-size:0.75rem;color:rgba(255,255,255,0.6);text-transform:capitalize;margin-bottom:6px;">' + day.description + '</div>' +
+                '<div style="font-size:1.1rem;font-weight:800;color:white;">' + day.temp_max + '°<span style="font-size:0.85rem;font-weight:400;color:rgba(255,255,255,0.5);margin-left:4px;">' + day.temp_min + '°</span></div>' +
+                (day.rain_prob > 0 ? '<div style="font-size:0.72rem;color:#93c5fd;margin-top:4px;">💧 ' + day.rain_prob + '%</div>' : '') +
+                '<div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:4px;">💨 ' + day.wind + ' km/h</div>' +
+                '</div>';
+        }).join('');
+    }
+
+    function fetchForecast(lat, lon) {
+        var url = '/api/weather/forecast?lat=' + lat + '&lon=' + lon;
+        fetch(url)
+            .then(function(r) { return r.ok ? r.json() : null; })
             .then(function(data) {
-                if (data && data[0]) {
-                    callback(data[0].name + ', ' + (data[0].country || 'SN'));
+                if (data && data.forecast) {
+                    renderForecast(data.forecast);
                 } else {
-                    callback('Position actuelle');
+                    var fc = document.getElementById('weather-forecast');
+                    if (fc) fc.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:0.8rem;text-align:center;padding:8px;">Prévisions indisponibles</div>';
                 }
             })
-            .catch(function() { callback('Position actuelle'); });
+            .catch(function() {
+                var fc = document.getElementById('weather-forecast');
+                if (fc) fc.innerHTML = '';
+            });
     }
 
     function fetchWeather(lat, lon) {
-        var url = 'https://api.openweathermap.org/data/3.0/onecall?lat=' + lat + '&lon=' + lon + '&units=metric&lang=fr&appid=' + OWM_KEY;
+        var url = '/api/weather?lat=' + lat + '&lon=' + lon;
         fetch(url)
-            .then(function(r) { return r.json(); })
+            .then(function(r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.json();
+            })
             .then(function(data) {
-                if (data && data.current) {
-                    getCityName(lat, lon, function(cityName) {
-                        document.getElementById('weather-city').textContent = cityName;
-                    });
-                    var c = data.current;
-                    document.getElementById('weather-temp').textContent = Math.round(c.temp) + '°C';
-                    document.getElementById('weather-desc').textContent = c.weather && c.weather[0] ? c.weather[0].description : '';
-                    document.getElementById('weather-humidity').textContent = c.humidity + '%';
-                    document.getElementById('weather-wind').textContent = Math.round((c.wind_speed || 0) * 3.6) + ' km/h';
-                    document.getElementById('weather-feels').textContent = Math.round(c.feels_like) + '°C';
-                    document.getElementById('weather-uvi').textContent = c.uvi !== undefined ? c.uvi.toFixed(1) : '--';
-                    document.getElementById('weather-visibility').textContent = c.visibility ? (c.visibility / 1000).toFixed(1) + ' km' : '--';
-                    document.getElementById('weather-pressure').textContent = c.pressure + ' hPa';
-                    if (c.weather && c.weather[0]) {
-                        document.getElementById('weather-icon').src = 'https://openweathermap.org/img/wn/' + c.weather[0].icon + '@2x.png';
-                    }
-                    if (data.daily && data.daily.length > 1) {
-                        var forecastHtml = '';
-                        for (var i = 1; i <= 3 && i < data.daily.length; i++) {
-                            var d = data.daily[i];
-                            var dt = new Date(d.dt * 1000);
-                            var jour = joursFr[dt.getDay()];
-                            var dateStr = dt.getDate() + '/' + (dt.getMonth() + 1);
-                            var ico = d.weather && d.weather[0] ? d.weather[0].icon : '01d';
-                            var desc = d.weather && d.weather[0] ? d.weather[0].description : '';
-                            forecastHtml += '<div class="weather-forecast-card">' +
-                                '<div class="wf-day">' + jour + ' ' + dateStr + '</div>' +
-                                '<img src="https://openweathermap.org/img/wn/' + ico + '@2x.png" alt="' + desc + '" style="width:50px;height:50px;">' +
-                                '<div class="wf-temps"><span class="wf-max">' + Math.round(d.temp.max) + '°</span><span class="wf-min">' + Math.round(d.temp.min) + '°</span></div>' +
-                                '<div class="wf-desc">' + desc + '</div>' +
-                                '</div>';
-                        }
-                        document.getElementById('weather-forecast').innerHTML = forecastHtml;
-                    }
-                    if (data.alerts && data.alerts.length > 0) {
-                        var alertsEl = document.getElementById('weather-alerts');
-                        var alertHtml = '';
-                        for (var a = 0; a < data.alerts.length && a < 2; a++) {
-                            alertHtml += '<div class="weather-alert-card">' +
-                                '<i class="fas fa-exclamation-triangle"></i> ' +
-                                '<strong>' + data.alerts[a].event + '</strong> — ' +
-                                data.alerts[a].description.substring(0, 150) + '...' +
-                                '</div>';
-                        }
-                        alertsEl.innerHTML = alertHtml;
-                        alertsEl.style.display = 'block';
-                    }
-                    document.getElementById('weather-loading').style.display = 'none';
-                    document.getElementById('weather-content').style.display = 'block';
-                } else if (data && data.cod === 401) {
-                    fallbackWeather(lat, lon);
+                if (data && data.error) {
+                    console.warn('Météo:', data.error);
+                    showError('Service indisponible');
                 } else {
-                    showWeatherError();
+                    renderWeather(data);
+                    fetchForecast(lat, lon);
                 }
             })
-            .catch(function() { fallbackWeather(lat, lon); });
+            .catch(function(err) {
+                console.warn('Erreur météo:', err);
+                showError('Service indisponible');
+            });
     }
 
-    function fallbackWeather(lat, lon) {
-        var url = 'https://api.openweathermap.org/data/2.5/weather?lat=' + lat + '&lon=' + lon + '&units=metric&lang=fr&appid=' + OWM_KEY;
-        fetch(url)
-            .then(function(r) { return r.json(); })
-            .then(function(data) {
-                if (data && data.main) {
-                    document.getElementById('weather-city').textContent = data.name + ', ' + (data.sys && data.sys.country ? data.sys.country : 'SN');
-                    document.getElementById('weather-temp').textContent = Math.round(data.main.temp) + '°C';
-                    document.getElementById('weather-desc').textContent = data.weather && data.weather[0] ? data.weather[0].description : '';
-                    document.getElementById('weather-humidity').textContent = data.main.humidity + '%';
-                    document.getElementById('weather-wind').textContent = Math.round((data.wind && data.wind.speed ? data.wind.speed : 0) * 3.6) + ' km/h';
-                    document.getElementById('weather-feels').textContent = Math.round(data.main.feels_like) + '°C';
-                    document.getElementById('weather-uvi').textContent = '--';
-                    document.getElementById('weather-visibility').textContent = data.visibility ? (data.visibility / 1000).toFixed(1) + ' km' : '--';
-                    document.getElementById('weather-pressure').textContent = data.main.pressure + ' hPa';
-                    if (data.weather && data.weather[0]) {
-                        document.getElementById('weather-icon').src = 'https://openweathermap.org/img/wn/' + data.weather[0].icon + '@2x.png';
-                    }
-                    document.getElementById('weather-loading').style.display = 'none';
-                    document.getElementById('weather-content').style.display = 'block';
-                } else {
-                    showWeatherError();
-                }
-            })
-            .catch(function() { showWeatherError(); });
+    function init() {
+        showLoading();
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(pos) {
+                    fetchWeather(pos.coords.latitude, pos.coords.longitude);
+                },
+                function() {
+                    // Géolocalisation refusée ou échouée → Dakar par défaut
+                    fetchWeather(DAKAR_LAT, DAKAR_LON);
+                },
+                { timeout: 5000, maximumAge: 300000 }
+            );
+        } else {
+            fetchWeather(DAKAR_LAT, DAKAR_LON);
+        }
     }
 
-    function showWeatherError() {
-        document.getElementById('weather-loading').style.display = 'none';
-        document.getElementById('weather-error').style.display = 'block';
-    }
+    // Lancer au chargement
+    init();
 
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-            function(pos) { fetchWeather(pos.coords.latitude, pos.coords.longitude); },
-            function() { fetchWeather(defaultLat, defaultLon); },
-            { timeout: 5000 }
-        );
-    } else {
-        fetchWeather(defaultLat, defaultLon);
-    }
+    // Rafraîchissement automatique toutes les 10 minutes
+    refreshInterval = setInterval(function() {
+        fetchWeather(DAKAR_LAT, DAKAR_LON);
+    }, 600000);
 })();
 </script>
 @endsection

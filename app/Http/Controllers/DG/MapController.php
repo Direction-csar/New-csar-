@@ -52,7 +52,7 @@ class MapController extends Controller
     private function getDemandesByRegion(): array
     {
         $rows = DB::table('public_requests')
-            ->select('region', DB::raw('COUNT(*) as total'), DB::raw('SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending'), DB::raw('SUM(CASE WHEN status = "approved" THEN 1 ELSE 0 END) as approved'), DB::raw('SUM(CASE WHEN status = "rejected" THEN 1 ELSE 0 END) as rejected'))
+            ->select('region', DB::raw('COUNT(*) as total'), DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"), DB::raw("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved"), DB::raw("SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected"))
             ->whereNotNull('region')->where('region', '!=', '')
             ->groupBy('region')
             ->orderByDesc('total')

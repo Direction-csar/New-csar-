@@ -121,7 +121,7 @@
     </div>
   </div>
   <div style="text-align:center; font-size:14px; padding:16px 0; background:rgba(0,0,0,0.15); color:#fff; text-shadow: 0 1px 3px rgba(0,0,0,0.4); font-weight: 500;">
-    © {{ date('Y') }} CSAR - {{ __('messages.home.title') }}. {{ __('messages.footer.copyright') }}
+    &copy; {{ date('Y') }} CSAR - Tous droits réservés
   </div>
 
   <script>

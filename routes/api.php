@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -129,6 +130,12 @@ Route::middleware('auth:sanctum')->group(function () {
                 ]
             ]
         ]);
+    });
+    
+    // Suivi des collecteurs en temps réel
+    Route::prefix('mobile')->group(function () {
+        Route::post('/collectors/location', [\App\Http\Controllers\Api\Mobile\CollectorLocationController::class, 'updateLocation']);
+        Route::get('/collectors/locations', [\App\Http\Controllers\Api\Mobile\CollectorLocationController::class, 'getActiveCollectors']);
     });
     
     // Rapports

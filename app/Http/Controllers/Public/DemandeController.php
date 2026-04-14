@@ -30,7 +30,7 @@ class DemandeController extends Controller
             'objet' => 'required|string|max:255',
             'description' => 'required|string|max:2000',
             'type_demande' => 'required|string|max:255',
-            'region' => 'required|string|max:255',
+            'region' => 'required_if:type_demande,aide_alimentaire|nullable|string|max:255',
             'adresse' => 'nullable|string|max:500',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',

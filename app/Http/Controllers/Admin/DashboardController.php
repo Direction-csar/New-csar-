@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\PublicRequest;
 use App\Models\Demande;
 use App\Models\User;
 use App\Models\Warehouse;
 use App\Models\Stock;
+use App\Models\StockMovement;
 use App\Models\Personnel;
 use App\Models\Notification;
 use App\Models\Message;

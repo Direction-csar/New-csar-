@@ -26,9 +26,9 @@ use App\Http\Controllers\Public\ReportsController;
 use App\Http\Controllers\Public\ContactController;
 use App\Http\Controllers\Public\ActionController;
 use App\Http\Controllers\Public\TrackController;
-use App\Http\Controllers\Public\SpeechesController;
 use App\Http\Controllers\Public\DemandeController;
 use App\Http\Controllers\Public\PartnersController;
+use App\Http\Controllers\Public\DonationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\NewsletterSubscriptionController;
@@ -76,6 +76,21 @@ require_once __DIR__ . '/simple-auth.php';
 // Language switching routes
 Route::get('/set-locale/{locale}', [LanguageController::class, 'setLocale'])->name('set-locale');
 
+// Téléchargement de l'application mobile SIM
+Route::get('/telecharger-app', function () {
+    return view('public.download-app');
+})->name('app.download');
+
+Route::get('/telecharger-app/apk', function () {
+    $file = public_path('downloads/sim-collecte.apk');
+    if (!file_exists($file)) {
+        abort(404, 'Fichier APK non disponible');
+    }
+    return response()->download($file, 'CSAR-SIM-Collecte.apk', [
+        'Content-Type' => 'application/vnd.android.package-archive',
+    ]);
+})->name('app.download.apk');
+
 // Redirect root to French by default
 Route::get('/', function () {
     return redirect('/fr');
@@ -87,7 +102,7 @@ Route::get('/news', function () {
 })->name('news');
 
 // Localized routes
-Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middleware' => ['web', \App\Http\Middleware\SetLocale::class]], function () {
+Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'middleware' => ['web', \App\Http\Middleware\SetLocale::class]], function () {
     // Home route
     Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -119,6 +134,7 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middlew
     Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
     Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
     Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
+    Route::get('/verifier/{code}', [TrackController::class, 'verify'])->name('track.verify');
 
     // Gallery routes
     Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
@@ -142,17 +158,52 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en'], 'middlew
     // Recherche (outil de recherche plateforme)
     Route::get('/recherche', [\App\Http\Controllers\Public\SearchController::class, 'index'])->name('search.index');
 
-    // Faire un don
-    Route::get('/faire-un-don', [\App\Http\Controllers\Public\DonController::class, 'index'])->name('don.index');
+    // Faire un don - Nouveau système de donations
+    Route::get('/faire-un-don', [DonationController::class, 'index'])->name('donations.index');
+    Route::post('/faire-un-don/process', [DonationController::class, 'process'])->name('donations.process');
+    Route::get('/faire-un-don/success/{donation}', [DonationController::class, 'success'])->name('donations.success');
+    Route::get('/faire-un-don/cancel', [DonationController::class, 'cancel'])->name('donations.cancel');
+    Route::post('/faire-un-don/callback', [DonationController::class, 'callback'])->name('donations.callback');
+    Route::get('/faire-un-don/track', [DonationController::class, 'track'])->name('donations.track');
+    
+    // PayPal specific routes
+    Route::get('/faire-un-don/paypal/success/{donation}', [DonationController::class, 'paypalSuccess'])->name('donations.paypal.success');
+    Route::get('/faire-un-don/paypal/cancel', [DonationController::class, 'paypalCancel'])->name('donations.paypal.cancel');
+    Route::post('/faire-un-don/paypal/webhook', [DonationController::class, 'paypalWebhook'])->name('donations.paypal.webhook');
+    
+    // API Routes pour donations
+    Route::prefix('api/donations')->group(function () {
+        Route::get('/statistics', [DonationController::class, 'statistics'])->name('donations.statistics');
+        Route::get('/history', [DonationController::class, 'history'])->name('donations.history');
+    });
+
+    // Application Mobile - Téléchargement APK
+    Route::get('/telecharger-apk', function () {
+        $apkPath = public_path('downloads/csar-mobile.apk');
+        $placeholderPath = public_path('downloads/csar-mobile.apk.placeholder');
+
+        // Si l'APK réel existe, le télécharger
+        if (file_exists($apkPath)) {
+            return response()->download($apkPath, 'csar-mobile-v1.0.0.apk', [
+                'Content-Type' => 'application/vnd.android.package-archive',
+            ]);
+        }
+
+        // Sinon, afficher la page placeholder
+        if (file_exists($placeholderPath)) {
+            return view('public.mobile-app.placeholder', [
+                'content' => file_get_contents($placeholderPath)
+            ]);
+        }
+
+        return redirect()->back()->with('info', 'L\'application mobile sera disponible prochainement.');
+    })->name('mobile-app.download');
 
     // Legal pages
     Route::get('/politique-confidentialite', [\App\Http\Controllers\Public\LegalController::class, 'privacy'])->name('privacy');
     Route::get('/conditions-utilisation', [\App\Http\Controllers\Public\LegalController::class, 'terms'])->name('terms');
 
-    // Speeches routes
-    Route::get('/discours', [SpeechesController::class, 'index'])->name('speeches');
-    Route::get('/discours/{id}', [SpeechesController::class, 'show'])->name('speech');
-
+    
     // Newsletter - Routes publiques unifiées
     Route::post('/newsletter', [\App\Http\Controllers\Public\NewsletterController::class, 'subscribe'])->name('newsletter.store');
     Route::post('/newsletter/subscribe', [\App\Http\Controllers\Public\NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
@@ -265,10 +316,12 @@ Route::post('/forgot-password', [PasswordResetController::class, 'sendResetLinkE
 Route::get('/password/reset/{token}', [PasswordResetController::class, 'showResetForm'])->name('password.reset');
 Route::post('/password/reset', [PasswordResetController::class, 'reset'])->name('password.update');
 
-// Routes de test
-Route::get('/test', [\App\Http\Controllers\Public\TestController::class, 'test'])->name('test');
-Route::get('/test-form', [\App\Http\Controllers\Public\TestController::class, 'testForm'])->name('test.form');
-Route::post('/test-submit', [\App\Http\Controllers\Public\TestController::class, 'testSubmit'])->name('test.submit');
+// Routes de test (uniquement en environnement local)
+if (app()->environment('local', 'testing', 'development')) {
+    Route::get('/test', [\App\Http\Controllers\Public\TestController::class, 'test'])->name('test');
+    Route::get('/test-form', [\App\Http\Controllers\Public\TestController::class, 'testForm'])->name('test.form');
+    Route::post('/test-submit', [\App\Http\Controllers\Public\TestController::class, 'testSubmit'])->name('test.submit');
+}
 
 // Public Routes - Formulaire de demande - Routes déjà définies dans le groupe {locale} (lignes 164-166)
 // Route::get('/demande', [DemandeController::class, 'create'])->name('demande.create');
@@ -309,9 +362,6 @@ Route::redirect('/demande-static', '/demande', 301);
 // Public Partners - Route déjà définie dans le groupe {locale} (ligne 128)
 // Route::get('/partenaires', [PartnersController::class, 'index'])->name('partners.index');
 
-// Speeches Routes - Routes déjà définies dans le groupe {locale} (lignes 136-137)
-// Route::get('/discours', [SpeechesController::class, 'index'])->name('speeches');
-// Route::get('/discours/{id}', [SpeechesController::class, 'show'])->name('speech');
 
 // Success page for request submission - Route déjà définie dans le groupe {locale} (ligne 147)
 // Route::get('/demande-succes', [HomeController::class, 'requestSuccess'])->name('request.success');
@@ -632,6 +682,34 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Route::post('messages/mark-all-read', [AdminMessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
         Route::post('messages/{id}/reply', [AdminMessageController::class, 'reply'])->name('messages.reply');
         Route::delete('messages/{id}', [AdminMessageController::class, 'destroy'])->name('messages.destroy');
+
+        // Donations (lecture + export)
+        Route::get('/donations', [\App\Http\Controllers\Admin\DonationController::class, 'index'])->name('donations.index');
+        Route::get('/donations/{id}', [\App\Http\Controllers\Admin\DonationController::class, 'show'])->name('donations.show');
+        Route::delete('/donations/{id}', [\App\Http\Controllers\Admin\DonationController::class, 'destroy'])->name('donations.destroy');
+        Route::get('/donations/export', [\App\Http\Controllers\Admin\DonationController::class, 'export'])->name('donations.export');
+
+        // FAQ (CRUD complet)
+        Route::resource('faqs', \App\Http\Controllers\Admin\FaqController::class)->except(['show']);
+        Route::post('/faqs/{id}/toggle-published', [\App\Http\Controllers\Admin\FaqController::class, 'togglePublished'])->name('faqs.toggle-published');
+
+        // Projets (CRUD complet)
+        Route::resource('projets', \App\Http\Controllers\Admin\ProjetController::class)->except(['show']);
+
+        // Documents publics (CRUD complet)
+        Route::resource('documents', \App\Http\Controllers\Admin\DocumentController::class)->except(['show']);
+        Route::get('/documents/{id}/download', [\App\Http\Controllers\Admin\DocumentController::class, 'download'])->name('documents.download');
+
+        // Partenaires techniques (CRUD complet)
+        Route::resource('partenaires', \App\Http\Controllers\Admin\PartenaireController::class)->except(['show']);
+
+        // SIM — Suivi collecteurs terrain (admin général)
+        Route::prefix('sim')->name('sim.')->group(function () {
+            Route::get('/suivi', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'index'])->name('suivi');
+            Route::get('/suivi-temps-reel', fn() => view('supervisor.live-tracking'))->name('live');
+            Route::get('/collecteurs/{id}', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collectorDetails'])->name('collector');
+            Route::get('/collectes', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collections'])->name('collectes');
+        });
     });
 });
 
@@ -694,69 +772,7 @@ Route::get('/actualites/stats', [\App\Http\Controllers\Public\ActualitesControll
 Route::get('/galerie', [\App\Http\Controllers\Public\GalerieController::class, 'index'])->name('public.galerie');
 Route::get('/galerie/stats', [\App\Http\Controllers\Public\GalerieController::class, 'getStats'])->name('public.galerie.stats');
 
-// Routes publiques - Messages et Newsletter
-Route::get('/test-contact', function () {
-    return view('public.contact');
-})->name('test.contact');
-
-Route::get('/test-contact-simple', function () {
-    return view('public.contact-simple');
-})->name('test.contact.simple');
-
-// Route contact simple qui fonctionne
-Route::get('/contact-simple', function () {
-    return view('public.contact-simple');
-})->name('contact.simple');
-
-// Route de test pour la page contact
-Route::get('/contact-test', function () {
-    return view('public.contact-test');
-})->name('contact.test');
-
-Route::post('/test-contact', function (\Illuminate\Http\Request $request) {
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|email|max:255',
-        'phone' => 'nullable|string|max:20',
-        'subject' => 'required|string|max:255',
-        'message' => 'required|string'
-    ]);
-
-    // Ici vous pouvez ajouter la logique pour sauvegarder le message
-    // Par exemple, enregistrer en base de données ou envoyer un email
-    
-    return back()->with('success', 'Votre message a bien été envoyé, merci de nous avoir contactés.');
-})->name('test.contact.submit');
-
-// Route de test simple
-Route::get('/test-simple', function() {
-    return response()->json([
-        'success' => true,
-        'message' => 'Test simple fonctionne',
-        'timestamp' => now()
-    ]);
-});
-
-// Route de test pour sim-reports
-Route::get('/test-sim-reports', function() {
-    try {
-        $reports = \App\Models\SimReport::where('is_public', true)
-                                      ->where('status', 'published')
-                                      ->get();
-        return response()->json([
-            'success' => true,
-            'count' => $reports->count(),
-            'reports' => $reports->toArray()
-        ]);
-    } catch (Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-        ]);
-    }
-});
+// Routes publiques - Messages et Newsletter (routes de test supprimées)
 
 // Route sim-reports utilisant le contrôleur
 Route::get('/sim-reports', [\App\Http\Controllers\Public\SimReportsController::class, 'index'])->name('sim-reports.index');
@@ -766,46 +782,111 @@ Route::get('/sim-reports', [\App\Http\Controllers\Public\SimReportsController::c
 Route::get('/sim-reports/{id}', [\App\Http\Controllers\Public\SimReportsController::class, 'show'])->name('sim-reports.show');
 Route::get('/sim-reports/{id}/download', [\App\Http\Controllers\Public\SimReportsController::class, 'download'])->name('sim-reports.download');
 
+// Route proxy météo — côté serveur pour éviter CORS et exposer la clé API
+Route::get('/api/weather', function (\Illuminate\Http\Request $request) {
+    $lat = (float) ($request->query('lat', 14.6928)); // Dakar par défaut
+    $lon = (float) ($request->query('lon', -17.4467));
+    $apiKey = config('services.openweather.key');
+
+    if (!$apiKey) {
+        return response()->json(['error' => 'API key not configured'], 503);
+    }
+
+    $cacheKey = 'weather_' . round($lat, 2) . '_' . round($lon, 2);
+
+    $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($lat, $lon, $apiKey) {
+        $url = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&units=metric&lang=fr&appid={$apiKey}";
+        $response = \Illuminate\Support\Facades\Http::timeout(8)->get($url);
+
+        if ($response->successful()) {
+            return $response->json();
+        }
+        return null;
+    });
+
+    if (!$data || !isset($data['main'])) {
+        return response()->json(['error' => 'Weather data unavailable'], 503);
+    }
+
+    return response()->json([
+        'city'        => $data['name'] ?? 'Dakar',
+        'country'     => $data['sys']['country'] ?? 'SN',
+        'temp'        => (int) round($data['main']['temp']),
+        'feels_like'  => (int) round($data['main']['feels_like']),
+        'humidity'    => $data['main']['humidity'],
+        'pressure'    => $data['main']['pressure'],
+        'wind'        => (int) round(($data['wind']['speed'] ?? 0) * 3.6),
+        'wind_dir'    => $data['wind']['deg'] ?? null,
+        'visibility'  => isset($data['visibility']) ? round($data['visibility'] / 1000, 1) : null,
+        'description' => $data['weather'][0]['description'] ?? '',
+        'icon'        => $data['weather'][0]['icon'] ?? '01d',
+        'updated_at'  => now()->format('H:i'),
+    ])->withHeaders(['Cache-Control' => 'no-cache']);
+})->name('api.weather');
+
+// Route proxy météo — prévisions 5 jours
+Route::get('/api/weather/forecast', function (\Illuminate\Http\Request $request) {
+    $lat = (float) ($request->query('lat', 14.6928));
+    $lon = (float) ($request->query('lon', -17.4467));
+    $apiKey = config('services.openweather.key');
+
+    if (!$apiKey) {
+        return response()->json(['error' => 'API key not configured'], 503);
+    }
+
+    $cacheKey = 'weather_forecast_' . round($lat, 2) . '_' . round($lon, 2);
+
+    $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function () use ($lat, $lon, $apiKey) {
+        $url = "https://api.openweathermap.org/data/2.5/forecast?lat={$lat}&lon={$lon}&units=metric&lang=fr&cnt=40&appid={$apiKey}";
+        $response = \Illuminate\Support\Facades\Http::timeout(8)->get($url);
+        return $response->successful() ? $response->json() : null;
+    });
+
+    if (!$data || empty($data['list'])) {
+        return response()->json(['error' => 'Forecast data unavailable'], 503);
+    }
+
+    // Grouper par jour (garder la prévision de 12h00 pour chaque jour)
+    $byDay = [];
+    foreach ($data['list'] as $item) {
+        $day = date('Y-m-d', $item['dt']);
+        $hour = (int) date('H', $item['dt']);
+        if (!isset($byDay[$day]) || abs($hour - 12) < abs((int) date('H', $byDay[$day]['dt']) - 12)) {
+            $byDay[$day] = $item;
+        }
+    }
+
+    $today = date('Y-m-d');
+    $forecast = [];
+    foreach ($byDay as $day => $item) {
+        if ($day === $today) continue; // Exclure aujourd'hui (déjà dans /api/weather)
+        $forecast[] = [
+            'date'        => $day,
+            'day_label'   => ucfirst(\Carbon\Carbon::parse($day)->locale('fr')->dayName),
+            'temp_max'    => (int) round($item['main']['temp_max']),
+            'temp_min'    => (int) round($item['main']['temp_min']),
+            'temp'        => (int) round($item['main']['temp']),
+            'humidity'    => $item['main']['humidity'],
+            'description' => $item['weather'][0]['description'] ?? '',
+            'icon'        => $item['weather'][0]['icon'] ?? '01d',
+            'wind'        => (int) round(($item['wind']['speed'] ?? 0) * 3.6),
+            'rain_prob'   => isset($item['pop']) ? (int) round($item['pop'] * 100) : 0,
+        ];
+        if (count($forecast) >= 5) break;
+    }
+
+    return response()->json([
+        'city'     => $data['city']['name'] ?? 'Dakar',
+        'country'  => $data['city']['country'] ?? 'SN',
+        'forecast' => $forecast,
+    ])->withHeaders(['Cache-Control' => 'no-cache']);
+})->name('api.weather.forecast');
+
 // Routes API partagées pour données temps réel (Admin et DG)
 Route::prefix('api/shared')->name('api.shared.')->group(function () {
     Route::get('/realtime-data', [\App\Http\Controllers\Shared\RealtimeDataController::class, 'getSharedData'])->name('realtime-data');
     Route::get('/performance-stats', [\App\Http\Controllers\Shared\RealtimeDataController::class, 'getPerformanceStats'])->name('performance-stats');
     Route::get('/alerts', [\App\Http\Controllers\Shared\RealtimeDataController::class, 'getAlerts'])->name('alerts');
-});
-
-// Route de test publique pour diagnostiquer la carte
-Route::get('/test-api-warehouses', function() {
-    try {
-        $warehouses = \App\Models\Warehouse::where('is_active', true)
-            ->whereNotNull('latitude')
-            ->whereNotNull('longitude')
-            ->get()
-            ->map(function($warehouse) {
-                $totalStock = $warehouse->stocks->sum('quantity');
-                return [
-                    'id' => $warehouse->id,
-                    'name' => $warehouse->name,
-                    'lat' => (float) $warehouse->latitude,
-                    'lng' => (float) $warehouse->longitude,
-                    'address' => $warehouse->address,
-                    'city' => $warehouse->city,
-                    'stock' => $totalStock,
-                    'capacity' => $warehouse->capacity,
-                    'status' => $warehouse->is_active ? 'active' : 'inactive'
-                ];
-            });
-        
-        return response()->json([
-            'success' => true,
-            'warehouses' => $warehouses,
-            'count' => $warehouses->count()
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'error' => $e->getMessage()
-        ], 500);
-    }
 });
 
 // Routes Admin et DG supprimées
@@ -830,16 +911,21 @@ Route::prefix('agent')->name('agent.')->group(function () {
 Route::get('/entrepot', fn () => view('auth.interface-desactivee'));
 Route::match(['get', 'post'], '/entrepot/{path}', fn () => view('auth.interface-desactivee'))->where('path', '.*');
 
-// Interface Collecteurs SIM (web)
-Route::prefix('collecteur')->name('collector.')->group(function () {
-    Route::get('/login', [\App\Http\Controllers\Auth\CollectorLoginController::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [\App\Http\Controllers\Auth\CollectorLoginController::class, 'login'])->name('login.submit');
-    Route::post('/logout', [\App\Http\Controllers\Auth\CollectorLoginController::class, 'logout'])->name('logout');
+// Interface Collecteurs SIM (désactivée - utiliser l'app mobile)
+Route::match(['get', 'post'], '/collecteur/{path?}', fn () => view('auth.interface-desactivee'))->where('path', '.*');
 
-    Route::middleware(['collector'])->group(function () {
-        Route::get('/', [\App\Http\Controllers\Collector\CollectorDashboardController::class, 'index'])->name('dashboard');
-        Route::get('/dashboard', [\App\Http\Controllers\Collector\CollectorDashboardController::class, 'index'])->name('dashboard.alt');
-    });
+// API temps réel collecteurs (utilisée par dashboard superviseur + app mobile)
+Route::prefix('api/mobile')->name('api.mobile.')->group(function () {
+    Route::get('/collectors/locations', [App\Http\Controllers\Api\Mobile\CollectorLocationController::class, 'getActiveCollectors'])->name('collectors.locations');
+    Route::post('/collectors/location', [App\Http\Controllers\Api\Mobile\CollectorLocationController::class, 'updateLocation'])->name('collectors.location.update');
+});
+
+// Interface Superviseur SIM (suivi des collecteurs)
+Route::prefix('superviseur')->name('supervisor.')->middleware(['auth'])->group(function () {
+    Route::get('/', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/suivi-temps-reel', fn() => view('supervisor.live-tracking'))->name('live.tracking');
+    Route::get('/collecteur/{id}', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collectorDetails'])->name('collector.details');
+    Route::get('/collectes', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collections'])->name('collections');
 });
 
 // Routes globales pour les nouvelles fonctionnalités

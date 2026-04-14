@@ -5,14 +5,15 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\SimCollector;
 use App\Models\SimMobileCollection;
-use App\Models\Market;
-use App\Models\Product;
+use App\Models\SimMarket as Market;
+use App\Models\SimProduct as Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class SimCollectionController extends Controller
 {
@@ -79,10 +80,7 @@ class SimCollectionController extends Controller
         $collector = Auth::user();
         
         $markets = Market::where('is_active', true)
-            ->when($collector->assigned_zones, function ($query, $zones) {
-                return $query->whereIn('region', $zones);
-            })
-            ->select('id', 'name', 'region', 'latitude', 'longitude')
+            ->select('id', 'name', 'commune', 'market_type', 'latitude', 'longitude')
             ->orderBy('name')
             ->get();
 
@@ -95,9 +93,18 @@ class SimCollectionController extends Controller
     public function getProducts(): JsonResponse
     {
         $products = Product::where('is_active', true)
-            ->select('id', 'name', 'code', 'unit')
+            ->with('category:id,name')
+            ->select('id', 'sim_product_category_id', 'name', 'unit', 'origin_type', 'display_order')
+            ->orderBy('display_order')
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(fn($p) => [
+                'id'       => $p->id,
+                'name'     => $p->name,
+                'unit'     => $p->unit,
+                'origin_type' => $p->origin_type,
+                'category' => $p->category?->name ?? 'Autres',
+            ]);
 
         return response()->json([
             'success' => true,
@@ -108,17 +115,19 @@ class SimCollectionController extends Controller
     public function submitCollection(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'market_id' => 'required|exists:markets,id',
-            'product_id' => 'required|exists:products,id',
-            'price' => 'required|numeric|min:0',
-            'retail_price' => 'nullable|numeric|min:0',
-            'wholesale_price' => 'nullable|numeric|min:0',
-            'collection_date' => 'required|date|before_or_equal:today',
-            'latitude' => 'nullable|numeric|between:-90,90',
-            'longitude' => 'nullable|numeric|between:-180,180',
-            'photos' => 'nullable|array|max:5',
-            'photos.*' => 'string|url',
-            'metadata' => 'nullable|array'
+            'market_id'          => 'required|exists:sim_markets,id',
+            'product_id'         => 'required|exists:sim_products,id',
+            'provenance'         => 'nullable|string|max:100',
+            'quantity_collected' => 'nullable|numeric|min:0',
+            'price'              => 'nullable|numeric|min:0',
+            'retail_price'       => 'nullable|numeric|min:0',
+            'wholesale_price'    => 'nullable|numeric|min:0',
+            'collection_date'    => 'required|date|before_or_equal:today',
+            'latitude'           => 'nullable|numeric|between:-90,90',
+            'longitude'          => 'nullable|numeric|between:-180,180',
+            'photos'             => 'nullable|array|max:5',
+            'photos.*'           => 'string',
+            'metadata'           => 'nullable|array'
         ]);
 
         if ($validator->fails()) {
@@ -129,33 +138,40 @@ class SimCollectionController extends Controller
             ], 422);
         }
 
-        $collector = Auth::user();
+        $collector = $this->getCollectorFromToken($request);
+        if (!$collector) {
+            return response()->json(['success' => false, 'message' => 'Non autorisé'], 401);
+        }
 
-        // Vérifier que le collecteur peut accéder à la zone du marché
-        $market = Market::find($request->market_id);
-        if (!$collector->canAccessZone($market->region)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'You are not authorized to collect data in this market zone'
-            ], 403);
+        // Vérifier zone du collecteur si des zones sont assignées
+        if ($collector->assigned_zones) {
+            $market = Market::find($request->market_id);
+            if ($market && !$collector->canAccessZone($market->commune)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vous n\'êtes pas autorisé à collecter dans cette zone'
+                ], 403);
+            }
         }
 
         try {
             DB::beginTransaction();
 
             $collection = SimMobileCollection::create([
-                'collector_id' => $collector->id,
-                'market_id' => $request->market_id,
-                'product_id' => $request->product_id,
-                'price' => $request->price,
-                'retail_price' => $request->retail_price,
-                'wholesale_price' => $request->wholesale_price,
-                'collection_date' => $request->collection_date,
-                'latitude' => $request->latitude,
-                'longitude' => $request->longitude,
-                'photos' => $request->photos,
-                'metadata' => $request->metadata,
-                'sync_status' => 'pending'
+                'collector_id'       => $collector->id,
+                'market_id'          => $request->market_id,
+                'product_id'         => $request->product_id,
+                'provenance'         => $request->provenance,
+                'quantity_collected' => $request->quantity_collected,
+                'price'              => $request->price ?? 0,
+                'retail_price'       => $request->retail_price,
+                'wholesale_price'    => $request->wholesale_price,
+                'collection_date'    => $request->collection_date,
+                'latitude'           => $request->latitude,
+                'longitude'          => $request->longitude,
+                'photos'             => $request->photos,
+                'metadata'           => $request->metadata,
+                'sync_status'        => 'pending'
             ]);
 
             $collector->incrementCollectionCount();
@@ -183,13 +199,38 @@ class SimCollectionController extends Controller
         }
     }
 
+    public function getCollections(Request $request): JsonResponse
+    {
+        $collector = $this->getCollectorFromToken($request);
+        if (!$collector) {
+            return response()->json(['success' => false, 'message' => 'Non autorisé'], 401);
+        }
+
+        $collections = SimMobileCollection::where('collector_id', $collector->id)
+            ->with(['market:id,name,commune', 'product:id,name,unit'])
+            ->orderBy('created_at', 'desc')
+            ->limit(100)
+            ->get()
+            ->map(fn($c) => [
+                'id'           => $c->id,
+                'market'       => ['name' => $c->market?->name ?? ''],
+                'product'      => ['name' => $c->product?->name ?? ''],
+                'price'        => $c->price,
+                'retail_price' => $c->retail_price,
+                'collected_at' => $c->collection_date,
+                'sync_status'  => $c->sync_status,
+            ]);
+
+        return response()->json(['success' => true, 'data' => $collections]);
+    }
+
     public function syncPendingCollections(): JsonResponse
     {
         $collector = Auth::user();
 
         $pendingCollections = SimMobileCollection::where('collector_id', $collector->id)
             ->where('sync_status', 'pending')
-            ->with(['market:id,name,region', 'product:id,name,unit'])
+            ->with(['market:id,name,commune', 'product:id,name,unit'])
             ->orderBy('created_at')
             ->get();
 
@@ -256,7 +297,7 @@ class SimCollectionController extends Controller
 
         $collections = SimMobileCollection::where('collector_id', $collector->id)
             ->where('sync_status', 'pending')
-            ->with(['market:id,name,region', 'product:id,name,unit'])
+            ->with(['market:id,name,commune', 'product:id,name,unit'])
             ->orderBy('created_at')
             ->paginate(50);
 
@@ -280,9 +321,41 @@ class SimCollectionController extends Controller
         ]);
     }
 
-    public function getProfile(): JsonResponse
+    public function getCollectorStats(Request $request): JsonResponse
     {
-        $collector = Auth::user();
+        $collector = $this->getCollectorFromToken($request);
+        if (!$collector) {
+            return response()->json(['success' => false, 'message' => 'Non autorisé'], 401);
+        }
+
+        $today = today();
+        $thisWeek = now()->startOfWeek();
+        $thisMonth = now()->startOfMonth();
+
+        $stats = [
+            'today'        => SimMobileCollection::where('collector_id', $collector->id)->whereDate('collection_date', $today)->count(),
+            'this_week'    => SimMobileCollection::where('collector_id', $collector->id)->where('collection_date', '>=', $thisWeek)->count(),
+            'this_month'   => SimMobileCollection::where('collector_id', $collector->id)->where('collection_date', '>=', $thisMonth)->count(),
+            'total'        => SimMobileCollection::where('collector_id', $collector->id)->count(),
+            'pending_sync' => SimMobileCollection::where('collector_id', $collector->id)->where('sync_status', 'pending')->count(),
+            'last_sync'    => $collector->last_sync,
+        ];
+
+        return response()->json(['success' => true, 'data' => $stats]);
+    }
+
+    private function getCollectorFromToken(Request $request): ?SimCollector
+    {
+        $bearer = $request->bearerToken();
+        if (!$bearer) return null;
+        $token = \Laravel\Sanctum\PersonalAccessToken::findToken($bearer);
+        if (!$token || !$token->tokenable) return null;
+        return $token->tokenable instanceof SimCollector ? $token->tokenable : null;
+    }
+
+    public function getProfile(Request $request): JsonResponse
+    {
+        $collector = $this->getCollectorFromToken($request);
 
         return response()->json([
             'success' => true,

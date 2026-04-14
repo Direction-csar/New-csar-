@@ -13,7 +13,7 @@ import api from '../services/api';
 import StorageService from '../services/storage';
 import LocationService from '../services/location';
 
-const LoginScreen = ({ navigation }) => {
+const LoginScreen = ({ navigation, onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -55,12 +55,11 @@ const LoginScreen = ({ navigation }) => {
           await StorageService.saveSettings({ ...await StorageService.getSettings(), email });
         }
         
-        Alert.alert('Succès', 'Connexion réussie!', [
-          {
-            text: 'OK',
-            onPress: () => navigation.replace('Main')
-          }
-        ]);
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        } else {
+          navigation.replace('Main');
+        }
       }
     } catch (error) {
       let errorMessage = 'Erreur de connexion';

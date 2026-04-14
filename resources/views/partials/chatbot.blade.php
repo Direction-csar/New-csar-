@@ -121,7 +121,7 @@
         faq: '{{ route("faq.index", ["locale" => app()->getLocale()]) }}',
         partners: '{{ route("partners.index", ["locale" => app()->getLocale()]) }}',
         contact: '{{ route("contact", ["locale" => app()->getLocale()]) }}',
-        don: '{{ route("don.index", ["locale" => app()->getLocale()]) }}',
+        don: '{{ route("donations.index", ["locale" => app()->getLocale()]) }}',
         demande: '{{ url("/demande") }}',
         action: '{{ route("action", ["locale" => app()->getLocale()]) }}',
         track: '{{ route("track", ["locale" => app()->getLocale()]) }}'

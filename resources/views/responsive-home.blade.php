@@ -148,7 +148,7 @@
                 </div>
                 <h3 class="feature-title">Actualités</h3>
                 <p class="feature-description">
-                    Restez informé des dernières actualités du CSAR, des discours officiels et des initiatives en cours.
+                    Restez informé des dernières actualités du CSAR et des initiatives en cours.
                 </p>
                 <a href="{{ route('news.index') }}" class="mt-4 inline-block text-csar-green-600 hover:text-csar-green-700 font-medium">
                     Lire les actualités <i class="fas fa-arrow-right ml-1"></i>

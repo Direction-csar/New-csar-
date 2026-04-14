@@ -148,23 +148,16 @@
                         </div>
                         <div style="margin-bottom: 15px;">
                             <strong style="color: #374151;">Type :</strong> 
-                            <span class="type-badge type-{{ $request->type }}">
-                                @switch($request->type)
-                                    @case('aide')
-                                        📦 Aide alimentaire
-                                        @break
-                                    @case('partenariat')
-                                        🤝 Partenariat
-                                        @break
-                                    @case('audience')
-                                        🙋‍♂️ Audience
-                                        @break
-                                    @case('autre')
-                                        📝 Autre
-                                        @break
-                                    @default
-                                        {{ ucfirst($request->type) }}
-                                @endswitch
+                            <span class="type-badge type-{{ $request->type_demande }}">
+                                @php
+                                    $typeLabels = [
+                                        'aide_alimentaire' => '📦 Aide alimentaire',
+                                        'demande_audience' => '🙋 Demande d\'audience',
+                                        'information_generale' => 'ℹ️ Information générale',
+                                        'autre' => '📝 Autre demande',
+                                    ];
+                                    echo $typeLabels[$request->type_demande] ?? ucfirst(str_replace('_', ' ', $request->type_demande));
+                                @endphp
                             </span>
                         </div>
                     </div>
@@ -288,7 +281,7 @@
                 
                 <!-- Actions -->
                 <div style="text-align: center; padding-top: 30px; border-top: 2px solid #e5e7eb;">
-                    <a href="{{ route('track.download', $request->tracking_code) }}" class="btn btn-secondary zoom-hover" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 30px; background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: #fff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3); margin-right: 20px;">
+                    <a href="{{ route('track.download', ['locale' => app()->getLocale(), 'code' => $request->tracking_code]) }}" class="btn btn-secondary zoom-hover" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 30px; background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: #fff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3); margin-right: 20px;">
                         <i class="fas fa-download"></i>
                         Télécharger le PDF
                     </a>

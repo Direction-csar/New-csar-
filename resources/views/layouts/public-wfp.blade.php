@@ -516,8 +516,7 @@
                         <li><a class="dropdown-item" href="{{ route('ressources.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.resources') }}</a></li>
                         <li><a class="dropdown-item" href="{{ route('reports', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.reports') }}</a></li>
                         <li><a class="dropdown-item" href="{{ route('gallery', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.gallery') }}</a></li>
-                        <li><a class="dropdown-item" href="{{ route('speeches', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.speeches') }}</a></li>
-                    </ul>
+                                            </ul>
                 </div>
                 <div class="dropdown">
                     <button class="nav-top-dropdown dropdown-toggle" type="button" id="dropdownLang" data-bs-toggle="dropdown" aria-expanded="false">{{ app()->getLocale() == 'fr' ? __('messages.language.french') : __('messages.language.english') }}</button>
@@ -583,7 +582,7 @@
                 </ul>
 
                 <div class="d-flex align-items-center gap-2">
-                    <a href="{{ route('don.index', ['locale' => app()->getLocale()]) }}" class="nav-btn-don text-decoration-none">{{ __('messages.nav.make_donation') }}</a>
+                    <a href="{{ route('donations.index', ['locale' => app()->getLocale()]) }}" class="nav-btn-don text-decoration-none">{{ __('messages.nav.make_donation') }}</a>
                     {{-- Sur mobile : langue (la barre utilitaire est masquée) --}}
                     <div class="language-selector d-lg-none ms-2">
                         <a href="{{ locale_url('fr') }}" class="d-flex align-items-center text-decoration-none text-dark" title="Français"><span class="small fw-bold">FR</span></a>
@@ -636,7 +635,7 @@
                         <li><a href="{{ route('home', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.home') }}</a></li>
                         <li><a href="{{ route('about', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.who_we_are') }}</a></li>
                         <li><a href="{{ route('news.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.news') }}</a></li>
-                        <li><a href="{{ route('don.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.make_donation_short') }}</a></li>
+                        <li><a href="{{ route('donations.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.make_donation_short') }}</a></li>
                         <li><a href="{{ route('projets.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.our_mission') }}</a></li>
                         <li><a href="{{ route('sim-reports.index') }}">{{ __('messages.nav.interventions') }}</a></li>
                         <li><a href="{{ route('faq.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.faq') }}</a></li>

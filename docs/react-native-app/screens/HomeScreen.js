@@ -19,7 +19,9 @@ const HomeScreen = ({ navigation }) => {
     totalCollections: 0,
     pendingCollections: 0,
     lastSync: null,
-    todayCollections: 0
+    todayCollections: 0,
+    thisWeek: 0,
+    thisMonth: 0,
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -58,7 +60,22 @@ const HomeScreen = ({ navigation }) => {
         console.log('Profile API failed, using cached data');
       }
 
-      // Calculer les statistiques locales
+      // Charger les stats depuis l'API
+      try {
+        const statsResp = await api.getStats();
+        if (statsResp.success) {
+          const s = statsResp.data;
+          setStats({
+            totalCollections: s.total,
+            pendingCollections: s.pending_sync,
+            lastSync: s.last_sync,
+            todayCollections: s.today,
+            thisWeek: s.this_week,
+            thisMonth: s.this_month,
+          });
+          return;
+        }
+      } catch {}
       await calculateStats();
       
     } catch (error) {
@@ -220,20 +237,20 @@ const HomeScreen = ({ navigation }) => {
         
         <TouchableOpacity 
           style={styles.actionButton}
-          onPress={() => navigation.navigate('CollectionForm')}
+          onPress={() => navigation.navigate('Collect')}
         >
           <Text style={styles.actionButtonIcon}>📊</Text>
-          <Text style={styles.actionButtonText}>Nouvelle collecte</Text>
-          <Text style={styles.actionButtonSubtext}>Enregistrer des prix</Text>
+          <Text style={styles.actionButtonText}>Nouvelle collecte de prix</Text>
+          <Text style={styles.actionButtonSubtext}>Enregistrer les prix sur le marché</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
           style={styles.actionButton}
-          onPress={() => navigation.navigate('PendingCollections')}
+          onPress={() => navigation.navigate('Map')}
         >
-          <Text style={styles.actionButtonIcon}>⏳</Text>
-          <Text style={styles.actionButtonText}>Collections en attente</Text>
-          <Text style={styles.actionButtonSubtext}>{stats.pendingCollections} en attente</Text>
+          <Text style={styles.actionButtonIcon}>🗺️</Text>
+          <Text style={styles.actionButtonText}>Carte des marchés</Text>
+          <Text style={styles.actionButtonSubtext}>Voir les marchés et ma position</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 

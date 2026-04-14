@@ -15,7 +15,7 @@ class LanguageController extends Controller
     public function setLocale($locale)
     {
         // Langues supportées
-        $supportedLocales = ['fr', 'en'];
+        $supportedLocales = ['fr', 'en', 'ar'];
         
         // Vérifier si la langue est supportée
         if (!in_array($locale, $supportedLocales)) {
@@ -32,8 +32,8 @@ class LanguageController extends Controller
         $previousUrl = url()->previous();
         
         // Si l'URL précédente contient une langue, la remplacer
-        if (preg_match('/\/(fr|en)\//', $previousUrl)) {
-            $newUrl = preg_replace('/\/(fr|en)\//', '/' . $locale . '/', $previousUrl);
+        if (preg_match('/\/(fr|en|ar)\//', $previousUrl)) {
+            $newUrl = preg_replace('/\/(fr|en|ar)\//', '/' . $locale . '/', $previousUrl);
         } else {
             // Si pas de langue dans l'URL, ajouter la nouvelle langue
             $baseUrl = url('/');

@@ -5,8 +5,10 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\URL;
+use Symfony\Component\HttpFoundation\Response;
 
 class SetLocale
 {
@@ -20,14 +22,19 @@ class SetLocale
     public function handle(Request $request, Closure $next)
     {
         // Langues supportées
-        $supportedLocales = ['fr', 'en'];
+        $supportedLocales = ['fr', 'en', 'ar'];
         
-        // Récupérer la langue depuis l'URL, la session ou les préférences du navigateur
+        // Priorité : 1) URL segment, 2) Session, 3) Cookie, 4) Navigateur, 5) fr
         $locale = $request->segment(1);
         
-        // Si la langue n'est pas dans l'URL, vérifier la session
         if (!in_array($locale, $supportedLocales)) {
-            $locale = Session::get('locale', $this->getBrowserLocale($request));
+            if (Session::has('locale') && in_array(Session::get('locale'), $supportedLocales)) {
+                $locale = Session::get('locale');
+            } elseif ($request->hasCookie('locale') && in_array($request->cookie('locale'), $supportedLocales)) {
+                $locale = $request->cookie('locale');
+            } else {
+                $locale = $this->getBrowserLocale($request);
+            }
         }
         
         // Fallback vers le français si la langue n'est pas supportée
@@ -40,10 +47,17 @@ class SetLocale
         Session::put('locale', $locale);
 
         // Définir la locale par défaut pour la génération d'URLs (route())
-        // Permet d'appeler route('map') sans passer explicitement ['locale' => ...]
         URL::defaults(['locale' => $locale]);
         
-        return $next($request);
+        /** @var Response $response */
+        $response = $next($request);
+
+        // Persister la locale dans un cookie (30 jours)
+        $response->headers->setCookie(
+            cookie('locale', $locale, 60 * 24 * 30, '/', null, false, false)
+        );
+
+        return $response;
     }
     
     /**
@@ -57,7 +71,7 @@ class SetLocale
             $languages = explode(',', $acceptLanguage);
             foreach ($languages as $language) {
                 $locale = substr(trim($language), 0, 2);
-                if (in_array($locale, ['fr', 'en'])) {
+                if (in_array($locale, ['fr', 'en', 'ar'])) {
                     return $locale;
                 }
             }

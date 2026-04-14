@@ -120,6 +120,32 @@ class ApiService {
     const response = await axios.get(`${API_BASE_URL}/sync/history`);
     return response.data;
   }
+
+  // Localisation en temps réel
+  async updateLocation({ latitude, longitude, accuracy, status, currentMarket, collectionsToday }) {
+    try {
+      const collector = JSON.parse(await AsyncStorage.getItem('user_data') || '{}');
+      const response = await axios.post(`${API_BASE_URL}/location`, {
+        collector_id: collector.id,
+        latitude,
+        longitude,
+        accuracy,
+        status: status || 'active',
+        current_market: currentMarket || null,
+        collections_today: collectionsToday || 0,
+      });
+      return response.data;
+    } catch (error) {
+      // Silencieux — la localisation ne doit pas bloquer l'app
+      console.warn('Location update failed:', error);
+    }
+  }
+
+  // Statistiques du collecteur
+  async getStats() {
+    const response = await axios.get(`${API_BASE_URL}/stats`);
+    return response.data;
+  }
 }
 
 export default new ApiService();

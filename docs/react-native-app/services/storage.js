@@ -9,7 +9,9 @@ class StorageService {
     PENDING_COLLECTIONS: 'pending_collections_',
     OFFLINE_MODE: 'offline_mode',
     LAST_SYNC: 'last_sync',
-    APP_SETTINGS: 'app_settings'
+    APP_SETTINGS: 'app_settings',
+    MARKETS: 'cached_markets',
+    PRODUCTS: 'cached_products',
   };
 
   // Authentification
@@ -78,6 +80,25 @@ class StorageService {
     } catch (error) {
       console.error('Error clearing pending collections:', error);
     }
+  }
+
+  // Cache marchés et produits (données de référence)
+  static async saveMarkets(markets) {
+    await AsyncStorage.setItem(this.KEYS.MARKETS, JSON.stringify(markets));
+  }
+
+  static async getMarkets() {
+    const data = await AsyncStorage.getItem(this.KEYS.MARKETS);
+    return data ? JSON.parse(data) : [];
+  }
+
+  static async saveProducts(products) {
+    await AsyncStorage.setItem(this.KEYS.PRODUCTS, JSON.stringify(products));
+  }
+
+  static async getProducts() {
+    const data = await AsyncStorage.getItem(this.KEYS.PRODUCTS);
+    return data ? JSON.parse(data) : [];
   }
 
   // Mode hors-ligne

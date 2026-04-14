@@ -13,8 +13,7 @@ return [
     'nav.media_resources' => 'Media & resources',
     'nav.resources' => 'Resources',
     'nav.gallery' => 'Gallery',
-    'nav.speeches' => 'Speeches',
-    'nav.food_security' => 'Food security',
+        'nav.food_security' => 'Food security',
     'nav.stock_management' => 'Stock management',
     'nav.humanitarian_assistance' => 'Humanitarian assistance',
     'nav.resilience' => 'Resilience',
@@ -254,6 +253,7 @@ return [
     // Langues
     'language.french' => 'Français',
     'language.english' => 'English',
+    'language.arabic' => 'العربية',
     'language.select' => 'Choose language',
     
     // Administration
@@ -502,4 +502,133 @@ return [
     'info.last_updated' => 'Last updated',
     'info.created_by' => 'Created by',
     'info.updated_by' => 'Updated by',
+    
+    // Home page
+    'home.hero.title' => 'Food Security and Resilience',
+    'home.hero.subtitle' => 'The Food Security and Resilience Commission (CSAR) works for a hunger-free Senegal',
+    'home.hero.cta' => 'Discover our actions',
+    'home.hero.cta_secondary' => 'Request assistance',
+    
+    'home.about.title' => 'Who are we?',
+    'home.about.description' => 'CSAR is the government institution dedicated to food security and resilience in Senegal.',
+    'home.about.link' => 'Learn more',
+    
+    'home.mission.title' => 'Our mission',
+    'home.mission.description' => 'Ensure food security and strengthen the resilience of vulnerable populations.',
+    'home.mission.link' => 'Discover our mission',
+    
+    'home.interventions.title' => 'Our interventions',
+    'home.interventions.description' => 'Adapted programs to meet the needs of populations.',
+    'home.services.distribution' => 'Food distributions',
+    'home.services.distribution_desc' => 'Our teams distribute food to people in need throughout Senegal',
+    'home.services.storage' => 'CSAR storage warehouses',
+    'home.services.storage_desc' => 'Our network of strategic storage warehouses ensures the storage and distribution of food',
+    'home.services.tracking' => 'Track my request',
+    'home.services.tracking_desc' => 'Check the status of your request with your unique tracking code',
+    'home.interventions.link' => 'See our interventions',
+    
+    'home.news.title' => 'News',
+    'home.news.description' => 'Stay informed about the latest CSAR news and ongoing initiatives.',
+    'home.news.link' => 'Read the news',
+    'home.news.view_all' => 'View all news',
+    'home.news.none_available' => 'No news available',
+    'home.news.come_back_soon' => 'Come back soon to discover our latest news.',
+    
+    'home.stats.title' => 'Our achievements',
+    'home.stats.people_helped' => 'People helped',
+    'home.stats.projects' => 'Projects completed',
+    'home.stats.partners' => 'Partners',
+    'home.stats.regions' => 'Regions covered',
+    
+    'home.partners.title' => 'Our partners',
+    'home.partners.description' => 'We collaborate with national and international organizations.',
+    'home.partners.link' => 'Become a partner',
+    
+    'home.contact.title' => 'Contact us',
+    'home.contact.description' => 'A question? A suggestion? Our team is here to listen.',
+    'home.contact.link' => 'Contact us',
+    
+    'home.testimonials.title' => 'Testimonials',
+    'home.testimonials.description' => 'What our partners and beneficiaries say about us.',
+    
+    'home.emergency.title' => 'Emergency situation',
+    'home.emergency.description' => 'In case of food emergency, contact us immediately.',
+    'home.emergency.phone' => 'Call the',
+    'home.emergency.hotline' => 'Hotline: 800 00 00 00',
+    
+    // Donation translations
+    'donations' => [
+        'title' => 'Make a donation',
+        'subtitle' => 'Support our humanitarian actions',
+        'description' => 'Your generosity allows us to continue our missions to help vulnerable people. Every contribution, small or large, makes a real difference in the lives of those we help.',
+        'payment_description' => 'Donation of :amount :currency for CSAR',
+        'form' => [
+            'personal_info' => 'Personal information',
+            'full_name' => 'Full name',
+            'email' => 'Email address',
+            'phone' => 'Phone (optional)',
+            'donation_details' => 'Donation details',
+            'amount' => 'Donation amount (XOF)',
+            'payment_method' => 'Payment method',
+            'donation_type' => 'Donation type',
+            'frequency' => 'Frequency',
+            'message' => 'Message (optional)',
+            'is_anonymous' => 'Make this donation anonymous',
+            'submit' => 'Donate now',
+            'processing' => 'Processing...'
+        ],
+        'payment_methods' => [
+            'wave' => 'Wave',
+            'orange_money' => 'Orange Money',
+            'credit_card' => 'Credit card'
+        ],
+        'donation_types' => [
+            'single' => 'One-time donation',
+            'monthly' => 'Monthly donation'
+        ],
+        'frequencies' => [
+            'monthly' => 'Monthly',
+            'quarterly' => 'Quarterly',
+            'yearly' => 'Yearly'
+        ],
+        'suggested_amounts' => 'Suggested amounts',
+        'custom_amount' => 'Custom amount',
+        'success' => [
+            'title' => 'Thank you for your donation!',
+            'message' => 'Your contribution has been successfully received. We sincerely thank you for your generosity.',
+            'reference' => 'Transaction reference',
+            'amount' => 'Amount',
+            'date' => 'Date',
+            'status' => 'Status',
+            'receipt' => 'Receipt',
+            'continue' => 'Back to home'
+        ],
+        'cancel' => [
+            'title' => 'Donation cancelled',
+            'message' => 'Your donation process has been cancelled. You can try again at any time.',
+            'retry' => 'Try again',
+            'home' => 'Back to home'
+        ],
+        'track' => [
+            'title' => 'Track my donations',
+            'email' => 'Email address',
+            'transaction_id' => 'Transaction ID (optional)',
+            'search' => 'Search',
+            'no_donations' => 'No donations found',
+            'donation_history' => 'Donation history'
+        ],
+        'validation' => [
+            'amount_min' => 'Minimum amount is :min XOF',
+            'amount_max' => 'Maximum amount is :max XOF',
+            'required' => 'This field is required',
+            'email' => 'Please enter a valid email address'
+        ],
+        'errors' => [
+            'payment_creation_failed' => 'Payment creation failed',
+            'processing_error' => 'An error occurred during processing',
+            'payment_failed' => 'Payment failed',
+            'invalid_amount' => 'Invalid amount',
+            'service_unavailable' => 'Service temporarily unavailable'
+        ]
+    ],
 ];

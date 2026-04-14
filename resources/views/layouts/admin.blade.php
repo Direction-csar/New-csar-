@@ -1000,9 +1000,18 @@
 
             <!-- SIM — Régions, Départements, Marchés, Assignations -->
             <div class="menu-item">
-                <a href="{{ route('admin.sim.dashboard') }}" class="menu-link {{ request()->routeIs('admin.sim.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.sim.dashboard') }}" class="menu-link {{ request()->routeIs('admin.sim.dashboard') ? 'active' : '' }}">
                     <i class="fas fa-store"></i>
-                    <span>SIM (Régions, Marchés, Assignations)</span>
+                    <span>SIM (Marchés & Assignations)</span>
+                </a>
+            </div>
+
+            <!-- SIM — Suivi collecteurs terrain temps réel -->
+            <div class="menu-item">
+                <a href="{{ route('admin.sim.suivi') }}" class="menu-link {{ request()->routeIs('admin.sim.suivi') || request()->routeIs('admin.sim.live') || request()->routeIs('admin.sim.collectes') ? 'active' : '' }}">
+                    <i class="fas fa-broadcast-tower"></i>
+                    <span>SIM — Suivi terrain</span>
+                    <span class="badge bg-success ms-auto" style="font-size:0.65rem;padding:2px 6px;">Live</span>
                 </a>
             </div>
             

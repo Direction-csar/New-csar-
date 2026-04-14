@@ -24,6 +24,7 @@ class UserSeeder extends Seeder
                 'phone' => '+221701234567',
                 'position' => 'Administrateur Système',
                 'department' => 'Direction Générale',
+                'is_active' => true,
             ]
         );
 

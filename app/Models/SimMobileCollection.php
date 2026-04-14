@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Models\SimMarket;
+use App\Models\SimProduct;
 
 class SimMobileCollection extends Model
 {
@@ -13,6 +15,8 @@ class SimMobileCollection extends Model
         'product_id',
         'price',
         'retail_price',
+        'provenance',
+        'quantity_collected',
         'wholesale_price',
         'collection_date',
         'latitude',
@@ -42,12 +46,12 @@ class SimMobileCollection extends Model
 
     public function market(): BelongsTo
     {
-        return $this->belongsTo(Market::class);
+        return $this->belongsTo(SimMarket::class);
     }
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(SimProduct::class);
     }
 
     public function markAsSynced(): void

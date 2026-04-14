@@ -78,9 +78,9 @@ class CarteDemandesController extends Controller
             $regionCoords = config('regions_senegal.coordinates', []);
             $demandesByRegion = $query->clone()
                 ->select('region', DB::raw('COUNT(*) as total'),
-                    DB::raw('SUM(CASE WHEN status = "pending" THEN 1 ELSE 0 END) as pending'),
-                    DB::raw('SUM(CASE WHEN status = "approved" THEN 1 ELSE 0 END) as approved'),
-                    DB::raw('SUM(CASE WHEN status = "rejected" THEN 1 ELSE 0 END) as rejected'))
+                    DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
+                    DB::raw("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved"),
+                    DB::raw("SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected"))
                 ->whereNotNull('region')
                 ->where('region', '!=', '')
                 ->groupBy('region')

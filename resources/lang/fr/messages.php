@@ -8,12 +8,11 @@ return [
     'nav.our_mission' => 'Notre mission',
     'nav.interventions' => 'Interventions',
     'nav.get_involved' => 'Impliquez-vous',
-    'nav.make_donation' => 'FAITES UN DON',
+    'nav.make_donation' => 'FAIRE UN DON',
     'nav.search' => 'Recherche',
     'nav.media_resources' => 'Médias & ressources',
     'nav.resources' => 'Ressources',
     'nav.gallery' => 'Galerie',
-    'nav.speeches' => 'Discours',
     'nav.food_security' => 'Sécurité alimentaire',
     'nav.stock_management' => 'Gestion des stocks',
     'nav.humanitarian_assistance' => 'Assistance humanitaire',
@@ -254,6 +253,7 @@ return [
     // Langues
     'language.french' => 'Français',
     'language.english' => 'English',
+    'language.arabic' => 'العربية',
     'language.select' => 'Choisir la langue',
     
     // Administration
@@ -502,4 +502,133 @@ return [
     'info.last_updated' => 'Dernière mise à jour',
     'info.created_by' => 'Créé par',
     'info.updated_by' => 'Mis à jour par',
+    
+    // Page d'accueil
+    'home.hero.title' => 'Commissariat à la Sécurité Alimentaire et à la Résilience',
+    'home.hero.subtitle' => 'Le Commissariat à la Sécurité Alimentaire et à la Résilience œuvre pour garantir l\'accès à une alimentation suffisante et nutritive pour tous les Sénégalais, tout en renforçant leur capacité à faire face aux crises et aux défis climatiques',
+    'home.hero.cta' => 'Découvrir le CSAR',
+    'home.hero.cta_secondary' => 'Effectuer une demande',
+    
+    'home.about.title' => 'Qui sommes-nous ?',
+    'home.about.description' => 'Le CSAR est l\'institution gouvernementale dédiée à la sécurité alimentaire et à la résilience au Sénégal.',
+    'home.about.link' => 'En savoir plus',
+    
+    'home.mission.title' => 'Notre mission',
+    'home.mission.description' => 'Garantir la sécurité alimentaire et renforcer la résilience des populations vulnérables.',
+    'home.mission.link' => 'Découvrir notre mission',
+    
+    'home.interventions.title' => 'Nos interventions',
+    'home.interventions.description' => 'Des programmes adaptés pour répondre aux besoins des populations.',
+    'home.services.distribution' => 'Distributions alimentaires',
+    'home.services.distribution_desc' => 'Nos équipes distribuent des denrées alimentaires aux populations dans le besoin à travers tout le Sénégal',
+    'home.services.storage' => 'Magasins de stockage CSAR',
+    'home.services.storage_desc' => 'Notre réseau de magasins de stockage stratégiques assure le stockage et la distribution des denrées alimentaires',
+    'home.services.tracking' => 'Suivre ma demande',
+    'home.services.tracking_desc' => 'Consultez l\'état d\'avancement de votre demande avec votre code de suivi unique',
+    'home.interventions.link' => 'Voir nos interventions',
+    
+    'home.news.title' => 'Actualités',
+    'home.news.description' => 'Restez informé des dernières actualités du CSAR et des initiatives en cours.',
+    'home.news.link' => 'Lire les actualités',
+    'home.news.view_all' => 'Voir toutes les actualités',
+    'home.news.none_available' => 'Aucune actualité disponible',
+    'home.news.come_back_soon' => 'Revenez bientôt pour découvrir nos dernières actualités.',
+    
+    'home.stats.title' => 'Nos réalisations',
+    'home.stats.people_helped' => 'Personnes aidées',
+    'home.stats.projects' => 'Projets réalisés',
+    'home.stats.partners' => 'Partenaires',
+    'home.stats.regions' => 'Régions couvertes',
+    
+    'home.partners.title' => 'Nos partenaires',
+    'home.partners.description' => 'Nous collaborons avec des organisations nationales et internationales.',
+    'home.partners.link' => 'Devenir partenaire',
+    
+    'home.contact.title' => 'Contactez-nous',
+    'home.contact.description' => 'Une question ? Une suggestion ? Notre équipe est à votre écoute.',
+    'home.contact.link' => 'Nous contacter',
+    
+    'home.testimonials.title' => 'Témoignages',
+    'home.testimonials.description' => 'Ce que nos partenaires et bénéficiaires disent de nous.',
+    
+    'home.emergency.title' => 'Situation d\'urgence',
+    'home.emergency.description' => 'En cas d\'urgence alimentaire, contactez-nous immédiatement.',
+    'home.emergency.phone' => 'Appelez le',
+    'home.emergency.hotline' => 'Hotline : 800 00 00 00',
+    
+    // Translations pour les donations
+    'donations' => [
+        'title' => 'Faire un don',
+        'subtitle' => 'Soutenez nos actions humanitaires',
+        'description' => 'Votre générosité nous permet de continuer nos missions d\'aide aux personnes vulnérables. Chaque contribution, petite ou grande, fait une réelle différence dans la vie de ceux que nous aidons.',
+        'payment_description' => 'Don de :amount :currency pour la CSAR',
+        'form' => [
+            'personal_info' => 'Informations personnelles',
+            'full_name' => 'Nom complet',
+            'email' => 'Adresse e-mail',
+            'phone' => 'Téléphone (optionnel)',
+            'donation_details' => 'Détails du don',
+            'amount' => 'Montant du don (XOF)',
+            'payment_method' => 'Méthode de paiement',
+            'donation_type' => 'Type de don',
+            'frequency' => 'Fréquence',
+            'message' => 'Message (optionnel)',
+            'is_anonymous' => 'Faire ce don anonymement',
+            'submit' => 'Faire un don maintenant',
+            'processing' => 'Traitement en cours...'
+        ],
+        'payment_methods' => [
+            'wave' => 'Wave',
+            'orange_money' => 'Orange Money',
+            'credit_card' => 'Carte de crédit'
+        ],
+        'donation_types' => [
+            'single' => 'Don unique',
+            'monthly' => 'Don mensuel'
+        ],
+        'frequencies' => [
+            'monthly' => 'Mensuel',
+            'quarterly' => 'Trimestriel',
+            'yearly' => 'Annuel'
+        ],
+        'suggested_amounts' => 'Montants suggérés',
+        'custom_amount' => 'Montant personnalisé',
+        'success' => [
+            'title' => 'Merci pour votre don !',
+            'message' => 'Votre contribution a été reçue avec succès. Nous vous remercions sincèrement pour votre générosité.',
+            'reference' => 'Référence de transaction',
+            'amount' => 'Montant',
+            'date' => 'Date',
+            'status' => 'Statut',
+            'receipt' => 'Reçu',
+            'continue' => 'Retour à l\'accueil'
+        ],
+        'cancel' => [
+            'title' => 'Don annulé',
+            'message' => 'Votre processus de don a été annulé. Vous pouvez réessayer à tout moment.',
+            'retry' => 'Réessayer',
+            'home' => 'Retour à l\'accueil'
+        ],
+        'track' => [
+            'title' => 'Suivre mes donations',
+            'email' => 'Adresse e-mail',
+            'transaction_id' => 'ID de transaction (optionnel)',
+            'search' => 'Rechercher',
+            'no_donations' => 'Aucune donation trouvée',
+            'donation_history' => 'Historique des donations'
+        ],
+        'validation' => [
+            'amount_min' => 'Le montant minimum est de :min XOF',
+            'amount_max' => 'Le montant maximum est de :max XOF',
+            'required' => 'Ce champ est obligatoire',
+            'email' => 'Veuillez entrer une adresse e-mail valide'
+        ],
+        'errors' => [
+            'payment_creation_failed' => 'Échec de la création du paiement',
+            'processing_error' => 'Une erreur est survenue lors du traitement',
+            'payment_failed' => 'Le paiement a échoué',
+            'invalid_amount' => 'Montant invalide',
+            'service_unavailable' => 'Service temporairement indisponible'
+        ]
+    ],
 ];

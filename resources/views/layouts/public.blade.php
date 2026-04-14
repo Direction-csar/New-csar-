@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ app()->getLocale() == 'ar' ? 'rtl' : 'ltr' }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,7 +17,7 @@
     <meta property="og:description" content="@yield('meta_description', __('messages.meta.default_description'))">
     <meta property="og:image" content="@yield('og_image', asset('images/logos/LOGO CSAR vectoriel-01.png'))">
     <meta property="og:site_name" content="CSAR">
-    <meta property="og:locale" content="{{ app()->getLocale() == 'fr' ? 'fr_SN' : 'en_US' }}">
+    <meta property="og:locale" content="{{ app()->getLocale() == 'fr' ? 'fr_SN' : (app()->getLocale() == 'ar' ? 'ar_SA' : 'en_US') }}">
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="@yield('title', __('messages.meta.twitter_title'))">
@@ -31,18 +31,30 @@
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/csar-logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/csar-logo.png') }}">
     
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.bunny.net">
-    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+    <!-- DNS Prefetch & Resource Hints -->
+    <link rel="dns-prefetch" href="//fonts.bunny.net">
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin>
+    
+    <!-- Fonts with display=swap (non-blocking) -->
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript><link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" /></noscript>
+    @if(app()->getLocale() == 'ar')
+    <!-- Arabic font (Amiri) - loaded only for Arabic locale -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+    @endif
     
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Font Awesome (non-blocking) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
     
-    <!-- AOS - Animate On Scroll -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <!-- AOS removed for performance -->
     
     <!-- Custom CSS -->
     @stack('styles')
@@ -345,6 +357,71 @@
             font-weight: 500;
             margin: 0;
         }
+
+        /* RTL Support for Arabic */
+        [dir="rtl"] body,
+        [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3,
+        [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6,
+        [dir="rtl"] p, [dir="rtl"] span, [dir="rtl"] li,
+        [dir="rtl"] a, [dir="rtl"] button, [dir="rtl"] input,
+        [dir="rtl"] textarea, [dir="rtl"] select, [dir="rtl"] label {
+            font-family: 'Amiri', 'Noto Naskh Arabic', serif;
+            direction: rtl;
+        }
+        [dir="rtl"] body {
+            text-align: right;
+        }
+        [dir="rtl"] .navbar-nav {
+            padding-right: 0;
+        }
+        /* Bootstrap spacing overrides */
+        [dir="rtl"] .ms-auto { margin-left: unset !important; margin-right: auto !important; }
+        [dir="rtl"] .ms-2 { margin-left: unset !important; margin-right: 0.5rem !important; }
+        [dir="rtl"] .ms-3 { margin-left: unset !important; margin-right: 1rem !important; }
+        [dir="rtl"] .ms-lg-3 { margin-left: unset !important; margin-right: 1rem !important; }
+        [dir="rtl"] .me-2 { margin-right: unset !important; margin-left: 0.5rem !important; }
+        [dir="rtl"] .me-3 { margin-right: unset !important; margin-left: 1rem !important; }
+        [dir="rtl"] .me-auto { margin-right: unset !important; margin-left: auto !important; }
+        [dir="rtl"] .ps-3 { padding-left: unset !important; padding-right: 1rem !important; }
+        [dir="rtl"] .pe-3 { padding-right: unset !important; padding-left: 1rem !important; }
+        [dir="rtl"] .ps-4 { padding-left: unset !important; padding-right: 1.5rem !important; }
+        [dir="rtl"] .pe-4 { padding-right: unset !important; padding-left: 1.5rem !important; }
+        /* Text alignment */
+        [dir="rtl"] .text-start { text-align: right !important; }
+        [dir="rtl"] .text-end { text-align: left !important; }
+        /* Dropdowns */
+        [dir="rtl"] .dropdown-menu { text-align: right; }
+        [dir="rtl"] .dropdown-menu-end { right: auto !important; left: 0 !important; }
+        [dir="rtl"] .dropdown-item { text-align: right; }
+        /* Borders */
+        [dir="rtl"] .border-left,
+        [dir="rtl"] .border-start { border-left: none !important; border-right: 1px solid #e2e8f0 !important; }
+        [dir="rtl"] .border-end { border-right: none !important; border-left: 1px solid #e2e8f0 !important; }
+        /* Navigation */
+        [dir="rtl"] .language-selector { padding-left: 0; padding-right: 0.75rem; border-left: none; border-right: 1px solid #e2e8f0; }
+        [dir="rtl"] .nav-top-bar .d-flex { direction: rtl; }
+        [dir="rtl"] .navbar-brand { margin-right: 0; margin-left: 1rem; }
+        [dir="rtl"] .navbar-toggler { margin-left: 0; margin-right: auto; }
+        /* Icons direction swap */
+        [dir="rtl"] .fa-chevron-right:before { content: "\f053"; }
+        [dir="rtl"] .fa-chevron-left:before { content: "\f054"; }
+        [dir="rtl"] .fa-arrow-right:before { content: "\f060"; }
+        [dir="rtl"] .fa-arrow-left:before { content: "\f061"; }
+        /* Forms */
+        [dir="rtl"] .form-control,
+        [dir="rtl"] .form-select { text-align: right; }
+        [dir="rtl"] .input-group { flex-direction: row-reverse; }
+        [dir="rtl"] .input-group .form-control { border-radius: 0 0.375rem 0.375rem 0 !important; }
+        [dir="rtl"] .input-group .btn { border-radius: 0.375rem 0 0 0.375rem !important; }
+        /* Cards & lists */
+        [dir="rtl"] .card-body { text-align: right; }
+        [dir="rtl"] ul.list-unstyled { padding-right: 0; padding-left: revert; }
+        [dir="rtl"] .list-group-item { text-align: right; }
+        /* Footer */
+        [dir="rtl"] .footer-links { text-align: right; }
+        /* Float utilities */
+        [dir="rtl"] .float-start { float: right !important; }
+        [dir="rtl"] .float-end { float: left !important; }
 
         .btn-primary {
             background: var(--gradient-primary);
@@ -968,14 +1045,14 @@
                         <li><a class="dropdown-item" href="{{ route('ressources.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.resources') }}</a></li>
                         <li><a class="dropdown-item" href="{{ route('reports', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.reports') }}</a></li>
                         <li><a class="dropdown-item" href="{{ route('gallery', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.gallery') }}</a></li>
-                        <li><a class="dropdown-item" href="{{ route('speeches', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.speeches') }}</a></li>
                     </ul>
                 </div>
                 <div class="dropdown">
-                    <button class="nav-top-dropdown dropdown-toggle" type="button" id="dropdownLang" data-bs-toggle="dropdown" aria-expanded="false">{{ app()->getLocale() == 'fr' ? __('messages.language.french') : __('messages.language.english') }}</button>
+                    <button class="nav-top-dropdown dropdown-toggle" type="button" id="dropdownLang" data-bs-toggle="dropdown" aria-expanded="false">@if(app()->getLocale() == 'fr') {{ __('messages.language.french') }} @elseif(app()->getLocale() == 'ar') العربية @else {{ __('messages.language.english') }} @endif</button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownLang">
                         <li><a class="dropdown-item" href="{{ locale_url('fr') }}">{{ __('messages.language.french') }}</a></li>
                         <li><a class="dropdown-item" href="{{ locale_url('en') }}">{{ __('messages.language.english') }}</a></li>
+                        <li><a class="dropdown-item" href="{{ locale_url('ar') }}">العربية</a></li>
                     </ul>
                 </div>
             </div>
@@ -1036,11 +1113,12 @@
                 </ul>
 
                 <div class="d-flex align-items-center gap-2 ms-lg-3">
-                    <a href="{{ route('don.index', ['locale' => app()->getLocale()]) }}" class="nav-btn-don text-decoration-none">{{ __('messages.nav.make_donation') }}</a>
+                    <a href="{{ route('donations.index', ['locale' => app()->getLocale()]) }}" class="nav-btn-don text-decoration-none">{{ __('messages.nav.make_donation') }}</a>
                     {{-- Sur mobile : langue (la barre utilitaire est masquée) --}}
                     <div class="language-selector d-lg-none ms-2">
                         <a href="{{ locale_url('fr') }}" class="d-flex align-items-center text-decoration-none text-dark" title="Français"><span class="small fw-bold">FR</span></a>
                         <a href="{{ locale_url('en') }}" class="d-flex align-items-center text-decoration-none text-dark ms-2" title="English"><span class="small fw-bold">EN</span></a>
+                        <a href="{{ locale_url('ar') }}" class="d-flex align-items-center text-decoration-none text-dark ms-2" title="العربية"><span class="small fw-bold">AR</span></a>
                     </div>
                 </div>
             </div>
@@ -1090,7 +1168,7 @@
                         <li><a href="{{ route('home', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.home') }}</a></li>
                         <li><a href="{{ route('about', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.about') }}</a></li>
                         <li><a href="{{ route('news.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.news') }}</a></li>
-                        <li><a href="{{ route('don.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.make_donation_short') }}</a></li>
+                        <li><a href="{{ route('donations.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.make_donation_short') }}</a></li>
                         <li><a href="{{ route('projets.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.projects') }}</a></li>
                         <li><a href="{{ route('ressources.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.resources') }}</a></li>
                         <li><a href="{{ route('faq.index', ['locale' => app()->getLocale()]) }}">{{ __('messages.nav.faq') }}</a></li>
@@ -1126,12 +1204,12 @@
                         <div class="logos-container">
                             <a href="https://femme.gouv.sn/" target="_blank" class="logo-item-link" title="Ministère de la Famille et des Solidarités">
                                 <div class="logo-item">
-                                    <img src="{{ asset('images/mfs.png') }}" alt="Ministère de la Famille et des Solidarités" class="institutional-logo" onerror="this.style.display='none';">
+                                    <img src="{{ asset('images/mfs.png') }}" alt="Ministère de la Famille et des Solidarités" class="institutional-logo" loading="lazy" onerror="this.style.display='none';">
                                 </div>
                             </a>
                             <a href="https://www.finances.gouv.sn/" target="_blank" class="logo-item-link" title="Ministère des Finances et du Budget">
                                 <div class="logo-item">
-                                    <img src="{{ asset('images/ministere-des-finances-et-du-budget.png') }}" alt="Ministère des Finances et du Budget" class="institutional-logo" onerror="this.style.display='none';">
+                                    <img src="{{ asset('images/ministere-des-finances-et-du-budget.png') }}" alt="Ministère des Finances et du Budget" class="institutional-logo" loading="lazy" onerror="this.style.display='none';">
                                 </div>
                             </a>
                         </div>
@@ -1163,10 +1241,11 @@
         </div>
     </footer>
 
+    <!-- Chatbot included via partial -->
     @include('partials.chatbot')
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS (deferred) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
     
     <!-- Custom JS -->
     <script>
@@ -1399,204 +1478,18 @@
     <!-- Toast Notifications -->
     <x-toast-notification />
     
-    <!-- AOS - Animate On Scroll -->
-    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        AOS.init({ duration: 600, easing: 'ease-out-cubic', offset: 40, once: true });
-      });
-    </script>
+    <!-- AOS removed for performance -->
     
-    <!-- Fenêtre de consentement cookies -->
-    <div id="cookie-consent-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:99999; backdrop-filter:blur(3px);">
-        <div id="cookie-consent-box" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border-radius:16px; max-width:520px; width:90%; box-shadow:0 25px 60px rgba(0,0,0,0.3); overflow:hidden; animation:cookieSlideIn 0.4s ease;">
-            <!-- Header -->
-            <div style="padding:25px 30px 15px; display:flex; align-items:center; justify-content:space-between;">
-                <div style="display:flex; align-items:center; gap:15px;">
-                    <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" alt="CSAR" style="height:45px; width:auto;">
-                    <h3 style="margin:0; font-size:1.15rem; font-weight:700; color:#1f2937;">Gérer le consentement</h3>
-                </div>
-                <button onclick="closeCookieConsent()" style="background:none; border:none; font-size:1.5rem; color:#9ca3af; cursor:pointer; padding:5px; line-height:1;">&times;</button>
-            </div>
-
-            <!-- Description -->
-            <div style="padding:0 30px 20px;">
-                <p style="font-size:0.9rem; color:#4b5563; line-height:1.7; margin:0;">
-                    Pour offrir les meilleures expériences, nous utilisons des technologies telles que les cookies pour stocker et/ou accéder aux informations des appareils. Le fait de consentir à ces technologies nous permettra de traiter des données telles que le comportement de navigation ou les ID uniques sur ce site. Le fait de ne pas consentir ou de retirer son consentement peut avoir un effet négatif sur certaines caractéristiques et fonctions.
-                </p>
-            </div>
-
-            <!-- Options -->
-            <div style="padding:0 30px;">
-                <!-- Fonctionnel -->
-                <div class="cookie-option" style="border-top:1px solid #e5e7eb; padding:16px 0; display:flex; align-items:center; justify-content:space-between;">
-                    <span style="font-weight:600; color:#1f2937; font-size:0.95rem;">Fonctionnel</span>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="color:#22c55e; font-weight:600; font-size:0.85rem;">Toujours activé</span>
-                        <button onclick="toggleCookieDetail('functional')" style="background:none; border:none; cursor:pointer; color:#9ca3af; font-size:1.2rem; padding:0;">
-                            <i class="fas fa-chevron-down" id="icon-functional"></i>
-                        </button>
-                    </div>
-                </div>
-                <div id="detail-functional" style="display:none; padding:0 0 15px; font-size:0.85rem; color:#6b7280; line-height:1.6;">
-                    L'accès ou le stockage technique est strictement nécessaire dans la finalité d'intérêt légitime de permettre l'utilisation d'un service spécifique explicitement demandé par l'abonné ou l'utilisateur, ou dans le seul but d'effectuer la transmission d'une communication sur un réseau de communications électroniques.
-                </div>
-
-                <!-- Statistiques -->
-                <div class="cookie-option" style="border-top:1px solid #e5e7eb; padding:16px 0; display:flex; align-items:center; justify-content:space-between;">
-                    <span style="font-weight:600; color:#1f2937; font-size:0.95rem;">Statistiques</span>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <label class="cookie-toggle" style="position:relative; display:inline-block; width:44px; height:24px; cursor:pointer;">
-                            <input type="checkbox" id="cookie-stats" checked style="opacity:0; width:0; height:0;">
-                            <span class="cookie-slider" style="position:absolute; top:0; left:0; right:0; bottom:0; background:#22c55e; border-radius:24px; transition:0.3s;"></span>
-                        </label>
-                        <button onclick="toggleCookieDetail('stats')" style="background:none; border:none; cursor:pointer; color:#9ca3af; font-size:1.2rem; padding:0;">
-                            <i class="fas fa-chevron-down" id="icon-stats"></i>
-                        </button>
-                    </div>
-                </div>
-                <div id="detail-stats" style="display:none; padding:0 0 15px; font-size:0.85rem; color:#6b7280; line-height:1.6;">
-                    Le stockage ou l'accès technique qui est utilisé exclusivement à des fins statistiques.
-                </div>
-
-                <!-- Marketing -->
-                <div class="cookie-option" style="border-top:1px solid #e5e7eb; padding:16px 0; display:flex; align-items:center; justify-content:space-between;">
-                    <span style="font-weight:600; color:#1f2937; font-size:0.95rem;">Marketing</span>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <label class="cookie-toggle" style="position:relative; display:inline-block; width:44px; height:24px; cursor:pointer;">
-                            <input type="checkbox" id="cookie-marketing" checked style="opacity:0; width:0; height:0;">
-                            <span class="cookie-slider" style="position:absolute; top:0; left:0; right:0; bottom:0; background:#22c55e; border-radius:24px; transition:0.3s;"></span>
-                        </label>
-                        <button onclick="toggleCookieDetail('marketing')" style="background:none; border:none; cursor:pointer; color:#9ca3af; font-size:1.2rem; padding:0;">
-                            <i class="fas fa-chevron-down" id="icon-marketing"></i>
-                        </button>
-                    </div>
-                </div>
-                <div id="detail-marketing" style="display:none; padding:0 0 15px; font-size:0.85rem; color:#6b7280; line-height:1.6;">
-                    L'accès ou le stockage technique est nécessaire pour créer des profils d'internautes afin d'envoyer des publicités, ou pour suivre l'utilisateur sur un site web ou sur plusieurs sites web ayant des finalités marketing similaires.
-                </div>
-            </div>
-
-            <!-- Boutons -->
-            <div style="padding:20px 30px 25px; display:flex; gap:10px; border-top:1px solid #e5e7eb; margin-top:10px;">
-                <button onclick="acceptAllCookies()" style="flex:1; background:#22c55e; color:white; border:none; padding:14px; border-radius:10px; font-weight:700; font-size:0.95rem; cursor:pointer; transition:all 0.3s ease;">
-                    Accepter
-                </button>
-                <button onclick="refuseAllCookies()" style="flex:1; background:#f3f4f6; color:#1f2937; border:1px solid #e5e7eb; padding:14px; border-radius:10px; font-weight:600; font-size:0.95rem; cursor:pointer; transition:all 0.3s ease;">
-                    Refuser
-                </button>
-                <button onclick="savePreferences()" style="flex:1; background:#f3f4f6; color:#1f2937; border:1px solid #e5e7eb; padding:14px; border-radius:10px; font-weight:600; font-size:0.95rem; cursor:pointer; transition:all 0.3s ease; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                    Enregistrer les préf...
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <style>
-    @keyframes cookieSlideIn {
-        from { opacity:0; transform:translate(-50%,-50%) scale(0.9); }
-        to { opacity:1; transform:translate(-50%,-50%) scale(1); }
-    }
-    .cookie-slider::before {
-        content:'';
-        position:absolute;
-        height:18px;
-        width:18px;
-        left:3px;
-        bottom:3px;
-        background:white;
-        border-radius:50%;
-        transition:0.3s;
-    }
-    .cookie-toggle input:checked + .cookie-slider {
-        background:#22c55e;
-    }
-    .cookie-toggle input:not(:checked) + .cookie-slider {
-        background:#d1d5db;
-    }
-    .cookie-toggle input:checked + .cookie-slider::before {
-        transform:translateX(20px);
-    }
-    .cookie-option:hover {
-        background:#f9fafb;
-    }
-    #cookie-consent-box button:hover {
-        opacity:0.85;
-    }
-    @media (max-width:576px) {
-        #cookie-consent-box {
-            width:95% !important;
-            max-height:90vh;
-            overflow-y:auto;
-        }
-        #cookie-consent-box > div:last-child {
-            flex-direction:column !important;
-        }
-    }
-    </style>
-
+    <!-- Cookie Consent deferred for performance -->
     <script>
-    (function() {
-        // Afficher le popup de consentement après 90 secondes si l'utilisateur n'a pas encore choisi
-        if (!localStorage.getItem('csar_cookie_consent')) {
-            setTimeout(function() {
-                var overlay = document.getElementById('cookie-consent-overlay');
-                if (overlay) {
-                    overlay.style.display = 'block';
-                    overlay.style.opacity = '0';
-                    overlay.style.transition = 'opacity 0.5s ease';
-                    setTimeout(function() {
-                        overlay.style.opacity = '1';
-                    }, 50);
-                }
-            }, 90000); // 90 secondes = 1min30
-        }
-    })();
-
-    function toggleCookieDetail(type) {
-        var detail = document.getElementById('detail-' + type);
-        var icon = document.getElementById('icon-' + type);
-        if (detail.style.display === 'none') {
-            detail.style.display = 'block';
-            icon.classList.remove('fa-chevron-down');
-            icon.classList.add('fa-chevron-up');
-        } else {
-            detail.style.display = 'none';
-            icon.classList.remove('fa-chevron-up');
-            icon.classList.add('fa-chevron-down');
-        }
+    function loadCookieConsent() {
+        var s = document.createElement('script');
+        s.src = '{{ asset("js/cookie-consent.js") }}';
+        s.defer = true;
+        document.head.appendChild(s);
     }
-
-    function closeCookieConsent() {
-        var overlay = document.getElementById('cookie-consent-overlay');
-        overlay.style.opacity = '0';
-        overlay.style.transition = 'opacity 0.3s ease';
-        setTimeout(function() { overlay.style.display = 'none'; }, 300);
-    }
-
-    function acceptAllCookies() {
-        localStorage.setItem('csar_cookie_consent', JSON.stringify({
-            functional: true, statistics: true, marketing: true, date: new Date().toISOString()
-        }));
-        closeCookieConsent();
-    }
-
-    function refuseAllCookies() {
-        localStorage.setItem('csar_cookie_consent', JSON.stringify({
-            functional: true, statistics: false, marketing: false, date: new Date().toISOString()
-        }));
-        closeCookieConsent();
-    }
-
-    function savePreferences() {
-        localStorage.setItem('csar_cookie_consent', JSON.stringify({
-            functional: true,
-            statistics: document.getElementById('cookie-stats').checked,
-            marketing: document.getElementById('cookie-marketing').checked,
-            date: new Date().toISOString()
-        }));
-        closeCookieConsent();
-    }
+    // Load cookie consent after 3 seconds
+    setTimeout(loadCookieConsent, 3000);
     </script>
 
     @stack('scripts')
