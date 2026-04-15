@@ -717,7 +717,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // SIM — Suivi collecteurs terrain (admin général)
         Route::prefix('sim')->name('sim.')->group(function () {
             Route::get('/suivi', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'index'])->name('suivi');
-            Route::get('/suivi-temps-reel', fn() => view('supervisor.live-tracking'))->name('live');
+            Route::get('/suivi-temps-reel', fn() => view('supervisor.live-tracking'))->name('suivi-live');
             Route::get('/collecteurs/{id}', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collectorDetails'])->name('collector');
             Route::get('/collectes', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collections'])->name('collectes');
         });
