@@ -93,7 +93,7 @@
 <div class="login-container">
     <div class="login-header">
         <div class="drh-icon">
-            <img src="{{ asset('img/Tabaski logo.jpeg') }}" alt="Tabaski" onerror="this.style.display='none';this.parentNode.innerHTML='<i class=\'fas fa-users\' style=\'font-size:2.5rem;color:#065f46\'></i>'">
+            <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR" style="width:75%;height:75%;object-fit:contain;padding:8px;">
         </div>
         <h2>Espace DRH</h2>
         <p>Direction des Ressources Humaines — CSAR</p>
@@ -142,11 +142,6 @@
             </button>
         </form>
 
-        <div class="text-center mt-4">
-            <a href="{{ url('/avance-tabaski') }}" class="text-success text-decoration-none small">
-                <i class="fas fa-external-link-alt me-1"></i> Voir le formulaire agent
-            </a>
-        </div>
     </div>
 </div>
 

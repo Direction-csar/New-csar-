@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(Auth::user()->role === 'admin' ? 'layouts.admin' : 'layouts.drh-portal')
 
 @section('title', 'Avances Tabaski 2026')
 @section('page-title', '🕌 Avances Tabaski 2026')

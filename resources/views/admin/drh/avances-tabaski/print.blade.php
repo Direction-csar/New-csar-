@@ -27,6 +27,7 @@
     </div>
 
     <div class="header">
+        <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR" style="height:70px;object-fit:contain;margin-bottom:8px;">
         <h1>TABLEAU DES AVANCES TABASKI 2026</h1>
         <p>COMMISSARIAT A LA SECURITE ALIMENTAIRE ET A LA RESILIENCE (CSAR)</p>
         <p>Généré le {{ now()->format('d/m/Y à H:i') }}</p>
