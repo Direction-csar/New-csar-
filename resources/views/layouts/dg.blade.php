@@ -447,6 +447,15 @@
                     <span>Carte Interactive</span>
                 </a>
             </div>
+
+            <!-- SIM — Suivi collecteurs terrain temps réel -->
+            <div class="menu-item">
+                <a href="{{ route('dg.sim-suivi.index') }}" class="menu-link {{ request()->routeIs('dg.sim-suivi.*') ? 'active' : '' }}">
+                    <i class="fas fa-broadcast-tower"></i>
+                    <span>SIM — Suivi terrain</span>
+                    <span class="badge bg-success ms-auto" style="font-size:0.65rem;">Live</span>
+                </a>
+            </div>
             
             <div class="menu-item">
                 <a href="{{ route('dg.reports.index') }}" class="menu-link {{ request()->routeIs('dg.reports.*') ? 'active' : '' }}">

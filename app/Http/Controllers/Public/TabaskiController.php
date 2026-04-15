@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Http\Controllers\Public;
+
+use App\Http\Controllers\Controller;
+use App\Models\AgentTabaski;
+use App\Models\AvanceTabaski;
+use Illuminate\Http\Request;
+use Carbon\Carbon;
+
+class TabaskiController extends Controller
+{
+    const EXPIRY_DATE = '2026-04-22 23:59:59';
+    const MONTANTS    = ['100000', '150000', '200000'];
+
+    public function form()
+    {
+        $expire = Carbon::parse(self::EXPIRY_DATE);
+        $ferme  = now()->gt($expire);
+        return view('public.tabaski.form', compact('ferme', 'expire'));
+    }
+
+    public function search(Request $request)
+    {
+        $request->validate([
+            'prenom' => 'required|string|min:2',
+            'nom'    => 'required|string|min:2',
+        ]);
+
+        $agents = AgentTabaski::rechercher($request->prenom, $request->nom);
+
+        if ($agents->isEmpty()) {
+            return response()->json(['found' => false, 'message' => 'Aucun agent trouvé avec ces informations.']);
+        }
+
+        return response()->json([
+            'found'  => true,
+            'agents' => $agents->map(function ($a) {
+                return [
+                    'id'        => $a->id,
+                    'prenom'    => $a->prenom,
+                    'nom'       => $a->nom,
+                    'poste'     => $a->poste,
+                    'direction' => $a->direction,
+                    'region'    => $a->region,
+                    'deja_inscrit' => $a->inscription()->exists(),
+                ];
+            }),
+        ]);
+    }
+
+    public function submit(Request $request)
+    {
+        if (now()->gt(Carbon::parse(self::EXPIRY_DATE))) {
+            return response()->json(['success' => false, 'message' => 'Les inscriptions sont closes.'], 403);
+        }
+
+        $request->validate([
+            'agent_id' => 'required|exists:agents_tabaski,id',
+            'montant'  => 'required|in:100000,150000,200000',
+        ]);
+
+        $agent = AgentTabaski::findOrFail($request->agent_id);
+
+        if ($agent->inscription()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vous avez déjà effectué votre demande d\'avance Tabaski.',
+            ], 422);
+        }
+
+        AvanceTabaski::create([
+            'agent_id'         => $agent->id,
+            'montant'          => $request->montant,
+            'ip_address'       => $request->ip(),
+            'date_inscription' => now(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Votre demande a bien été enregistrée !',
+            'agent'   => [
+                'prenom'    => $agent->prenom,
+                'nom'       => $agent->nom,
+                'direction' => $agent->direction,
+                'montant'   => number_format((int) $request->montant, 0, ',', ' ') . ' FCFA',
+            ],
+        ]);
+    }
+}

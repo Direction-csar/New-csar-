@@ -1006,6 +1006,15 @@
                 </a>
             </div>
 
+            <!-- DRH — Avances Tabaski 2026 -->
+            <div class="menu-item">
+                <a href="{{ route('admin.drh.tabaski.index') }}" class="menu-link {{ request()->routeIs('admin.drh.*') ? 'active' : '' }}">
+                    <i class="fas fa-hand-holding-heart"></i>
+                    <span>Avances Tabaski</span>
+                    <span class="badge bg-warning text-dark ms-auto" style="font-size:0.6rem;padding:2px 5px;">2026</span>
+                </a>
+            </div>
+
             <!-- SIM — Suivi collecteurs terrain temps réel -->
             <div class="menu-item">
                 <a href="{{ route('admin.sim.suivi') }}" class="menu-link {{ request()->routeIs('admin.sim.suivi') || request()->routeIs('admin.sim.live') || request()->routeIs('admin.sim.collectes') ? 'active' : '' }}">

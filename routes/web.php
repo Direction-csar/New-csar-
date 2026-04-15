@@ -305,7 +305,15 @@ Route::prefix('dg')->name('dg.')->group(function () {
 
         // SIM (prix nationaux, évolution, alertes, comparaison régions)
         Route::get('/sim', [App\Http\Controllers\DG\SimController::class, 'index'])->name('sim.index');
-        
+
+        // SIM — Suivi collecteurs terrain temps réel (lecture seule)
+        Route::prefix('sim-suivi')->name('sim-suivi.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'index'])->name('index');
+            Route::get('/temps-reel', fn() => view('supervisor.live-tracking'))->name('live');
+            Route::get('/collecteurs/{id}', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collectorDetails'])->name('collector');
+            Route::get('/collectes', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collections'])->name('collectes');
+        });
+
         // Profil DG
         // Routes à implémenter si nécessaire
     });
@@ -703,6 +711,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Partenaires techniques (CRUD complet)
         Route::resource('partenaires', \App\Http\Controllers\Admin\PartenaireController::class)->except(['show']);
 
+        // DRH — Avances Tabaski 2026
+        Route::prefix('drh')->name('drh.')->group(function () {
+            Route::get('/avances-tabaski', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'index'])->name('tabaski.index');
+            Route::get('/avances-tabaski/export-csv', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportCsv'])->name('tabaski.export-csv');
+            Route::get('/avances-tabaski/print', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportPdf'])->name('tabaski.print');
+        });
+
         // SIM — Suivi collecteurs terrain (admin général)
         Route::prefix('sim')->name('sim.')->group(function () {
             Route::get('/suivi', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'index'])->name('suivi');
@@ -919,6 +934,11 @@ Route::prefix('api/mobile')->name('api.mobile.')->group(function () {
     Route::get('/collectors/locations', [App\Http\Controllers\Api\Mobile\CollectorLocationController::class, 'getActiveCollectors'])->name('collectors.locations');
     Route::post('/collectors/location', [App\Http\Controllers\Api\Mobile\CollectorLocationController::class, 'updateLocation'])->name('collectors.location.update');
 });
+
+// Routes publiques — Avance Tabaski 2026
+Route::get('/avance-tabaski', [\App\Http\Controllers\Public\TabaskiController::class, 'form'])->name('tabaski.form');
+Route::post('/avance-tabaski/search', [\App\Http\Controllers\Public\TabaskiController::class, 'search'])->name('tabaski.search');
+Route::post('/avance-tabaski/submit', [\App\Http\Controllers\Public\TabaskiController::class, 'submit'])->name('tabaski.submit');
 
 // Interface Superviseur SIM (suivi des collecteurs)
 Route::prefix('superviseur')->name('supervisor.')->middleware(['auth'])->group(function () {
