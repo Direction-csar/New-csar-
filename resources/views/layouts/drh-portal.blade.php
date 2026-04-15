@@ -27,7 +27,7 @@
             gap: 12px;
         }
         .drh-topbar .brand img {
-            height: 42px;
+            height: 46px;
             object-fit: contain;
             filter: brightness(0) invert(1);
         }
@@ -36,12 +36,15 @@
         }
         .drh-topbar .brand-text strong {
             display: block;
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 700;
+            letter-spacing: 0.3px;
         }
         .drh-topbar .brand-text span {
-            font-size: 0.75rem;
-            opacity: 0.85;
+            font-size: 0.72rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .drh-topbar .right-actions {
             display: flex;
@@ -54,11 +57,14 @@
         }
         .drh-topbar .user-info strong {
             display: block;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
+            font-weight: 600;
         }
         .drh-topbar .user-info span {
-            font-size: 0.72rem;
-            opacity: 0.8;
+            font-size: 0.7rem;
+            opacity: 0.75;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
         .btn-logout {
             background: rgba(255,255,255,0.15);
@@ -87,14 +93,14 @@
     <div class="brand">
         <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR">
         <div class="brand-text">
-            <strong>Espace DRH</strong>
-            <span>Avances Tabaski 2026</span>
+            <strong>Direction des Ressources Humaines</strong>
+            <span>Avances Tabaski 2026 — CSAR</span>
         </div>
     </div>
     <div class="right-actions">
         <div class="user-info">
             <strong>{{ Auth::user()->name }}</strong>
-            <span>{{ ucfirst(Auth::user()->role) }}</span>
+            <span>DRH — CSAR</span>
         </div>
         <form method="POST" action="{{ route('drh.logout') }}" style="margin:0;">
             @csrf

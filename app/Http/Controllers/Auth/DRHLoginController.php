@@ -58,7 +58,7 @@ class DRHLoginController extends Controller
             RateLimiter::clear($key);
 
             return redirect()->route('admin.drh.tabaski.index')
-                ->with('success', 'Bienvenue ' . $user->name . ' !');
+                ->with('success', 'Bienvenue, Direction des Ressources Humaines !');
         }
 
         RateLimiter::hit($key, 300);

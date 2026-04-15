@@ -95,8 +95,8 @@
         <div class="drh-icon">
             <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR" style="width:75%;height:75%;object-fit:contain;padding:8px;">
         </div>
-        <h2>Espace DRH</h2>
-        <p>Direction des Ressources Humaines — CSAR</p>
+        <h2>Direction des Ressources Humaines</h2>
+        <p>Commissariat à la Sécurité Alimentaire et à la Résilience</p>
         <span class="badge-secure"><i class="fas fa-lock me-1"></i> Accès sécurisé</span>
     </div>
 

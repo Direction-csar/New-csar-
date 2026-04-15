@@ -41,7 +41,7 @@ class AvanceTabaskiController extends Controller
             'total_150' => AvanceTabaski::where('montant', '150000')->count(),
             'total_200' => AvanceTabaski::where('montant', '200000')->count(),
             'montant_global' => number_format(
-                AvanceTabaski::selectRaw('SUM(CAST(montant AS UNSIGNED)) as total')->value('total') ?? 0,
+                AvanceTabaski::pluck('montant')->map(fn($m) => (int) $m)->sum(),
                 0, ',', ' '
             ) . ' FCFA',
         ];
