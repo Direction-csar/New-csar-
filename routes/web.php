@@ -714,6 +714,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // DRH — Avances Tabaski 2026
         Route::prefix('drh')->name('drh.')->group(function () {
             Route::get('/avances-tabaski', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'index'])->name('tabaski.index');
+            Route::post('/avances-tabaski/settings', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'updateSettings'])->name('tabaski.settings');
             Route::get('/avances-tabaski/export-csv', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportCsv'])->name('tabaski.export-csv');
             Route::get('/avances-tabaski/print', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportPdf'])->name('tabaski.print');
         });

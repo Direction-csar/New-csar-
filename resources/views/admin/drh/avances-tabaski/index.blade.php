@@ -51,6 +51,70 @@
         </div>
     </div>
 
+    {{-- Alertes --}}
+    @if(session('success'))
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    @endif
+
+    {{-- Panneau de contrôle DRH --}}
+    <div class="card border-0 shadow-sm mb-4" style="border-left: 4px solid {{ $config['est_ferme'] ? '#ef4444' : '#10b981' }} !important;">
+        <div class="card-body p-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+                <div>
+                    <h6 class="fw-bold mb-1">
+                        <i class="fas fa-cog me-1 text-muted"></i> Paramètres d'inscription
+                    </h6>
+                    <div class="d-flex align-items-center gap-2">
+                        @if($config['est_ferme'])
+                            <span class="badge bg-danger px-3 py-2"><i class="fas fa-lock me-1"></i> Inscriptions FERMÉES</span>
+                        @else
+                            <span class="badge bg-success px-3 py-2"><i class="fas fa-lock-open me-1"></i> Inscriptions OUVERTES</span>
+                            <span class="text-muted small">jusqu'au {{ \Carbon\Carbon::parse($config['date_expiration'])->format('d/m/Y') }}</span>
+                        @endif
+                    </div>
+                    <div class="mt-1">
+                        <a href="{{ url('/avance-tabaski') }}" target="_blank" class="small text-success">
+                            <i class="fas fa-link me-1"></i>Lien à partager aux agents : {{ url('/avance-tabaski') }}
+                        </a>
+                    </div>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#settingsForm">
+                    <i class="fas fa-edit me-1"></i> Modifier les paramètres
+                </button>
+            </div>
+
+            <div class="collapse mt-3" id="settingsForm">
+                <form method="POST" action="{{ route('admin.drh.tabaski.settings') }}" class="border-top pt-3">
+                    @csrf
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold mb-1">Date limite d'inscription</label>
+                            <input type="date" name="date_expiration"
+                                value="{{ \Carbon\Carbon::parse($config['date_expiration'])->format('Y-m-d') }}"
+                                class="form-control form-control-sm">
+                            <div class="form-text">Le formulaire se bloque automatiquement à minuit ce jour.</div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small fw-bold mb-1">Statut des inscriptions</label>
+                            <select name="inscriptions_ouvertes" class="form-select form-select-sm">
+                                <option value="1" {{ $config['inscriptions_ouvertes'] == '1' ? 'selected' : '' }}>Ouvertes</option>
+                                <option value="0" {{ $config['inscriptions_ouvertes'] == '0' ? 'selected' : '' }}>Fermées manuellement</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <button type="submit" class="btn btn-success btn-sm w-100">
+                                <i class="fas fa-save me-1"></i> Enregistrer
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- Barre de progression --}}
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-3">

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Drh;
 use App\Http\Controllers\Controller;
 use App\Models\AgentTabaski;
 use App\Models\AvanceTabaski;
+use App\Models\TabaskiConfig;
 use Illuminate\Http\Request;
 
 class AvanceTabaskiController extends Controller
@@ -47,8 +48,27 @@ class AvanceTabaskiController extends Controller
 
         $directions = AgentTabaski::distinct()->orderBy('direction')->pluck('direction');
         $regions    = AgentTabaski::distinct()->orderBy('region')->pluck('region');
+        $config     = [
+            'date_expiration'       => TabaskiConfig::get('date_expiration', '2026-04-22 23:59:59'),
+            'inscriptions_ouvertes' => TabaskiConfig::get('inscriptions_ouvertes', '1'),
+            'est_ferme'             => TabaskiConfig::estFerme(),
+        ];
 
-        return view('admin.drh.avances-tabaski.index', compact('inscriptions', 'stats', 'directions', 'regions'));
+        return view('admin.drh.avances-tabaski.index', compact('inscriptions', 'stats', 'directions', 'regions', 'config'));
+    }
+
+    public function updateSettings(Request $request)
+    {
+        $request->validate([
+            'date_expiration'       => 'required|date',
+            'inscriptions_ouvertes' => 'required|in:0,1',
+        ]);
+
+        TabaskiConfig::set('date_expiration', date('Y-m-d 23:59:59', strtotime($request->date_expiration)));
+        TabaskiConfig::set('inscriptions_ouvertes', $request->inscriptions_ouvertes);
+
+        return redirect()->route('admin.drh.tabaski.index')
+            ->with('success', 'Paramètres mis à jour avec succès.');
     }
 
     public function exportCsv(Request $request)

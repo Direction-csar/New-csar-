@@ -5,18 +5,15 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use App\Models\AgentTabaski;
 use App\Models\AvanceTabaski;
+use App\Models\TabaskiConfig;
 use Illuminate\Http\Request;
-use Carbon\Carbon;
 
 class TabaskiController extends Controller
 {
-    const EXPIRY_DATE = '2026-04-22 23:59:59';
-    const MONTANTS    = ['100000', '150000', '200000'];
-
     public function form()
     {
-        $expire = Carbon::parse(self::EXPIRY_DATE);
-        $ferme  = now()->gt($expire);
+        $expire = TabaskiConfig::dateExpiration();
+        $ferme  = TabaskiConfig::estFerme();
         return view('public.tabaski.form', compact('ferme', 'expire'));
     }
 
@@ -51,8 +48,8 @@ class TabaskiController extends Controller
 
     public function submit(Request $request)
     {
-        if (now()->gt(Carbon::parse(self::EXPIRY_DATE))) {
-            return response()->json(['success' => false, 'message' => 'Les inscriptions sont closes.'], 403);
+        if (TabaskiConfig::estFerme()) {
+            return response()->json(['success' => false, 'message' => 'Les inscriptions pour l\'avance Tabaski sont clôturées.'], 403);
         }
 
         $request->validate([
