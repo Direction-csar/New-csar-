@@ -246,12 +246,13 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     Route::redirect('/demande-static', '/demande', 301);
 });
 
-// DRH — Interface désactivée (Admin et DG uniquement)
+// DRH — Interface Avances Tabaski
 Route::prefix('drh')->name('drh.')->group(function () {
-    Route::get('/', fn () => view('auth.interface-desactivee'))->name('dashboard');
-    Route::get('/login', fn () => view('auth.interface-desactivee'))->name('login');
-    Route::post('/login', fn () => redirect()->route('drh.login')->with('message', 'Interface désactivée.'));
-    Route::match(['get', 'post'], '/{path}', fn () => view('auth.interface-desactivee'))->where('path', '.*')->name('fallback');
+    Route::get('/login', [\App\Http\Controllers\Auth\DRHLoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\Auth\DRHLoginController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [\App\Http\Controllers\Auth\DRHLoginController::class, 'logout'])->name('logout');
+    Route::get('/', fn () => redirect()->route('drh.login'))->name('dashboard');
+    Route::match(['get', 'post'], '/{path}', fn () => redirect()->route('drh.login'))->where('path', '.*')->name('fallback');
 });
 
 // Admin Routes - Supprimées (dupliquées avec le groupe ci-dessous)
@@ -711,13 +712,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Partenaires techniques (CRUD complet)
         Route::resource('partenaires', \App\Http\Controllers\Admin\PartenaireController::class)->except(['show']);
 
-        // DRH — Avances Tabaski 2026
-        Route::prefix('drh')->name('drh.')->group(function () {
-            Route::get('/avances-tabaski', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'index'])->name('tabaski.index');
-            Route::post('/avances-tabaski/settings', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'updateSettings'])->name('tabaski.settings');
-            Route::get('/avances-tabaski/export-csv', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportCsv'])->name('tabaski.export-csv');
-            Route::get('/avances-tabaski/print', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportPdf'])->name('tabaski.print');
-        });
+        // (routes DRH Tabaski déplacées vers groupe drh-access ci-dessous)
 
         // SIM — Suivi collecteurs terrain (admin général)
         Route::prefix('sim')->name('sim.')->group(function () {
@@ -940,6 +935,14 @@ Route::prefix('api/mobile')->name('api.mobile.')->group(function () {
 Route::get('/avance-tabaski', [\App\Http\Controllers\Public\TabaskiController::class, 'form'])->name('tabaski.form');
 Route::post('/avance-tabaski/search', [\App\Http\Controllers\Public\TabaskiController::class, 'search'])->name('tabaski.search');
 Route::post('/avance-tabaski/submit', [\App\Http\Controllers\Public\TabaskiController::class, 'submit'])->name('tabaski.submit');
+
+// Routes DRH — Avances Tabaski (accès drh + admin)
+Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access'])->group(function () {
+    Route::get('/avances-tabaski', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'index'])->name('tabaski.index');
+    Route::post('/avances-tabaski/settings', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'updateSettings'])->name('tabaski.settings');
+    Route::get('/avances-tabaski/export-csv', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportCsv'])->name('tabaski.export-csv');
+    Route::get('/avances-tabaski/print', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportPdf'])->name('tabaski.print');
+});
 
 // Interface Superviseur SIM (suivi des collecteurs)
 Route::prefix('superviseur')->name('supervisor.')->middleware(['auth'])->group(function () {

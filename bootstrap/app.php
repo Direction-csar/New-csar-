@@ -37,6 +37,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'dg' => \App\Http\Middleware\DGMiddleware::class,
+            'drh-access' => \App\Http\Middleware\DRHMiddleware::class,
             'collector' => \App\Http\Middleware\CollectorMiddleware::class,
             'ctc-admin' => \App\Http\Middleware\CTCAdminMiddleware::class,
         ]);

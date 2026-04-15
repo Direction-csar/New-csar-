@@ -26,8 +26,8 @@
 
     {{-- En-tête --}}
     <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-20 h-20 bg-white bg-opacity-20 rounded-full mb-4">
-            <span class="text-4xl">🕌</span>
+        <div class="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full mb-4 shadow-lg overflow-hidden">
+            <img src="{{ asset('img/Tabaski logo.jpeg') }}" alt="Tabaski 2026" class="w-full h-full object-cover">
         </div>
         <h1 class="text-3xl font-bold text-white">Avance Tabaski 2026</h1>
         <p class="text-green-100 mt-2 text-sm">CSAR — Commissariat à la Sécurité Alimentaire et à la Résilience</p>
