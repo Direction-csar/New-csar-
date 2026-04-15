@@ -29,7 +29,6 @@
         .drh-topbar .brand img {
             height: 46px;
             object-fit: contain;
-            filter: brightness(0) invert(1);
         }
         .drh-topbar .brand-text {
             line-height: 1.2;
@@ -91,7 +90,7 @@
 {{-- Barre de navigation DRH --}}
 <div class="drh-topbar">
     <div class="brand">
-        <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR">
+        <img src="{{ asset('images/csar-logo-white.png') }}" alt="CSAR">
         <div class="brand-text">
             <strong>Direction des Ressources Humaines</strong>
             <span>Avances Tabaski 2026 — CSAR</span>
