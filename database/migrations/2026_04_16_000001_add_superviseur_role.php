@@ -13,9 +13,10 @@ return new class extends Migration
         $exists = DB::table('roles')->where('name', 'superviseur')->exists();
         if (!$exists) {
             DB::table('roles')->insert([
-                'name'       => 'superviseur',
-                'created_at' => now(),
-                'updated_at' => now(),
+                'name'         => 'superviseur',
+                'display_name' => 'Superviseur SIM',
+                'created_at'   => now(),
+                'updated_at'   => now(),
             ]);
         }
 
