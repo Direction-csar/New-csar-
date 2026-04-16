@@ -68,7 +68,7 @@
                 <span class="text-white me-3">
                     <i class="fas fa-user-tie me-1"></i>{{ auth()->user()->name }}
                 </span>
-                <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                <form method="POST" action="{{ route('admin.logout') }}" class="d-inline">
                     @csrf
                     <button type="submit" class="btn btn-outline-light btn-sm">
                         <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
