@@ -61,6 +61,8 @@ class DGMiddleware
             return redirect()->route('dg.login')->with('error', 'Votre compte a été désactivé.');
         }
 
+        Auth::shouldUse('dg');
+
         // Log de l'accès autorisé
         Log::info('Accès DG autorisé', [
             'user_id' => $user->id,

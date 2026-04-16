@@ -26,6 +26,7 @@ class SupervisorMiddleware
             return redirect()->route('supervisor.login')->with('error', 'Compte désactivé.');
         }
 
+        Auth::shouldUse('supervisor');
         return $next($request);
     }
 }

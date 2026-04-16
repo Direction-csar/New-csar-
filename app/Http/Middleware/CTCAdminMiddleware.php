@@ -43,6 +43,7 @@ class CTCAdminMiddleware
             return redirect()->route('ctc.login')->with('error', 'Votre compte a été désactivé.');
         }
 
+        Auth::shouldUse('ctc');
         $user->update(['last_activity' => Carbon::now()]);
 
         return $next($request);

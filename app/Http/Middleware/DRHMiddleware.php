@@ -27,6 +27,7 @@ class DRHMiddleware
             return redirect()->route('drh.login')->with('error', 'Votre compte a été désactivé.');
         }
 
+        Auth::shouldUse('drh');
         $user->update(['last_activity' => Carbon::now()]);
 
         return $next($request);

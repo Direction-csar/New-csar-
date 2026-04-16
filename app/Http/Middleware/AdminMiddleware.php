@@ -61,6 +61,9 @@ class AdminMiddleware
             return redirect()->route('admin.login')->with('error', 'Votre compte a été désactivé.');
         }
 
+        // Définir le guard par défaut pour cette requête
+        Auth::shouldUse('admin');
+
         // Log de l'accès autorisé
         Log::info('Accès Admin autorisé', [
             'user_id' => $user->id,
