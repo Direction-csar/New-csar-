@@ -26,12 +26,12 @@ class SimCollector extends Model
 
     public function mobileCollections(): HasMany
     {
-        return $this->hasMany(SimMobileCollection::class);
+        return $this->hasMany(SimMobileCollection::class, 'collector_id');
     }
 
     public function syncLogs(): HasMany
     {
-        return $this->hasMany(SimSyncLog::class);
+        return $this->hasMany(SimSyncLog::class, 'collector_id');
     }
 
     public function isActive(): bool
