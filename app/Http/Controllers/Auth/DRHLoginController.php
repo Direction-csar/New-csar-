@@ -13,7 +13,7 @@ class DRHLoginController extends Controller
 {
     public function showLoginForm()
     {
-        if (Auth::check() && in_array(Auth::user()->role, ['drh', 'admin'])) {
+        if (Auth::check() && in_array(Auth::user()->role, ['drh', 'ctc', 'admin'])) {
             return redirect()->route('admin.drh.tabaski.index');
         }
         return view('auth.drh-login');
@@ -38,7 +38,7 @@ class DRHLoginController extends Controller
         if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             $user = Auth::user();
 
-            if (!in_array($user->role, ['drh', 'admin'])) {
+            if (!in_array($user->role, ['drh', 'ctc', 'admin'])) {
                 Auth::logout();
                 RateLimiter::hit($key, 300);
                 throw ValidationException::withMessages([

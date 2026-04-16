@@ -17,7 +17,7 @@ class DRHMiddleware
 
         $user = Auth::user();
 
-        if (!in_array($user->role, ['drh', 'admin'])) {
+        if (!in_array($user->role, ['drh', 'ctc', 'admin'])) {
             Auth::logout();
             return redirect()->route('drh.login')->with('error', 'Accès réservé à la DRH.');
         }
