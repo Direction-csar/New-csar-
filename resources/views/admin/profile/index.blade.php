@@ -620,7 +620,7 @@
                                                 <div class="flex-grow-1">
                                                     <strong>Dernière connexion</strong>
                                                     <p class="mb-1 text-muted">Connexion réussie</p>
-                                                    <small class="text-muted">{{ $lastLogin->format('d/m/Y H:i') }}</small>
+                                                    <small class="text-muted">{{ $lastLogin ? \Carbon\Carbon::parse($lastLogin)->format('d/m/Y H:i') : 'N/A' }}</small>
                                                 </div>
                                                 <span class="badge bg-info">Récente</span>
                                             </div>
