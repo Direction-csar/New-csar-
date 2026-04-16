@@ -11,6 +11,7 @@ use App\Models\StockMovement;
 use App\Models\Personnel;
 use App\Models\Notification;
 use App\Models\Message;
+use App\Models\PublicRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
