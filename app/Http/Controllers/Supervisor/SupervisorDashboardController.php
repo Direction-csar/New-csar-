@@ -16,7 +16,7 @@ class SupervisorDashboardController extends Controller
         // Statistiques globales
         $stats = [
             'total_collectors' => SimCollector::count(),
-            'active_collectors' => SimCollector::where('is_active', true)->count(),
+            'active_collectors' => SimCollector::where('status', 'active')->count(),
             'total_collections' => SimMobileCollection::count(),
             'collections_today' => SimMobileCollection::whereDate('collection_date', today())->count(),
             'pending_sync' => SimMobileCollection::where('sync_status', 'pending')->count(),
