@@ -111,15 +111,8 @@ class User extends Authenticatable
      */
     protected function getRoleNameFromRoleId($roleId)
     {
-        $roleMap = [
-            1 => 'admin',
-            2 => 'dg',
-            3 => 'responsable',
-            4 => 'agent',
-            5 => 'drh',
-            6 => 'ctc'
-        ];
-        return $roleMap[$roleId] ?? 'agent';
+        $role = \App\Models\Role::find($roleId);
+        return $role ? $role->name : 'agent';
     }
 
     /**
