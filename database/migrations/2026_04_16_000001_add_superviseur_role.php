@@ -14,7 +14,6 @@ return new class extends Migration
         if (!$exists) {
             DB::table('roles')->insert([
                 'name'       => 'superviseur',
-                'guard_name' => 'web',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
