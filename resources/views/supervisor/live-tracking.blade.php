@@ -87,7 +87,7 @@
                 <a href="{{ route('supervisor.dashboard') }}" class="btn btn-outline-light btn-sm me-2">
                     <i class="fas fa-arrow-left me-1"></i>Retour
                 </a>
-                <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                <form method="POST" action="{{ route('admin.logout') }}" class="d-inline">
                     @csrf
                     <button type="submit" class="btn btn-outline-light btn-sm">
                         <i class="fas fa-sign-out-alt me-1"></i>Déconnexion
