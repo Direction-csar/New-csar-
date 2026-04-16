@@ -945,11 +945,17 @@ Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access'])->grou
 });
 
 // Interface Superviseur SIM (suivi des collecteurs)
-Route::prefix('superviseur')->name('supervisor.')->middleware(['auth'])->group(function () {
-    Route::get('/', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/suivi-temps-reel', fn() => view('supervisor.live-tracking'))->name('live.tracking');
-    Route::get('/collecteur/{id}', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collectorDetails'])->name('collector.details');
-    Route::get('/collectes', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collections'])->name('collections');
+Route::prefix('superviseur')->name('supervisor.')->group(function () {
+    Route::get('/login', [\App\Http\Controllers\Auth\SupervisorLoginController::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [\App\Http\Controllers\Auth\SupervisorLoginController::class, 'login'])->name('login.submit');
+    Route::post('/logout', [\App\Http\Controllers\Auth\SupervisorLoginController::class, 'logout'])->name('logout');
+
+    Route::middleware(['auth', 'supervisor'])->group(function () {
+        Route::get('/', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'index'])->name('dashboard');
+        Route::get('/suivi-temps-reel', fn() => view('supervisor.live-tracking'))->name('live.tracking');
+        Route::get('/collecteur/{id}', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collectorDetails'])->name('collector.details');
+        Route::get('/collectes', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collections'])->name('collections');
+    });
 });
 
 // Routes globales pour les nouvelles fonctionnalités

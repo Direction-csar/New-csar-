@@ -40,6 +40,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'drh-access' => \App\Http\Middleware\DRHMiddleware::class,
             'collector' => \App\Http\Middleware\CollectorMiddleware::class,
             'ctc-admin' => \App\Http\Middleware\CTCAdminMiddleware::class,
+            'supervisor' => \App\Http\Middleware\SupervisorMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
