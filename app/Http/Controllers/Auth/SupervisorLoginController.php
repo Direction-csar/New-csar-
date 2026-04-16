@@ -12,9 +12,11 @@ use Carbon\Carbon;
 
 class SupervisorLoginController extends Controller
 {
+    protected $guard = 'supervisor';
+
     public function showLoginForm()
     {
-        if (Auth::check() && in_array(Auth::user()->role, ['superviseur', 'admin'])) {
+        if (Auth::guard($this->guard)->check()) {
             return redirect()->route('supervisor.dashboard');
         }
         return view('auth.supervisor-login');
@@ -42,24 +44,24 @@ class SupervisorLoginController extends Controller
 
         RateLimiter::hit($key, 300);
 
-        if (!Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->boolean('remember'))) {
+        if (!Auth::guard($this->guard)->attempt(['email' => $request->email, 'password' => $request->password], $request->boolean('remember'))) {
             Log::warning('Échec connexion Superviseur', ['email' => $request->email, 'ip' => $request->ip()]);
             throw ValidationException::withMessages([
                 'email' => 'Email ou mot de passe incorrect.',
             ]);
         }
 
-        $user = Auth::user();
+        $user = Auth::guard($this->guard)->user();
 
         if (!in_array($user->role, ['superviseur', 'admin'])) {
-            Auth::logout();
+            Auth::guard($this->guard)->logout();
             throw ValidationException::withMessages([
                 'email' => 'Accès réservé aux superviseurs SIM.',
             ]);
         }
 
         if (!$user->is_active) {
-            Auth::logout();
+            Auth::guard($this->guard)->logout();
             throw ValidationException::withMessages([
                 'email' => 'Ce compte est désactivé.',
             ]);
@@ -75,7 +77,7 @@ class SupervisorLoginController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard($this->guard)->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('supervisor.login');

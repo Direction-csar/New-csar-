@@ -20,7 +20,7 @@ class DGMiddleware
     public function handle(Request $request, Closure $next)
     {
         // Vérifier si l'utilisateur est authentifié
-        if (!Auth::check()) {
+        if (!Auth::guard('dg')->check()) {
             Log::warning('Tentative d\'accès DG sans authentification', [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
@@ -31,7 +31,7 @@ class DGMiddleware
             return redirect()->route('dg.login')->with('error', 'Vous devez être connecté pour accéder à cette page.');
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('dg')->user();
 
         // Vérifier si l'utilisateur a le rôle DG
         if ($user->role !== 'dg') {
@@ -57,7 +57,7 @@ class DGMiddleware
                 'timestamp' => Carbon::now()
             ]);
             
-            Auth::logout();
+            Auth::guard('dg')->logout();
             return redirect()->route('dg.login')->with('error', 'Votre compte a été désactivé.');
         }
 

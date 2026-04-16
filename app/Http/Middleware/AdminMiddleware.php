@@ -20,7 +20,7 @@ class AdminMiddleware
     public function handle(Request $request, Closure $next)
     {
         // Vérifier si l'utilisateur est authentifié
-        if (!Auth::check()) {
+        if (!Auth::guard('admin')->check()) {
             Log::warning('Tentative d\'accès Admin sans authentification', [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
@@ -31,7 +31,7 @@ class AdminMiddleware
             return redirect()->route('admin.login')->with('error', 'Vous devez être connecté pour accéder à cette page.');
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('admin')->user();
 
         // Vérifier si l'utilisateur a le rôle admin
         if ($user->role !== 'admin') {
@@ -57,7 +57,7 @@ class AdminMiddleware
                 'timestamp' => Carbon::now()
             ]);
             
-            Auth::logout();
+            Auth::guard('admin')->logout();
             return redirect()->route('admin.login')->with('error', 'Votre compte a été désactivé.');
         }
 

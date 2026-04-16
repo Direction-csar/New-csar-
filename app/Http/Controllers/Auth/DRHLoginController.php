@@ -11,9 +11,11 @@ use Carbon\Carbon;
 
 class DRHLoginController extends Controller
 {
+    protected $guard = 'drh';
+
     public function showLoginForm()
     {
-        if (Auth::check() && in_array(Auth::user()->role, ['drh', 'ctc', 'admin'])) {
+        if (Auth::guard($this->guard)->check() && in_array(Auth::guard($this->guard)->user()->role, ['drh', 'ctc', 'admin'])) {
             return redirect()->route('admin.drh.tabaski.index');
         }
         return view('auth.drh-login');
@@ -35,11 +37,11 @@ class DRHLoginController extends Controller
             'password' => 'required|string|min:6',
         ]);
 
-        if (Auth::attempt($request->only('email', 'password'), $request->boolean('remember'))) {
-            $user = Auth::user();
+        if (Auth::guard($this->guard)->attempt($request->only('email', 'password'), $request->boolean('remember'))) {
+            $user = Auth::guard($this->guard)->user();
 
             if (!in_array($user->role, ['drh', 'ctc', 'admin'])) {
-                Auth::logout();
+                Auth::guard($this->guard)->logout();
                 RateLimiter::hit($key, 300);
                 throw ValidationException::withMessages([
                     'email' => 'Ces identifiants ne correspondent pas à un compte DRH.',
@@ -47,7 +49,7 @@ class DRHLoginController extends Controller
             }
 
             if (!$user->is_active) {
-                Auth::logout();
+                Auth::guard($this->guard)->logout();
                 RateLimiter::hit($key, 300);
                 throw ValidationException::withMessages([
                     'email' => 'Votre compte a été désactivé.',
@@ -69,7 +71,7 @@ class DRHLoginController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
+        Auth::guard($this->guard)->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         return redirect()->route('drh.login')->with('success', 'Déconnexion réussie.');

@@ -10,19 +10,19 @@ class SupervisorMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!Auth::check()) {
+        if (!Auth::guard('supervisor')->check()) {
             return redirect()->route('supervisor.login');
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('supervisor')->user();
 
         if (!in_array($user->role, ['superviseur', 'admin'])) {
-            Auth::logout();
+            Auth::guard('supervisor')->logout();
             return redirect()->route('supervisor.login')->with('error', 'Accès réservé aux superviseurs SIM.');
         }
 
         if (!$user->is_active) {
-            Auth::logout();
+            Auth::guard('supervisor')->logout();
             return redirect()->route('supervisor.login')->with('error', 'Compte désactivé.');
         }
 

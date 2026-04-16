@@ -15,8 +15,13 @@ class AdminLoginController extends Controller
     /**
      * Afficher le formulaire de connexion Admin
      */
+    protected $guard = 'admin';
+
     public function showLoginForm()
     {
+        if (Auth::guard($this->guard)->check()) {
+            return redirect()->route('admin.dashboard');
+        }
         return view('auth.admin-login');
     }
 
@@ -57,12 +62,12 @@ class AdminLoginController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        if (Auth::attempt($credentials, $remember)) {
-            $user = Auth::user();
+        if (Auth::guard($this->guard)->attempt($credentials, $remember)) {
+            $user = Auth::guard($this->guard)->user();
             
             // Vérifier que l'utilisateur est bien un admin
             if ($user->role !== 'admin') {
-                Auth::logout();
+                Auth::guard($this->guard)->logout();
                 RateLimiter::hit($key, 300); // 5 minutes
                 
                 Log::warning('Tentative de connexion Admin avec un compte non-admin', [
@@ -79,7 +84,7 @@ class AdminLoginController extends Controller
 
             // Vérifier que le compte est actif
             if (!$user->is_active) {
-                Auth::logout();
+                Auth::guard($this->guard)->logout();
                 RateLimiter::hit($key, 300);
                 
                 Log::warning('Tentative de connexion Admin avec un compte inactif', [
@@ -133,7 +138,7 @@ class AdminLoginController extends Controller
      */
     public function logout(Request $request)
     {
-        $user = Auth::user();
+        $user = Auth::guard($this->guard)->user();
         
         if ($user) {
             Log::info('Déconnexion Admin', [
@@ -144,7 +149,7 @@ class AdminLoginController extends Controller
             ]);
         }
 
-        Auth::logout();
+        Auth::guard($this->guard)->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

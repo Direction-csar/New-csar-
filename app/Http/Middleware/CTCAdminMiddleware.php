@@ -16,7 +16,7 @@ class CTCAdminMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        if (!Auth::check()) {
+        if (!Auth::guard('ctc')->check()) {
             Log::warning('Tentative d\'accès CTC sans authentification', [
                 'ip' => $request->ip(),
                 'url' => $request->fullUrl(),
@@ -25,7 +25,7 @@ class CTCAdminMiddleware
             return redirect()->route('ctc.login')->with('error', 'Vous devez être connecté pour accéder à cette page.');
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('ctc')->user();
 
         if (!in_array($user->role, ['admin', 'ctc'])) {
             Log::warning('Tentative d\'accès CTC avec un rôle non autorisé', [
@@ -34,12 +34,12 @@ class CTCAdminMiddleware
                 'url' => $request->fullUrl(),
                 'timestamp' => Carbon::now()
             ]);
-            Auth::logout();
+            Auth::guard('ctc')->logout();
             return redirect()->route('ctc.login')->with('error', 'Accès refusé. Vous n\'avez pas les permissions nécessaires pour l\'espace CTC.');
         }
 
         if (!$user->is_active) {
-            Auth::logout();
+            Auth::guard('ctc')->logout();
             return redirect()->route('ctc.login')->with('error', 'Votre compte a été désactivé.');
         }
 

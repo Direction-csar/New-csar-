@@ -11,19 +11,19 @@ class DRHMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!Auth::check()) {
+        if (!Auth::guard('drh')->check()) {
             return redirect()->route('drh.login')->with('error', 'Connectez-vous pour accéder à cet espace.');
         }
 
-        $user = Auth::user();
+        $user = Auth::guard('drh')->user();
 
         if (!in_array($user->role, ['drh', 'ctc', 'admin'])) {
-            Auth::logout();
+            Auth::guard('drh')->logout();
             return redirect()->route('drh.login')->with('error', 'Accès réservé à la DRH.');
         }
 
         if (!$user->is_active) {
-            Auth::logout();
+            Auth::guard('drh')->logout();
             return redirect()->route('drh.login')->with('error', 'Votre compte a été désactivé.');
         }
 

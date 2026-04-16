@@ -12,6 +12,8 @@ use Carbon\Carbon;
 
 class DGLoginController extends Controller
 {
+    protected $guard = 'dg';
+
     /**
      * Afficher le formulaire de connexion DG
      */
@@ -63,12 +65,12 @@ class DGLoginController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        if (Auth::attempt($credentials, $remember)) {
-            $user = Auth::user();
+        if (Auth::guard($this->guard)->attempt($credentials, $remember)) {
+            $user = Auth::guard($this->guard)->user();
             
             // Vérifier que l'utilisateur est bien un DG
             if ($user->role !== 'dg') {
-                Auth::logout();
+                Auth::guard($this->guard)->logout();
                 RateLimiter::hit($key, 300); // 5 minutes
                 
                 Log::warning('Tentative de connexion DG avec un compte non-DG', [
@@ -85,7 +87,7 @@ class DGLoginController extends Controller
 
             // Vérifier que le compte est actif
             if (!$user->is_active) {
-                Auth::logout();
+                Auth::guard($this->guard)->logout();
                 RateLimiter::hit($key, 300);
                 
                 Log::warning('Tentative de connexion DG avec un compte inactif', [
@@ -141,7 +143,7 @@ class DGLoginController extends Controller
      */
     public function logout(Request $request)
     {
-        $user = Auth::user();
+        $user = Auth::guard($this->guard)->user();
         
         if ($user) {
             Log::info('Déconnexion DG', [
@@ -152,7 +154,7 @@ class DGLoginController extends Controller
             ]);
         }
 
-        Auth::logout();
+        Auth::guard($this->guard)->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

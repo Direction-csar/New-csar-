@@ -265,7 +265,7 @@ Route::prefix('dg')->name('dg.')->group(function () {
     Route::post('/logout', [App\Http\Controllers\Auth\DGLoginController::class, 'logout'])->name('logout');
 
     // Routes protégées DG (lecture seule)
-    Route::middleware(['auth', \App\Http\Middleware\DGMiddleware::class])->group(function () {
+    Route::middleware([\App\Http\Middleware\DGMiddleware::class])->group(function () {
         // Dashboard DG
         Route::get('/', [App\Http\Controllers\DG\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard', [App\Http\Controllers\DG\DashboardController::class, 'index'])->name('dashboard.alt');
@@ -400,7 +400,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/logout', [AdminLoginController::class, 'logout'])->name('logout');
     
     // Routes protégées Admin
-    Route::middleware(['auth', 'admin'])->group(function () {
+    Route::middleware(['admin'])->group(function () {
         // Redirection de admin/ vers admin/dashboard
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         // Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard'); // Dupliquée - déjà définie ligne 342
@@ -731,7 +731,7 @@ Route::prefix('ctc')->name('ctc.')->group(function () {
     Route::post('/login', [\App\Http\Controllers\Auth\CTCLoginController::class, 'login'])->name('login.submit');
     Route::post('/logout', [\App\Http\Controllers\Auth\CTCLoginController::class, 'logout'])->name('logout');
 
-    Route::middleware(['auth', 'ctc-admin'])->group(function () {
+    Route::middleware(['ctc-admin'])->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\CommunicationsController::class, 'index'])->name('dashboard');
         Route::get('/communications', [\App\Http\Controllers\Admin\CommunicationsController::class, 'index'])->name('communications.index');
         Route::get('/communications/realtime-stats', [\App\Http\Controllers\Admin\CommunicationsController::class, 'realtimeStats'])->name('communications.realtime-stats');
@@ -950,7 +950,7 @@ Route::prefix('superviseur')->name('supervisor.')->group(function () {
     Route::post('/login', [\App\Http\Controllers\Auth\SupervisorLoginController::class, 'login'])->name('login.submit');
     Route::post('/logout', [\App\Http\Controllers\Auth\SupervisorLoginController::class, 'logout'])->name('logout');
 
-    Route::middleware(['auth', 'supervisor'])->group(function () {
+    Route::middleware(['supervisor'])->group(function () {
         Route::get('/', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'index'])->name('dashboard');
         Route::get('/suivi-temps-reel', fn() => view('supervisor.live-tracking'))->name('live.tracking');
         Route::get('/collecteur/{id}', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collectorDetails'])->name('collector.details');

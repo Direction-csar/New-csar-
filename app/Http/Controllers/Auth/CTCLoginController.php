@@ -56,11 +56,11 @@ class CTCLoginController extends Controller
         $credentials = $request->only('email', 'password');
         $remember = $request->boolean('remember');
 
-        if (Auth::attempt($credentials, $remember)) {
-            $user = Auth::user();
+        if (Auth::guard('ctc')->attempt($credentials, $remember)) {
+            $user = Auth::guard('ctc')->user();
 
             if (!in_array($user->role, ['admin', 'ctc'])) {
-                Auth::logout();
+                Auth::guard('ctc')->logout();
                 RateLimiter::hit($key, 300);
                 throw ValidationException::withMessages([
                     'email' => 'Ces identifiants ne correspondent pas à un compte CTC ou Admin.',
@@ -68,7 +68,7 @@ class CTCLoginController extends Controller
             }
 
             if (!$user->is_active) {
-                Auth::logout();
+                Auth::guard('ctc')->logout();
                 RateLimiter::hit($key, 300);
                 throw ValidationException::withMessages([
                     'email' => 'Votre compte a été désactivé.',
@@ -102,7 +102,7 @@ class CTCLoginController extends Controller
      */
     public function logout(Request $request)
     {
-        $user = Auth::user();
+        $user = Auth::guard('ctc')->user();
         if ($user) {
             Log::info('Déconnexion CTC', [
                 'user_id' => $user->id,
@@ -112,7 +112,7 @@ class CTCLoginController extends Controller
             ]);
         }
 
-        Auth::logout();
+        Auth::guard('ctc')->logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
