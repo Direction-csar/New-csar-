@@ -20,7 +20,7 @@
                 <i class="fas fa-arrow-left me-2"></i>Retour au tableau de bord
             </a>
             <span class="text-white">
-                <i class="fas fa-user-tie me-1"></i>{{ auth()->user()->name }}
+                <i class="fas fa-user-tie me-1"></i>{{ auth('supervisor')->user()->name }}
             </span>
         </div>
     </nav>

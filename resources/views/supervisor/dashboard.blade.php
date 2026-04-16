@@ -66,7 +66,7 @@
             </a>
             <div class="d-flex align-items-center">
                 <span class="text-white me-3">
-                    <i class="fas fa-user-tie me-1"></i>{{ auth()->user()->name }}
+                    <i class="fas fa-user-tie me-1"></i>{{ auth('supervisor')->user()->name }}
                 </span>
                 <form method="POST" action="{{ route('supervisor.logout') }}" class="d-inline">
                     @csrf
