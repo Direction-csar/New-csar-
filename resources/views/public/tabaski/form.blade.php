@@ -342,6 +342,8 @@
 
     let ticketData = null;
 
+    const LOGO_URL = '{{ asset("images/csar-logo.png") }}';
+
     function telechargerTicket() {
         if (!ticketData) return;
         const { prenom, nom, direction, region, poste, montant, reference, date } = ticketData;
@@ -350,17 +352,21 @@
         container.style.cssText = 'font-family:Arial,sans-serif;width:500px;background:white;';
         container.innerHTML = `
           <div style="background:linear-gradient(135deg,#065f46,#10b981);color:white;padding:28px 24px;text-align:center;">
-            <div style="font-size:2rem;margin-bottom:8px;">&#x1F410;</div>
+            <div style="margin-bottom:10px;"><img src="${LOGO_URL}" alt="CSAR" style="width:70px;height:70px;object-fit:contain;background:white;border-radius:50%;padding:6px;"></div>
             <h1 style="font-size:1.4rem;font-weight:700;margin:0;">Avance Tabaski 2026</h1>
             <p style="font-size:0.82rem;opacity:0.85;margin:4px 0 0;">CSAR &mdash; Commissariat &agrave; la S&eacute;curit&eacute; Alimentaire et &agrave; la R&eacute;silience</p>
-            <span style="display:inline-block;background:rgba(255,255,255,0.25);border-radius:20px;padding:4px 14px;font-size:0.75rem;margin-top:10px;">&#x2705; Demande confirm&eacute;e</span>
+            <div style="margin-top:12px;background:rgba(255,255,255,0.2);border-radius:12px;padding:8px 16px;display:inline-block;">
+              <div style="font-size:0.72rem;opacity:0.85;">Montant accord&eacute;</div>
+              <div style="font-size:1.6rem;font-weight:800;letter-spacing:1px;">${montant}</div>
+            </div>
+            <br><span style="display:inline-block;background:rgba(255,255,255,0.25);border-radius:20px;padding:4px 14px;font-size:0.75rem;margin-top:10px;">&#x2705; Demande confirm&eacute;e</span>
           </div>
           <div style="padding:24px;">
             ${[
               ['Nom complet', prenom + ' ' + nom],
               ['Poste', poste],
               ['Direction / Service', direction],
-              ['R&eacute;gion', '&#x1F4CD; ' + region],
+              ['R&eacute;gion', region],
               ['Montant demand&eacute;', '<span style="color:#065f46;font-size:1.1rem;font-weight:700;">' + montant + '</span>'],
               ['Date d&rsquo;inscription', date],
               ['R&eacute;f&eacute;rence', '<span style="font-family:monospace;background:#f3f4f6;padding:3px 8px;border-radius:6px;">' + reference + '</span>'],
