@@ -28,6 +28,9 @@ class AdminMiddleware
                 'timestamp' => Carbon::now()
             ]);
             
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['message' => 'Unauthenticated.'], 401);
+            }
             return redirect()->route('admin.login')->with('error', 'Vous devez être connecté pour accéder à cette page.');
         }
 
