@@ -23,18 +23,23 @@ class DemandeController extends Controller
     {
         // Validation des données
         $request->validate([
-            'nom' => 'required|string|max:255',
-            'prenom' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'telephone' => 'required|string|max:30',
-            'objet' => 'required|string|max:255',
-            'description' => 'required|string|max:2000',
-            'type_demande' => 'required|string|max:255',
-            'region' => 'required_if:type_demande,aide_alimentaire|nullable|string|max:255',
-            'adresse' => 'nullable|string|max:500',
-            'latitude' => 'nullable|numeric',
-            'longitude' => 'nullable|numeric',
+            'nom'                => 'required|string|max:255',
+            'prenom'             => 'required|string|max:255',
+            'email'              => 'required|email|max:255',
+            'telephone'          => 'required|string|max:30',
+            'objet'              => 'required|string|max:255',
+            'description'        => 'required|string|max:2000',
+            'type_demande'       => 'required|string|max:255',
+            'type_demande_autre' => 'required_if:type_demande,autre|nullable|string|max:255',
+            'region'             => 'required_if:type_demande,aide_alimentaire|nullable|string|max:255',
+            'adresse'            => 'nullable|string|max:500',
+            'latitude'           => 'nullable|numeric',
+            'longitude'          => 'nullable|numeric',
         ]);
+
+        if ($request->type_demande === 'autre' && $request->type_demande_autre) {
+            $request->merge(['type_demande' => 'autre : ' . $request->type_demande_autre]);
+        }
 
         try {
             // Générer un code de suivi unique
@@ -84,6 +89,27 @@ class DemandeController extends Controller
             } catch (\Exception $e) {
                 // Log l'erreur mais ne pas faire échouer la soumission
                 \Log::error('Erreur notification admin: ' . $e->getMessage());
+            }
+
+            // Email de confirmation à l'utilisateur
+            try {
+                $emailService = new \App\Services\AdminEmailService();
+                $emailService->sendUserConfirmation($request->email, 'request', [
+                    'name'          => $request->nom . ' ' . $request->prenom,
+                    'tracking_code' => $trackingCode,
+                    'type'          => $publicRequest->type,
+                    'objet'         => $request->objet,
+                ]);
+            } catch (\Exception $e) {
+                \Log::error('Erreur envoi email confirmation demande: ' . $e->getMessage());
+            }
+
+            // Email notification admin
+            try {
+                $emailService = new \App\Services\AdminEmailService();
+                $emailService->sendRequestNotification($publicRequest);
+            } catch (\Exception $e) {
+                \Log::error('Erreur envoi email notification demande admin: ' . $e->getMessage());
             }
 
             // Message de succès

@@ -66,13 +66,21 @@
         <fieldset style="border:none;padding:0;margin-bottom:26px;">
             <legend style="font-size:1.02rem;font-weight:700;color:#0284c7;margin-bottom:12px;">Type de demande</legend>
             <label for="type_demande" style="font-weight:600;">Type de demande *</nlabel>
-            <select name="type_demande" id="type_demande" required style="width:100%;padding:8px 10px;margin:4px 0 12px 0;border:1px solid #cbd5e1;border-radius:6px;background:#fff;">
+            <select name="type_demande" id="type_demande" required onchange="toggleAutreType(this)" style="width:100%;padding:8px 10px;margin:4px 0 12px 0;border:1px solid #cbd5e1;border-radius:6px;background:#fff;">
                 <option value="">Sélectionnez le type de votre demande</option>
                 <option value="aide_alimentaire" {{ (old('type_demande') ?? $selectedType ?? '') == 'aide_alimentaire' ? 'selected' : '' }}>Aide alimentaire</option>
                 <option value="demande_audience" {{ (old('type_demande') ?? $selectedType ?? '') == 'demande_audience' ? 'selected' : '' }}>Demande d'audience</option>
                 <option value="information_generale" {{ (old('type_demande') ?? $selectedType ?? '') == 'information_generale' ? 'selected' : '' }}>Information générale</option>
                 <option value="autre" {{ (old('type_demande') ?? $selectedType ?? '') == 'autre' ? 'selected' : '' }}>Autre</option>
             </select>
+            <div id="autre-type-div" style="display:{{ (old('type_demande') ?? $selectedType ?? '') == 'autre' ? 'block' : 'none' }};margin-bottom:12px;">
+                <label for="type_demande_autre" style="font-weight:600;">Précisez votre type de demande *</label>
+                <input type="text" name="type_demande_autre" id="type_demande_autre"
+                    value="{{ old('type_demande_autre') }}"
+                    placeholder="Décrivez brièvement votre demande..."
+                    style="width:100%;padding:8px 10px;margin:4px 0 0 0;border:1px solid #cbd5e1;border-radius:6px;"
+                    {{ (old('type_demande') ?? $selectedType ?? '') == 'autre' ? 'required' : '' }}>
+            </div>
         </fieldset>
         <fieldset style="border:none;padding:0;margin-bottom:26px;">
             <legend style="font-size:1.02rem;font-weight:700;color:#0284c7;margin-bottom:12px;">Informations personnelles</legend>
@@ -385,6 +393,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// Champ Autre dynamique pour type_demande
+function toggleAutreType(select) {
+    const div = document.getElementById('autre-type-div');
+    const input = document.getElementById('type_demande_autre');
+    if (select.value === 'autre') {
+        div.style.display = 'block';
+        input.required = true;
+    } else {
+        div.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
 
 // Gestion de l'affichage conditionnel de la géolocalisation
 document.addEventListener('DOMContentLoaded', function() {

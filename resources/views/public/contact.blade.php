@@ -148,7 +148,7 @@
                         <div class="mb-3">
                                 <label for="subject" class="form-label">Sujet *</label>
                                 <select class="form-select @error('subject') is-invalid @enderror" 
-                                        id="subject" name="subject" required>
+                                        id="subject" name="subject" required onchange="toggleAutreSubject(this)">
                                     <option value="">Sélectionnez un sujet</option>
                                     <option value="Demande d'information" {{ old('subject') == 'Demande d\'information' ? 'selected' : '' }}>Demande d'information</option>
                                     <option value="Demande d'assistance" {{ old('subject') == 'Demande d\'assistance' ? 'selected' : '' }}>Demande d'assistance</option>
@@ -161,6 +161,13 @@
                                 @error('subject')
                                 <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
+                        </div>
+                        <div class="mb-3" id="autre-subject-div" style="display:{{ old('subject') == 'Autre' ? 'block' : 'none' }}">
+                            <label for="subject_autre" class="form-label">Précisez votre sujet *</label>
+                            <input type="text" class="form-control" id="subject_autre" name="subject_autre"
+                                   value="{{ old('subject_autre') }}"
+                                   placeholder="Décrivez brièvement votre sujet..."
+                                   {{ old('subject') == 'Autre' ? 'required' : '' }}>
                         </div>
                         
                         <div class="mb-3">
@@ -296,4 +303,20 @@
         </div>
     </div>
 </div>
+@push('scripts')
+<script>
+function toggleAutreSubject(select) {
+    const div = document.getElementById('autre-subject-div');
+    const input = document.getElementById('subject_autre');
+    if (select.value === 'Autre') {
+        div.style.display = 'block';
+        input.required = true;
+    } else {
+        div.style.display = 'none';
+        input.required = false;
+        input.value = '';
+    }
+}
+</script>
+@endpush
 @endsection

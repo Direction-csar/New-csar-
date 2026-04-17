@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const formData = new FormData(this);
         
-        fetch('{{ route("public.newsletter.subscribe") }}', {
+        fetch('{{ route("newsletter.subscribe", ["locale" => app()->getLocale()]) }}', {
             method: 'POST',
             body: formData,
             headers: {

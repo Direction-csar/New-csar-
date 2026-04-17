@@ -3330,7 +3330,7 @@ setTimeout(() => {
     </div>
 </section>
 
-<!-- Nos Partenaires en Action Section -->
+<!-- Nos Partenaires Section -->
 <style>
 .logo-hero-home {
     background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
@@ -3456,7 +3456,7 @@ setTimeout(() => {
 
 <div class="logo-hero-home">
   <div class="container">
-    <h2>Nos Partenaires en Action</h2>
+    <h2>Nos Partenaires</h2>
     <div class="marquee-home">
       <div class="track">
         @for($dup=0;$dup<2;$dup++)

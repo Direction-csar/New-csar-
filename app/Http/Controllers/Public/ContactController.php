@@ -22,12 +22,17 @@ class ContactController extends Controller
     public function submit(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
-            'phone' => 'nullable|string|max:20',
-            'subject' => 'required|string|max:255',
-            'message' => 'required|string'
+            'name'          => 'required|string|max:255',
+            'email'         => 'required|email|max:255',
+            'phone'         => 'nullable|string|max:20',
+            'subject'       => 'required|string|max:255',
+            'subject_autre' => 'required_if:subject,Autre|nullable|string|max:255',
+            'message'       => 'required|string'
         ]);
+
+        if ($request->subject === 'Autre' && $request->subject_autre) {
+            $request->merge(['subject' => 'Autre : ' . $request->subject_autre]);
+        }
 
         $fullName = $request->name;
 

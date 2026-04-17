@@ -397,7 +397,7 @@
 @if($allItems->count() > 0)
 <div class="logo-hero">
   <div class="container">
-    <h2>Nos Partenaires en Action</h2>
+    <h2>Nos Partenaires</h2>
     <div class="marquee">
       <div class="track">
         @for($dup=0;$dup<2;$dup++)
