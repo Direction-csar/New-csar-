@@ -77,7 +77,7 @@
         {{-- ÉTAPE 1 : Identification --}}
         <div id="step1" class="step active p-6 sm:p-8 animate-in">
             <h2 class="text-xl font-bold text-gray-800 mb-2">Votre identité</h2>
-            <p class="text-gray-500 text-sm mb-6">Entrez votre prénom et nom pour retrouver votre profil dans notre base.</p>
+            <p class="text-gray-500 text-sm mb-6">Entrez votre prénom, nom et région pour retrouver votre profil dans notre base.</p>
 
             <div class="space-y-4">
                 <div>
@@ -89,6 +89,16 @@
                     <label class="block text-sm font-semibold text-gray-700 mb-1">Nom <span class="text-red-500">*</span></label>
                     <input type="text" id="inp_nom" placeholder="Ex: NDIAYE" autocomplete="family-name"
                         class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-emerald-500 focus:outline-none transition">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Région <span class="text-gray-400 font-normal">(optionnel — affine la recherche)</span></label>
+                    <select id="inp_region"
+                        class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-emerald-500 focus:outline-none transition bg-white">
+                        <option value="">— Toutes les régions —</option>
+                        @foreach($regions as $region)
+                            <option value="{{ $region }}">{{ $region }}</option>
+                        @endforeach
+                    </select>
                 </div>
             </div>
 
@@ -210,10 +220,11 @@
         setLoading('btn_search', true);
 
         try {
+            const region = document.getElementById('inp_region').value;
             const res  = await fetch('/avance-tabaski/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-                body: JSON.stringify({ prenom, nom }),
+                body: JSON.stringify({ prenom, nom, region }),
             });
             const data = await res.json();
 

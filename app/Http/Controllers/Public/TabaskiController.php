@@ -12,9 +12,10 @@ class TabaskiController extends Controller
 {
     public function form()
     {
-        $expire = TabaskiConfig::dateExpiration();
-        $ferme  = TabaskiConfig::estFerme();
-        return view('public.tabaski.form', compact('ferme', 'expire'));
+        $expire  = TabaskiConfig::dateExpiration();
+        $ferme   = TabaskiConfig::estFerme();
+        $regions = AgentTabaski::select('region')->whereNotNull('region')->where('region', '!=', '')->distinct()->orderBy('region')->pluck('region');
+        return view('public.tabaski.form', compact('ferme', 'expire', 'regions'));
     }
 
     public function search(Request $request)
@@ -22,9 +23,10 @@ class TabaskiController extends Controller
         $request->validate([
             'prenom' => 'required|string|min:2',
             'nom'    => 'required|string|min:2',
+            'region' => 'nullable|string',
         ]);
 
-        $agents = AgentTabaski::rechercher($request->prenom, $request->nom);
+        $agents = AgentTabaski::rechercher($request->prenom, $request->nom, $request->region);
 
         if ($agents->isEmpty()) {
             return response()->json(['found' => false, 'message' => 'Aucun agent trouvé avec ces informations.']);

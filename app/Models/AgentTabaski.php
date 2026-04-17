@@ -27,13 +27,18 @@ class AgentTabaski extends Model
         return $str;
     }
 
-    public static function rechercher(string $prenom, string $nom): \Illuminate\Database\Eloquent\Collection
+    public static function rechercher(string $prenom, string $nom, ?string $region = null): \Illuminate\Database\Eloquent\Collection
     {
         $prenomN = self::normaliser($prenom);
         $nomN    = self::normaliser($nom);
 
-        return self::where('prenom_normalise', 'LIKE', "%{$prenomN}%")
-                   ->where('nom_normalise', 'LIKE', "%{$nomN}%")
-                   ->get();
+        $query = self::where('prenom_normalise', 'LIKE', "%{$prenomN}%")
+                     ->where('nom_normalise', 'LIKE', "%{$nomN}%");
+
+        if ($region && $region !== '') {
+            $query->where('region', $region);
+        }
+
+        return $query->get();
     }
 }
