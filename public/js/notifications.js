@@ -167,12 +167,15 @@ class NotificationSystem {
                     }
                 });
 
+                if (response.status === 401 || response.status === 403) {
+                    this.stopAutoRefresh();
+                    return;
+                }
                 if (response.ok) {
                     const data = await response.json();
                     count = data.count || 0;
                 }
             } catch (error) {
-                console.error('Erreur lors de la mise à jour du badge:', error);
                 return;
             }
         }
