@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Avance Tabaski 2026 — CSAR</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="icon" type="image/png" href="{{ asset('images/csar-logo.png') }}">
     <style>
         body { background: linear-gradient(135deg, #065f46 0%, #047857 50%, #10b981 100%); min-height: 100vh; }
@@ -344,58 +345,49 @@
     function telechargerTicket() {
         if (!ticketData) return;
         const { prenom, nom, direction, region, poste, montant, reference, date } = ticketData;
-        const html = `<!DOCTYPE html>
-<html lang="fr">
-<head>
-<meta charset="UTF-8">
-<title>Ticket Avance Tabaski 2026</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Inter',sans-serif; background:#f9fafb; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
-  .ticket { background:white; border-radius:20px; overflow:hidden; max-width:440px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,0.12); }
-  .header { background:linear-gradient(135deg,#065f46,#10b981); color:white; padding:28px 24px; text-align:center; }
-  .header h1 { font-size:1.4rem; font-weight:700; }
-  .header p { font-size:0.85rem; opacity:0.85; margin-top:4px; }
-  .badge { display:inline-block; background:rgba(255,255,255,0.25); border-radius:20px; padding:4px 14px; font-size:0.75rem; margin-top:10px; }
-  .body { padding:24px; }
-  .row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f0f0f0; }
-  .row:last-child { border-bottom:none; }
-  .label { font-size:0.8rem; color:#6b7280; }
-  .value { font-size:0.9rem; font-weight:600; color:#111827; text-align:right; }
-  .montant-row .value { color:#065f46; font-size:1.2rem; }
-  .footer { background:#f9fafb; padding:16px 24px; text-align:center; font-size:0.75rem; color:#9ca3af; border-top:1px solid #e5e7eb; }
-  .ref { font-family:monospace; font-size:0.8rem; color:#374151; background:#f3f4f6; padding:4px 10px; border-radius:8px; }
-  @media print { body { background:white; } .ticket { box-shadow:none; } }
-</style>
-</head>
-<body>
-<div class="ticket">
-  <div class="header">
-    <h1>🐑 Avance Tabaski 2026</h1>
-    <p>CSAR — Commissariat à la Sécurité Alimentaire et à la Résilience</p>
-    <span class="badge">✅ Demande confirmée</span>
-  </div>
-  <div class="body">
-    <div class="row"><span class="label">Nom complet</span><span class="value">${prenom} ${nom}</span></div>
-    <div class="row"><span class="label">Poste</span><span class="value">${poste}</span></div>
-    <div class="row"><span class="label">Direction / Service</span><span class="value">${direction}</span></div>
-    <div class="row"><span class="label">Région</span><span class="value">📍 ${region}</span></div>
-    <div class="row montant-row"><span class="label">Montant demandé</span><span class="value">${montant}</span></div>
-    <div class="row"><span class="label">Date d'inscription</span><span class="value">${date}</span></div>
-    <div class="row"><span class="label">Référence</span><span class="ref">${reference}</span></div>
-  </div>
-  <div class="footer">Ce ticket fait foi de votre demande d'avance Tabaski 2026.<br>Conservez-le et présentez-le à la DRH si nécessaire.</div>
-</div>
-<script>window.onload=function(){window.print();}<\/script>
-</body></html>`;
-        const blob = new Blob([html], { type: 'text/html' });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href = url;
-        a.download = `ticket-avance-tabaski-${nom.toLowerCase()}.html`;
-        a.click();
-        URL.revokeObjectURL(url);
+
+        const container = document.createElement('div');
+        container.style.cssText = 'font-family:Arial,sans-serif;width:500px;background:white;';
+        container.innerHTML = `
+          <div style="background:linear-gradient(135deg,#065f46,#10b981);color:white;padding:28px 24px;text-align:center;">
+            <div style="font-size:2rem;margin-bottom:8px;">&#x1F410;</div>
+            <h1 style="font-size:1.4rem;font-weight:700;margin:0;">Avance Tabaski 2026</h1>
+            <p style="font-size:0.82rem;opacity:0.85;margin:4px 0 0;">CSAR &mdash; Commissariat &agrave; la S&eacute;curit&eacute; Alimentaire et &agrave; la R&eacute;silience</p>
+            <span style="display:inline-block;background:rgba(255,255,255,0.25);border-radius:20px;padding:4px 14px;font-size:0.75rem;margin-top:10px;">&#x2705; Demande confirm&eacute;e</span>
+          </div>
+          <div style="padding:24px;">
+            ${[
+              ['Nom complet', prenom + ' ' + nom],
+              ['Poste', poste],
+              ['Direction / Service', direction],
+              ['R&eacute;gion', '&#x1F4CD; ' + region],
+              ['Montant demand&eacute;', '<span style="color:#065f46;font-size:1.1rem;font-weight:700;">' + montant + '</span>'],
+              ['Date d&rsquo;inscription', date],
+              ['R&eacute;f&eacute;rence', '<span style="font-family:monospace;background:#f3f4f6;padding:3px 8px;border-radius:6px;">' + reference + '</span>'],
+            ].map(([l,v]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;">
+              <span style="font-size:0.8rem;color:#6b7280;">${l}</span>
+              <span style="font-size:0.88rem;font-weight:600;color:#111827;text-align:right;">${v}</span>
+            </div>`).join('')}
+          </div>
+          <div style="background:#f9fafb;padding:16px 24px;text-align:center;font-size:0.75rem;color:#9ca3af;border-top:1px solid #e5e7eb;">
+            Ce ticket fait foi de votre demande d&rsquo;avance Tabaski 2026.<br>Conservez-le et pr&eacute;sentez-le &agrave; la DRH si n&eacute;cessaire.
+          </div>`;
+
+        const btn = document.querySelector('[onclick="telechargerTicket()"]');
+        const orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner"></span><span>G&eacute;n&eacute;ration PDF...</span>';
+
+        html2pdf().set({
+            margin: 10,
+            filename: `ticket-tabaski-${nom.toLowerCase().replace(/\s+/g,'-')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+        }).from(container).save().then(() => {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+        });
     }
 </script>
 </body>
