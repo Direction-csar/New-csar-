@@ -353,34 +353,38 @@
         const { prenom, nom, direction, region, poste, montant, reference, date } = ticketData;
 
         const container = document.createElement('div');
-        container.style.cssText = 'font-family:Arial,sans-serif;width:500px;background:white;';
+        container.style.cssText = 'font-family:Arial,sans-serif;width:148mm;background:white;page-break-inside:avoid;';
         container.innerHTML = `
-          <div style="background:linear-gradient(135deg,#065f46,#10b981);color:white;padding:28px 24px;text-align:center;">
-            <div style="margin-bottom:10px;"><img src="${LOGO_URL}" alt="CSAR" style="width:70px;height:70px;object-fit:contain;background:white;border-radius:50%;padding:6px;"></div>
-            <h1 style="font-size:1.4rem;font-weight:700;margin:0;">Avance Tabaski 2026</h1>
-            <p style="font-size:0.82rem;opacity:0.85;margin:4px 0 0;">CSAR &mdash; Commissariat &agrave; la S&eacute;curit&eacute; Alimentaire et &agrave; la R&eacute;silience</p>
-            <div style="margin-top:12px;background:rgba(255,255,255,0.2);border-radius:12px;padding:8px 16px;display:inline-block;">
-              <div style="font-size:0.72rem;opacity:0.85;">Montant accord&eacute;</div>
-              <div style="font-size:1.6rem;font-weight:800;letter-spacing:1px;">${montant}</div>
+          <div style="background:linear-gradient(135deg,#065f46,#10b981);color:white;padding:18px 20px 14px;text-align:center;">
+            <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:8px;">
+              <img src="${LOGO_URL}" alt="CSAR" style="width:48px;height:48px;object-fit:contain;background:white;border-radius:50%;padding:4px;flex-shrink:0;">
+              <div style="text-align:left;">
+                <div style="font-size:1.1rem;font-weight:800;line-height:1.2;">Avance Tabaski 2026</div>
+                <div style="font-size:0.68rem;opacity:0.85;">CSAR &mdash; S&eacute;curit&eacute; Alimentaire et R&eacute;silience</div>
+              </div>
             </div>
-            <br><span style="display:inline-block;background:rgba(255,255,255,0.25);border-radius:20px;padding:4px 14px;font-size:0.75rem;margin-top:10px;">&#x2705; Demande confirm&eacute;e</span>
+            <div style="background:rgba(255,255,255,0.22);border-radius:10px;padding:8px 12px;display:inline-block;margin-top:4px;">
+              <div style="font-size:0.65rem;opacity:0.85;text-transform:uppercase;letter-spacing:0.5px;">Montant demand&eacute;</div>
+              <div style="font-size:1.5rem;font-weight:800;letter-spacing:1px;">${montant}</div>
+            </div>
+            <div style="margin-top:8px;"><span style="background:rgba(255,255,255,0.25);border-radius:20px;padding:3px 12px;font-size:0.68rem;">&#x2705; Demande confirm&eacute;e</span></div>
           </div>
-          <div style="padding:24px;">
+          <div style="padding:14px 20px;">
             ${[
               ['Nom complet', prenom + ' ' + nom],
               ['Poste', poste],
               ['Direction / Service', direction],
               ['R&eacute;gion', region],
-              ['Montant demand&eacute;', '<span style="color:#065f46;font-size:1.1rem;font-weight:700;">' + montant + '</span>'],
+              ['Montant demand&eacute;', '<strong style="color:#065f46;font-size:1rem;">' + montant + '</strong>'],
               ['Date d&rsquo;inscription', date],
-              ['R&eacute;f&eacute;rence', '<span style="font-family:monospace;background:#f3f4f6;padding:3px 8px;border-radius:6px;">' + reference + '</span>'],
-            ].map(([l,v]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0f0f0;">
-              <span style="font-size:0.8rem;color:#6b7280;">${l}</span>
-              <span style="font-size:0.88rem;font-weight:600;color:#111827;text-align:right;">${v}</span>
+              ['R&eacute;f&eacute;rence', '<span style="font-family:monospace;background:#f3f4f6;padding:2px 6px;border-radius:5px;font-size:0.78rem;">' + reference + '</span>'],
+            ].map(([l,v]) => `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f0f0f0;">
+              <span style="font-size:0.75rem;color:#6b7280;white-space:nowrap;margin-right:10px;">${l}</span>
+              <span style="font-size:0.82rem;font-weight:600;color:#111827;text-align:right;">${v}</span>
             </div>`).join('')}
           </div>
-          <div style="background:#f9fafb;padding:16px 24px;text-align:center;font-size:0.75rem;color:#9ca3af;border-top:1px solid #e5e7eb;">
-            Ce ticket fait foi de votre demande d&rsquo;avance Tabaski 2026.<br>Conservez-le et pr&eacute;sentez-le &agrave; la DRH si n&eacute;cessaire.
+          <div style="background:#f9fafb;padding:10px 20px;text-align:center;font-size:0.68rem;color:#9ca3af;border-top:1px solid #e5e7eb;">
+            Ce ticket fait foi de votre demande d&rsquo;avance Tabaski 2026. Conservez-le et pr&eacute;sentez-le &agrave; la DRH.
           </div>`;
 
         const btn = document.querySelector('[onclick="telechargerTicket()"]');
@@ -389,11 +393,12 @@
         btn.innerHTML = '<span class="spinner"></span><span>G&eacute;n&eacute;ration PDF...</span>';
 
         html2pdf().set({
-            margin: 10,
-            filename: `avancement-tabaski-${nom.toLowerCase().replace(/\s+/g,'-')}.pdf`,
+            margin: [4, 4, 4, 4],
+            filename: `avance-tabaski-${nom.toLowerCase().replace(/\s+/g,'-')}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' }
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: 'mm', format: 'a5', orientation: 'portrait' },
+            pagebreak: { mode: 'avoid-all' }
         }).from(container).save().then(() => {
             btn.disabled = false;
             btn.innerHTML = orig;
