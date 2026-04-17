@@ -71,10 +71,23 @@ class PayDunyaService
 
             if ($response->successful()) {
                 $data = $response->json();
+
+                if (($data['response_code'] ?? '') !== '00') {
+                    Log::error('PayDunya API error', [
+                        'donation_id' => $donation->id,
+                        'response_code' => $data['response_code'] ?? 'N/A',
+                        'response_text' => $data['response_text'] ?? 'N/A',
+                    ]);
+                    return [
+                        'success' => false,
+                        'error' => $data['response_text'] ?? 'Payment creation failed',
+                        'details' => $data
+                    ];
+                }
                 
                 // Update donation with transaction info
                 $donation->update([
-                    'transaction_id' => $data['invoice_token'] ?? null,
+                    'transaction_id' => $data['token'] ?? null,
                     'metadata' => array_merge($donation->metadata ?? [], [
                         'paydunya_response' => $data
                     ])
@@ -82,8 +95,8 @@ class PayDunyaService
 
                 return [
                     'success' => true,
-                    'token' => $data['invoice_token'] ?? null,
-                    'payment_url' => $data['response_text'] ?? null,
+                    'token' => $data['token'] ?? null,
+                    'payment_url' => $data['invoice_url'] ?? null,
                     'data' => $data
                 ];
             }
