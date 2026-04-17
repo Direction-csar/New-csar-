@@ -92,10 +92,10 @@
                         class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-emerald-500 focus:outline-none transition">
                 </div>
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Région <span class="text-gray-400 font-normal">(optionnel — affine la recherche)</span></label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Région <span class="text-red-500">*</span></label>
                     <select id="inp_region"
                         class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-base focus:border-emerald-500 focus:outline-none transition bg-white">
-                        <option value="">— Toutes les régions —</option>
+                        <option value="">— Sélectionnez votre région —</option>
                         @foreach($regions as $region)
                             <option value="{{ $region }}">{{ $region }}</option>
                         @endforeach
@@ -213,15 +213,19 @@
         const nom    = document.getElementById('inp_nom').value.trim();
         hideError('error1');
 
+        const region = document.getElementById('inp_region').value;
         if (!prenom || !nom) {
             showError('error1', 'Veuillez entrer votre prénom et votre nom.');
+            return;
+        }
+        if (!region) {
+            showError('error1', 'Veuillez sélectionner votre région.');
             return;
         }
 
         setLoading('btn_search', true);
 
         try {
-            const region = document.getElementById('inp_region').value;
             const res  = await fetch('/avance-tabaski/search', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
