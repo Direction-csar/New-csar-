@@ -82,6 +82,8 @@ class TabaskiController extends Controller
                 'prenom'    => $agent->prenom,
                 'nom'       => $agent->nom,
                 'direction' => $agent->direction,
+                'region'    => $agent->region,
+                'poste'     => $agent->poste,
                 'montant'   => number_format((int) $request->montant, 0, ',', ' ') . ' FCFA',
             ],
         ]);

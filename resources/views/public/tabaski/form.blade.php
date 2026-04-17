@@ -128,16 +128,13 @@
             <h2 class="text-lg font-bold text-gray-800 mb-4">Choisissez votre montant</h2>
             <div class="grid grid-cols-3 gap-3 mb-6">
                 <button onclick="selectMontant('100000')" class="montant-btn border-2 border-gray-200 rounded-2xl p-4 text-center cursor-pointer hover:border-emerald-400" data-m="100000">
-                    <div class="text-2xl font-bold text-gray-800">100k</div>
-                    <div class="text-xs text-gray-500 mt-1">100 000 FCFA</div>
+                    <div class="text-base font-bold text-gray-800">100 000 FCFA</div>
                 </button>
                 <button onclick="selectMontant('150000')" class="montant-btn border-2 border-gray-200 rounded-2xl p-4 text-center cursor-pointer hover:border-emerald-400" data-m="150000">
-                    <div class="text-2xl font-bold text-gray-800">150k</div>
-                    <div class="text-xs text-gray-500 mt-1">150 000 FCFA</div>
+                    <div class="text-base font-bold text-gray-800">150 000 FCFA</div>
                 </button>
                 <button onclick="selectMontant('200000')" class="montant-btn border-2 border-gray-200 rounded-2xl p-4 text-center cursor-pointer hover:border-emerald-400" data-m="200000">
-                    <div class="text-2xl font-bold text-gray-800">200k</div>
-                    <div class="text-xs text-gray-500 mt-1">200 000 FCFA</div>
+                    <div class="text-base font-bold text-gray-800">200 000 FCFA</div>
                 </button>
             </div>
 
@@ -156,10 +153,13 @@
         <div id="step4" class="step p-6 sm:p-8 text-center">
             <div class="text-7xl mb-4">✅</div>
             <h2 class="text-2xl font-bold text-emerald-700 mb-2">Demande enregistrée !</h2>
-            <div id="success_msg" class="text-gray-600 mb-6"></div>
-            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-sm text-emerald-800">
+            <div id="success_msg" class="text-gray-600 mb-4"></div>
+            <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 text-sm text-emerald-800 mb-5">
                 Votre demande a été transmise à la DRH. Vous serez contacté pour la suite de la procédure.
             </div>
+            <button onclick="telechargerTicket()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm">
+                <span>⬇️</span> Télécharger mon ticket de confirmation
+            </button>
             <p class="text-gray-400 text-xs mt-4">En cas de question, contactez la Direction des Ressources Humaines.</p>
         </div>
 
@@ -308,10 +308,20 @@
             const data = await res.json();
 
             if (data.success) {
+                const now = new Date();
+                const dateStr = now.toLocaleDateString('fr-FR', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' });
+                const ref = 'TAB2026-' + String(selectedAgentId).padStart(4,'0') + '-' + now.getTime().toString(36).toUpperCase();
+                ticketData = {
+                    prenom: data.agent.prenom, nom: data.agent.nom,
+                    direction: data.agent.direction, region: data.agent.region || '—',
+                    poste: data.agent.poste || '—', montant: data.agent.montant,
+                    reference: ref, date: dateStr
+                };
                 document.getElementById('success_msg').innerHTML = `
                     <p class="font-semibold text-lg">${data.agent.prenom} ${data.agent.nom}</p>
                     <p class="text-emerald-600 font-bold text-2xl mt-2">${data.agent.montant}</p>
                     <p class="text-sm mt-2">${data.agent.direction}</p>
+                    <p class="text-xs text-gray-400 mt-1">Réf : ${ref}</p>
                 `;
                 goStep(4);
             } else {
@@ -328,6 +338,65 @@
 
     document.getElementById('inp_nom')?.addEventListener('keypress', e => { if (e.key === 'Enter') doSearch(); });
     document.getElementById('inp_prenom')?.addEventListener('keypress', e => { if (e.key === 'Enter') doSearch(); });
+
+    let ticketData = null;
+
+    function telechargerTicket() {
+        if (!ticketData) return;
+        const { prenom, nom, direction, region, poste, montant, reference, date } = ticketData;
+        const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Ticket Avance Tabaski 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:#f9fafb; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+  .ticket { background:white; border-radius:20px; overflow:hidden; max-width:440px; width:100%; box-shadow:0 10px 40px rgba(0,0,0,0.12); }
+  .header { background:linear-gradient(135deg,#065f46,#10b981); color:white; padding:28px 24px; text-align:center; }
+  .header h1 { font-size:1.4rem; font-weight:700; }
+  .header p { font-size:0.85rem; opacity:0.85; margin-top:4px; }
+  .badge { display:inline-block; background:rgba(255,255,255,0.25); border-radius:20px; padding:4px 14px; font-size:0.75rem; margin-top:10px; }
+  .body { padding:24px; }
+  .row { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid #f0f0f0; }
+  .row:last-child { border-bottom:none; }
+  .label { font-size:0.8rem; color:#6b7280; }
+  .value { font-size:0.9rem; font-weight:600; color:#111827; text-align:right; }
+  .montant-row .value { color:#065f46; font-size:1.2rem; }
+  .footer { background:#f9fafb; padding:16px 24px; text-align:center; font-size:0.75rem; color:#9ca3af; border-top:1px solid #e5e7eb; }
+  .ref { font-family:monospace; font-size:0.8rem; color:#374151; background:#f3f4f6; padding:4px 10px; border-radius:8px; }
+  @media print { body { background:white; } .ticket { box-shadow:none; } }
+</style>
+</head>
+<body>
+<div class="ticket">
+  <div class="header">
+    <h1>🐑 Avance Tabaski 2026</h1>
+    <p>CSAR — Commissariat à la Sécurité Alimentaire et à la Résilience</p>
+    <span class="badge">✅ Demande confirmée</span>
+  </div>
+  <div class="body">
+    <div class="row"><span class="label">Nom complet</span><span class="value">${prenom} ${nom}</span></div>
+    <div class="row"><span class="label">Poste</span><span class="value">${poste}</span></div>
+    <div class="row"><span class="label">Direction / Service</span><span class="value">${direction}</span></div>
+    <div class="row"><span class="label">Région</span><span class="value">📍 ${region}</span></div>
+    <div class="row montant-row"><span class="label">Montant demandé</span><span class="value">${montant}</span></div>
+    <div class="row"><span class="label">Date d'inscription</span><span class="value">${date}</span></div>
+    <div class="row"><span class="label">Référence</span><span class="ref">${reference}</span></div>
+  </div>
+  <div class="footer">Ce ticket fait foi de votre demande d'avance Tabaski 2026.<br>Conservez-le et présentez-le à la DRH si nécessaire.</div>
+</div>
+<script>window.onload=function(){window.print();}<\/script>
+</body></html>`;
+        const blob = new Blob([html], { type: 'text/html' });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href = url;
+        a.download = `ticket-avance-tabaski-${nom.toLowerCase()}.html`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
 </script>
 </body>
 </html>
