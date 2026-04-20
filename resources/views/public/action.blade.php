@@ -340,7 +340,7 @@
     </div>
 </section>
 <!-- Floating Help Button -->
-<a href="{{ route('contact.simple') }}" title="Besoin d'aide ?" style="position:fixed; right:22px; bottom:22px; z-index:50; background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; padding:14px 18px; border-radius:999px; box-shadow:0 12px 30px rgba(34,197,94,.35); text-decoration:none; display:flex; align-items:center; gap:8px;">
+<a href="{{ route('contact', ['locale' => app()->getLocale()]) }}" title="Besoin d'aide ?" style="position:fixed; right:22px; bottom:22px; z-index:50; background:linear-gradient(135deg,#22c55e,#16a34a); color:#fff; padding:14px 18px; border-radius:999px; box-shadow:0 12px 30px rgba(34,197,94,.35); text-decoration:none; display:flex; align-items:center; gap:8px;">
     <i class="fas fa-question-circle"></i>
     Aide
 </a>
