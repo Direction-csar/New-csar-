@@ -945,7 +945,7 @@ Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access'])->grou
 });
 
 // Redirect admin/sim/suivi et /collecteurs vers l'interface superviseur
-Route::prefix('admin/sim')->middleware(['auth', 'admin'])->group(function () {
+Route::prefix('admin/sim')->middleware(['admin'])->group(function () {
     Route::get('/suivi',       fn() => redirect('/superviseur/'))->name('admin.sim.suivi');
     Route::get('/collecteurs', fn() => redirect('/superviseur/'))->name('admin.sim.collecteurs');
 });
