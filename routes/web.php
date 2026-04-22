@@ -944,6 +944,13 @@ Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access'])->grou
     Route::get('/avances-tabaski/print', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportPdf'])->name('tabaski.print');
 });
 
+// Redirect admin/sim/* vers l'interface superviseur
+Route::prefix('admin/sim')->middleware(['auth', 'admin'])->group(function () {
+    Route::get('/suivi',       fn() => redirect('/superviseur/'))->name('admin.sim.suivi');
+    Route::get('/collecteurs', fn() => redirect('/superviseur/'))->name('admin.sim.collecteurs');
+    Route::get('/',            fn() => redirect('/superviseur/'))->name('admin.sim.index');
+});
+
 // Interface Superviseur SIM (suivi des collecteurs)
 Route::prefix('superviseur')->name('supervisor.')->group(function () {
     Route::get('/login', [\App\Http\Controllers\Auth\SupervisorLoginController::class, 'showLoginForm'])->name('login');

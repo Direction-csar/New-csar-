@@ -10,6 +10,14 @@ class SupervisorMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
+        // Permettre l'accès aux admins (guard 'admin')
+        if (Auth::guard('admin')->check()) {
+            $adminUser = Auth::guard('admin')->user();
+            if ($adminUser && $adminUser->role === 'admin' && $adminUser->is_active) {
+                return $next($request);
+            }
+        }
+
         if (!Auth::guard('supervisor')->check()) {
             return redirect()->route('supervisor.login');
         }
