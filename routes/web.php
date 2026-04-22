@@ -561,6 +561,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Gestion opérationnelle du SIM
         Route::prefix('sim')->name('sim.')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\SimManagementController::class, 'dashboard'])->name('dashboard');
+
+            // Gestion des collecteurs (création identifiants APK)
+            Route::get('/collectors', [\App\Http\Controllers\Admin\SimCollectorsController::class, 'index'])->name('collectors');
+            Route::post('/collectors', [\App\Http\Controllers\Admin\SimCollectorsController::class, 'store'])->name('collectors.store');
+            Route::put('/collectors/{id}', [\App\Http\Controllers\Admin\SimCollectorsController::class, 'update'])->name('collectors.update');
+            Route::delete('/collectors/{id}', [\App\Http\Controllers\Admin\SimCollectorsController::class, 'destroy'])->name('collectors.destroy');
             Route::get('/live', [\App\Http\Controllers\Admin\SimManagementController::class, 'live'])->name('live');
 
             Route::get('/regions', [\App\Http\Controllers\Admin\SimManagementController::class, 'regions'])->name('regions');

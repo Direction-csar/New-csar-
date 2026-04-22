@@ -1006,6 +1006,14 @@
                 </a>
             </div>
 
+            <!-- SIM — Collecteurs (identifiants APK) -->
+            <div class="menu-item">
+                <a href="{{ route('admin.sim.collectors') }}" class="menu-link {{ request()->routeIs('admin.sim.collectors*') ? 'active' : '' }}">
+                    <i class="fas fa-mobile-alt"></i>
+                    <span>Collecteurs SIM</span>
+                </a>
+            </div>
+
             <!-- DRH — Avances Tabaski 2026 -->
             <div class="menu-item">
                 <a href="{{ route('admin.drh.tabaski.index') }}" class="menu-link {{ request()->routeIs('admin.drh.*') ? 'active' : '' }}">
