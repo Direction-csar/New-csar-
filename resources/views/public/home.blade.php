@@ -3011,7 +3011,6 @@ const observerOptions = {
     rootMargin: '0px'
 };
 
-const counters = document.querySelectorAll('.counter');
 let hasAnimated = false;
 
 const counterObserver = new IntersectionObserver((entries) => {
@@ -3019,7 +3018,8 @@ const counterObserver = new IntersectionObserver((entries) => {
         if (entry.isIntersecting && !hasAnimated) {
             hasAnimated = true;
             
-            // Start all counters with slight delays
+            // Query counters at animation time (DOM is ready at this point)
+            const counters = document.querySelectorAll('.counter');
             counters.forEach((counter, index) => {
                 const target = parseInt(counter.getAttribute('data-target'));
                 
@@ -3031,11 +3031,20 @@ const counterObserver = new IntersectionObserver((entries) => {
     });
 }, observerOptions);
 
-// Observe the stats section
-const statsSection = document.querySelector('.stats-section-ultra');
-if (statsSection) {
-    counterObserver.observe(statsSection);
-}
+// Observe the stats section AFTER DOM is fully loaded
+window.addEventListener('load', function() {
+    const statsSection = document.querySelector('.stats-section-ultra');
+    if (statsSection) {
+        counterObserver.observe(statsSection);
+    } else {
+        // Fallback: animate immediately if section not found via observer
+        const counters = document.querySelectorAll('.counter');
+        counters.forEach((counter, index) => {
+            const target = parseInt(counter.getAttribute('data-target'));
+            setTimeout(() => { animateCounter(counter, 0, target, 2000); }, index * 200);
+        });
+    }
+});
 
 // ========================================
 // ROTATION AUTOMATIQUE DES STATS (toutes les 5 secondes)
