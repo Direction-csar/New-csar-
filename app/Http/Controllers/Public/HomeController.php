@@ -51,54 +51,38 @@ class HomeController extends Controller
             ];
         }
         
-        // Récupérer les chiffres clés depuis la nouvelle table
+        // Récupérer les chiffres clés depuis la base de données
+        $defaultStats = [
+            'agents'           => '137',
+            'warehouses'       => '71',
+            'capacity'         => '79',
+            'communes'         => '14',
+            'experience'       => '51',
+            'demandes_traitees'=> '100',
+            'taux_satisfaction'=> '94',
+        ];
         try {
-            // Vérifier si la table existe avant de l'utiliser
-            if (!\Illuminate\Support\Facades\Schema::hasTable('chiffres_cles')) {
-                $stats = [
-                    'agents' => '0',
-                    'warehouses' => '0', 
-                    'capacity' => '0',
-                    'communes' => '0',
-                    'demandes_traitees' => '0',
-                    'taux_satisfaction' => '0'
-                ];
+            $chiffresMap = \App\Models\ChiffreCle::safeGetActifs()->pluck('valeur', 'titre');
+            if ($chiffresMap->isEmpty()) {
+                $stats = $defaultStats;
             } else {
-                // Essayer de récupérer les chiffres clés, avec fallback en cas d'erreur
-                try {
-                    $chiffresMap = \App\Models\ChiffreCle::safeGetActifs()->pluck('valeur', 'titre');
-                    
-                    $stats = [
-                        'agents'           => $chiffresMap->get('Agents recensés', '137'),
-                        'warehouses'       => $chiffresMap->get('Magasins de stockage', '71'),
-                        'capacity'         => $chiffresMap->get('Capacité de stockage', '79 000 tonnes'),
-                        'communes'         => $chiffresMap->get('Régions couvertes', $chiffresMap->get('Communes et régions servies', '14')),
-                        'experience'       => $chiffresMap->get('Années d\'expérience', '51+'),
-                        'demandes_traitees'=> $chiffresMap->get('Demandes traitées', '100'),
-                        'taux_satisfaction'=> $chiffresMap->get('Taux de satisfaction', '00%'),
-                    ];
-                } catch (\Exception $e) {
-                    $stats = [
-                        'agents'           => '137',
-                        'warehouses'       => '71',
-                        'capacity'         => '79 000 tonnes',
-                        'communes'         => '14',
-                        'experience'       => '51+',
-                        'demandes_traitees'=> '100',
-                        'taux_satisfaction'=> '00%',
-                    ];
+                $stats = [
+                    'agents'           => $chiffresMap->get('Agents recensés',     $defaultStats['agents']),
+                    'warehouses'       => $chiffresMap->get('Magasins de stockage', $defaultStats['warehouses']),
+                    'capacity'         => $chiffresMap->get('Capacité de stockage', $defaultStats['capacity']),
+                    'communes'         => $chiffresMap->get('Régions couvertes',    $chiffresMap->get('Communes et régions servies', $defaultStats['communes'])),
+                    'experience'       => $chiffresMap->get('Années d\'expérience', $defaultStats['experience']),
+                    'demandes_traitees'=> $chiffresMap->get('Demandes traitées',    $defaultStats['demandes_traitees']),
+                    'taux_satisfaction'=> $chiffresMap->get('Taux de satisfaction', $defaultStats['taux_satisfaction']),
+                ];
+                // Extraire uniquement la partie numérique pour les compteurs JS
+                foreach ($stats as $key => $val) {
+                    preg_match('/^(\d+[.,]?\d*)/', str_replace(' ', '', $val), $m);
+                    $stats[$key] = isset($m[1]) ? $m[1] : $defaultStats[$key];
                 }
             }
         } catch (\Exception $e) {
-            $stats = [
-                'agents'           => '137',
-                'warehouses'       => '71',
-                'capacity'         => '79 000 tonnes',
-                'communes'         => '14',
-                'experience'       => '51+',
-                'demandes_traitees'=> '100',
-                'taux_satisfaction'=> '00%',
-            ];
+            $stats = $defaultStats;
         }
         
         // Récupérer les actualités publiées
