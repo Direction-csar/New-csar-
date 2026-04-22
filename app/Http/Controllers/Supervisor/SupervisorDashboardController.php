@@ -13,50 +13,72 @@ class SupervisorDashboardController extends Controller
 {
     public function index()
     {
-        // Statistiques globales
-        $stats = [
-            'total_collectors' => SimCollector::count(),
-            'active_collectors' => SimCollector::where('status', 'active')->count(),
-            'total_collections' => SimMobileCollection::count(),
-            'collections_today' => SimMobileCollection::whereDate('collection_date', today())->count(),
-            'pending_sync' => SimMobileCollection::where('sync_status', 'pending')->count(),
-        ];
-
-        // Collecteurs avec leurs statistiques
-        $collectors = SimCollector::withCount([
-            'mobileCollections as total_collections',
-            'mobileCollections as pending_collections' => function ($query) {
-                $query->where('sync_status', 'pending');
-            },
-        ])
-        ->with(['mobileCollections' => function ($query) {
-            $query->latest()->limit(1);
-        }])
-        ->get()
-        ->map(function ($collector) {
-            return [
-                'id' => $collector->id,
-                'name' => $collector->name,
-                'username' => $collector->username,
-                'phone' => $collector->phone,
-                'is_active' => $collector->is_active,
-                'total_collections' => $collector->total_collections,
-                'pending_collections' => $collector->pending_collections,
-                'last_collection' => $collector->mobileCollections->first()?->collection_date,
-                'assigned_zones' => $collector->assigned_zones ? json_decode($collector->assigned_zones) : [],
+        try {
+            // Statistiques globales
+            $stats = [
+                'total_collectors'  => SimCollector::count(),
+                'active_collectors' => SimCollector::where('status', 'active')->count(),
+                'total_collections' => SimMobileCollection::count(),
+                'collections_today' => SimMobileCollection::whereDate('collection_date', today())->count(),
+                'pending_sync'      => SimMobileCollection::where('sync_status', 'pending')->count(),
             ];
-        });
+        } catch (\Exception $e) {
+            $stats = [
+                'total_collectors'  => 0,
+                'active_collectors' => 0,
+                'total_collections' => 0,
+                'collections_today' => 0,
+                'pending_sync'      => 0,
+            ];
+        }
 
-        // Dernières collectes
-        $recentCollections = SimMobileCollection::with('collector')
-            ->latest('collection_date')
-            ->limit(20)
-            ->get();
+        try {
+            // Collecteurs avec leurs statistiques
+            $collectors = SimCollector::withCount([
+                'mobileCollections as total_collections',
+                'mobileCollections as pending_collections' => function ($query) {
+                    $query->where('sync_status', 'pending');
+                },
+            ])
+            ->with(['mobileCollections' => function ($query) {
+                $query->latest()->limit(1);
+            }])
+            ->get()
+            ->map(function ($collector) {
+                return [
+                    'id'                 => $collector->id,
+                    'name'               => $collector->name,
+                    'username'           => $collector->username,
+                    'phone'              => $collector->phone,
+                    'is_active'          => $collector->isActive(),
+                    'total_collections'  => $collector->total_collections,
+                    'pending_collections'=> $collector->pending_collections,
+                    'last_collection'    => $collector->mobileCollections->first()?->collection_date,
+                    'assigned_zones'     => $collector->assigned_zones ?? [],
+                ];
+            });
+        } catch (\Exception $e) {
+            $collectors = collect();
+        }
 
-        // Historique de synchronisation
-        $syncHistory = SimSyncLog::latest('sync_started_at')
-            ->limit(10)
-            ->get();
+        try {
+            // Dernières collectes
+            $recentCollections = SimMobileCollection::with('collector')
+                ->latest('collection_date')
+                ->limit(20)
+                ->get();
+        } catch (\Exception $e) {
+            $recentCollections = collect();
+        }
+
+        try {
+            // Historique de synchronisation
+            $syncHistory = SimSyncLog::latest('sync_started_at')
+                ->limit(10)
+                ->get();
+        } catch (\Exception $e) {
+            $syncHistory = collect();
+        }
 
         return view('supervisor.dashboard', compact('stats', 'collectors', 'recentCollections', 'syncHistory'));
     }

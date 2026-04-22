@@ -66,37 +66,38 @@ class HomeController extends Controller
             } else {
                 // Essayer de récupérer les chiffres clés, avec fallback en cas d'erreur
                 try {
-                    $chiffresCles = \App\Models\ChiffreCle::safeGetActifs()->keyBy('titre');
+                    $chiffresMap = \App\Models\ChiffreCle::safeGetActifs()->pluck('valeur', 'titre');
                     
                     $stats = [
-                        'agents' => $chiffresCles->get('Agents recensés', (object)['valeur' => '137'])->valeur ?? '137',
-                        'warehouses' => $chiffresCles->get('Magasins de stockage', (object)['valeur' => '71'])->valeur ?? '71',
-                        'capacity' => $chiffresCles->get('Capacité de stockage', (object)['valeur' => '79'])->valeur ?? '79',
-                        'communes' => $chiffresCles->get('Communes et régions servies', (object)['valeur' => '51'])->valeur ?? '51',
-                        'demandes_traitees' => $chiffresCles->get('Demandes traitées', (object)['valeur' => '0'])->valeur ?? '0',
-                        'taux_satisfaction' => $chiffresCles->get('Taux de satisfaction', (object)['valeur' => '0'])->valeur ?? '0',
+                        'agents'           => $chiffresMap->get('Agents recensés', '137'),
+                        'warehouses'       => $chiffresMap->get('Magasins de stockage', '71'),
+                        'capacity'         => $chiffresMap->get('Capacité de stockage', '79 000 tonnes'),
+                        'communes'         => $chiffresMap->get('Régions couvertes', $chiffresMap->get('Communes et régions servies', '14')),
+                        'experience'       => $chiffresMap->get('Années d\'expérience', '51+'),
+                        'demandes_traitees'=> $chiffresMap->get('Demandes traitées', '100'),
+                        'taux_satisfaction'=> $chiffresMap->get('Taux de satisfaction', '00%'),
                     ];
                 } catch (\Exception $e) {
-                    // En cas d'erreur lors de la récupération, utiliser les valeurs par défaut
                     $stats = [
-                        'agents' => '0',
-                        'warehouses' => '0', 
-                        'capacity' => '0',
-                        'communes' => '0',
-                        'demandes_traitees' => '0',
-                        'taux_satisfaction' => '0'
+                        'agents'           => '137',
+                        'warehouses'       => '71',
+                        'capacity'         => '79 000 tonnes',
+                        'communes'         => '14',
+                        'experience'       => '51+',
+                        'demandes_traitees'=> '100',
+                        'taux_satisfaction'=> '00%',
                     ];
                 }
             }
         } catch (\Exception $e) {
-            // En cas d'erreur, utiliser les valeurs par défaut
             $stats = [
-                'agents' => '0',
-                'warehouses' => '0', 
-                'capacity' => '0',
-                'communes' => '0',
-                'demandes_traitees' => '0',
-                'taux_satisfaction' => '0'
+                'agents'           => '137',
+                'warehouses'       => '71',
+                'capacity'         => '79 000 tonnes',
+                'communes'         => '14',
+                'experience'       => '51+',
+                'demandes_traitees'=> '100',
+                'taux_satisfaction'=> '00%',
             ];
         }
         

@@ -60,14 +60,14 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="title" class="form-label">Titre *</label>
+                                    <label for="titre" class="form-label">Titre *</label>
                                     <input type="text" 
-                                           class="form-control @error('title') is-invalid @enderror" 
-                                           id="title" 
-                                           name="title" 
-                                           value="{{ old('title', $chiffreCle->title) }}" 
+                                           class="form-control @error('titre') is-invalid @enderror" 
+                                           id="titre" 
+                                           name="titre" 
+                                           value="{{ old('titre', $chiffreCle->titre) }}" 
                                            required>
-                                    @error('title')
+                                    @error('titre')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -75,14 +75,14 @@
                             
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="value" class="form-label">Valeur *</label>
+                                    <label for="valeur" class="form-label">Valeur *</label>
                                     <input type="text" 
-                                           class="form-control @error('value') is-invalid @enderror" 
-                                           id="value" 
-                                           name="value" 
-                                           value="{{ old('value', $chiffreCle->value) }}" 
+                                           class="form-control @error('valeur') is-invalid @enderror" 
+                                           id="valeur" 
+                                           name="valeur" 
+                                           value="{{ old('valeur', $chiffreCle->valeur) }}" 
                                            required>
-                                    @error('value')
+                                    @error('valeur')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -108,16 +108,16 @@
                                     <label for="icon" class="form-label">Icône FontAwesome *</label>
                                     <div class="input-group">
                                         <span class="input-group-text">
-                                            <i id="iconPreview" class="{{ old('icon', $chiffreCle->icon) }}"></i>
+                                            <i id="iconPreview" class="{{ old('icone', $chiffreCle->icone) }}"></i>
                                         </span>
                                         <input type="text" 
-                                               class="form-control @error('icon') is-invalid @enderror" 
-                                               id="icon" 
-                                               name="icon" 
-                                               value="{{ old('icon', $chiffreCle->icon) }}" 
+                                               class="form-control @error('icone') is-invalid @enderror" 
+                                               id="icone" 
+                                               name="icone" 
+                                               value="{{ old('icone', $chiffreCle->icone) }}" 
                                                placeholder="fas fa-users" 
                                                required>
-                                        @error('icon')
+                                        @error('icone')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -132,16 +132,16 @@
                                     <label for="color" class="form-label">Couleur *</label>
                                     <div class="input-group">
                                         <input type="color" 
-                                               class="form-control form-control-color @error('color') is-invalid @enderror" 
-                                               id="color" 
-                                               name="color" 
-                                               value="{{ old('color', $chiffreCle->color) }}" 
+                                               class="form-control form-control-color @error('couleur') is-invalid @enderror" 
+                                               id="couleur" 
+                                               name="couleur" 
+                                               value="{{ old('couleur', $chiffreCle->couleur_complete) }}" 
                                                required>
                                         <input type="text" 
                                                class="form-control" 
-                                               value="{{ old('color', $chiffreCle->color) }}" 
+                                               value="{{ old('couleur', $chiffreCle->couleur_complete) }}" 
                                                readonly>
-                                        @error('color')
+                                        @error('couleur')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -152,16 +152,16 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="order" class="form-label">Ordre d'affichage *</label>
+                                    <label for="ordre" class="form-label">Ordre d'affichage *</label>
                                     <input type="number" 
-                                           class="form-control @error('order') is-invalid @enderror" 
-                                           id="order" 
-                                           name="order" 
-                                           value="{{ old('order', $chiffreCle->order) }}" 
+                                           class="form-control @error('ordre') is-invalid @enderror" 
+                                           id="ordre" 
+                                           name="ordre" 
+                                           value="{{ old('ordre', $chiffreCle->ordre) }}" 
                                            min="1" 
                                            max="10" 
                                            required>
-                                    @error('order')
+                                    @error('ordre')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
@@ -170,16 +170,14 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Statut</label>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" 
-                                               type="checkbox" 
-                                               id="is_active" 
-                                               name="is_active" 
-                                               {{ old('is_active', $chiffreCle->is_active) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="is_active">
-                                            Actif (affiché sur les pages publiques)
-                                        </label>
-                                    </div>
+                                    <select class="form-select @error('statut') is-invalid @enderror" 
+                                            id="statut" name="statut">
+                                        <option value="Actif" {{ old('statut', $chiffreCle->statut) === 'Actif' ? 'selected' : '' }}>Actif (affiché publiquement)</option>
+                                        <option value="Inactif" {{ old('statut', $chiffreCle->statut) === 'Inactif' ? 'selected' : '' }}>Inactif (masqué)</option>
+                                    </select>
+                                    @error('statut')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                         </div>
@@ -222,11 +220,11 @@
                 </div>
                 <div class="card-body">
                     <div class="text-center">
-                        <div class="stats-icon mb-3" id="previewIcon" style="color: {{ $chiffreCle->color }}">
-                            <i class="{{ $chiffreCle->icon }} fa-4x"></i>
+                        <div class="stats-icon mb-3" id="previewIcon" style="color: {{ $chiffreCle->couleur_complete }}">
+                            <i class="{{ $chiffreCle->icone }} fa-4x"></i>
                         </div>
-                        <div class="stats-number h2 mb-2" id="previewValue" style="color: {{ $chiffreCle->color }}">
-                            {{ number_format($chiffreCle->value, 0, ',', ' ') }}
+                        <div class="stats-number h2 mb-2" id="previewValue" style="color: {{ $chiffreCle->couleur_complete }}">
+                            {{ $chiffreCle->valeur }}
                         </div>
                         <div class="stats-label text-muted" id="previewDescription">
                             {{ $chiffreCle->description }}

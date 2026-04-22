@@ -104,47 +104,6 @@ class ChiffreCle extends Model
     }
     
     /**
-     * Override de la méthode newQuery pour vérifier la table avant de créer une requête
-     */
-    public function newQuery()
-    {
-        try {
-            if (!self::tableExists()) {
-                // Créer une requête qui ne fera jamais de requête SQL en utilisant une condition impossible
-                $query = parent::newQuery();
-                // Utiliser whereRaw avec une condition toujours fausse pour éviter toute requête SQL
-                return $query->whereRaw('1 = 0');
-            }
-            return parent::newQuery();
-        } catch (\Exception $e) {
-            // En cas d'erreur, retourner une requête vide
-            try {
-                $query = parent::newQuery();
-                return $query->whereRaw('1 = 0');
-            } catch (\Exception $e2) {
-                // Si même ça échoue, retourner une requête basique
-                return parent::newQuery();
-            }
-        }
-    }
-    
-    /**
-     * Override de la méthode getTable pour éviter les erreurs si la table n'existe pas
-     */
-    public function getTable()
-    {
-        try {
-            if (!self::tableExists()) {
-                // Retourner un nom de table qui n'existe pas pour éviter les requêtes
-                return 'chiffres_cles_empty';
-            }
-            return parent::getTable();
-        } catch (\Exception $e) {
-            return parent::getTable();
-        }
-    }
-
-    /**
      * Accessor pour obtenir le statut en français
      */
     public function getStatutFrancaisAttribute()
