@@ -82,7 +82,7 @@
             </a>
             <div class="d-flex align-items-center">
                 <span class="text-white me-3">
-                    <i class="fas fa-user-tie me-1"></i>{{ auth('supervisor')->user()->name }}
+                    <i class="fas fa-user-tie me-1"></i>{{ optional(auth('supervisor')->user())->name ?? optional(auth('admin')->user())->name ?? 'Admin' }}
                 </span>
                 <a href="{{ route('supervisor.dashboard') }}" class="btn btn-outline-light btn-sm me-2">
                     <i class="fas fa-arrow-left me-1"></i>Retour
