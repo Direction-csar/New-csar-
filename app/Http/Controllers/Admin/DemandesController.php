@@ -129,9 +129,9 @@ class DemandesController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'statut' => 'nullable|string',
-            'commentaire_admin' => 'nullable|string',
-            'assignee_id' => 'nullable|exists:users,id'
+            'status' => 'nullable|string|in:pending,approved,rejected,completed',
+            'admin_comment' => 'nullable|string',
+            'assigned_to' => 'nullable|exists:users,id'
         ]);
 
         try {
@@ -141,15 +141,15 @@ class DemandesController extends Controller
             $oldStatut = $demande->status;
 
             $updateData = [];
-            if ($request->filled('statut')) {
-                $updateData['status'] = $request->statut;
+            if ($request->filled('status')) {
+                $updateData['status'] = $request->status;
                 $updateData['updated_at'] = now();
             }
-            if ($request->filled('commentaire_admin')) {
-                $updateData['admin_notes'] = $request->commentaire_admin;
+            if ($request->filled('admin_comment')) {
+                $updateData['admin_comment'] = $request->admin_comment;
             }
-            if ($request->filled('assignee_id')) {
-                $updateData['assigned_to'] = $request->assignee_id;
+            if ($request->filled('assigned_to')) {
+                $updateData['assigned_to'] = $request->assigned_to;
             }
 
             $demande->update($updateData);

@@ -41,7 +41,7 @@
                     </div>
                     <div class="col-md-6">
                         <p><strong>Type:</strong> {{ ucfirst($demande->type) }}</p>
-                        <p><strong>Date de demande:</strong> {{ $demande->request_date->format('d/m/Y') }}</p>
+                        <p><strong>Date de demande:</strong> {{ optional($demande->request_date)->format('d/m/Y') ?? \Carbon\Carbon::parse($demande->created_at)->format('d/m/Y') }}</p>
                         <p><strong>Statut actuel:</strong> 
                             <span class="badge bg-{{ $demande->status === 'approved' ? 'success' : ($demande->status === 'rejected' ? 'danger' : ($demande->status === 'completed' ? 'info' : 'warning')) }}">
                                 {{ ucfirst($demande->status) }}

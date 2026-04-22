@@ -37,7 +37,7 @@
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-muted">Demandeur</label>
-                            <p class="mb-0">{{ $demande->nom }} {{ $demande->prenom }}</p>
+                            <p class="mb-0">{{ $demande->full_name }}</p>
                         </div>
                         
                         <div class="mb-3">
@@ -47,12 +47,12 @@
                         
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-muted">Téléphone</label>
-                            <p class="mb-0">{{ $demande->telephone }}</p>
+                            <p class="mb-0">{{ $demande->phone }}</p>
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-muted">Objet</label>
-                            <p class="mb-0">{{ $demande->objet }}</p>
+                            <p class="mb-0">{{ $demande->subject }}</p>
                         </div>
                     </div>
                     
@@ -60,15 +60,15 @@
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-muted">Type de demande</label>
                             <p class="mb-0">
-                                <span class="badge bg-info">{{ ucfirst($demande->type_demande ?? 'Non spécifié') }}</span>
+                                <span class="badge bg-info">{{ ucfirst($demande->type ?? 'Non spécifié') }}</span>
                             </p>
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-muted">Statut</label>
                             <p class="mb-0">
-                                <span class="badge bg-{{ $demande->statut === 'traitee' ? 'success' : ($demande->statut === 'rejetee' ? 'danger' : ($demande->statut === 'en_cours' ? 'info' : 'warning')) }}">
-                                    {{ str_replace('_', ' ', ucfirst($demande->statut)) }}
+                                <span class="badge bg-{{ $demande->status === 'approved' ? 'success' : ($demande->status === 'rejected' ? 'danger' : ($demande->status === 'completed' ? 'info' : 'warning')) }}">
+                                    {{ ucfirst($demande->status) }}
                                 </span>
                             </p>
                         </div>
@@ -78,10 +78,10 @@
                             <p class="mb-0">{{ \Carbon\Carbon::parse($demande->created_at)->format('d/m/Y à H:i') }}</p>
                         </div>
                         
-                        @if($demande->date_traitement)
+                        @if($demande->processed_date)
                         <div class="mb-3">
                             <label class="form-label small fw-bold text-muted">Date de traitement</label>
-                            <p class="mb-0">{{ \Carbon\Carbon::parse($demande->date_traitement)->format('d/m/Y à H:i') }}</p>
+                            <p class="mb-0">{{ \Carbon\Carbon::parse($demande->processed_date)->format('d/m/Y à H:i') }}</p>
                         </div>
                         @endif
                         
@@ -103,25 +103,15 @@
                 </div>
                 @endif
                 
-                @if($demande->reponse)
+                @if($demande->admin_comment)
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-muted">Réponse administrateur</label>
                     <div class="bg-warning bg-opacity-10 p-3 rounded">
-                        {{ $demande->reponse }}
+                        {{ $demande->admin_comment }}
                     </div>
                 </div>
                 @endif
                 
-                @if($demande->pj)
-                <div class="mb-3">
-                    <label class="form-label small fw-bold text-muted">Pièce jointe</label>
-                    <p class="mb-0">
-                        <a href="{{ asset('storage/' . $demande->pj) }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                            <i class="fas fa-file me-1"></i>Télécharger
-                        </a>
-                    </p>
-                </div>
-                @endif
             </div>
         </div>
         
@@ -135,27 +125,17 @@
                         <i class="fas fa-edit me-1"></i>Traiter la demande
                     </a>
                     
-                    @if($demande->status === 'pending' || $demande->status === 'processing')
-                    <form action="{{ route('admin.demandes.approve', $demande->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="fas fa-check me-1"></i>Approuver
-                        </button>
-                    </form>
-                    
-                    <form action="{{ route('admin.demandes.reject', $demande->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-danger w-100">
-                            <i class="fas fa-times me-1"></i>Rejeter
-                        </button>
-                    </form>
-                    @elseif($demande->status === 'approved')
+                    @if($demande->status === 'approved')
                     <div class="alert alert-success mb-2">
                         <i class="fas fa-check-circle me-2"></i>Demande approuvée
                     </div>
                     @elseif($demande->status === 'rejected')
                     <div class="alert alert-danger mb-2">
                         <i class="fas fa-times-circle me-2"></i>Demande rejetée
+                    </div>
+                    @else
+                    <div class="alert alert-warning mb-2">
+                        <i class="fas fa-clock me-2"></i>En attente de traitement
                     </div>
                     @endif
                 </div>
@@ -179,26 +159,19 @@
                     <p class="mb-0 small">{{ \Carbon\Carbon::parse($demande->created_at)->format('d/m/Y à H:i') }}</p>
                 </div>
                 
-                @if($demande->date_traitement)
+                @if($demande->processed_date)
                 <div class="mb-2">
                     <small class="text-muted">Date de traitement:</small>
-                    <p class="mb-0 small">{{ \Carbon\Carbon::parse($demande->date_traitement)->format('d/m/Y à H:i') }}</p>
+                    <p class="mb-0 small">{{ \Carbon\Carbon::parse($demande->processed_date)->format('d/m/Y à H:i') }}</p>
                 </div>
                 @endif
                 
-                @if($demande->traite_par)
+                @if($demande->assignedTo)
                 <div class="mb-2">
-                    <small class="text-muted">Traité par:</small>
-                    <p class="mb-0 small">Utilisateur #{{ $demande->traite_par }}</p>
+                    <small class="text-muted">Assigné à:</small>
+                    <p class="mb-0 small">{{ $demande->assignedTo->name }}</p>
                 </div>
                 @endif
-                
-                <div class="mb-2">
-                    <small class="text-muted">Consentement RGPD:</small>
-                    <span class="badge bg-{{ $demande->consentement ? 'success' : 'danger' }}">
-                        {{ $demande->consentement ? 'Oui' : 'Non' }}
-                    </span>
-                </div>
             </div>
         </div>
     </div>
