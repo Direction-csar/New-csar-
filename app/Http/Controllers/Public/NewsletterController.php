@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\NewsletterSubscriber;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class NewsletterController extends Controller
 {
@@ -32,8 +34,6 @@ class NewsletterController extends Controller
 
         try {
             $email = $request->email;
-
-            // Vérifier si l'email existe déjà
             $existingSubscriber = NewsletterSubscriber::where('email', $email)->first();
 
             if ($existingSubscriber) {
@@ -43,43 +43,47 @@ class NewsletterController extends Controller
                         return response()->json(['success' => false, 'message' => $message], 422);
                     }
                     return back()->with('error', $message);
-                } else {
-                    // Réactiver l'inscription
-                    $existingSubscriber->update([
-                        'status' => 'active',
-                        'subscribed_at' => now(),
-                        'unsubscribed_at' => null
-                    ]);
-                    $message = 'Vous êtes abonné avec succès à notre newsletter.';
+                }
+
+                if ($existingSubscriber->status === 'pending') {
+                    $this->sendConfirmationEmail($existingSubscriber);
+                    $message = 'Un email de confirmation vous a été renvoyé. Vérifiez votre boîte mail.';
                     if ($request->expectsJson()) {
                         return response()->json(['success' => true, 'message' => $message]);
                     }
                     return back()->with('success', $message);
                 }
+
+                // Réactiver (unsubscribed → pending re-confirmation)
+                $token = Str::random(64);
+                $existingSubscriber->update([
+                    'status' => 'pending',
+                    'confirmation_token' => $token,
+                    'confirmed_at' => null,
+                    'subscribed_at' => now(),
+                    'unsubscribed_at' => null,
+                ]);
+                $this->sendConfirmationEmail($existingSubscriber);
+                $message = 'Vérifiez votre email pour confirmer votre réabonnement.';
+                if ($request->expectsJson()) {
+                    return response()->json(['success' => true, 'message' => $message]);
+                }
+                return back()->with('success', $message);
             }
 
-            // Créer une nouvelle inscription
+            // Nouvelle inscription — en attente de confirmation
+            $token = Str::random(64);
             $subscriber = NewsletterSubscriber::create([
-                'email' => $email,
-                'status' => 'active',
-                'subscribed_at' => now(),
-                'source' => 'website'
+                'email'              => $email,
+                'status'             => 'pending',
+                'confirmation_token' => $token,
+                'subscribed_at'      => now(),
+                'source'             => 'website',
             ]);
 
-            // Créer une notification pour l'admin
-            try {
-                \App\Models\Notification::create([
-                    'type' => 'info',
-                    'title' => 'Nouvel abonnement newsletter',
-                    'message' => "Un nouvel abonné s'est inscrit à la newsletter: {$email}",
-                    'user_id' => null,
-                    'read' => false
-                ]);
-            } catch (\Exception $e) {
-                \Log::error('Erreur création notification newsletter: ' . $e->getMessage());
-            }
+            $this->sendConfirmationEmail($subscriber);
 
-            $message = 'Vous êtes abonné avec succès à notre newsletter.';
+            $message = 'Merci ! Vérifiez votre email pour confirmer votre abonnement à la newsletter CSAR.';
             if ($request->expectsJson()) {
                 return response()->json(['success' => true, 'message' => $message]);
             }
@@ -87,12 +91,56 @@ class NewsletterController extends Controller
 
         } catch (\Exception $e) {
             \Log::error('Erreur abonnement newsletter: ' . $e->getMessage());
-            
-            $message = 'Une erreur est survenue lors de l\'abonnement. Veuillez réessayer.';
+            $message = 'Une erreur est survenue. Veuillez réessayer.';
             if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $message], 500);
             }
             return back()->with('error', $message);
+        }
+    }
+
+    public function confirm(string $token)
+    {
+        $subscriber = NewsletterSubscriber::where('confirmation_token', $token)
+            ->where('status', 'pending')
+            ->first();
+
+        if (!$subscriber) {
+            return redirect('/')->with('error', 'Lien de confirmation invalide ou déjà utilisé.');
+        }
+
+        $subscriber->confirm();
+
+        try {
+            \App\Models\Notification::create([
+                'type'    => 'info',
+                'title'   => 'Nouvel abonnement newsletter confirmé',
+                'message' => "Abonnement confirmé : {$subscriber->email}",
+                'user_id' => null,
+                'read'    => false,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Notification newsletter: ' . $e->getMessage());
+        }
+
+        return redirect('/')->with('success', '✅ Votre abonnement à la newsletter CSAR est confirmé ! Vous recevrez nos actualités régulièrement.');
+    }
+
+    private function sendConfirmationEmail(NewsletterSubscriber $subscriber): void
+    {
+        try {
+            $confirmUrl = url('/newsletter/confirm/' . $subscriber->confirmation_token);
+
+            Mail::send('emails.newsletter.confirm', [
+                'subscriber'  => $subscriber,
+                'confirmUrl'  => $confirmUrl,
+            ], function ($message) use ($subscriber) {
+                $message->to($subscriber->email)
+                    ->subject('Confirmez votre abonnement à la newsletter CSAR')
+                    ->from(config('mail.from.address', 'noreply@csar.sn'), config('mail.from.name', 'CSAR'));
+            });
+        } catch (\Exception $e) {
+            \Log::error('Erreur envoi email confirmation newsletter: ' . $e->getMessage());
         }
     }
 

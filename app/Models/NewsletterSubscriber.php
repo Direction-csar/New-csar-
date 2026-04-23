@@ -13,6 +13,8 @@ class NewsletterSubscriber extends Model
         'email',
         'name',
         'status',
+        'confirmation_token',
+        'confirmed_at',
         'subscribed_at',
         'unsubscribed_at',
         'source',
@@ -24,6 +26,7 @@ class NewsletterSubscriber extends Model
     protected $casts = [
         'subscribed_at' => 'datetime',
         'unsubscribed_at' => 'datetime',
+        'confirmed_at' => 'datetime',
         'last_email_sent_at' => 'datetime',
         'preferences' => 'array',
         'email_count' => 'integer'
@@ -40,6 +43,20 @@ class NewsletterSubscriber extends Model
     public function getIsActiveAttribute()
     {
         return $this->status === 'active';
+    }
+
+    public function isConfirmed(): bool
+    {
+        return $this->confirmed_at !== null;
+    }
+
+    public function confirm(): void
+    {
+        $this->update([
+            'status' => 'active',
+            'confirmed_at' => now(),
+            'confirmation_token' => null,
+        ]);
     }
 
     /**

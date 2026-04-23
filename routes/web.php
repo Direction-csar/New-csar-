@@ -207,6 +207,7 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     // Newsletter - Routes publiques unifiées
     Route::post('/newsletter', [\App\Http\Controllers\Public\NewsletterController::class, 'subscribe'])->name('newsletter.store');
     Route::post('/newsletter/subscribe', [\App\Http\Controllers\Public\NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+    Route::get('/newsletter/confirm/{token}', [\App\Http\Controllers\Public\NewsletterController::class, 'confirm'])->name('newsletter.confirm');
     Route::get('/newsletter/unsubscribe', [\App\Http\Controllers\Public\NewsletterController::class, 'unsubscribePage'])->name('newsletter.unsubscribe');
     Route::post('/newsletter/unsubscribe', [\App\Http\Controllers\Public\NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe.submit');
     Route::get('/newsletter/check', [\App\Http\Controllers\Public\NewsletterController::class, 'checkSubscription'])->name('newsletter.check');
