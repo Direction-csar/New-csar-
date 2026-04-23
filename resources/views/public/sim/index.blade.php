@@ -1290,7 +1290,7 @@
                             <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" alt="CSAR" class="img-fluid mb-3" style="max-height:120px;">
                             <div class="logo-shine"></div>
                         </div>
-                        <p class="text-muted mb-3">Centre de Suivi et d'Analyse de la Résilience au Sénégal</p>
+                        <p class="text-muted mb-3">Commissariat à la Sécurité Alimentaire et à la Résilience</p>
                         <a href="{{ route('about', ['locale' => app()->getLocale()]) }}" class="btn btn-success btn-glow">
                             <i class="fas fa-arrow-right me-2"></i>
                             En savoir plus
