@@ -21,12 +21,14 @@ class NewsletterController extends Controller
             'email.max' => 'L\'adresse email ne doit pas dépasser 255 caractères.'
         ]);
 
+        $isAjax = $request->ajax() || $request->expectsJson();
+        $confirmUrl = route('newsletter.confirmation', ['locale' => app()->getLocale()]);
+
         if ($validator->fails()) {
-            if ($request->expectsJson()) {
+            if ($isAjax) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Erreur de validation',
-                    'errors' => $validator->errors()
+                    'message' => $validator->errors()->first()
                 ], 422);
             }
             return back()->withErrors($validator)->withInput();
@@ -39,8 +41,8 @@ class NewsletterController extends Controller
             if ($existingSubscriber) {
                 if ($existingSubscriber->status === 'active') {
                     $message = 'Cette adresse email est déjà inscrite à notre newsletter.';
-                    if ($request->expectsJson()) {
-                        return response()->json(['success' => false, 'message' => $message], 422);
+                    if ($isAjax) {
+                        return response()->json(['success' => false, 'message' => $message]);
                     }
                     return back()->with('error', $message);
                 }
@@ -48,10 +50,10 @@ class NewsletterController extends Controller
                 if ($existingSubscriber->status === 'pending') {
                     $this->sendConfirmationEmail($existingSubscriber);
                     $message = 'Un email de confirmation vous a été renvoyé. Vérifiez votre boîte mail.';
-                    if ($request->expectsJson()) {
-                        return response()->json(['success' => true, 'message' => $message]);
+                    if ($isAjax) {
+                        return response()->json(['success' => true, 'message' => $message, 'redirect' => $confirmUrl]);
                     }
-                    return back()->with('success', $message);
+                    return redirect($confirmUrl);
                 }
 
                 // Réactiver (unsubscribed → pending re-confirmation)
@@ -65,10 +67,10 @@ class NewsletterController extends Controller
                 ]);
                 $this->sendConfirmationEmail($existingSubscriber);
                 $message = 'Vérifiez votre email pour confirmer votre réabonnement.';
-                if ($request->expectsJson()) {
-                    return response()->json(['success' => true, 'message' => $message]);
+                if ($isAjax) {
+                    return response()->json(['success' => true, 'message' => $message, 'redirect' => $confirmUrl]);
                 }
-                return back()->with('success', $message);
+                return redirect($confirmUrl);
             }
 
             // Nouvelle inscription — en attente de confirmation
@@ -83,9 +85,8 @@ class NewsletterController extends Controller
 
             $this->sendConfirmationEmail($subscriber);
 
-            $message = 'Merci ! Vérifiez votre email pour confirmer votre abonnement à la newsletter CSAR.';
-            $confirmUrl = route('newsletter.confirmation', ['locale' => app()->getLocale()]);
-            if ($request->expectsJson()) {
+            $message = 'Merci ! Vérifiez votre email pour confirmer votre abonnement.';
+            if ($isAjax) {
                 return response()->json(['success' => true, 'message' => $message, 'redirect' => $confirmUrl]);
             }
             return redirect($confirmUrl);
@@ -93,7 +94,7 @@ class NewsletterController extends Controller
         } catch (\Exception $e) {
             \Log::error('Erreur abonnement newsletter: ' . $e->getMessage());
             $message = 'Une erreur est survenue. Veuillez réessayer.';
-            if ($request->expectsJson()) {
+            if ($isAjax) {
                 return response()->json(['success' => false, 'message' => $message], 500);
             }
             return back()->with('error', $message);
