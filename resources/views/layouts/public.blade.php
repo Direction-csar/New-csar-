@@ -1342,6 +1342,10 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
+                            if (data.redirect) {
+                                window.location.href = data.redirect;
+                                return;
+                            }
                             showNewsletterMessage(data.message, 'success');
                             this.reset();
                         } else {

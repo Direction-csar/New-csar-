@@ -84,10 +84,11 @@ class NewsletterController extends Controller
             $this->sendConfirmationEmail($subscriber);
 
             $message = 'Merci ! Vérifiez votre email pour confirmer votre abonnement à la newsletter CSAR.';
+            $confirmUrl = route('newsletter.confirmation', ['locale' => app()->getLocale()]);
             if ($request->expectsJson()) {
-                return response()->json(['success' => true, 'message' => $message]);
+                return response()->json(['success' => true, 'message' => $message, 'redirect' => $confirmUrl]);
             }
-            return back()->with('success', $message);
+            return redirect($confirmUrl);
 
         } catch (\Exception $e) {
             \Log::error('Erreur abonnement newsletter: ' . $e->getMessage());
@@ -157,6 +158,11 @@ class NewsletterController extends Controller
         } catch (\Exception $e) {
             \Log::error('Erreur envoi email confirmation newsletter: ' . $e->getMessage());
         }
+    }
+
+    public function confirmationPage()
+    {
+        return view('newsletter.confirmation');
     }
 
     public function unsubscribe(Request $request)
