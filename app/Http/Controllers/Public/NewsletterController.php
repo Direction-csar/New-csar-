@@ -146,7 +146,7 @@ class NewsletterController extends Controller
     private function sendConfirmationEmail(NewsletterSubscriber $subscriber): void
     {
         try {
-            $confirmUrl = url('/newsletter/confirm/' . $subscriber->confirmation_token);
+            $confirmUrl = route('newsletter.confirm', ['locale' => app()->getLocale(), 'token' => $subscriber->confirmation_token]);
 
             Mail::send('emails.newsletter.confirm', [
                 'subscriber'  => $subscriber,
