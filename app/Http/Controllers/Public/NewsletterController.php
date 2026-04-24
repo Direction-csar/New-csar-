@@ -111,6 +111,21 @@ class NewsletterController extends Controller
 
         $subscriber->confirm();
 
+        // Email de bienvenue à l'abonné
+        try {
+            Mail::send('emails.newsletter-welcome', [
+                'email' => $subscriber->email,
+                'date'  => now()->format('d/m/Y'),
+            ], function ($message) use ($subscriber) {
+                $message->to($subscriber->email)
+                    ->subject('✅ Votre abonnement à la newsletter CSAR est confirmé !')
+                    ->from(config('mail.from.address', 'noreply@csar.sn'), config('mail.from.name', 'CSAR'));
+            });
+        } catch (\Exception $e) {
+            \Log::error('Erreur email bienvenue newsletter: ' . $e->getMessage());
+        }
+
+        // Notification admin
         try {
             \App\Models\Notification::create([
                 'type'    => 'info',
@@ -123,7 +138,7 @@ class NewsletterController extends Controller
             \Log::error('Notification newsletter: ' . $e->getMessage());
         }
 
-        return redirect('/')->with('success', '✅ Votre abonnement à la newsletter CSAR est confirmé ! Vous recevrez nos actualités régulièrement.');
+        return redirect('/')->with('success', '✅ Votre abonnement à la newsletter CSAR est confirmé ! Vérifiez votre email.');
     }
 
     private function sendConfirmationEmail(NewsletterSubscriber $subscriber): void
