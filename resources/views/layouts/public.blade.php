@@ -1182,7 +1182,7 @@
                 <div class="col-lg-4 mb-4">
                     <h5 class="footer-section-title">{{ __('messages.footer.newsletter') }}</h5>
                     <p class="footer-newsletter-desc">{{ __('messages.footer.newsletter_desc') }}</p>
-                    <form id="newsletter-form" class="newsletter-form">
+                    <form id="newsletter-form" class="newsletter-form" method="POST" action="/{{ app()->getLocale() }}/newsletter">
                         @csrf
                         <div class="input-group">
                             <input type="email" name="email" class="form-control newsletter-input" placeholder="{{ __('messages.footer.email_placeholder') }}" required>
@@ -1331,7 +1331,7 @@
                     submitBtn.disabled = true;
                     
                     // Envoyer la requête
-                    fetch('{{ route("newsletter.store", ["locale" => app()->getLocale()]) }}', {
+                    fetch('/{{ app()->getLocale() }}/newsletter', {
                         method: 'POST',
                         body: formData,
                         headers: {
