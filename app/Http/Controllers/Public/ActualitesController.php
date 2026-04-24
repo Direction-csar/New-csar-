@@ -108,7 +108,7 @@ class ActualitesController extends Controller
                 'statut' => $news->status,
                 'featured' => $news->is_featured,
                 'contenu' => $news->content,
-                'image' => $news->featured_image ? asset('storage/' . $news->featured_image) : null,
+                'image' => ($news->cover_image ?? $news->featured_image) ? asset('storage/' . ($news->cover_image ?? $news->featured_image)) : null,
                 'auteur' => $news->author->name ?? 'CSAR Communication',
                 'vues' => $news->views_count,
                 'created_at' => $news->created_at,
