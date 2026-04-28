@@ -29,6 +29,7 @@ class EventServiceProvider extends ServiceProvider
         ],
         \App\Events\CommunicationPublished::class => [
             \App\Listeners\SendCommunicationNotification::class,
+            \App\Listeners\SendNewsletterToSubscribers::class,
         ],
     ];
 

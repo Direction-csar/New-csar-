@@ -218,7 +218,12 @@ class ActualitesController extends Controller
                 $data['document_cover_image'] = $request->file('document_cover_image')->store('news/document-covers', 'public');
             }
 
+            $wasPublished = $actualite->is_published;
             $actualite->update($data);
+
+            if (!$wasPublished && $request->status === 'published') {
+                event(new \App\Events\CommunicationPublished($actualite->fresh()));
+            }
 
             Log::info('Actualité mise à jour par Admin', ['user_id' => auth()->id(), 'actualite_id' => $id, 'data' => $request->all()]);
 
