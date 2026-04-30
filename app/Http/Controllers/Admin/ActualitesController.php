@@ -10,6 +10,22 @@ use Carbon\Carbon;
 class ActualitesController extends Controller
 {
     /**
+     * Get the current authenticated user ID based on the guard
+     */
+    private function getCurrentUserId()
+    {
+        return auth('ctc')->check() ? auth('ctc')->id() : auth()->id();
+    }
+
+    /**
+     * Get the correct route prefix based on current request
+     */
+    private function getRoutePrefix()
+    {
+        return request()->routeIs('ctc.*') ? 'ctc' : 'admin';
+    }
+
+    /**
      * Afficher la liste des actualités
      */
     public function index(Request $request)
@@ -18,7 +34,7 @@ class ActualitesController extends Controller
             $actualites = \App\Models\News::orderBy('created_at', 'desc')->get();
 
             $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
-            Log::info('Accès à la gestion des actualités ' . strtoupper($prefix), ['user_id' => auth()->id()]);
+            Log::info('Accès à la gestion des actualités ' . strtoupper($prefix), ['user_id' => $this->getCurrentUserId()]);
 
             return view($prefix . '.actualites.index', compact('actualites'));
         } catch (\Exception $e) {
@@ -33,7 +49,7 @@ class ActualitesController extends Controller
     public function create(Request $request)
     {
         $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
-        Log::info('Accès au formulaire de création d\'actualité ' . strtoupper($prefix), ['user_id' => auth()->id()]);
+        Log::info('Accès au formulaire de création d\'actualité ' . strtoupper($prefix), ['user_id' => $this->getCurrentUserId()]);
         return view($prefix . '.actualites.create');
     }
 
@@ -79,7 +95,7 @@ class ActualitesController extends Controller
                 'is_published' => $request->status === 'published',
                 'is_public' => $request->has('is_public'),
                 'is_featured' => $request->has('is_featured'),
-                'created_by' => auth()->id(),
+                'created_by' => $this->getCurrentUserId(),
                 'views_count' => 0,
                 'downloads_count' => 0,
                 'youtube_url' => $request->youtube_url,
@@ -123,17 +139,17 @@ class ActualitesController extends Controller
             }
 
             Log::info('Actualité créée par Admin', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'news_id' => $news->id,
                 'title' => $request->title,
                 'status' => $request->status
             ]);
 
-            return redirect()->route(route_prefix() . '.actualites.index')->with('success', 'Actualité créée avec succès.');
+            return redirect()->route($this->getRoutePrefix() . '.actualites.index')->with('success', 'Actualité créée avec succès.');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la création de l\'actualité', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => $this->getCurrentUserId()
             ]);
             return redirect()->back()->with('error', 'Erreur lors de la création de l\'actualité: ' . $e->getMessage());
         }
@@ -148,7 +164,7 @@ class ActualitesController extends Controller
             $actualite = \App\Models\News::findOrFail($id);
             $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
             
-            Log::info('Affichage actualité ' . strtoupper($prefix), ['user_id' => auth()->id(), 'actualite_id' => $id]);
+            Log::info('Affichage actualité ' . strtoupper($prefix), ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id]);
             return view($prefix . '.actualites.show', compact('actualite'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'affichage de l\'actualité', ['error' => $e->getMessage()]);
@@ -165,7 +181,7 @@ class ActualitesController extends Controller
             $actualite = \App\Models\News::findOrFail($id);
             $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
             
-            Log::info('Accès au formulaire d\'édition d\'actualité ' . strtoupper($prefix), ['user_id' => auth()->id(), 'actualite_id' => $id]);
+            Log::info('Accès au formulaire d\'édition d\'actualité ' . strtoupper($prefix), ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id]);
             return view($prefix . '.actualites.edit', compact('actualite'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'édition de l\'actualité', ['error' => $e->getMessage()]);
@@ -229,9 +245,9 @@ class ActualitesController extends Controller
                 event(new \App\Events\CommunicationPublished($actualite->fresh()));
             }
 
-            Log::info('Actualité mise à jour par Admin', ['user_id' => auth()->id(), 'actualite_id' => $id, 'data' => $request->all()]);
+            Log::info('Actualité mise à jour par Admin', ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id, 'data' => $request->all()]);
 
-            return redirect()->route(route_prefix() . '.actualites.index')->with('success', 'Actualité mise à jour avec succès.');
+            return redirect()->route($this->getRoutePrefix() . '.actualites.index')->with('success', 'Actualité mise à jour avec succès.');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la mise à jour de l\'actualité', ['error' => $e->getMessage()]);
             return redirect()->back()->with('error', 'Erreur lors de la mise à jour de l\'actualité.');
@@ -256,9 +272,9 @@ class ActualitesController extends Controller
             
             $actualite->delete();
 
-            Log::info('Actualité supprimée par Admin', ['user_id' => auth()->id(), 'actualite_id' => $id]);
+            Log::info('Actualité supprimée par Admin', ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id]);
 
-            return redirect()->route(route_prefix() . '.actualites.index')->with('success', 'Actualité supprimée avec succès.');
+            return redirect()->route($this->getRoutePrefix() . '.actualites.index')->with('success', 'Actualité supprimée avec succès.');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la suppression de l\'actualité', ['error' => $e->getMessage()]);
             return redirect()->back()->with('error', 'Erreur lors de la suppression de l\'actualité.');
@@ -281,7 +297,7 @@ class ActualitesController extends Controller
             $actualite->increment('downloads_count');
 
             Log::info('Document téléchargé', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'actualite_id' => $id,
                 'document' => $actualite->document_file
             ]);
@@ -301,7 +317,7 @@ class ActualitesController extends Controller
         try {
             $actualite = \App\Models\News::findOrFail($id);
             
-            Log::info('Prévisualisation actualité Admin', ['user_id' => auth()->id(), 'actualite_id' => $id]);
+            Log::info('Prévisualisation actualité Admin', ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id]);
             
             return view('admin.actualites.preview', compact('actualite'));
         } catch (\Exception $e) {
