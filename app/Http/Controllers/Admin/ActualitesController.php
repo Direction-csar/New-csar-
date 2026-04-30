@@ -305,4 +305,24 @@ class ActualitesController extends Controller
             return redirect()->back()->with('error', 'Actualité non trouvée.');
         }
     }
+
+    /**
+     * Upload d'image pour l'éditeur TinyMCE
+     */
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        try {
+            $path = $request->file('file')->store('news/content-images', 'public');
+            return response()->json([
+                'location' => \Illuminate\Support\Facades\Storage::url($path)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur upload image TinyMCE', ['error' => $e->getMessage()]);
+            return response()->json(['error' => 'Erreur lors de l\'upload'], 500);
+        }
+    }
 }

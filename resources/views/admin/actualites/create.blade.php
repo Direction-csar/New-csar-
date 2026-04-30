@@ -554,18 +554,40 @@
 // Configuration TinyMCE
 tinymce.init({
     selector: '#content',
-    height: 400,
-    menubar: false,
+    height: 500,
+    menubar: true,
     plugins: [
         'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
         'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
         'insertdatetime', 'media', 'table', 'help', 'wordcount'
     ],
     toolbar: 'undo redo | blocks | ' +
-        'bold italic forecolor | alignleft aligncenter ' +
+        'bold italic underline forecolor backcolor | alignleft aligncenter ' +
         'alignright alignjustify | bullist numlist outdent indent | ' +
-        'removeformat | help',
-    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; }',
+        'image media link | removeformat | fullscreen | help',
+    image_title: true,
+    automatic_uploads: true,
+    file_picker_types: 'image',
+    images_upload_url: '{{ route(route_prefix() . ".actualites.upload-image") }}',
+    images_upload_handler: function (blobInfo, progress) {
+        return new Promise(function(resolve, reject) {
+            var formData = new FormData();
+            formData.append('file', blobInfo.blob(), blobInfo.filename());
+            formData.append('_token', '{{ csrf_token() }}');
+            fetch('{{ route(route_prefix() . ".actualites.upload-image") }}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.location) resolve(data.location);
+                else reject('Erreur upload: ' + JSON.stringify(data));
+            })
+            .catch(err => reject('Erreur réseau: ' + err));
+        });
+    },
+    content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif; font-size: 14px; } img { max-width: 100%; height: auto; }',
     branding: false,
     promotion: false,
     setup: function (editor) {

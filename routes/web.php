@@ -448,6 +448,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::resource('actualites', \App\Http\Controllers\Admin\ActualitesController::class);
         Route::get('actualites/{id}/download', [\App\Http\Controllers\Admin\ActualitesController::class, 'downloadDocument'])->name('actualites.download');
         Route::get('actualites/{id}/preview', [\App\Http\Controllers\Admin\ActualitesController::class, 'preview'])->name('actualites.preview');
+        Route::post('actualites/upload-image', [\App\Http\Controllers\Admin\ActualitesController::class, 'uploadImage'])->name('actualites.upload-image');
         
         // Gestion de la galerie
         Route::resource('galerie', \App\Http\Controllers\Admin\GalerieController::class);
@@ -747,6 +748,7 @@ Route::prefix('ctc')->name('ctc.')->group(function () {
         Route::resource('actualites', \App\Http\Controllers\Admin\ActualitesController::class);
         Route::get('actualites/{id}/download', [\App\Http\Controllers\Admin\ActualitesController::class, 'downloadDocument'])->name('actualites.download');
         Route::get('actualites/{id}/preview', [\App\Http\Controllers\Admin\ActualitesController::class, 'preview'])->name('actualites.preview');
+        Route::post('actualites/upload-image', [\App\Http\Controllers\Admin\ActualitesController::class, 'uploadImage'])->name('actualites.upload-image');
 
         Route::resource('galerie', \App\Http\Controllers\Admin\GalerieController::class);
         Route::post('/galerie/{id}/toggle-status', [\App\Http\Controllers\Admin\GalerieController::class, 'toggleStatus'])->name('galerie.toggle-status');
