@@ -10,6 +10,22 @@ use Carbon\Carbon;
 class GalerieController extends Controller
 {
     /**
+     * Get the current authenticated user ID based on the guard
+     */
+    private function getCurrentUserId()
+    {
+        return auth('ctc')->check() ? auth('ctc')->id() : auth()->id();
+    }
+
+    /**
+     * Get the correct route prefix based on current request
+     */
+    private function getRoutePrefix()
+    {
+        return request()->routeIs('ctc.*') ? 'ctc' : 'admin';
+    }
+
+    /**
      * Afficher la galerie d'images
      */
     public function index(Request $request)
@@ -42,7 +58,7 @@ class GalerieController extends Controller
             ];
 
             Log::info('Accès à la gestion de galerie Admin', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'filters' => $request->only(['categorie', 'search'])
             ]);
 
@@ -50,7 +66,7 @@ class GalerieController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Erreur lors du chargement de la galerie Admin', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'error' => $e->getMessage()
             ]);
 
@@ -63,7 +79,7 @@ class GalerieController extends Controller
      */
     public function create()
     {
-        Log::info('Accès au formulaire d\'ajout d\'image Admin', ['user_id' => auth()->id()]);
+        Log::info('Accès au formulaire d\'ajout d\'image Admin', ['user_id' => $this->getCurrentUserId()]);
         return view('admin.galerie.create');
     }
 
@@ -96,15 +112,15 @@ class GalerieController extends Controller
             ]);
 
             Log::info('Image ajoutée à la galerie par Admin', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'data' => $request->except(['image'])
             ]);
 
-            return redirect()->route('admin.galerie.index')->with('success', 'Image ajoutée avec succès à la galerie.');
+            return redirect()->route($this->getRoutePrefix() . '.galerie.index')->with('success', 'Image ajoutée avec succès à la galerie.');
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'ajout d\'image à la galerie', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => $this->getCurrentUserId()
             ]);
             return redirect()->back()->with('error', 'Erreur lors de l\'ajout de l\'image.');
         }
@@ -119,19 +135,19 @@ class GalerieController extends Controller
             $image = \App\Models\GalleryImage::findOrFail($id);
             
             Log::info('Affichage image galerie Admin', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id
             ]);
             
             return view('admin.galerie.show', compact('image'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'affichage de l\'image', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id,
                 'error' => $e->getMessage()
             ]);
             
-            return redirect()->route('admin.galerie.index')->with('error', 'Image non trouvée.');
+            return redirect()->route($this->getRoutePrefix() . '.galerie.index')->with('error', 'Image non trouvée.');
         }
     }
 
@@ -144,19 +160,19 @@ class GalerieController extends Controller
             $image = \App\Models\GalleryImage::findOrFail($id);
             
             Log::info('Accès au formulaire d\'édition d\'image Admin', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id
             ]);
             
             return view('admin.galerie.edit', compact('image'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'accès au formulaire d\'édition', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id,
                 'error' => $e->getMessage()
             ]);
             
-            return redirect()->route('admin.galerie.index')->with('error', 'Image non trouvée.');
+            return redirect()->route($this->getRoutePrefix() . '.galerie.index')->with('error', 'Image non trouvée.');
         }
     }
 
@@ -182,15 +198,15 @@ class GalerieController extends Controller
             ]);
 
             Log::info('Image galerie mise à jour par Admin', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id,
                 'data' => $request->all()
             ]);
 
-            return redirect()->route('admin.galerie.index')->with('success', 'Image mise à jour avec succès.');
+            return redirect()->route($this->getRoutePrefix() . '.galerie.index')->with('success', 'Image mise à jour avec succès.');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la mise à jour de l\'image', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id,
                 'error' => $e->getMessage()
             ]);
@@ -215,14 +231,14 @@ class GalerieController extends Controller
             $image->delete();
 
             Log::info('Image galerie supprimée par Admin', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id
             ]);
 
-            return redirect()->route('admin.galerie.index')->with('success', 'Image supprimée avec succès.');
+            return redirect()->route($this->getRoutePrefix() . '.galerie.index')->with('success', 'Image supprimée avec succès.');
         } catch (\Exception $e) {
             Log::error('Erreur lors de la suppression de l\'image', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id,
                 'error' => $e->getMessage()
             ]);
@@ -242,7 +258,7 @@ class GalerieController extends Controller
             $image->save();
 
             Log::info('Statut image galerie basculé par Admin', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id,
                 'new_status' => $image->status
             ]);
@@ -250,7 +266,7 @@ class GalerieController extends Controller
             return response()->json(['success' => true, 'message' => 'Statut de l\'image mis à jour.']);
         } catch (\Exception $e) {
             Log::error('Erreur lors du basculement du statut de l\'image', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id,
                 'error' => $e->getMessage()
             ]);
