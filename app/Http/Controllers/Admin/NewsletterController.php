@@ -56,16 +56,18 @@ class NewsletterController extends Controller
             
             // Pagination
             $subscribers = $query->paginate(15);
-            
-            return view('admin.newsletter.index', compact('subscribers', 'stats'));
-            
+
+            $view = request()->routeIs('ctc.*') ? 'ctc.newsletter.index' : 'admin.newsletter.index';
+            return view($view, compact('subscribers', 'stats'));
+
         } catch (\Exception $e) {
             Log::error('Erreur dans NewsletterController@index', [
                 'error' => $e->getMessage(),
                 'user_id' => $this->getCurrentUserId()
             ]);
-            
-            return view('admin.newsletter.index', [
+
+            $view = request()->routeIs('ctc.*') ? 'ctc.newsletter.index' : 'admin.newsletter.index';
+            return view($view, [
                 'subscribers' => collect(),
                 'stats' => $this->getDefaultStats()
             ]);

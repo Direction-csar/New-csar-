@@ -62,16 +62,18 @@ class MessageController extends Controller
             
             // Pagination
             $messages = $query->paginate(15);
-            
-            return view('admin.messages.index', compact('messages', 'stats'));
+
+            $view = request()->routeIs('ctc.*') ? 'ctc.messages.index' : 'admin.messages.index';
+            return view($view, compact('messages', 'stats'));
             
         } catch (\Exception $e) {
             Log::error('Erreur dans MessageController@index', [
                 'error' => $e->getMessage(),
                 'user_id' => $this->getCurrentUserId()
             ]);
-            
-            return view('admin.messages.index', [
+
+            $view = request()->routeIs('ctc.*') ? 'ctc.messages.index' : 'admin.messages.index';
+            return view($view, [
                 'messages' => collect(),
                 'stats' => $this->getDefaultStats()
             ]);
@@ -98,7 +100,8 @@ class MessageController extends Controller
                 ]);
             }
             
-            return view('admin.messages.show', compact('message'));
+            $view = request()->routeIs('ctc.*') ? 'ctc.messages.show' : 'admin.messages.show';
+            return view($view, compact('message'));
         } catch (\Exception $e) {
             Log::error('Erreur dans MessageController@show', [
                 'error' => $e->getMessage(),
@@ -106,7 +109,7 @@ class MessageController extends Controller
                 'message_id' => $id
             ]);
             
-            return redirect()->route('admin.messages.index')
+            return redirect()->route($this->getRoutePrefix() . '.messages.index')
                 ->with('error', 'Message non trouvé');
         }
     }
