@@ -17,9 +17,10 @@ class ActualitesController extends Controller
         try {
             $actualites = \App\Models\News::orderBy('created_at', 'desc')->get();
 
-            Log::info('Accès à la gestion des actualités Admin', ['user_id' => auth()->id()]);
+            $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
+            Log::info('Accès à la gestion des actualités ' . strtoupper($prefix), ['user_id' => auth()->id()]);
 
-            return view('admin.actualites.index', compact('actualites'));
+            return view($prefix . '.actualites.index', compact('actualites'));
         } catch (\Exception $e) {
             Log::error('Erreur lors du chargement des actualités', ['error' => $e->getMessage()]);
             return redirect()->back()->with('error', 'Erreur lors du chargement des actualités.');
@@ -29,10 +30,11 @@ class ActualitesController extends Controller
     /**
      * Afficher le formulaire de création d'une nouvelle actualité
      */
-    public function create()
+    public function create(Request $request)
     {
-        Log::info('Accès au formulaire de création d\'actualité Admin', ['user_id' => auth()->id()]);
-        return view('admin.actualites.create');
+        $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
+        Log::info('Accès au formulaire de création d\'actualité ' . strtoupper($prefix), ['user_id' => auth()->id()]);
+        return view($prefix . '.actualites.create');
     }
 
     /**
@@ -140,13 +142,14 @@ class ActualitesController extends Controller
     /**
      * Afficher les détails d'une actualité
      */
-    public function show($id)
+    public function show($id, Request $request)
     {
         try {
             $actualite = \App\Models\News::findOrFail($id);
+            $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
             
-            Log::info('Affichage actualité Admin', ['user_id' => auth()->id(), 'actualite_id' => $id]);
-            return view('admin.actualites.show', compact('actualite'));
+            Log::info('Affichage actualité ' . strtoupper($prefix), ['user_id' => auth()->id(), 'actualite_id' => $id]);
+            return view($prefix . '.actualites.show', compact('actualite'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'affichage de l\'actualité', ['error' => $e->getMessage()]);
             return redirect()->back()->with('error', 'Actualité non trouvée.');
@@ -156,13 +159,14 @@ class ActualitesController extends Controller
     /**
      * Afficher le formulaire d'édition d'une actualité
      */
-    public function edit($id)
+    public function edit($id, Request $request)
     {
         try {
             $actualite = \App\Models\News::findOrFail($id);
+            $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
             
-            Log::info('Accès au formulaire d\'édition d\'actualité Admin', ['user_id' => auth()->id(), 'actualite_id' => $id]);
-            return view('admin.actualites.edit', compact('actualite'));
+            Log::info('Accès au formulaire d\'édition d\'actualité ' . strtoupper($prefix), ['user_id' => auth()->id(), 'actualite_id' => $id]);
+            return view($prefix . '.actualites.edit', compact('actualite'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'édition de l\'actualité', ['error' => $e->getMessage()]);
             return redirect()->back()->with('error', 'Actualité non trouvée.');
