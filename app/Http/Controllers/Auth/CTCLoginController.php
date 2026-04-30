@@ -27,6 +27,12 @@ class CTCLoginController extends Controller
      */
     public function showLoginForm()
     {
+        if (Auth::guard('admin')->check()) {
+            return redirect()->route('admin.dashboard');
+        }
+        if (Auth::guard('ctc')->check()) {
+            return redirect()->route('ctc.dashboard');
+        }
         return view('auth.ctc-login');
     }
 
@@ -59,11 +65,11 @@ class CTCLoginController extends Controller
         if (Auth::guard('ctc')->attempt($credentials, $remember)) {
             $user = Auth::guard('ctc')->user();
 
-            if (!in_array($user->role, ['admin', 'ctc'])) {
+            if ($user->role !== 'ctc') {
                 Auth::guard('ctc')->logout();
                 RateLimiter::hit($key, 300);
                 throw ValidationException::withMessages([
-                    'email' => 'Ces identifiants ne correspondent pas à un compte CTC ou Admin.',
+                    'email' => 'Ces identifiants ne correspondent pas à un compte CTC. Utilisez le bon portail de connexion.',
                 ]);
             }
 

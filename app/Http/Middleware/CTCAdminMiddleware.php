@@ -27,7 +27,7 @@ class CTCAdminMiddleware
 
         $user = Auth::guard('ctc')->user();
 
-        if (!in_array($user->role, ['admin', 'ctc'])) {
+        if ($user->role !== 'ctc') {
             Log::warning('Tentative d\'accès CTC avec un rôle non autorisé', [
                 'user_id' => $user->id,
                 'user_role' => $user->role,
@@ -35,7 +35,7 @@ class CTCAdminMiddleware
                 'timestamp' => Carbon::now()
             ]);
             Auth::guard('ctc')->logout();
-            return redirect()->route('ctc.login')->with('error', 'Accès refusé. Vous n\'avez pas les permissions nécessaires pour l\'espace CTC.');
+            return redirect()->route('ctc.login')->with('error', 'Accès refusé. Cet espace est réservé aux membres CTC.');
         }
 
         if (!$user->is_active) {
