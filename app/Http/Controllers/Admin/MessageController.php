@@ -10,6 +10,22 @@ use Carbon\Carbon;
 class MessageController extends Controller
 {
     /**
+     * Get the current authenticated user ID based on the guard
+     */
+    private function getCurrentUserId()
+    {
+        return auth('ctc')->check() ? auth('ctc')->id() : auth()->id();
+    }
+
+    /**
+     * Get the correct route prefix based on current request
+     */
+    private function getRoutePrefix()
+    {
+        return request()->routeIs('ctc.*') ? 'ctc' : 'admin';
+    }
+
+    /**
      * Afficher la liste des messages
      */
     public function index(Request $request)
@@ -52,7 +68,7 @@ class MessageController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans MessageController@index', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => $this->getCurrentUserId()
             ]);
             
             return view('admin.messages.index', [
@@ -86,7 +102,7 @@ class MessageController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans MessageController@show', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'message_id' => $id
             ]);
             
@@ -122,7 +138,7 @@ class MessageController extends Controller
             Log::info('Message supprimé', [
                 'message_id' => $id,
                 'sender' => $messageSender,
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'user_name' => auth()->user()->name
             ]);
             
@@ -139,7 +155,7 @@ class MessageController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans MessageController@destroy', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'message_id' => $id
             ]);
             
@@ -174,7 +190,7 @@ class MessageController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans MessageController@markAsRead', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'message_id' => $id
             ]);
             
@@ -205,7 +221,7 @@ class MessageController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans MessageController@markAllAsRead', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => $this->getCurrentUserId()
             ]);
             
             return response()->json([
@@ -244,7 +260,7 @@ class MessageController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans MessageController@reply', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'message_id' => $id,
                 'request' => $request->all()
             ]);
@@ -297,7 +313,7 @@ class MessageController extends Controller
                     'type' => $type,
                     'title' => $title,
                     'message' => $message,
-                    'user_id' => auth()->id(),
+                    'user_id' => $this->getCurrentUserId(),
                     'read' => false
                 ]);
             }

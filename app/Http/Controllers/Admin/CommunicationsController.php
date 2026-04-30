@@ -14,6 +14,22 @@ use Carbon\Carbon;
 class CommunicationsController extends Controller
 {
     /**
+     * Get the current authenticated user ID based on the guard
+     */
+    private function getCurrentUserId()
+    {
+        return auth('ctc')->check() ? auth('ctc')->id() : auth()->id();
+    }
+
+    /**
+     * Get the correct route prefix based on current request
+     */
+    private function getRoutePrefix()
+    {
+        return request()->routeIs('ctc.*') ? 'ctc' : 'admin';
+    }
+
+    /**
      * Afficher la page des communications
      */
     public function index()
@@ -58,7 +74,7 @@ class CommunicationsController extends Controller
                 : collect();
 
             Log::info('Accès à la page Communications', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'timestamp' => Carbon::now()
             ]);
 
@@ -74,7 +90,7 @@ class CommunicationsController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Erreur lors du chargement de la page Communications', [
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
                 'timestamp' => Carbon::now()

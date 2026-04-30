@@ -10,6 +10,22 @@ use Carbon\Carbon;
 class NewsletterController extends Controller
 {
     /**
+     * Get the current authenticated user ID based on the guard
+     */
+    private function getCurrentUserId()
+    {
+        return auth('ctc')->check() ? auth('ctc')->id() : auth()->id();
+    }
+
+    /**
+     * Get the correct route prefix based on current request
+     */
+    private function getRoutePrefix()
+    {
+        return request()->routeIs('ctc.*') ? 'ctc' : 'admin';
+    }
+
+    /**
      * Afficher la page de newsletter
      */
     public function index(Request $request)
@@ -46,7 +62,7 @@ class NewsletterController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans NewsletterController@index', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => $this->getCurrentUserId()
             ]);
             
             return view('admin.newsletter.index', [
@@ -89,7 +105,7 @@ class NewsletterController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans NewsletterController@sendNewsletter', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'newsletter_id' => $id
             ]);
             
@@ -124,7 +140,7 @@ class NewsletterController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans NewsletterController@destroyNewsletter', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'newsletter_id' => $id
             ]);
             
@@ -165,7 +181,7 @@ class NewsletterController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans NewsletterController@unsubscribe', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
+                'user_id' => $this->getCurrentUserId(),
                 'subscriber_id' => $id
             ]);
             
@@ -198,7 +214,7 @@ class NewsletterController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans NewsletterController@exportSubscribers', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => $this->getCurrentUserId()
             ]);
             
             return response()->json([
@@ -224,7 +240,7 @@ class NewsletterController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans NewsletterController@getStats', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => $this->getCurrentUserId()
             ]);
             
             return response()->json([
@@ -270,7 +286,7 @@ class NewsletterController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans NewsletterController@getAnalytics', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id()
+                'user_id' => $this->getCurrentUserId()
             ]);
             
             return response()->json([
@@ -369,7 +385,7 @@ class NewsletterController extends Controller
                     'type' => $type,
                     'title' => $title,
                     'message' => $message,
-                    'user_id' => auth()->id(),
+                    'user_id' => $this->getCurrentUserId(),
                     'read' => false
                 ]);
             }
