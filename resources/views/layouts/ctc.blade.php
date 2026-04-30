@@ -188,6 +188,6 @@
             document.getElementById('sidebar').classList.toggle('show');
         });
     </script>
-    @stack('scripts')
+    @yield('scripts')
 </body>
 </html>
