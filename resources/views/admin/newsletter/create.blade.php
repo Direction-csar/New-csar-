@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(request()->routeIs('ctc.*') ? 'layouts.ctc' : 'layouts.admin')
 
 @section('title', 'Nouvelle Newsletter')
 @section('page-title', 'Créer une Newsletter')

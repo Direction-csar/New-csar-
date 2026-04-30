@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(request()->routeIs('ctc.*') ? 'layouts.ctc' : 'layouts.admin')
 
 @section('title', 'Nouveau Rapport SIM')
 @section('page-title', 'Créer un Rapport SIM')

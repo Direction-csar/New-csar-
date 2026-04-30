@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends(request()->routeIs('ctc.*') ? 'layouts.ctc' : 'layouts.admin')
 
 @section('title', 'Gestion de la Galerie')
 
