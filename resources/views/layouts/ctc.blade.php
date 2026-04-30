@@ -12,51 +12,59 @@
         :root {
             --ctc-primary: #0d6efd;
             --ctc-secondary: #0a58ca;
-            --ctc-dark: #2c3e50;
+            --ctc-dark: #1e293b;
         }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; min-height: 100vh; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8fafc; min-height: 100vh; color: #334155; }
         .sidebar {
-            background: linear-gradient(135deg, var(--ctc-primary) 0%, var(--ctc-secondary) 100%);
+            background: linear-gradient(180deg, var(--ctc-primary) 0%, var(--ctc-secondary) 100%);
             height: 100vh;
             position: fixed;
             top: 0;
             left: 0;
             width: 260px;
             z-index: 1000;
-            box-shadow: 2px 0 15px rgba(0,0,0,0.1);
+            box-shadow: 4px 0 20px rgba(0,0,0,0.15);
             overflow-y: auto;
         }
         .sidebar-header {
             padding: 1.5rem;
-            border-bottom: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.25);
         }
         .sidebar-header .logo {
             color: white;
-            font-size: 1.25rem;
-            font-weight: bold;
+            font-size: 1.35rem;
+            font-weight: 700;
             text-decoration: none;
             display: flex;
             align-items: center;
+            letter-spacing: 0.5px;
         }
-        .sidebar-header .logo img { width: 36px; height: 36px; margin-right: 10px; border-radius: 8px; }
+        .sidebar-header .logo img { width: 40px; height: 40px; margin-right: 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
         .sidebar-menu { padding: 1rem 0; }
         .menu-link {
-            color: rgba(255,255,255,0.9);
+            color: rgba(255,255,255,0.95);
             text-decoration: none;
-            padding: 0.75rem 1.25rem;
+            padding: 0.85rem 1.5rem;
             display: flex;
             align-items: center;
-            transition: all 0.2s;
-            border-radius: 0 25px 25px 0;
-            margin: 0 0.5rem 0 0;
+            transition: all 0.25s ease;
+            border-radius: 0 28px 28px 0;
+            margin: 0.25rem 0.5rem 0.25rem 0;
+            font-weight: 500;
+            font-size: 0.95rem;
         }
-        .menu-link:hover, .menu-link.active { color: white; background: rgba(255,255,255,0.15); }
-        .menu-link i { width: 22px; margin-right: 10px; text-align: center; }
+        .menu-link:hover, .menu-link.active { 
+            color: white; 
+            background: rgba(255,255,255,0.2); 
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .menu-link i { width: 24px; margin-right: 12px; text-align: center; font-size: 1rem; }
         .main-content { margin-left: 260px; min-height: 100vh; }
         .top-navbar {
             background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            padding: 1rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -65,20 +73,24 @@
             z-index: 999;
         }
         .user-avatar {
-            width: 40px; height: 40px;
+            width: 42px; height: 42px;
             border-radius: 50%;
             background: linear-gradient(135deg, var(--ctc-primary), var(--ctc-secondary));
             display: flex; align-items: center; justify-content: center;
-            color: white; font-weight: bold; cursor: pointer;
+            color: white; font-weight: 700; cursor: pointer;
+            box-shadow: 0 2px 8px rgba(13, 110, 253, 0.3);
+            transition: transform 0.2s;
         }
-        .content-area { padding: 1.5rem; }
+        .user-avatar:hover { transform: scale(1.05); }
+        .content-area { padding: 2rem; }
         .ctc-badge {
-            background: rgba(13, 110, 253, 0.15);
+            background: linear-gradient(135deg, rgba(13, 110, 253, 0.1), rgba(10, 88, 202, 0.1));
             color: var(--ctc-primary);
-            padding: 4px 12px;
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
+            border: 1px solid rgba(13, 110, 253, 0.2);
         }
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); width: 260px; }
