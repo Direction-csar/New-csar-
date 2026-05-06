@@ -803,102 +803,155 @@ Route::get('/sim-reports', [\App\Http\Controllers\Public\SimReportsController::c
 Route::get('/sim-reports/{id}', [\App\Http\Controllers\Public\SimReportsController::class, 'show'])->name('sim-reports.show');
 Route::get('/sim-reports/{id}/download', [\App\Http\Controllers\Public\SimReportsController::class, 'download'])->name('sim-reports.download');
 
-// Route proxy météo — côté serveur pour éviter CORS et exposer la clé API
+// Helper: mappe les codes WMO d'Open-Meteo vers (description FR, icône style OpenWeather)
+if (!function_exists('csar_wmo_map')) {
+    function csar_wmo_map(int $code, int $isDay = 1): array {
+        $suffix = $isDay ? 'd' : 'n';
+        $map = [
+            0  => ['Ciel dégagé', '01'],
+            1  => ['Plutôt dégagé', '02'],
+            2  => ['Partiellement nuageux', '03'],
+            3  => ['Couvert', '04'],
+            45 => ['Brouillard', '50'],
+            48 => ['Brouillard givrant', '50'],
+            51 => ['Bruine légère', '09'],
+            53 => ['Bruine modérée', '09'],
+            55 => ['Bruine dense', '09'],
+            56 => ['Bruine verglaçante légère', '09'],
+            57 => ['Bruine verglaçante dense', '09'],
+            61 => ['Pluie faible', '10'],
+            63 => ['Pluie modérée', '10'],
+            65 => ['Pluie forte', '10'],
+            66 => ['Pluie verglaçante légère', '13'],
+            67 => ['Pluie verglaçante forte', '13'],
+            71 => ['Neige faible', '13'],
+            73 => ['Neige modérée', '13'],
+            75 => ['Neige forte', '13'],
+            77 => ['Grains de neige', '13'],
+            80 => ['Averses faibles', '09'],
+            81 => ['Averses modérées', '09'],
+            82 => ['Averses violentes', '09'],
+            85 => ['Averses de neige faibles', '13'],
+            86 => ['Averses de neige fortes', '13'],
+            95 => ['Orage', '11'],
+            96 => ['Orage avec grêle légère', '11'],
+            99 => ['Orage avec grêle forte', '11'],
+        ];
+        $entry = $map[$code] ?? ['Conditions inconnues', '01'];
+        return ['description' => $entry[0], 'icon' => $entry[1] . $suffix];
+    }
+}
+
+// Helper: récupère le nom de ville via Open-Meteo Geocoding (gratuit, sans clé)
+if (!function_exists('csar_reverse_geocode')) {
+    function csar_reverse_geocode(float $lat, float $lon): array {
+        $cacheKey = 'geocode_' . round($lat, 2) . '_' . round($lon, 2);
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 86400, function () use ($lat, $lon) {
+            try {
+                $url = "https://geocoding-api.open-meteo.com/v1/search?latitude={$lat}&longitude={$lon}&count=1&language=fr&format=json";
+                $response = \Illuminate\Support\Facades\Http::timeout(5)->get($url);
+                if ($response->successful()) {
+                    $data = $response->json();
+                    if (!empty($data['results'][0])) {
+                        return [
+                            'city'    => $data['results'][0]['name'] ?? 'Dakar',
+                            'country' => $data['results'][0]['country_code'] ?? 'SN',
+                        ];
+                    }
+                }
+            } catch (\Throwable $e) {}
+            return ['city' => 'Dakar', 'country' => 'SN'];
+        });
+    }
+}
+
+// Route proxy météo — Open-Meteo (gratuit, sans clé API)
 Route::get('/api/weather', function (\Illuminate\Http\Request $request) {
     $lat = (float) ($request->query('lat', 14.6928)); // Dakar par défaut
     $lon = (float) ($request->query('lon', -17.4467));
-    $apiKey = config('services.openweather.key');
-
-    if (!$apiKey) {
-        return response()->json(['error' => 'API key not configured'], 503);
-    }
 
     $cacheKey = 'weather_' . round($lat, 2) . '_' . round($lon, 2);
 
-    $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($lat, $lon, $apiKey) {
-        $url = "https://api.openweathermap.org/data/2.5/weather?lat={$lat}&lon={$lon}&units=metric&lang=fr&appid={$apiKey}";
-        $response = \Illuminate\Support\Facades\Http::timeout(8)->get($url);
-
-        if ($response->successful()) {
-            return $response->json();
-        }
-        return null;
-    });
-
-    if (!$data || !isset($data['main'])) {
-        return response()->json(['error' => 'Weather data unavailable'], 503);
-    }
-
-    return response()->json([
-        'city'        => $data['name'] ?? 'Dakar',
-        'country'     => $data['sys']['country'] ?? 'SN',
-        'temp'        => (int) round($data['main']['temp']),
-        'feels_like'  => (int) round($data['main']['feels_like']),
-        'humidity'    => $data['main']['humidity'],
-        'pressure'    => $data['main']['pressure'],
-        'wind'        => (int) round(($data['wind']['speed'] ?? 0) * 3.6),
-        'wind_dir'    => $data['wind']['deg'] ?? null,
-        'visibility'  => isset($data['visibility']) ? round($data['visibility'] / 1000, 1) : null,
-        'description' => $data['weather'][0]['description'] ?? '',
-        'icon'        => $data['weather'][0]['icon'] ?? '01d',
-        'updated_at'  => now()->format('H:i'),
-    ])->withHeaders(['Cache-Control' => 'no-cache']);
-})->name('api.weather');
-
-// Route proxy météo — prévisions 5 jours
-Route::get('/api/weather/forecast', function (\Illuminate\Http\Request $request) {
-    $lat = (float) ($request->query('lat', 14.6928));
-    $lon = (float) ($request->query('lon', -17.4467));
-    $apiKey = config('services.openweather.key');
-
-    if (!$apiKey) {
-        return response()->json(['error' => 'API key not configured'], 503);
-    }
-
-    $cacheKey = 'weather_forecast_' . round($lat, 2) . '_' . round($lon, 2);
-
-    $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function () use ($lat, $lon, $apiKey) {
-        $url = "https://api.openweathermap.org/data/2.5/forecast?lat={$lat}&lon={$lon}&units=metric&lang=fr&cnt=40&appid={$apiKey}";
+    $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () use ($lat, $lon) {
+        $url = "https://api.open-meteo.com/v1/forecast"
+            . "?latitude={$lat}&longitude={$lon}"
+            . "&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,pressure_msl,wind_speed_10m,wind_direction_10m"
+            . "&timezone=auto&wind_speed_unit=kmh";
         $response = \Illuminate\Support\Facades\Http::timeout(8)->get($url);
         return $response->successful() ? $response->json() : null;
     });
 
-    if (!$data || empty($data['list'])) {
+    if (!$data || empty($data['current'])) {
+        return response()->json(['error' => 'Weather data unavailable'], 503);
+    }
+
+    $cur = $data['current'];
+    $location = csar_reverse_geocode($lat, $lon);
+    $wmo = csar_wmo_map((int) ($cur['weather_code'] ?? 0), (int) ($cur['is_day'] ?? 1));
+
+    return response()->json([
+        'city'        => $location['city'],
+        'country'     => $location['country'],
+        'temp'        => (int) round($cur['temperature_2m'] ?? 0),
+        'feels_like'  => (int) round($cur['apparent_temperature'] ?? 0),
+        'humidity'    => (int) ($cur['relative_humidity_2m'] ?? 0),
+        'pressure'    => (int) round($cur['pressure_msl'] ?? 0),
+        'wind'        => (int) round($cur['wind_speed_10m'] ?? 0),
+        'wind_dir'    => $cur['wind_direction_10m'] ?? null,
+        'visibility'  => null, // Non fourni par Open-Meteo (endpoint gratuit)
+        'description' => $wmo['description'],
+        'icon'        => $wmo['icon'],
+        'updated_at'  => now()->format('H:i'),
+    ])->withHeaders(['Cache-Control' => 'no-cache']);
+})->name('api.weather');
+
+// Route proxy météo — prévisions 5 jours (Open-Meteo)
+Route::get('/api/weather/forecast', function (\Illuminate\Http\Request $request) {
+    $lat = (float) ($request->query('lat', 14.6928));
+    $lon = (float) ($request->query('lon', -17.4467));
+
+    $cacheKey = 'weather_forecast_' . round($lat, 2) . '_' . round($lon, 2);
+
+    $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 1800, function () use ($lat, $lon) {
+        $url = "https://api.open-meteo.com/v1/forecast"
+            . "?latitude={$lat}&longitude={$lon}"
+            . "&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_probability_max,wind_speed_10m_max,relative_humidity_2m_max"
+            . "&timezone=auto&wind_speed_unit=kmh&forecast_days=7";
+        $response = \Illuminate\Support\Facades\Http::timeout(8)->get($url);
+        return $response->successful() ? $response->json() : null;
+    });
+
+    if (!$data || empty($data['daily']['time'])) {
         return response()->json(['error' => 'Forecast data unavailable'], 503);
     }
 
-    // Grouper par jour (garder la prévision de 12h00 pour chaque jour)
-    $byDay = [];
-    foreach ($data['list'] as $item) {
-        $day = date('Y-m-d', $item['dt']);
-        $hour = (int) date('H', $item['dt']);
-        if (!isset($byDay[$day]) || abs($hour - 12) < abs((int) date('H', $byDay[$day]['dt']) - 12)) {
-            $byDay[$day] = $item;
-        }
-    }
-
+    $location = csar_reverse_geocode($lat, $lon);
     $today = date('Y-m-d');
+    $daily = $data['daily'];
     $forecast = [];
-    foreach ($byDay as $day => $item) {
+
+    foreach ($daily['time'] as $i => $day) {
         if ($day === $today) continue; // Exclure aujourd'hui (déjà dans /api/weather)
+        $code = (int) ($daily['weather_code'][$i] ?? 0);
+        $wmo = csar_wmo_map($code, 1);
         $forecast[] = [
             'date'        => $day,
             'day_label'   => ucfirst(\Carbon\Carbon::parse($day)->locale('fr')->dayName),
-            'temp_max'    => (int) round($item['main']['temp_max']),
-            'temp_min'    => (int) round($item['main']['temp_min']),
-            'temp'        => (int) round($item['main']['temp']),
-            'humidity'    => $item['main']['humidity'],
-            'description' => $item['weather'][0]['description'] ?? '',
-            'icon'        => $item['weather'][0]['icon'] ?? '01d',
-            'wind'        => (int) round(($item['wind']['speed'] ?? 0) * 3.6),
-            'rain_prob'   => isset($item['pop']) ? (int) round($item['pop'] * 100) : 0,
+            'temp_max'    => (int) round($daily['temperature_2m_max'][$i] ?? 0),
+            'temp_min'    => (int) round($daily['temperature_2m_min'][$i] ?? 0),
+            'temp'        => (int) round((($daily['temperature_2m_max'][$i] ?? 0) + ($daily['temperature_2m_min'][$i] ?? 0)) / 2),
+            'humidity'    => (int) ($daily['relative_humidity_2m_max'][$i] ?? 0),
+            'description' => $wmo['description'],
+            'icon'        => $wmo['icon'],
+            'wind'        => (int) round($daily['wind_speed_10m_max'][$i] ?? 0),
+            'rain_prob'   => (int) ($daily['precipitation_probability_max'][$i] ?? 0),
         ];
         if (count($forecast) >= 5) break;
     }
 
     return response()->json([
-        'city'     => $data['city']['name'] ?? 'Dakar',
-        'country'  => $data['city']['country'] ?? 'SN',
+        'city'     => $location['city'],
+        'country'  => $location['country'],
         'forecast' => $forecast,
     ])->withHeaders(['Cache-Control' => 'no-cache']);
 })->name('api.weather.forecast');
