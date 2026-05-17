@@ -68,9 +68,10 @@ class TwoFactorController extends Controller
         $qrSvg = $this->renderQrSvg($otpauthUrl);
 
         return view('auth.two-factor.setup', [
-            'secret'  => $secret,
-            'qrSvg'   => $qrSvg,
-            'qrUrl'   => $otpauthUrl,
+            'secret'      => $secret,
+            'qrSvg'       => $qrSvg,
+            'qrUrl'       => $otpauthUrl,
+            'enableRoute' => $this->guardPrefix($this->currentGuard()) . '.enable',
         ]);
     }
 
@@ -101,7 +102,7 @@ class TwoFactorController extends Controller
         $request->session()->forget('2fa_setup_secret');
         $request->session()->flash('recovery_codes', $codes);
 
-        return redirect()->route('admin.2fa.recovery')
+        return redirect()->route($this->guardPrefix($this->currentGuard()) . '.recovery')
             ->with('success', 'Authentification à deux facteurs activée.');
     }
 

@@ -266,6 +266,13 @@ Route::prefix('drh')->name('drh.')->group(function () {
     Route::post('/2fa/verify', [\App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])
         ->middleware('throttle:10,1')->name('2fa.verify');
 
+    Route::middleware(['drh-access'])->group(function () {
+        Route::get('/2fa/setup', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showSetup'])->name('2fa.setup');
+        Route::post('/2fa/enable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'enable'])->name('2fa.enable');
+        Route::post('/2fa/disable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('2fa.disable');
+        Route::get('/2fa/recovery-codes', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showRecoveryCodes'])->name('2fa.recovery');
+    });
+
     Route::get('/', fn () => redirect()->route('drh.login'))->name('dashboard');
     Route::match(['get', 'post'], '/{path}', fn () => redirect()->route('drh.login'))->where('path', '.*')->name('fallback');
 });
@@ -286,6 +293,10 @@ Route::prefix('dg')->name('dg.')->group(function () {
 
     // Routes protégées DG (lecture seule)
     Route::middleware([\App\Http\Middleware\DGMiddleware::class])->group(function () {
+        Route::get('/2fa/setup', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showSetup'])->name('2fa.setup');
+        Route::post('/2fa/enable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'enable'])->name('2fa.enable');
+        Route::post('/2fa/disable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('2fa.disable');
+        Route::get('/2fa/recovery-codes', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showRecoveryCodes'])->name('2fa.recovery');
         // Dashboard DG
         Route::get('/', [App\Http\Controllers\DG\DashboardController::class, 'index'])->name('dashboard');
         Route::get('/dashboard', [App\Http\Controllers\DG\DashboardController::class, 'index'])->name('dashboard.alt');
@@ -776,6 +787,10 @@ Route::prefix('ctc')->name('ctc.')->group(function () {
         ->middleware('throttle:10,1')->name('2fa.verify');
 
     Route::middleware(['ctc-admin'])->group(function () {
+        Route::get('/2fa/setup', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showSetup'])->name('2fa.setup');
+        Route::post('/2fa/enable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'enable'])->name('2fa.enable');
+        Route::post('/2fa/disable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('2fa.disable');
+        Route::get('/2fa/recovery-codes', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showRecoveryCodes'])->name('2fa.recovery');
         Route::get('/', [\App\Http\Controllers\Admin\CommunicationsController::class, 'index'])->name('dashboard');
         Route::get('/communications', [\App\Http\Controllers\Admin\CommunicationsController::class, 'index'])->name('communications.index');
         Route::get('/communications/realtime-stats', [\App\Http\Controllers\Admin\CommunicationsController::class, 'realtimeStats'])->name('communications.realtime-stats');
