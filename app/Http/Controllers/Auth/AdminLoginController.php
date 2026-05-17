@@ -99,6 +99,23 @@ class AdminLoginController extends Controller
                 ]);
             }
 
+            // 2FA : si activé, on déconnecte temporairement et on redirige vers le challenge.
+            if (!empty($user->two_factor_enabled) && !empty($user->two_factor_secret)) {
+                Auth::guard($this->guard)->logout();
+                RateLimiter::clear($key);
+
+                $request->session()->put('2fa_user_id', $user->id);
+                $request->session()->put('2fa_guard', $this->guard);
+                $request->session()->put('2fa_remember', $remember);
+
+                Log::info('Login admin OK, redirection vers challenge 2FA', [
+                    'user_id' => $user->id,
+                    'ip'      => $request->ip(),
+                ]);
+
+                return redirect()->route('admin.2fa.challenge');
+            }
+
             // Connexion réussie
             $request->session()->regenerate();
             RateLimiter::clear($key);

@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\LinkedInController;
 
 // Pages publiques statiques (ajout Cascade)
 
@@ -73,6 +74,12 @@ use App\Http\Controllers\Auth\PasswordResetController;
 // Routes de connexion simplifiées
 require_once __DIR__ . '/simple-login.php';
 require_once __DIR__ . '/simple-auth.php';
+
+// Endpoint pour collecter les violations CSP (utilisé par report-uri)
+Route::post('/csp-violations', \App\Http\Controllers\Security\CspReportController::class)
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class])
+    ->name('csp.report');
+
 // Language switching routes
 Route::get('/set-locale/{locale}', [LanguageController::class, 'setLocale'])->name('set-locale');
 
@@ -400,9 +407,21 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::get('/login/google', [GoogleAuthController::class, 'redirect'])->name('login.google');
     Route::get('/login/google/callback', [GoogleAuthController::class, 'callback'])->name('login.google.callback');
     Route::post('/logout', [AdminLoginController::class, 'logout'])->name('logout');
-    
+
+    // 2FA — Challenge (entre login et accès aux routes protégées)
+    Route::get('/2fa/challenge', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showChallenge'])->name('2fa.challenge');
+    Route::post('/2fa/verify', [\App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])
+        ->middleware('throttle:10,1')
+        ->name('2fa.verify');
+
     // Routes protégées Admin
     Route::middleware(['admin'])->group(function () {
+        // 2FA — Setup / désactivation (utilisateur déjà connecté)
+        Route::get('/2fa/setup', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showSetup'])->name('2fa.setup');
+        Route::post('/2fa/enable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'enable'])->name('2fa.enable');
+        Route::get('/2fa/recovery-codes', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showRecoveryCodes'])->name('2fa.recovery');
+        Route::post('/2fa/disable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('2fa.disable');
+
         // Redirection de admin/ vers admin/dashboard
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         // Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard'); // Dupliquée - déjà définie ligne 342
@@ -999,12 +1018,36 @@ Route::get('/avance-tabaski', [\App\Http\Controllers\Public\TabaskiController::c
 Route::post('/avance-tabaski/search', [\App\Http\Controllers\Public\TabaskiController::class, 'search'])->name('tabaski.search');
 Route::post('/avance-tabaski/submit', [\App\Http\Controllers\Public\TabaskiController::class, 'submit'])->name('tabaski.submit');
 
-// Routes DRH — Avances Tabaski (accès drh + admin)
+// Routes DRH — Espace Direction RH (accès drh + admin)
 Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access'])->group(function () {
+
+    // 📊 Tableau de Bord RH
+    Route::get('/',          [\App\Http\Controllers\Drh\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\Drh\DashboardController::class, 'index'])->name('dashboard.alt');
+
+    // 👥 Gestion du Personnel (CRUD complet)
+    Route::resource('personnel', \App\Http\Controllers\Admin\PersonnelController::class);
+    Route::post('/personnel/{id}/toggle-status', [\App\Http\Controllers\Admin\PersonnelController::class, 'toggleStatus'])->name('personnel.toggle-status');
+    Route::post('/personnel/{id}/reset-password', [\App\Http\Controllers\Admin\PersonnelController::class, 'resetPassword'])->name('personnel.reset-password');
+    Route::get('/personnel-export', [\App\Http\Controllers\Admin\PersonnelController::class, 'export'])->name('personnel.export');
+
+    // 🕌 Avances Tabaski
     Route::get('/avances-tabaski', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'index'])->name('tabaski.index');
     Route::post('/avances-tabaski/settings', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'updateSettings'])->name('tabaski.settings');
     Route::get('/avances-tabaski/export-csv', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportCsv'])->name('tabaski.export-csv');
     Route::get('/avances-tabaski/print', [\App\Http\Controllers\Drh\AvanceTabaskiController::class, 'exportPdf'])->name('tabaski.print');
+
+    // 📋 Enquête Assurance Maladie
+    Route::get('/enquete-assurance',           [\App\Http\Controllers\Drh\HealthSurveyController::class, 'index'])->name('health-survey.index');
+    Route::get('/enquete-assurance/export',    [\App\Http\Controllers\Drh\HealthSurveyController::class, 'exportCsv'])->name('health-survey.export');
+    Route::get('/enquete-assurance/{id}',      [\App\Http\Controllers\Drh\HealthSurveyController::class, 'show'])->name('health-survey.show');
+});
+
+// Formulaire public de l'enquête assurance maladie
+Route::prefix('enquete-assurance-maladie')->name('public.health-survey.')->group(function () {
+    Route::get('/',          [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'show'])->name('show');
+    Route::post('/',         [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'store'])->name('submit');
+    Route::get('/merci',     [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'thanks'])->name('thanks');
 });
 
 // Redirect admin/sim/suivi et /collecteurs vers l'interface superviseur
@@ -1057,6 +1100,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/reports', [\App\Http\Controllers\ExportController::class, 'exportReports'])->name('reports');
         Route::get('/template/{type}', [\App\Http\Controllers\ExportController::class, 'downloadTemplate'])->name('template');
     });
+});
+
+// LinkedIn OAuth routes
+Route::prefix('linkedin')->name('linkedin.')->group(function () {
+    Route::get('/auth',     [LinkedInController::class, 'redirect'])->name('auth');
+    Route::get('/callback', [LinkedInController::class, 'callback'])->name('callback');
+    Route::get('/posts',    [LinkedInController::class, 'posts'])->name('posts');
+    Route::post('/refresh', [LinkedInController::class, 'refresh'])->name('refresh');
 });
 
 
