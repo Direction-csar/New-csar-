@@ -260,6 +260,12 @@ Route::prefix('drh')->name('drh.')->group(function () {
     Route::get('/login', [\App\Http\Controllers\Auth\DRHLoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [\App\Http\Controllers\Auth\DRHLoginController::class, 'login'])->name('login.submit');
     Route::post('/logout', [\App\Http\Controllers\Auth\DRHLoginController::class, 'logout'])->name('logout');
+
+    // 2FA Challenge (post-login DRH)
+    Route::get('/2fa/challenge', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showChallenge'])->name('2fa.challenge');
+    Route::post('/2fa/verify', [\App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])
+        ->middleware('throttle:10,1')->name('2fa.verify');
+
     Route::get('/', fn () => redirect()->route('drh.login'))->name('dashboard');
     Route::match(['get', 'post'], '/{path}', fn () => redirect()->route('drh.login'))->where('path', '.*')->name('fallback');
 });
@@ -272,6 +278,11 @@ Route::prefix('dg')->name('dg.')->group(function () {
     Route::get('/login', [App\Http\Controllers\Auth\DGLoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [App\Http\Controllers\Auth\DGLoginController::class, 'login'])->name('login.submit');
     Route::post('/logout', [App\Http\Controllers\Auth\DGLoginController::class, 'logout'])->name('logout');
+
+    // 2FA Challenge (post-login DG)
+    Route::get('/2fa/challenge', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showChallenge'])->name('2fa.challenge');
+    Route::post('/2fa/verify', [\App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])
+        ->middleware('throttle:10,1')->name('2fa.verify');
 
     // Routes protégées DG (lecture seule)
     Route::middleware([\App\Http\Middleware\DGMiddleware::class])->group(function () {
@@ -758,6 +769,11 @@ Route::prefix('ctc')->name('ctc.')->group(function () {
     Route::get('/login/reset-rate-limit', [\App\Http\Controllers\Auth\CTCLoginController::class, 'resetRateLimit'])->name('login.reset-rate-limit');
     Route::post('/login', [\App\Http\Controllers\Auth\CTCLoginController::class, 'login'])->name('login.submit');
     Route::post('/logout', [\App\Http\Controllers\Auth\CTCLoginController::class, 'logout'])->name('logout');
+
+    // 2FA Challenge (post-login CTC)
+    Route::get('/2fa/challenge', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showChallenge'])->name('2fa.challenge');
+    Route::post('/2fa/verify', [\App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])
+        ->middleware('throttle:10,1')->name('2fa.verify');
 
     Route::middleware(['ctc-admin'])->group(function () {
         Route::get('/', [\App\Http\Controllers\Admin\CommunicationsController::class, 'index'])->name('dashboard');

@@ -16,7 +16,7 @@ class DRHLoginController extends Controller
     public function showLoginForm()
     {
         if (Auth::guard($this->guard)->check() && in_array(Auth::guard($this->guard)->user()->role, ['drh', 'ctc', 'admin'])) {
-            return redirect()->route('admin.drh.tabaski.index');
+            return redirect()->route('admin.drh.dashboard');
         }
         return view('auth.drh-login');
     }
@@ -56,10 +56,23 @@ class DRHLoginController extends Controller
                 ]);
             }
 
+            // 2FA : si activée, redirection vers le challenge.
+            if (!empty($user->two_factor_enabled) && !empty($user->two_factor_secret)) {
+                Auth::guard($this->guard)->logout();
+                RateLimiter::clear($key);
+                $request->session()->put('2fa_user_id', $user->id);
+                $request->session()->put('2fa_guard', $this->guard);
+                $request->session()->put('2fa_remember', $request->boolean('remember'));
+                \Log::info('Login DRH OK, redirection vers challenge 2FA', [
+                    'user_id' => $user->id, 'ip' => $request->ip(),
+                ]);
+                return redirect()->route('drh.2fa.challenge');
+            }
+
             $request->session()->regenerate();
             RateLimiter::clear($key);
 
-            return redirect()->route('admin.drh.tabaski.index')
+            return redirect()->route('admin.drh.dashboard')
                 ->with('success', 'Bienvenue, Direction des Ressources Humaines !');
         }
 

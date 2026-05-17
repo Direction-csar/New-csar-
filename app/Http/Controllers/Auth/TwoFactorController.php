@@ -26,7 +26,22 @@ use Illuminate\Validation\ValidationException;
  */
 class TwoFactorController extends Controller
 {
+    /**
+     * Mapping guard → routes (login + dashboard) pour redirections.
+     */
+    protected const GUARD_ROUTES = [
+        'admin' => ['login' => 'admin.login',     'dashboard' => 'admin.dashboard',         'challenge' => 'admin.2fa.challenge'],
+        'dg'    => ['login' => 'dg.login',        'dashboard' => 'dg.dashboard',            'challenge' => 'dg.2fa.challenge'],
+        'drh'   => ['login' => 'drh.login',       'dashboard' => 'admin.drh.dashboard',     'challenge' => 'drh.2fa.challenge'],
+        'ctc'   => ['login' => 'ctc.login',       'dashboard' => 'ctc.dashboard',           'challenge' => 'ctc.2fa.challenge'],
+    ];
+
     public function __construct(protected TwoFactorAuthService $service) {}
+
+    protected function guardRoute(string $guard, string $key): string
+    {
+        return self::GUARD_ROUTES[$guard][$key] ?? self::GUARD_ROUTES['admin'][$key];
+    }
 
     /* ------------------------------------------------------------------ */
     /* Setup (utilisateur déjà authentifié)                                */
@@ -105,10 +120,11 @@ class TwoFactorController extends Controller
 
     public function showChallenge(Request $request)
     {
+        $guard = $request->session()->get('2fa_guard', 'admin');
         if (!$request->session()->has('2fa_user_id')) {
-            return redirect()->route('admin.login');
+            return redirect()->route($this->guardRoute($guard, 'login'));
         }
-        return view('auth.two-factor.challenge');
+        return view('auth.two-factor.challenge', ['guard' => $guard]);
     }
 
     public function verify(Request $request)
@@ -121,7 +137,7 @@ class TwoFactorController extends Controller
         $guard  = $request->session()->get('2fa_guard', 'admin');
 
         if (!$userId) {
-            return redirect()->route('admin.login');
+            return redirect()->route($this->guardRoute($guard, 'login'));
         }
 
         $user = User::findOrFail($userId);
@@ -160,7 +176,7 @@ class TwoFactorController extends Controller
             'ip'      => $request->ip(),
         ]);
 
-        return redirect()->intended(route('admin.dashboard'))
+        return redirect()->intended(route($this->guardRoute($guard, 'dashboard')))
             ->with('success', 'Authentification réussie.');
     }
 

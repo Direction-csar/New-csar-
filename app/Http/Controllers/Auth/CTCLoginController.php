@@ -81,6 +81,19 @@ class CTCLoginController extends Controller
                 ]);
             }
 
+            // 2FA : si activée, redirection vers le challenge.
+            if (!empty($user->two_factor_enabled) && !empty($user->two_factor_secret)) {
+                Auth::guard('ctc')->logout();
+                RateLimiter::clear($key);
+                $request->session()->put('2fa_user_id', $user->id);
+                $request->session()->put('2fa_guard', 'ctc');
+                $request->session()->put('2fa_remember', $remember);
+                Log::info('Login CTC OK, redirection vers challenge 2FA', [
+                    'user_id' => $user->id, 'ip' => $request->ip(),
+                ]);
+                return redirect()->route('ctc.2fa.challenge');
+            }
+
             $request->session()->regenerate();
             RateLimiter::clear($key);
 
