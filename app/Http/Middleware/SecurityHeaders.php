@@ -61,6 +61,9 @@ class SecurityHeaders
             'https://*.elfsightcdn.com',
             'https://*.elf.site',
             'https://*.elfsight.com',
+            'https://connect.facebook.net',
+            'https://platform.twitter.com',
+            'https://syndication.twitter.com',
         ];
         $cdnStyles = [
             'https://cdn.jsdelivr.net',
@@ -82,6 +85,9 @@ class SecurityHeaders
             'https://www.linkedin.com',
             'https://*.elf.site',
             'https://*.elfsight.com',
+            'https://www.facebook.com',
+            'https://platform.twitter.com',
+            'https://syndication.twitter.com',
         ];
         $connect = [
             'https://api.openweathermap.org',
@@ -92,6 +98,9 @@ class SecurityHeaders
             'https://*.elf.site',
             'https://*.elfsight.com',
             'https://*.elfsightcdn.com',
+            'https://connect.facebook.net',
+            'https://platform.twitter.com',
+            'https://syndication.twitter.com',
         ];
 
         // En production : CSP stricte (nonce obligatoire pour les scripts inline).

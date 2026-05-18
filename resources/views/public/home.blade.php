@@ -3333,19 +3333,18 @@ setTimeout(() => {
             <!-- Facebook -->
             <div style="background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
                 <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: linear-gradient(135deg, rgba(24, 119, 242, 0.1), transparent); border-radius: 0 24px 0 100%;"></div>
-                <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <i class="fab fa-facebook" style="font-size: 3rem; color: #1877f2;"></i>
-                    <h3 style="margin: 0.5rem 0 0; color: #333; font-size: 1.3rem;">Facebook</h3>
-                    <p style="color: #666; font-size: 0.9rem;">Communauté et événements</p>
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <i class="fab fa-facebook" style="font-size: 2.5rem; color: #1877f2;"></i>
+                    <h3 style="margin: 0.5rem 0 0; color: #333; font-size: 1.2rem;">Facebook</h3>
                 </div>
-                <div style="text-align: center; padding: 2rem 0;">
-                    <i class="fas fa-users" style="font-size: 4rem; color: #e4e6eb;"></i>
-                    <p style="color: #666; margin-top: 1rem;">Rejoignez notre communauté</p>
-                </div>
-                <div style="text-align: center; margin-top: 1rem;">
-                    <a href="https://www.facebook.com/share/18ju5A37Le/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: #1877f2; color: white; font-weight: 600; font-size: 0.9rem; border-radius: 50px; text-decoration: none;">
-                        <i class="fab fa-facebook"></i> Voir la page
-                    </a>
+                <div style="position: relative; z-index: 1; min-height: 300px;">
+                    <div id="fb-root"></div>
+                    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/fr_FR/sdk.js#xfbml=1&version=v22.0" nonce="csar2024"></script>
+                    <div class="fb-page" data-href="https://www.facebook.com/share/18ju5A37Le/" data-tabs="timeline" data-width="100%" data-height="350" data-small-header="true" data-adapt-container-width="true" data-hide-cover="false" data-show-facepile="false">
+                        <blockquote cite="https://www.facebook.com/share/18ju5A37Le/" class="fb-xfbml-parse-ignore">
+                            <a href="https://www.facebook.com/share/18ju5A37Le/">CSAR</a>
+                        </blockquote>
+                    </div>
                 </div>
             </div>
 
@@ -3371,19 +3370,13 @@ setTimeout(() => {
             <!-- X / Twitter -->
             <div style="background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
                 <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: linear-gradient(135deg, rgba(0, 0, 0, 0.05), transparent); border-radius: 0 24px 0 100%;"></div>
-                <div style="text-align: center; margin-bottom: 1.5rem;">
-                    <i class="fab fa-x-twitter" style="font-size: 3rem; color: #000;"></i>
-                    <h3 style="margin: 0.5rem 0 0; color: #333; font-size: 1.3rem;">X</h3>
-                    <p style="color: #666; font-size: 0.9rem;">Actualités en direct</p>
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <i class="fab fa-x-twitter" style="font-size: 2.5rem; color: #000;"></i>
+                    <h3 style="margin: 0.5rem 0 0; color: #333; font-size: 1.2rem;">X</h3>
                 </div>
-                <div style="text-align: center; padding: 2rem 0;">
-                    <i class="fas fa-hashtag" style="font-size: 4rem; color: #e4e6eb;"></i>
-                    <p style="color: #666; margin-top: 1rem;">Suivez nos tweets</p>
-                </div>
-                <div style="text-align: center; margin-top: 1rem;">
-                    <a href="https://x.com/csar_sn?s=21" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: #000; color: white; font-weight: 600; font-size: 0.9rem; border-radius: 50px; text-decoration: none;">
-                        <i class="fab fa-x-twitter"></i> Voir le profil
-                    </a>
+                <div style="position: relative; z-index: 1; min-height: 300px;">
+                    <a class="twitter-timeline" data-height="350" data-theme="light" href="https://twitter.com/csar_sn?ref_src=twsrc%5Etfw">Tweets by csar_sn</a>
+                    <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
                 </div>
             </div>
 
