@@ -58,7 +58,9 @@ class SecurityHeaders
             'https://platform.linkedin.com',
             'https://unpkg.com',
             'https://elfsightcdn.com',
+            'https://*.elfsightcdn.com',
             'https://*.elf.site',
+            'https://*.elfsight.com',
         ];
         $cdnStyles = [
             'https://cdn.jsdelivr.net',
@@ -66,6 +68,8 @@ class SecurityHeaders
             'https://fonts.googleapis.com',
             'https://unpkg.com',
             'https://*.elf.site',
+            'https://*.elfsight.com',
+            'https://*.elfsightcdn.com',
         ];
         $cdnFonts = [
             'https://fonts.gstatic.com',
@@ -77,6 +81,7 @@ class SecurityHeaders
             'https://player.vimeo.com',
             'https://www.linkedin.com',
             'https://*.elf.site',
+            'https://*.elfsight.com',
         ];
         $connect = [
             'https://api.openweathermap.org',
@@ -85,6 +90,8 @@ class SecurityHeaders
             'https://www.linkedin.com',
             'https://platform.linkedin.com',
             'https://*.elf.site',
+            'https://*.elfsight.com',
+            'https://*.elfsightcdn.com',
         ];
 
         // En production : CSP stricte (nonce obligatoire pour les scripts inline).
