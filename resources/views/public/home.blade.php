@@ -3314,7 +3314,7 @@ setTimeout(() => {
                 <div style="position: absolute; top: 0; right: 0; width: 150px; height: 150px; background: linear-gradient(135deg, rgba(10, 102, 194, 0.1), transparent); border-radius: 0 24px 0 100%;"></div>
                 <div style="position: relative; z-index: 1;">
                     <script src="https://elfsightcdn.com/platform.js" async></script>
-                    <div class="elfsight-app-be381de7-81d6-4865-8ce6-34b0a9e2cf55"></div>
+                    <div class="elfsight-app-be381de7-81d6-4865-8ce6-34b0a9e2cf55" data-elfsight-app-lazy></div>
                 </div>
             </div>
         </div>
