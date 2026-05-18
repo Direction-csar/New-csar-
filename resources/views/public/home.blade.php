@@ -3293,48 +3293,105 @@ setTimeout(() => {
         <!-- Section Header -->
         <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-up">
             <div style="display: inline-flex; align-items: center; gap: 12px; padding: 12px 28px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 50px; margin-bottom: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.2);">
-                <i class="fab fa-linkedin" style="font-size: 1.5rem; color: white;"></i>
+                <i class="fas fa-share-alt" style="font-size: 1.5rem; color: white;"></i>
                 <span style="color: white; font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1.5px;">
-                    Suivez-nous sur LinkedIn
+                    Nos Réseaux Sociaux
                 </span>
             </div>
-            
+
             <h2 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 1.2rem; color: white; text-shadow: 0 4px 20px rgba(0, 0, 0, 0.2); line-height: 1.2;">
                 Restez Connecté à Notre Impact
             </h2>
-            
+
             <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.15rem; max-width: 700px; margin: 0 auto; line-height: 1.7;">
-                Découvrez nos dernières actualités, projets et initiatives pour la sécurité alimentaire et la résilience au Sénégal
+                Suivez nos actualités et initiatives sur tous nos canaux pour la sécurité alimentaire et la résilience au Sénégal
             </p>
         </div>
-        
-        <!-- LinkedIn Feed Widget -->
-        <div style="max-width: 1200px; margin: 0 auto;" data-aos="fade-up" data-aos-delay="200">
-            <div style="background: white; border-radius: 24px; padding: 3rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
-                <!-- Decorative Corner -->
-                <div style="position: absolute; top: 0; right: 0; width: 150px; height: 150px; background: linear-gradient(135deg, rgba(10, 102, 194, 0.1), transparent); border-radius: 0 24px 0 100%;"></div>
-                
-                <!-- LinkedIn Widget -->
+
+        <!-- Social Grid -->
+        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem;" data-aos="fade-up" data-aos-delay="200">
+
+            <!-- LinkedIn -->
+            <div style="background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: linear-gradient(135deg, rgba(10, 102, 194, 0.1), transparent); border-radius: 0 24px 0 100%;"></div>
+                <div style="text-align: center; margin-bottom: 1rem;">
+                    <i class="fab fa-linkedin" style="font-size: 3rem; color: #0077b5;"></i>
+                    <h3 style="margin: 0.5rem 0 0; color: #333; font-size: 1.3rem;">LinkedIn</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Actualités professionnelles</p>
+                </div>
                 <div style="position: relative; z-index: 1;">
                     <script src="https://elfsightcdn.com/platform.js" async></script>
                     <div class="elfsight-app-be381de7-81d6-4865-8ce6-34b0a9e2cf55"></div>
                 </div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/posts/?feedView=all" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: #0077b5; color: white; font-weight: 600; font-size: 0.9rem; border-radius: 50px; text-decoration: none;">
+                        <i class="fab fa-linkedin"></i> Voir le profil
+                    </a>
+                </div>
             </div>
+
+            <!-- Facebook -->
+            <div style="background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: linear-gradient(135deg, rgba(24, 119, 242, 0.1), transparent); border-radius: 0 24px 0 100%;"></div>
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <i class="fab fa-facebook" style="font-size: 3rem; color: #1877f2;"></i>
+                    <h3 style="margin: 0.5rem 0 0; color: #333; font-size: 1.3rem;">Facebook</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Communauté et événements</p>
+                </div>
+                <div style="text-align: center; padding: 2rem 0;">
+                    <i class="fas fa-users" style="font-size: 4rem; color: #e4e6eb;"></i>
+                    <p style="color: #666; margin-top: 1rem;">Rejoignez notre communauté</p>
+                </div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="https://www.facebook.com/share/18ju5A37Le/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: #1877f2; color: white; font-weight: 600; font-size: 0.9rem; border-radius: 50px; text-decoration: none;">
+                        <i class="fab fa-facebook"></i> Voir la page
+                    </a>
+                </div>
+            </div>
+
+            <!-- Instagram -->
+            <div style="background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: linear-gradient(135deg, rgba(225, 48, 108, 0.1), transparent); border-radius: 0 24px 0 100%;"></div>
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <i class="fab fa-instagram" style="font-size: 3rem; color: #e1306c;"></i>
+                    <h3 style="margin: 0.5rem 0 0; color: #333; font-size: 1.3rem;">Instagram</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Photos et stories</p>
+                </div>
+                <div style="text-align: center; padding: 2rem 0;">
+                    <i class="fas fa-camera" style="font-size: 4rem; color: #e4e6eb;"></i>
+                    <p style="color: #666; margin-top: 1rem;">Découvrez nos visuels</p>
+                </div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="https://www.instagram.com/csar.sn?igsh=YjBmaTBjejhqems=" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); color: white; font-weight: 600; font-size: 0.9rem; border-radius: 50px; text-decoration: none;">
+                        <i class="fab fa-instagram"></i> Voir le profil
+                    </a>
+                </div>
+            </div>
+
+            <!-- X / Twitter -->
+            <div style="background: white; border-radius: 24px; padding: 2rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; right: 0; width: 120px; height: 120px; background: linear-gradient(135deg, rgba(0, 0, 0, 0.05), transparent); border-radius: 0 24px 0 100%;"></div>
+                <div style="text-align: center; margin-bottom: 1.5rem;">
+                    <i class="fab fa-x-twitter" style="font-size: 3rem; color: #000;"></i>
+                    <h3 style="margin: 0.5rem 0 0; color: #333; font-size: 1.3rem;">X</h3>
+                    <p style="color: #666; font-size: 0.9rem;">Actualités en direct</p>
+                </div>
+                <div style="text-align: center; padding: 2rem 0;">
+                    <i class="fas fa-hashtag" style="font-size: 4rem; color: #e4e6eb;"></i>
+                    <p style="color: #666; margin-top: 1rem;">Suivez nos tweets</p>
+                </div>
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="https://x.com/csar_sn?s=21" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: #000; color: white; font-weight: 600; font-size: 0.9rem; border-radius: 50px; text-decoration: none;">
+                        <i class="fab fa-x-twitter"></i> Voir le profil
+                    </a>
+                </div>
+            </div>
+
         </div>
-        
-        <!-- Call to Action -->
+
+        <!-- Hashtags -->
         <div style="text-align: center; margin-top: 3rem;" data-aos="fade-up" data-aos-delay="400">
-            <a href="https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/" target="_blank" rel="noopener noreferrer" class="btn-linkedin-follow" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 45px; background: white; color: #0077b5; font-weight: 700; font-size: 1.05rem; border-radius: 50px; text-decoration: none; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden; border: 2px solid transparent;">
-                <span class="btn-text" style="position: relative; z-index: 2; display: flex; align-items: center; gap: 12px; transition: color 0.3s;">
-                    <i class="fab fa-linkedin" style="font-size: 1.3rem;"></i>
-                    Suivre le CSAR sur LinkedIn
-                    <i class="fas fa-arrow-right" style="transition: transform 0.3s;"></i>
-                </span>
-                <div class="btn-bg-hover" style="position: absolute; inset: 0; background: linear-gradient(135deg, #0077b5, #005582); opacity: 0; transition: opacity 0.4s; z-index: 1;"></div>
-            </a>
-            
-            <!-- Hashtags -->
-            <div style="margin-top: 2rem; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+            <div style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
                 <span style="padding: 8px 16px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 20px; color: white; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255, 255, 255, 0.2);">#CSAR</span>
                 <span style="padding: 8px 16px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 20px; color: white; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255, 255, 255, 0.2);">#SécuritéAlimentaire</span>
                 <span style="padding: 8px 16px; background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 20px; color: white; font-size: 0.9rem; font-weight: 500; border: 1px solid rgba(255, 255, 255, 0.2);">#Résilience</span>
