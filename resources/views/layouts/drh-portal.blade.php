@@ -13,9 +13,9 @@
 
     <style>
         :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #0d9488;
+            --secondary-color: #065f46;
+            --gradient-primary: linear-gradient(135deg, #0d9488 0%, #065f46 100%);
             --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
             --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.15);
         }
@@ -192,7 +192,7 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        .sidebar-toggle:hover { background: rgba(102,126,234,0.1); }
+        .sidebar-toggle:hover { background: rgba(13,148,136,0.12); }
 
         .navbar-right {
             display: flex;
@@ -210,7 +210,7 @@
             justify-content: center;
             font-weight: 700;
             font-size: 1rem;
-            box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+            box-shadow: 0 4px 12px rgba(13,148,136,0.45);
             cursor: pointer;
         }
 
