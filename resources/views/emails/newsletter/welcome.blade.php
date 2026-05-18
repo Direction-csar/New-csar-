@@ -67,9 +67,10 @@
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🎉 Bienvenue dans la newsletter du CSAR !</h1>
-        <p>Commissariat à la Sécurité Alimentaire et à la Résilience</p>
+    <div class="header" style="text-align:center;">
+        <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR" style="height:70px;margin-bottom:10px;background:#fff;padding:6px;border-radius:8px;">
+        <h1 style="margin:8px 0;">🎉 Bienvenue dans la newsletter du CSAR !</h1>
+        <p style="margin:0;">Commissariat à la Sécurité Alimentaire et à la Résilience</p>
     </div>
     
     <div class="content">

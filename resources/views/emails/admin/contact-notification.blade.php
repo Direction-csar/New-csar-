@@ -100,9 +100,10 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🔔 Nouveau message de contact</h1>
-            <p>CSAR Platform - Notification automatique</p>
+        <div class="header" style="text-align:center;">
+            <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR" style="height:70px;margin-bottom:10px;background:#fff;padding:6px;border-radius:8px;">
+            <h1 style="margin:8px 0;">🔔 Nouveau message de contact</h1>
+            <p style="margin:0;">CSAR — Commissariat à la Sécurité Alimentaire et à la Résilience</p>
         </div>
         
         <div class="content">
@@ -154,7 +155,7 @@
         </div>
         
         <div class="footer">
-            <p><strong>CSAR Platform</strong> - Centre de Suivi et d'Analyse des Risques</p>
+            <p><strong>CSAR Platform</strong> - Commissariat à la Sécurité Alimentaire et à la Résilience</p>
             <p>Cette notification a été générée automatiquement. Ne pas répondre à cet email.</p>
             <p>Pour toute question technique, contactez l'équipe informatique.</p>
         </div>

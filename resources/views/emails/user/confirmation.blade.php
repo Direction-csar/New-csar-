@@ -79,9 +79,10 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>✅ Confirmation reçue</h1>
-            <p>CSAR Platform - Centre de Suivi et d'Analyse des Risques</p>
+        <div class="header" style="text-align:center;">
+            <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR" style="height:70px;margin-bottom:10px;background:#fff;padding:6px;border-radius:8px;">
+            <h1 style="margin:8px 0;">✅ Confirmation reçue</h1>
+            <p style="margin:0;">CSAR — Commissariat à la Sécurité Alimentaire et à la Résilience</p>
         </div>
         
         <div class="content">
@@ -114,7 +115,7 @@
                     <p style="margin: 0;">Votre abonnement à la newsletter du CSAR a été enregistré.</p>
                 </div>
                 
-                <p>Merci de vous être abonné à notre newsletter ! Vous recevrez désormais nos dernières actualités, rapports et informations importantes du Centre de Suivi et d'Analyse des Risques.</p>
+                <p>Merci de vous être abonné à notre newsletter ! Vous recevrez désormais nos dernières actualités, rapports et informations importantes du Commissariat à la Sécurité Alimentaire et à la Résilience.</p>
                 
                 <div class="info-box">
                     <h4 style="margin: 0 0 10px 0; color: #1976d2;">📊 À propos de notre newsletter</h4>
@@ -158,7 +159,7 @@
         </div>
         
         <div class="footer">
-            <p><strong>CSAR Platform</strong> - Centre de Suivi et d'Analyse des Risques</p>
+            <p><strong>CSAR Platform</strong> - Commissariat à la Sécurité Alimentaire et à la Résilience</p>
             <p>📧 Email : contact@csar.sn | 📞 Téléphone : +221 XX XXX XX XX</p>
             <p>🌐 Site web : <a href="{{ url('/') }}" style="color: #51cf66;">www.csar.sn</a></p>
             <p style="margin-top: 20px; font-size: 12px; color: #999;">
