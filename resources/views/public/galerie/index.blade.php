@@ -230,7 +230,7 @@
                 </div>
                 <div class="col-lg-3 col-md-6 mb-4">
                     <div class="stats-card">
-                        <div class="stats-number">{{ $stats['par_categorie']->count() }}</div>
+                        <div class="stats-number">{{ is_object($stats['par_categorie'] ?? null) && method_exists($stats['par_categorie'], 'count') ? $stats['par_categorie']->count() : count($stats['par_categorie'] ?? []) }}</div>
                         <div class="stats-label">🏷️ Catégories</div>
                     </div>
                 </div>

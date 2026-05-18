@@ -14,7 +14,7 @@
             <p class="text-muted">Ajoutez une nouvelle image à la galerie publique</p>
         </div>
         <div>
-            <a href="{{ route('admin.galerie.index') }}" class="btn btn-secondary">
+            <a href="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.index' : 'admin.galerie.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i>Retour à la galerie
             </a>
         </div>
@@ -28,7 +28,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Informations de l'image</h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.galerie.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.store' : 'admin.galerie.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         
                         <div class="form-group mb-3">
@@ -93,7 +93,7 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <a href="{{ route('admin.galerie.index') }}" class="btn btn-secondary me-2">Annuler</a>
+                            <a href="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.index' : 'admin.galerie.index') }}" class="btn btn-secondary me-2">Annuler</a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Ajouter l'image
                             </button>

@@ -14,10 +14,10 @@
             <p class="text-muted">Modifiez les informations de l'image</p>
         </div>
         <div>
-            <a href="{{ route('admin.galerie.show', $image->id) }}" class="btn btn-info me-2">
+            <a href="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.show' : 'admin.galerie.show', $image->id) }}" class="btn btn-info me-2">
                 <i class="fas fa-eye me-2"></i>Voir les détails
             </a>
-            <a href="{{ route('admin.galerie.index') }}" class="btn btn-secondary">
+            <a href="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.index' : 'admin.galerie.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i>Retour à la galerie
             </a>
         </div>
@@ -30,7 +30,7 @@
                     <h6 class="m-0 font-weight-bold text-primary">Modifier les informations</h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('admin.galerie.update', $image->id) }}" method="POST">
+                    <form action="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.update' : 'admin.galerie.update', $image->id) }}" method="POST">
                         @csrf
                         @method('PUT')
                         
@@ -98,7 +98,7 @@
                         </div>
 
                         <div class="d-flex justify-content-end">
-                            <a href="{{ route('admin.galerie.show', $image->id) }}" class="btn btn-secondary me-2">Annuler</a>
+                            <a href="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.show' : 'admin.galerie.show', $image->id) }}" class="btn btn-secondary me-2">Annuler</a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-2"></i>Mettre à jour
                             </button>

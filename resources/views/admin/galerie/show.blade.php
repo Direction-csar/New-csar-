@@ -14,10 +14,10 @@
             <p class="text-muted">Informations détaillées de l'image</p>
         </div>
         <div>
-            <a href="{{ route('admin.galerie.edit', $image->id) }}" class="btn btn-warning me-2">
+            <a href="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.edit' : 'admin.galerie.edit', $image->id) }}" class="btn btn-warning me-2">
                 <i class="fas fa-edit me-2"></i>Modifier
             </a>
-            <a href="{{ route('admin.galerie.index') }}" class="btn btn-secondary">
+            <a href="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.index' : 'admin.galerie.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i>Retour à la galerie
             </a>
         </div>
@@ -121,7 +121,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <a href="{{ route('admin.galerie.edit', $image->id) }}" class="btn btn-warning">
+                        <a href="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.edit' : 'admin.galerie.edit', $image->id) }}" class="btn btn-warning">
                             <i class="fas fa-edit me-2"></i>Modifier l'image
                         </a>
                         
@@ -135,7 +135,7 @@
                             <i class="fas fa-external-link-alt me-2"></i>Voir en grand
                         </a>
 
-                        <form action="{{ route('admin.galerie.destroy', $image->id) }}" method="POST" 
+                        <form action="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.destroy' : 'admin.galerie.destroy', $image->id) }}" method="POST" 
                               onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette image ?')">
                             @csrf
                             @method('DELETE')
@@ -176,7 +176,7 @@
 <script>
 function toggleImageStatus(imageId) {
     if (confirm('Êtes-vous sûr de vouloir changer le statut de cette image ?')) {
-        fetch(`/admin/galerie/${imageId}/toggle-status`, {
+        fetch(`{{ url(request()->routeIs('ctc.*') ? '/ctc/galerie' : '/admin/galerie') }}/${imageId}/toggle-status`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),

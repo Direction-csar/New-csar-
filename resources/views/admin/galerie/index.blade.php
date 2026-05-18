@@ -1,5 +1,7 @@
 @extends(request()->routeIs('ctc.*') ? 'layouts.ctc' : 'layouts.admin')
 
+@php $rp = request()->routeIs('ctc.*') ? 'ctc' : 'admin'; @endphp
+
 @section('title', 'Gestion de la Galerie')
 
 @section('content')
@@ -20,7 +22,7 @@
             <button class="btn btn-primary me-2" onclick="toggleView()">
                 <i class="fas fa-th me-2"></i><span id="view-toggle-text">Liste</span>
             </button>
-            <a href="{{ route('admin.galerie.create') }}" class="btn btn-success">
+            <a href="{{ route($rp.'.galerie.create') }}" class="btn btn-success">
                 <i class="fas fa-plus me-2"></i>Ajouter une Image
             </a>
         </div>
@@ -107,7 +109,7 @@
             <h6 class="m-0 font-weight-bold text-primary">Filtres et options d'affichage</h6>
         </div>
         <div class="card-body">
-            <form action="{{ route('admin.galerie.index') }}" method="GET">
+            <form action="{{ route($rp.'.galerie.index') }}" method="GET">
                 <div class="form-row">
                     <div class="col-md-4 mb-3">
                         <label for="search">🔍 Recherche</label>
@@ -136,7 +138,7 @@
                     </div>
                     <div class="col-md-2 mb-3 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary me-2">Filtrer</button>
-                        <a href="{{ route('admin.galerie.index') }}" class="btn btn-secondary">Réinitialiser</a>
+                        <a href="{{ route($rp.'.galerie.index') }}" class="btn btn-secondary">Réinitialiser</a>
                     </div>
                 </div>
             </form>
@@ -172,10 +174,10 @@
                             </div>
                             <div class="mt-2">
                                 <div class="btn-group w-100" role="group">
-                                    <a href="{{ route('admin.galerie.show', $image->id) }}" class="btn btn-info btn-sm" title="Voir">
+                                    <a href="{{ route($rp.'.galerie.show', $image->id) }}" class="btn btn-info btn-sm" title="Voir">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('admin.galerie.edit', $image->id) }}" class="btn btn-warning btn-sm" title="Modifier">
+                                    <a href="{{ route($rp.'.galerie.edit', $image->id) }}" class="btn btn-warning btn-sm" title="Modifier">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <button class="btn btn-{{ $image->status == 'active' ? 'secondary' : 'success' }} btn-sm" 
@@ -183,7 +185,7 @@
                                             onclick="toggleImageStatus({{ $image->id }})">
                                         <i class="fas fa-{{ $image->status == 'active' ? 'eye-slash' : 'eye' }}"></i>
                                     </button>
-                                    <form action="{{ route('admin.galerie.destroy', $image->id) }}" method="POST" style="display:inline;">
+                                    <form action="{{ route($rp.'.galerie.destroy', $image->id) }}" method="POST" style="display:inline;">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn btn-danger btn-sm" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette image ?')">
@@ -201,7 +203,7 @@
                         <i class="fas fa-images fa-3x text-muted mb-3"></i>
                         <h5 class="text-muted">Aucune image trouvée</h5>
                         <p class="text-muted">Commencez par ajouter des images à votre galerie.</p>
-                        <a href="{{ route('admin.galerie.create') }}" class="btn btn-primary">
+                        <a href="{{ route($rp.'.galerie.create') }}" class="btn btn-primary">
                             <i class="fas fa-plus me-2"></i>Ajouter une Image
                         </a>
                     </div>
@@ -258,10 +260,10 @@
                                     <td>{{ $image->created_at->format('d/m/Y') }}</td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="{{ route('admin.galerie.show', $image->id) }}" class="btn btn-info btn-sm" title="Voir">
+                                            <a href="{{ route($rp.'.galerie.show', $image->id) }}" class="btn btn-info btn-sm" title="Voir">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('admin.galerie.edit', $image->id) }}" class="btn btn-warning btn-sm" title="Modifier">
+                                            <a href="{{ route($rp.'.galerie.edit', $image->id) }}" class="btn btn-warning btn-sm" title="Modifier">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <button class="btn btn-{{ $image->status == 'active' ? 'secondary' : 'success' }} btn-sm" 
@@ -269,7 +271,7 @@
                                                     onclick="toggleImageStatus({{ $image->id }})">
                                                 <i class="fas fa-{{ $image->status == 'active' ? 'eye-slash' : 'eye' }}"></i>
                                             </button>
-                                            <form action="{{ route('admin.galerie.destroy', $image->id) }}" method="POST" style="display:inline;">
+                                            <form action="{{ route($rp.'.galerie.destroy', $image->id) }}" method="POST" style="display:inline;">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm" title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette image ?')">
@@ -317,7 +319,7 @@ function toggleView() {
 
 function toggleImageStatus(imageId) {
     if (confirm('Êtes-vous sûr de vouloir changer le statut de cette image ?')) {
-        fetch(`/admin/galerie/${imageId}/toggle-status`, {
+        fetch(`{{ url(request()->routeIs('ctc.*') ? '/ctc/galerie' : '/admin/galerie') }}/${imageId}/toggle-status`, {
             method: 'POST',
             headers: {
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
