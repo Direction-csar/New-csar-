@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Espace DRH') — CSAR</title>
+    <title>@yield('title', 'Espace DRH') - CSAR DRH</title>
 
     <link rel="icon" type="image/png" href="{{ asset('images/csar-logo.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,26 +13,24 @@
 
     <style>
         :root {
-            --drh-primary: #047857;
-            --drh-primary-dark: #065f46;
-            --drh-accent: #10b981;
-            --drh-light: #f0fdf4;
-            --shadow-soft: 0 2px 10px rgba(0,0,0,0.06);
-            --shadow-medium: 0 8px 24px rgba(0,0,0,0.10);
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.15);
         }
-
         * { box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f1f5f9;
-            margin: 0;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
+            margin: 0;
         }
 
         /* ===== SIDEBAR ===== */
         .sidebar {
-            background: linear-gradient(180deg, var(--drh-primary-dark) 0%, var(--drh-primary) 100%);
-            width: 260px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            width: 280px;
             height: 100vh;
             position: fixed;
             top: 0;
@@ -41,74 +39,78 @@
             box-shadow: var(--shadow-medium);
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease, width 0.3s ease;
+            transition: width 0.3s ease, transform 0.3s ease;
+            overflow: hidden;
         }
-        .sidebar.collapsed { width: 75px; }
-        .sidebar.collapsed .menu-text,
+        .sidebar.collapsed { width: 80px; }
         .sidebar.collapsed .brand-text,
-        .sidebar.collapsed .menu-section-title { display: none; }
+        .sidebar.collapsed .menu-text { display: none; }
         .sidebar.collapsed .menu-link { justify-content: center; padding: 12px; }
-        .sidebar.collapsed .menu-link i { margin: 0; font-size: 1.2rem; }
+        .sidebar.collapsed .menu-link i { margin: 0; }
+        .sidebar.collapsed .sidebar-header { justify-content: center; padding: 18px 8px; }
 
         .sidebar-header {
-            padding: 18px 20px;
+            padding: 1.4rem 1.5rem;
             border-bottom: 1px solid rgba(255,255,255,0.12);
             display: flex;
             align-items: center;
             gap: 12px;
         }
-        .sidebar-header img {
-            height: 38px;
-            width: 38px;
-            object-fit: contain;
+        .sidebar-header .logo-icon {
+            width: 40px;
+            height: 40px;
             background: white;
-            border-radius: 8px;
-            padding: 4px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .sidebar-header .logo-icon img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
         }
         .brand-text {
             color: white;
             line-height: 1.2;
         }
         .brand-text strong {
-            display: block;
-            font-size: 1rem;
+            font-size: 1.15rem;
             font-weight: 700;
+            display: block;
+            letter-spacing: 0.3px;
         }
         .brand-text small {
             font-size: 0.7rem;
-            opacity: 0.8;
+            opacity: 0.85;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
 
         .sidebar-menu {
             flex: 1;
+            padding: 1rem 0;
             overflow-y: auto;
-            padding: 12px 0;
+            overflow-x: hidden;
         }
         .sidebar-menu::-webkit-scrollbar { width: 6px; }
-        .sidebar-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.25); border-radius: 3px; }
-
-        .menu-section-title {
-            color: rgba(255,255,255,0.55);
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 14px 22px 6px;
-        }
+        .sidebar-menu::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 3px; }
+        .sidebar-menu::-webkit-scrollbar-track { background: rgba(255,255,255,0.08); }
 
         .menu-link {
             display: flex;
             align-items: center;
             gap: 14px;
-            padding: 11px 22px;
-            color: rgba(255,255,255,0.85);
+            padding: 12px 24px;
+            color: rgba(255,255,255,0.88);
             text-decoration: none;
-            font-size: 0.92rem;
+            font-size: 0.95rem;
             font-weight: 500;
-            border-left: 3px solid transparent;
-            transition: all 0.2s;
+            border-left: 4px solid transparent;
+            transition: all 0.25s ease;
+            white-space: nowrap;
         }
         .menu-link i {
             font-size: 1.05rem;
@@ -116,47 +118,52 @@
             text-align: center;
         }
         .menu-link:hover {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.12);
             color: white;
-            border-left-color: rgba(255,255,255,0.5);
+            border-left-color: rgba(255,255,255,0.6);
         }
         .menu-link.active {
-            background: rgba(255,255,255,0.18);
+            background: rgba(255,255,255,0.22);
             color: white;
             border-left-color: white;
             font-weight: 600;
         }
 
         .sidebar-footer {
-            padding: 14px 20px;
+            padding: 12px 20px;
             border-top: 1px solid rgba(255,255,255,0.12);
         }
         .sidebar-footer form { margin: 0; }
         .btn-logout {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             width: 100%;
-            background: rgba(255,255,255,0.12);
+            background: rgba(255,255,255,0.15);
             border: 1px solid rgba(255,255,255,0.25);
             color: white;
-            padding: 8px 12px;
+            padding: 9px 12px;
             border-radius: 8px;
-            font-size: 0.85rem;
+            font-size: 0.88rem;
+            font-weight: 500;
             cursor: pointer;
             transition: background 0.2s;
         }
-        .btn-logout:hover { background: rgba(255,255,255,0.22); }
+        .btn-logout:hover { background: rgba(255,255,255,0.25); }
 
-        /* ===== MAIN CONTENT ===== */
-        .main-wrapper {
-            margin-left: 260px;
+        /* ===== MAIN ===== */
+        .main-content {
+            margin-left: 280px;
             min-height: 100vh;
             transition: margin-left 0.3s ease;
         }
-        .main-wrapper.expanded { margin-left: 75px; }
+        .main-content.expanded { margin-left: 80px; }
 
         .top-navbar {
             background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            padding: 14px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 1rem 1.5rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -164,62 +171,51 @@
             top: 0;
             z-index: 99;
         }
-        .top-navbar .page-title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #1e293b;
-            margin: 0;
+        .navbar-left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+        }
+        .navbar-left h4 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
         }
         .sidebar-toggle {
-            background: none;
+            background: transparent;
             border: none;
-            color: #475569;
-            font-size: 1.2rem;
-            cursor: pointer;
+            color: var(--primary-color);
+            font-size: 1.3rem;
             padding: 6px 10px;
-            border-radius: 6px;
+            border-radius: 8px;
+            cursor: pointer;
             transition: background 0.2s;
         }
-        .sidebar-toggle:hover { background: #f1f5f9; }
+        .sidebar-toggle:hover { background: rgba(102,126,234,0.1); }
 
-        .user-badge {
+        .navbar-right {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 6px 12px;
-            background: var(--drh-light);
-            border-radius: 30px;
+            gap: 14px;
         }
-        .user-badge .avatar {
-            width: 36px;
-            height: 36px;
+        .user-avatar {
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--drh-accent), var(--drh-primary));
+            background: var(--gradient-primary);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.9rem;
-        }
-        .user-badge .info {
-            line-height: 1.2;
-        }
-        .user-badge .info strong {
-            display: block;
-            font-size: 0.85rem;
-            color: #1e293b;
-        }
-        .user-badge .info span {
-            font-size: 0.72rem;
-            color: #64748b;
+            font-size: 1rem;
+            box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+            cursor: pointer;
         }
 
-        .main-content {
-            padding: 24px;
+        .content-area {
+            padding: 1.5rem;
         }
 
         /* Mobile */
@@ -235,13 +231,12 @@
         @media (max-width: 992px) {
             .sidebar { transform: translateX(-100%); }
             .sidebar.show { transform: translateX(0); }
-            .main-wrapper { margin-left: 0 !important; }
-            .user-badge .info { display: none; }
+            .main-content { margin-left: 0 !important; }
         }
         @media (max-width: 576px) {
-            .main-content { padding: 16px; }
-            .top-navbar { padding: 12px 16px; }
-            .top-navbar .page-title { font-size: 1rem; }
+            .content-area { padding: 1rem; }
+            .top-navbar { padding: 0.85rem 1rem; }
+            .navbar-left h4 { font-size: 1rem; }
         }
     </style>
     @yield('styles')
@@ -251,47 +246,46 @@
 
 @php
     $currentRoute = request()->route()?->getName() ?? '';
-    $isActive = fn($pattern) => str_contains($currentRoute, $pattern) ? 'active' : '';
 @endphp
 
 {{-- Sidebar --}}
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-        <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR">
+        <div class="logo-icon">
+            <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR" onerror="this.style.display='none'">
+        </div>
         <div class="brand-text">
-            <strong>DRH</strong>
-            <small>CSAR</small>
+            <strong>CSAR DRH</strong>
+            <small>Ressources Humaines</small>
         </div>
     </div>
 
     <nav class="sidebar-menu">
-        <div class="menu-section-title">Principal</div>
-        <a href="{{ route('admin.drh.dashboard') }}" class="menu-link {{ $isActive('drh.dashboard') }}">
-            <i class="fas fa-chart-line"></i>
-            <span class="menu-text">Tableau de Bord</span>
+        <a href="{{ route('admin.drh.dashboard') }}" class="menu-link {{ str_contains($currentRoute, 'drh.dashboard') ? 'active' : '' }}">
+            <i class="fas fa-tachometer-alt"></i>
+            <span class="menu-text">Tableau de bord</span>
         </a>
 
-        <div class="menu-section-title">Gestion RH</div>
-        <a href="{{ route('admin.drh.personnel.index') }}" class="menu-link {{ $isActive('drh.personnel') }}">
+        <a href="{{ route('admin.drh.personnel.index') }}" class="menu-link {{ str_contains($currentRoute, 'drh.personnel') ? 'active' : '' }}">
             <i class="fas fa-users"></i>
             <span class="menu-text">Personnel</span>
         </a>
+
         <a href="{{ route('admin.drh.personnel.create') }}" class="menu-link {{ $currentRoute === 'admin.drh.personnel.create' ? 'active' : '' }}">
             <i class="fas fa-user-plus"></i>
             <span class="menu-text">Ajouter un agent</span>
         </a>
 
-        <div class="menu-section-title">Programmes</div>
-        <a href="{{ route('admin.drh.tabaski.index') }}" class="menu-link {{ $isActive('drh.tabaski') }}">
-            <i class="fas fa-coins"></i>
+        <a href="{{ route('admin.drh.tabaski.index') }}" class="menu-link {{ str_contains($currentRoute, 'drh.tabaski') ? 'active' : '' }}">
+            <i class="fas fa-hand-holding-usd"></i>
             <span class="menu-text">Avances Tabaski</span>
         </a>
-        <a href="{{ route('admin.drh.health-survey.index') }}" class="menu-link {{ $isActive('drh.health-survey') }}">
+
+        <a href="{{ route('admin.drh.health-survey.index') }}" class="menu-link {{ str_contains($currentRoute, 'drh.health-survey') ? 'active' : '' }}">
             <i class="fas fa-heartbeat"></i>
             <span class="menu-text">Enquête Assurance Maladie</span>
         </a>
 
-        <div class="menu-section-title">Liens</div>
         <a href="{{ url('/') }}" target="_blank" class="menu-link">
             <i class="fas fa-external-link-alt"></i>
             <span class="menu-text">Site public</span>
@@ -302,7 +296,7 @@
         <form method="POST" action="{{ route('drh.logout') }}">
             @csrf
             <button type="submit" class="btn-logout">
-                <i class="fas fa-sign-out-alt me-1"></i>
+                <i class="fas fa-sign-out-alt"></i>
                 <span class="menu-text">Déconnexion</span>
             </button>
         </form>
@@ -311,30 +305,23 @@
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-{{-- Main wrapper --}}
-<div class="main-wrapper" id="mainWrapper">
-
-    {{-- Top navbar --}}
+{{-- Main --}}
+<div class="main-content" id="mainContent">
     <div class="top-navbar">
-        <div class="d-flex align-items-center gap-2">
+        <div class="navbar-left">
             <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">
                 <i class="fas fa-bars"></i>
             </button>
-            <h4 class="page-title">@yield('page-title', 'Espace DRH')</h4>
+            <h4>@yield('page-title', 'Espace DRH')</h4>
         </div>
-        <div class="user-badge">
-            <div class="avatar">
+        <div class="navbar-right">
+            <div class="user-avatar" title="{{ Auth::user()->name ?? 'Utilisateur' }}">
                 {{ strtoupper(substr(Auth::user()->name ?? 'D', 0, 1)) }}
-            </div>
-            <div class="info">
-                <strong>{{ Auth::user()->name ?? 'Utilisateur' }}</strong>
-                <span>DRH</span>
             </div>
         </div>
     </div>
 
-    {{-- Main content --}}
-    <main class="main-content">
+    <div class="content-area">
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="fas fa-check-circle me-2"></i>{{ session('success') }}
@@ -349,14 +336,14 @@
         @endif
 
         @yield('content')
-    </main>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     (function() {
         const sidebar = document.getElementById('sidebar');
-        const wrapper = document.getElementById('mainWrapper');
+        const mainContent = document.getElementById('mainContent');
         const overlay = document.getElementById('sidebarOverlay');
         const toggle = document.getElementById('sidebarToggle');
         const isMobile = () => window.innerWidth <= 992;
@@ -367,10 +354,9 @@
                 overlay.classList.toggle('show');
             } else {
                 sidebar.classList.toggle('collapsed');
-                wrapper.classList.toggle('expanded');
+                mainContent.classList.toggle('expanded');
             }
         });
-
         overlay.addEventListener('click', function() {
             sidebar.classList.remove('show');
             overlay.classList.remove('show');
