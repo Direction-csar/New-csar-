@@ -1,0 +1,8 @@
+# Security Policy — CSAR (RFC 9116)
+# Commissariat à la Sécurité Alimentaire et à la Résilience
+Contact: mailto:security@csar.sn
+Contact: mailto:contact@csar.sn
+Expires: 2027-12-31T23:59:59.000Z
+Preferred-Languages: fr, en
+Canonical: https://csar.sn/.well-known/security.txt
+Policy: https://csar.sn/security-policy

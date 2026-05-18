@@ -702,6 +702,7 @@ class StockController extends Controller
             DB::beginTransaction();
 
             $mouvement = StockMovement::findOrFail($id);
+            $this->authorize('delete', $mouvement);
             $reference = $mouvement->reference;
             
             // Récupérer le stock associé

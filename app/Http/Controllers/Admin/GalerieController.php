@@ -92,37 +92,50 @@ class GalerieController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'required|string',
             'description' => 'nullable|string',
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'images' => 'required|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
         ]);
 
         try {
-            $imageFile = $request->file('image');
-            $imagePath = $imageFile->store('gallery', 'public');
+            $uploadedCount = 0;
+            $imageFiles = $request->file('images');
 
-            \App\Models\GalleryImage::create([
-                'title' => $request->title,
-                'category' => $request->category,
-                'description' => $request->description,
-                'file_path' => $imagePath,
-                'file_name' => $imageFile->getClientOriginalName(),
-                'file_size' => $imageFile->getSize(),
-                'file_type' => $imageFile->getMimeType(),
-                'alt_text' => $request->title,
-                'status' => 'active'
-            ]);
+            foreach ($imageFiles as $imageFile) {
+                $imagePath = $imageFile->store('gallery', 'public');
 
-            Log::info('Image ajoutée à la galerie par Admin', [
+                \App\Models\GalleryImage::create([
+                    'title' => $request->title,
+                    'category' => $request->category,
+                    'description' => $request->description,
+                    'file_path' => $imagePath,
+                    'file_name' => $imageFile->getClientOriginalName(),
+                    'file_size' => $imageFile->getSize(),
+                    'file_type' => $imageFile->getMimeType(),
+                    'alt_text' => $request->title,
+                    'is_featured' => $request->boolean('is_featured'),
+                    'status' => 'active'
+                ]);
+
+                $uploadedCount++;
+            }
+
+            Log::info('Images ajoutées à la galerie par Admin', [
                 'user_id' => $this->getCurrentUserId(),
-                'data' => $request->except(['image'])
+                'count' => $uploadedCount,
+                'data' => $request->except(['images'])
             ]);
 
-            return redirect()->route($this->getRoutePrefix() . '.galerie.index')->with('success', 'Image ajoutée avec succès à la galerie.');
+            $message = $uploadedCount > 1
+                ? $uploadedCount . ' images ajoutées avec succès à la galerie.'
+                : 'Image ajoutée avec succès à la galerie.';
+
+            return redirect()->route($this->getRoutePrefix() . '.galerie.index')->with('success', $message);
         } catch (\Exception $e) {
-            Log::error('Erreur lors de l\'ajout d\'image à la galerie', [
+            Log::error('Erreur lors de l\'ajout d\'images à la galerie', [
                 'error' => $e->getMessage(),
                 'user_id' => $this->getCurrentUserId()
             ]);
-            return redirect()->back()->with('error', 'Erreur lors de l\'ajout de l\'image.');
+            return redirect()->back()->with('error', 'Erreur lors de l\'ajout des images.');
         }
     }
 

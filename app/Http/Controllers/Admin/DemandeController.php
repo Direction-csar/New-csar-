@@ -37,6 +37,7 @@ class DemandeController extends Controller
     {
         try {
             $demande = DemandeUnifiee::findOrFail($id);
+            $this->authorize('view', $demande);
             return view("admin.demandes.show", compact("demande"));
             
         } catch (\Exception $e) {
@@ -48,6 +49,7 @@ class DemandeController extends Controller
     {
         try {
             $demande = DemandeUnifiee::findOrFail($id);
+            $this->authorize('update', $demande);
             
             $request->validate([
                 "statut" => "required|in:en_attente,en_cours,approuvee,rejetee,terminee",

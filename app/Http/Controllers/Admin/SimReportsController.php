@@ -99,15 +99,15 @@ class SimReportsController extends Controller
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string|max:1000',
                 'report_type' => 'required|in:financial,operational,inventory,personnel,general',
-                'document' => 'required|file|mimes:pdf,ppt,pptx,doc,docx,xls,xlsx|max:51200', // 50 MB max
+                'document' => 'required|file|mimes:pdf,ppt,pptx,doc,docx,xls,xlsx|mimetypes:application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet|max:51200', // 50 MB max
                 'is_public' => 'boolean',
-                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240' // 10 MB max pour l'image
+                'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|mimetypes:image/jpeg,image/png,image/gif|max:10240' // 10 MB max pour l'image
             ]);
 
             // Traitement du document principal
             $documentFile = $request->file('document');
             $documentPath = $documentFile->store('sim-reports/documents', 'public');
-            
+
             // Traitement de l'image de couverture si fournie
             $coverImagePath = null;
             if ($request->hasFile('cover_image')) {
@@ -135,6 +135,9 @@ class SimReportsController extends Controller
                     'uploaded_at' => now()->toISOString()
                 ]
             ]);
+
+            // Scanner le document uploadé avec ClamAV
+            \App\Jobs\ScanUploadedFileJob::dispatch('public', $report->document_file, \App\Models\SimReport::class, $report->id);
 
             // Créer une notification
             $this->createNotification(
@@ -360,6 +363,7 @@ class SimReportsController extends Controller
         try {
             // Récupérer le rapport depuis la base de données
             $report = \App\Models\SimReport::findOrFail($id);
+            $this->authorize('view', $report);
             
             // Transformer en tableau pour la vue
             $reportData = [
@@ -465,6 +469,7 @@ class SimReportsController extends Controller
     {
         try {
             $report = \App\Models\SimReport::findOrFail($id);
+            $this->authorize('update', $report);
             return view('admin.sim-reports.edit', compact('report'));
         } catch (\Exception $e) {
             Log::error('Erreur dans SimReportsController@edit', [
@@ -493,6 +498,7 @@ class SimReportsController extends Controller
             ]);
 
             $report = \App\Models\SimReport::findOrFail($id);
+            $this->authorize('update', $report);
             
             $report->update([
                 'title' => $request->title,
@@ -534,6 +540,7 @@ class SimReportsController extends Controller
         try {
             // Récupérer le rapport depuis la base de données
             $report = \App\Models\SimReport::findOrFail($id);
+            $this->authorize('delete', $report);
             $reportName = $report->title;
             
             // Supprimer le fichier physique s'il existe

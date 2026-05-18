@@ -180,7 +180,11 @@ return [
     | Créer un widget gratuit sur https://elfsight.com/linkedin-feed-widget/
     */
     'linkedin' => [
-        'company_url' => env('LINKEDIN_COMPANY_URL', 'https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/posts'),
-        'feed_embed_code' => env('LINKEDIN_FEED_EMBED', '<script src="https://elfsightcdn.com/platform.js" async></script><div class="elfsight-app-b8e60e2e-9795-4930-974e-fc3bb6e9c79b" data-elfsight-app-lazy></div>'),
+        'company_url'      => env('LINKEDIN_COMPANY_URL', 'https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/posts'),
+        'client_id'        => env('LINKEDIN_CLIENT_ID'),
+        'client_secret'    => env('LINKEDIN_CLIENT_SECRET'),
+        'redirect'         => env('LINKEDIN_REDIRECT_URI', env('APP_URL') . '/linkedin/callback'),
+        'org_id'           => env('LINKEDIN_ORG_ID'),
+        'cache_minutes'    => env('LINKEDIN_CACHE_MINUTES', 60),
     ],
 ];

@@ -131,10 +131,42 @@
                 <div class="confirmation-box">
                     <div class="success-icon">🚨</div>
                     <h3 style="margin: 0 0 10px 0; color: #51cf66;">Demande enregistrée</h3>
-                    <p style="margin: 0;">Votre demande d'aide a bien été enregistrée.</p>
+                    <p style="margin: 0;">Votre demande a bien été enregistrée.</p>
                 </div>
-                
-                <p>Nous avons bien reçu votre demande d'aide. Notre équipe spécialisée examinera votre situation et vous contactera pour vous apporter l'assistance nécessaire.</p>
+
+                <p>Bonjour {{ $data['name'] ?? '' }},</p>
+
+                <p>Nous avons bien reçu votre demande. Notre équipe spécialisée examinera votre situation et vous contactera pour vous apporter l'assistance nécessaire.</p>
+
+                @if(isset($data['tracking_code']) && $data['tracking_code'])
+                <div class="confirmation-box" style="background: #ecfdf5; border: 2px solid #10b981; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center;">
+                    <div class="success-icon" style="font-size: 36px; margin-bottom: 10px;">🔍</div>
+                    <h3 style="margin: 0 0 10px 0; color: #059669;">Code de suivi</h3>
+                    <p style="font-size: 28px; font-weight: bold; color: #059669; margin: 0; letter-spacing: 2px; font-family: monospace;">{{ $data['tracking_code'] }}</p>
+                    <p style="margin: 10px 0 0 0; font-size: 14px; color: #6b7280;">Conservez ce code pour suivre l'évolution de votre demande</p>
+                </div>
+                @endif
+
+                <div class="info-box">
+                    <h4 style="margin: 0 0 10px 0; color: #1976d2;">📋 Détails de votre demande</h4>
+                    @if(isset($data['objet']))
+                        <p><strong>Objet :</strong> {{ $data['objet'] }}</p>
+                    @endif
+                    @if(isset($data['type']))
+                        <p><strong>Type :</strong> {{ is_string($data['type']) ? ucfirst(str_replace('_', ' ', $data['type'])) : 'Demande' }}</p>
+                    @endif
+                    @if(isset($data['name']))
+                        <p><strong>Nom :</strong> {{ $data['name'] }}</p>
+                    @endif
+                    <p><strong>Date d'envoi :</strong> {{ now()->format('d/m/Y à H:i') }}</p>
+                </div>
+
+                <div style="background: #fef3c7; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <h3 style="margin: 0 0 10px 0; color: #92400e;">📞 Contact d'urgence</h3>
+                    <p style="margin: 0;">Pour toute question urgente concernant votre demande :</p>
+                    <p style="margin: 8px 0 0 0;"><strong>Email :</strong> contact@csar.sn<br>
+                    <strong>Téléphone :</strong> +221 33 123 45 67</p>
+                </div>
                 
             @else
                 <div class="confirmation-box">

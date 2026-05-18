@@ -8,9 +8,16 @@ Allow: /
 Disallow: /admin/
 Disallow: /drh/
 Disallow: /dg/
+Disallow: /ctc/
 Disallow: /agent/
 Disallow: /entrepot/
 Disallow: /responsable/
+Disallow: /collector/
+Disallow: /supervisor/
+Disallow: /api/
+Disallow: /mobile-api/
+Disallow: /password/reset
+Disallow: /forgot-password
 
 # Bloquer les fichiers sensibles
 Disallow: /storage/

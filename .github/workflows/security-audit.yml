@@ -1,0 +1,47 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main, master, production]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    - cron: '0 6 * * 1'  # Tous les lundis à 06h UTC
+
+jobs:
+  composer-audit:
+    name: Composer Audit (PHP)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+      - name: Install deps
+        run: composer install --no-progress --prefer-dist --no-dev
+      - name: Audit
+        run: composer audit --no-dev --format=plain
+
+  npm-audit:
+    name: NPM Audit (JS)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+
+  secrets-scan:
+    name: Secrets scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

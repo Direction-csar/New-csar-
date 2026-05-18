@@ -64,10 +64,10 @@ class ActualitesController extends Controller
             'content' => 'required|string',
             'status' => 'required|string|in:draft,published,pending',
             'excerpt' => 'nullable|string|max:500',
-            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|mimetypes:image/jpeg,image/png,image/gif,image/webp|max:5120', // 5MB
             'youtube_url' => 'nullable|url',
-            'document_file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx|max:51200', // 50MB
-            'document_cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB
+            'document_file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx|mimetypes:application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation|max:51200', // 50MB
+            'document_cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|mimetypes:image/jpeg,image/png,image/gif,image/webp|max:5120', // 5MB
             'document_title' => 'nullable|string|max:255',
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
@@ -133,6 +133,14 @@ class ActualitesController extends Controller
 
             $news = \App\Models\News::create($data);
 
+            // Scanner les fichiers uploadés avec ClamAV
+            if ($news->featured_image) {
+                \App\Jobs\ScanUploadedFileJob::dispatch('public', $news->featured_image, \App\Models\News::class, $news->id);
+            }
+            if ($news->document_file) {
+                \App\Jobs\ScanUploadedFileJob::dispatch('public', $news->document_file, \App\Models\News::class, $news->id);
+            }
+
             // Déclencher l'événement si l'actualité est publiée
             if ($request->status === 'published') {
                 event(new \App\Events\CommunicationPublished($news));
@@ -162,6 +170,7 @@ class ActualitesController extends Controller
     {
         try {
             $actualite = \App\Models\News::findOrFail($id);
+            $this->authorize('view', $actualite);
             $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
             
             Log::info('Affichage actualité ' . strtoupper($prefix), ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id]);
@@ -179,6 +188,7 @@ class ActualitesController extends Controller
     {
         try {
             $actualite = \App\Models\News::findOrFail($id);
+            $this->authorize('update', $actualite);
             $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
             
             Log::info('Accès au formulaire d\'édition d\'actualité ' . strtoupper($prefix), ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id]);
@@ -207,7 +217,8 @@ class ActualitesController extends Controller
 
         try {
             $actualite = \App\Models\News::findOrFail($id);
-            
+            $this->authorize('update', $actualite);
+
             $data = [
                 'title' => $request->title,
                 'category' => $request->category,
@@ -261,6 +272,7 @@ class ActualitesController extends Controller
     {
         try {
             $actualite = \App\Models\News::findOrFail($id);
+            $this->authorize('delete', $actualite);
             
             // Supprimer les fichiers associés
             if ($actualite->featured_image && \Storage::disk('public')->exists($actualite->featured_image)) {
@@ -332,7 +344,7 @@ class ActualitesController extends Controller
     public function uploadImage(Request $request)
     {
         $request->validate([
-            'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'file' => 'required|image|mimes:jpeg,png,jpg,gif,webp|mimetypes:image/jpeg,image/png,image/gif,image/webp|max:5120',
         ]);
 
         try {

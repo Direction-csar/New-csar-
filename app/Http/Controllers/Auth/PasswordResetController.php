@@ -151,8 +151,8 @@ class PasswordResetController extends Controller
             return back()->withErrors(['email' => 'Le token de réinitialisation est invalide ou a expiré.']);
         }
 
-        // Vérifier que le token n'a pas plus d'1 heure
-        if (now()->diffInMinutes($passwordReset->created_at) > 60) {
+        // Vérifier que le token n'a pas plus de 30 minutes (durcissement sécurité étatique)
+        if (now()->diffInMinutes($passwordReset->created_at) > 30) {
             DB::table('password_reset_tokens')->where('email', $email)->delete();
             return back()->withErrors(['email' => 'Le token de réinitialisation a expiré.']);
         }

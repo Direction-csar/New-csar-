@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -22,5 +23,10 @@ class AppServiceProvider extends ServiceProvider
     {
         // Utiliser la pagination CSAR personnalisée par défaut
         Paginator::defaultView('vendor.pagination.csar');
+
+        // Forcer HTTPS en production (corrige mixed-content TinyMCE/upload)
+        if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
     }
 }

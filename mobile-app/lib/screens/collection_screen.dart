@@ -359,7 +359,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
     required void Function(dynamic) onChanged,
     String? Function(dynamic)? validator,
   }) => DropdownButtonFormField<dynamic>(
-    value: value,
+    initialValue: value,
     isExpanded: true,
     decoration: InputDecoration(
       labelText: label,

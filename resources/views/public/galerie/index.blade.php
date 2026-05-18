@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galerie CSAR - Comité de Secours et d'Assistance aux Réfugiés</title>
-    <meta name="description" content="Découvrez la galerie d'images du CSAR. Photos des missions, activités, infrastructures et équipes du Comité de Secours et d'Assistance aux Réfugiés.">
+    <title>Galerie CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience</title>
+    <meta name="description" content="Découvrez la galerie d'images du CSAR. Photos des missions, activités, infrastructures et équipes du Commissariat à la Sécurité Alimentaire et à la Résilience.">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -300,7 +300,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-lg-6">
-                    <h5>CSAR - Comité de Secours et d'Assistance aux Réfugiés</h5>
+                    <h5>CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience</h5>
                     <p>Découvrez nos activités et missions à travers notre galerie d'images.</p>
                 </div>
                 <div class="col-lg-6 text-end">
