@@ -1924,6 +1924,12 @@ document.addEventListener('keydown', function(e) {
                 </div>
 
                 <div id="weather-alerts" style="margin-top: 1.5rem;"></div>
+
+                <!-- Elfsight Weather Widget -->
+                <div style="margin-top: 1.5rem;">
+                    <script src="https://elfsightcdn.com/platform.js" async></script>
+                    <div class="elfsight-app-094927c8-f98d-4e33-97ce-817260fe7652"></div>
+                </div>
             </div>
 
             <div data-aos="fade-left">
@@ -3311,7 +3317,7 @@ setTimeout(() => {
                 <!-- LinkedIn Widget -->
                 <div style="position: relative; z-index: 1;">
                     <script src="https://elfsightcdn.com/platform.js" async></script>
-                    <div class="elfsight-app-b8e60e2e-9795-4930-974e-fc3bb6e9c79b" data-elfsight-app-lazy></div>
+                    <div class="elfsight-app-be381de7-81d6-4865-8ce6-34b0a9e2cf55"></div>
                 </div>
             </div>
         </div>
@@ -4209,17 +4215,55 @@ setTimeout(() => {
         }).join('');
     }
 
+    // Mapping WMO → description FR + icône OpenWeather
+    function wmoMap(code, isDay) {
+        var map = {
+            0: ['Ciel dégagé', '01'], 1: ['Principalement dégagé', '02'],
+            2: ['Partiellement nuageux', '03'], 3: ['Couvert', '04'],
+            45: ['Brouillard', '50'], 48: ['Brouillard givrant', '50'],
+            51: ['Bruine légère', '09'], 53: ['Bruine modérée', '09'], 55: ['Bruine dense', '09'],
+            61: ['Pluie légère', '10'], 63: ['Pluie modérée', '10'], 65: ['Pluie forte', '10'],
+            71: ['Neige légère', '13'], 73: ['Neige modérée', '13'], 75: ['Neige forte', '13'],
+            80: ['Averses légères', '09'], 81: ['Averses modérées', '09'], 82: ['Averses violentes', '09'],
+            95: ['Orage', '11'], 96: ['Orage avec grêle', '11'], 99: ['Orage avec grêle forte', '11']
+        };
+        var info = map[code] || ['Conditions inconnues', '03'];
+        var suffix = isDay ? 'd' : 'n';
+        if (['01','02','03','04'].indexOf(info[1]) !== -1) suffix = 'd';
+        return { description: info[0], icon: info[1] + suffix };
+    }
+
     function fetchForecast(lat, lon) {
-        var url = '/api/weather/forecast?lat=' + lat + '&lon=' + lon;
+        var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon
+            + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max'
+            + '&timezone=auto&wind_speed_unit=kmh&forecast_days=7';
         fetch(url)
             .then(function(r) { return r.ok ? r.json() : null; })
             .then(function(data) {
-                if (data && data.forecast) {
-                    renderForecast(data.forecast);
-                } else {
+                if (!data || !data.daily) {
                     var fc = document.getElementById('weather-forecast');
                     if (fc) fc.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:0.8rem;text-align:center;padding:8px;">Prévisions indisponibles</div>';
+                    return;
                 }
+                var days = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+                var today = new Date().toISOString().split('T')[0];
+                var forecast = [];
+                for (var i = 0; i < data.daily.time.length; i++) {
+                    if (data.daily.time[i] === today) continue;
+                    var wmo = wmoMap(data.daily.weather_code[i], 1);
+                    var d = new Date(data.daily.time[i]);
+                    forecast.push({
+                        date: data.daily.time[i],
+                        day_label: days[d.getDay()],
+                        icon: wmo.icon,
+                        description: wmo.description,
+                        temp_max: Math.round(data.daily.temperature_2m_max[i]),
+                        temp_min: Math.round(data.daily.temperature_2m_min[i]),
+                        rain_prob: data.daily.precipitation_probability_max[i] || 0,
+                        wind: Math.round(data.daily.wind_speed_10m_max[i] || 0)
+                    });
+                }
+                renderForecast(forecast);
             })
             .catch(function() {
                 var fc = document.getElementById('weather-forecast');
@@ -4228,20 +4272,35 @@ setTimeout(() => {
     }
 
     function fetchWeather(lat, lon) {
-        var url = '/api/weather?lat=' + lat + '&lon=' + lon;
+        var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon
+            + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,pressure_msl,wind_speed_10m'
+            + '&timezone=auto&wind_speed_unit=kmh';
         fetch(url)
             .then(function(r) {
                 if (!r.ok) throw new Error('HTTP ' + r.status);
                 return r.json();
             })
             .then(function(data) {
-                if (data && data.error) {
-                    console.warn('Météo:', data.error);
+                if (!data || !data.current) {
                     showError('Service indisponible');
-                } else {
-                    renderWeather(data);
-                    fetchForecast(lat, lon);
+                    return;
                 }
+                var cur = data.current;
+                var wmo = wmoMap(cur.weather_code, cur.is_day);
+                renderWeather({
+                    city: 'Dakar',
+                    country: 'SN',
+                    temp: Math.round(cur.temperature_2m),
+                    feels_like: Math.round(cur.apparent_temperature),
+                    humidity: cur.relative_humidity_2m,
+                    wind: Math.round(cur.wind_speed_10m),
+                    pressure: Math.round(cur.pressure_msl),
+                    visibility: null,
+                    description: wmo.description,
+                    icon: wmo.icon,
+                    updated_at: new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})
+                });
+                fetchForecast(lat, lon);
             })
             .catch(function(err) {
                 console.warn('Erreur météo:', err);
