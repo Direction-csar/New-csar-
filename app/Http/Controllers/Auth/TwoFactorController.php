@@ -11,6 +11,7 @@ use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
@@ -41,6 +42,21 @@ class TwoFactorController extends Controller
     protected function guardRoute(string $guard, string $key): string
     {
         return self::GUARD_ROUTES[$guard][$key] ?? self::GUARD_ROUTES['admin'][$key];
+    }
+
+    protected function currentGuard(): string
+    {
+        foreach (array_keys(self::GUARD_ROUTES) as $guard) {
+            if (Auth::guard($guard)->check()) {
+                return $guard;
+            }
+        }
+        return 'admin';
+    }
+
+    protected function guardPrefix(string $guard): string
+    {
+        return $guard === 'admin' ? 'admin.2fa' : $guard . '.2fa';
     }
 
     /* ------------------------------------------------------------------ */
