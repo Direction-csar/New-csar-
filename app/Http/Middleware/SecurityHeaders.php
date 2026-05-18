@@ -81,7 +81,7 @@ class SecurityHeaders
         $isProd = app()->environment('production');
 
         $scriptSrc = $isProd
-            ? "'self' 'nonce-{$nonce}' 'unsafe-inline' 'strict-dynamic' " . implode(' ', $cdnScripts)
+            ? "'self' 'nonce-{$nonce}' 'unsafe-inline' " . implode(' ', $cdnScripts)
             : "'self' 'unsafe-inline' 'unsafe-eval' " . implode(' ', $cdnScripts);
 
         $styleSrc = "'self' 'unsafe-inline' " . implode(' ', $cdnStyles);
