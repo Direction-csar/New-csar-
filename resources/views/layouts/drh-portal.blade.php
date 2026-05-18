@@ -78,9 +78,37 @@
         .btn-logout:hover { background: rgba(255,255,255,0.25); color: white; }
         .main-content { padding: 24px; max-width: 1400px; margin: 0 auto; }
         .text-xs { font-size: 0.72rem; }
+        .drh-nav {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 24px;
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        .drh-nav a {
+            color: #475569;
+            text-decoration: none;
+            padding: 14px 18px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .drh-nav a:hover { color: #047857; background: #f0fdf4; }
+        .drh-nav a.active {
+            color: #047857;
+            border-bottom-color: #047857;
+            background: #f0fdf4;
+            font-weight: 600;
+        }
         @media (max-width: 576px) {
             .drh-topbar .user-info { display: none; }
             .main-content { padding: 16px; }
+            .drh-nav { padding: 0 8px; }
+            .drh-nav a { padding: 12px 12px; font-size: 0.82rem; }
         }
     </style>
     @yield('styles')
@@ -90,16 +118,16 @@
 {{-- Barre de navigation DRH --}}
 <div class="drh-topbar">
     <div class="brand">
-        <img src="{{ asset('images/csar-logo-white.png') }}" alt="CSAR">
+        <img src="{{ asset('images/csar-logo-white.png') }}" alt="CSAR" style="height: 40px;">
         <div class="brand-text">
-            <strong>Direction des Ressources Humaines</strong>
-            <span>Avances Tabaski 2026 — CSAR</span>
+            <strong>DRH</strong>
+            <span>Direction des Ressources Humaines</span>
         </div>
     </div>
     <div class="right-actions">
         <div class="user-info">
-            <strong>{{ Auth::user()->name }}</strong>
-            <span>DRH — CSAR</span>
+            <strong>{{ Auth::user()->name ?? 'Utilisateur' }}</strong>
+            <span>DRH</span>
         </div>
         <form method="POST" action="{{ route('drh.logout') }}" style="margin:0;">
             @csrf
@@ -109,6 +137,25 @@
         </form>
     </div>
 </div>
+
+{{-- Menu de navigation DRH --}}
+@php
+    $currentRoute = request()->route()?->getName() ?? '';
+@endphp
+<nav class="drh-nav">
+    <a href="{{ route('admin.drh.dashboard') }}" class="{{ str_contains($currentRoute, 'dashboard') ? 'active' : '' }}">
+        <i class="fas fa-chart-line me-1"></i> Tableau de Bord RH
+    </a>
+    <a href="{{ route('admin.drh.personnel.index') }}" class="{{ str_contains($currentRoute, 'personnel') ? 'active' : '' }}">
+        <i class="fas fa-users me-1"></i> Personnel
+    </a>
+    <a href="{{ route('admin.drh.tabaski.index') }}" class="{{ str_contains($currentRoute, 'tabaski') ? 'active' : '' }}">
+        <i class="fas fa-coins me-1"></i> Avances Tabaski
+    </a>
+    <a href="{{ route('admin.drh.health-survey.index') }}" class="{{ str_contains($currentRoute, 'health-survey') ? 'active' : '' }}">
+        <i class="fas fa-poll-h me-1"></i> Enquête Assurance Maladie
+    </a>
+</nav>
 
 {{-- Contenu principal --}}
 <div class="main-content">

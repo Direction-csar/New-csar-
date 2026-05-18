@@ -34,14 +34,46 @@
 @section('content')
 <div class="hr-dashboard">
 
-    {{-- Titre --}}
-    <div class="hr-title-bar">
-        <div class="d-flex align-items-center gap-3">
-            <i class="fas fa-home text-success" style="font-size: 1.8rem;"></i>
-            <h1>Tableau de Bord Ressources Humaines</h1>
+    {{-- Accès rapide --}}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <a href="{{ route('admin.drh.personnel.index') }}" class="text-decoration-none">
+                <div class="chart-card d-flex align-items-center gap-3" style="border-left: 4px solid #047857; transition: transform 0.2s;">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; background: linear-gradient(135deg, #10b981, #047857); color: white; font-size: 1.4rem; flex-shrink: 0;">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark">Personnel</div>
+                        <div class="text-muted small">Gérer les agents</div>
+                    </div>
+                </div>
+            </a>
         </div>
-        <div class="text-muted small">
-            <i class="fas fa-calendar-alt me-1"></i> {{ now()->format('d/m/Y') }}
+        <div class="col-md-4">
+            <a href="{{ route('admin.drh.tabaski.index') }}" class="text-decoration-none">
+                <div class="chart-card d-flex align-items-center gap-3" style="border-left: 4px solid #f59e0b; transition: transform 0.2s;">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; background: linear-gradient(135deg, #fbbf24, #f59e0b); color: white; font-size: 1.4rem; flex-shrink: 0;">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark">Avances Tabaski</div>
+                        <div class="text-muted small">Gestion des avances</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ route('admin.drh.health-survey.index') }}" class="text-decoration-none">
+                <div class="chart-card d-flex align-items-center gap-3" style="border-left: 4px solid #0d6efd; transition: transform 0.2s;">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; background: linear-gradient(135deg, #3b82f6, #0d6efd); color: white; font-size: 1.4rem; flex-shrink: 0;">
+                        <i class="fas fa-poll-h"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark">Enquête Assurance Maladie</div>
+                        <div class="text-muted small">Suivi des réponses</div>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 

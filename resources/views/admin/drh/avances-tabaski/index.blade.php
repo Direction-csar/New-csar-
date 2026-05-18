@@ -1,7 +1,7 @@
 @extends(Auth::user()->role === 'admin' ? 'layouts.admin' : 'layouts.drh-portal')
 
-@section('title', 'Avances Tabaski 2026')
-@section('page-title', '🕌 Avances Tabaski 2026')
+@section('title', 'Avances Tabaski')
+@section('page-title', '🕌 Avances Tabaski')
 
 @section('content')
 <div class="container-fluid px-4 py-4">
