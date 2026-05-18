@@ -56,11 +56,14 @@ class SecurityHeaders
             'https://cdn.tiny.cloud',
             'https://www.googletagmanager.com',
             'https://platform.linkedin.com',
+            'https://unpkg.com',
+            'https://elfsightcdn.com',
         ];
         $cdnStyles = [
             'https://cdn.jsdelivr.net',
             'https://cdnjs.cloudflare.com',
             'https://fonts.googleapis.com',
+            'https://unpkg.com',
         ];
         $cdnFonts = [
             'https://fonts.gstatic.com',
