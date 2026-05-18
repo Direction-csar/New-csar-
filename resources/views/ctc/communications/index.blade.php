@@ -47,12 +47,6 @@
                                 <span>Galerie</span>
                             </a>
                         </div>
-                        <div class="col-md-4 col-lg-2">
-                            <a href="{{ route('ctc.messages.index') }}" class="btn btn-outline-warning w-100 d-flex flex-column align-items-center py-3">
-                                <i class="fas fa-envelope fa-2x mb-2"></i>
-                                <span>Messages</span>
-                            </a>
-                        </div>
                     </div>
                 </div>
             </div>

@@ -808,12 +808,6 @@ Route::prefix('ctc')->name('ctc.')->group(function () {
         Route::get('/newsletter/stats', [\App\Http\Controllers\Admin\NewsletterController::class, 'getStats'])->name('newsletter.stats');
         Route::get('/newsletter/analytics', [\App\Http\Controllers\Admin\NewsletterController::class, 'getAnalytics'])->name('newsletter.analytics');
 
-        Route::get('/messages', [\App\Http\Controllers\Admin\MessageController::class, 'index'])->name('messages.index');
-        Route::get('/messages/{id}', [\App\Http\Controllers\Admin\MessageController::class, 'show'])->name('messages.show');
-        Route::post('/messages/{id}/mark-read', [\App\Http\Controllers\Admin\MessageController::class, 'markAsRead'])->name('messages.mark-read');
-        Route::post('/messages/mark-all-read', [\App\Http\Controllers\Admin\MessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
-        Route::post('/messages/{id}/reply', [\App\Http\Controllers\Admin\MessageController::class, 'reply'])->name('messages.reply');
-
         Route::get('/sim-reports', [\App\Http\Controllers\Admin\SimReportsController::class, 'index'])->name('sim-reports.index');
         Route::get('/sim-reports/create', [\App\Http\Controllers\Admin\SimReportsController::class, 'create'])->name('sim-reports.create');
         Route::post('/sim-reports', [\App\Http\Controllers\Admin\SimReportsController::class, 'store'])->name('sim-reports.store');
@@ -824,8 +818,6 @@ Route::prefix('ctc')->name('ctc.')->group(function () {
         Route::post('/sim-reports/upload', [\App\Http\Controllers\Admin\SimReportsController::class, 'uploadDocument'])->name('sim-reports.upload');
         Route::post('/sim-reports/generate', [\App\Http\Controllers\Admin\SimReportsController::class, 'generateReport'])->name('sim-reports.generate');
         Route::get('/sim-reports/{id}/download', [\App\Http\Controllers\Admin\SimReportsController::class, 'download'])->name('sim-reports.download');
-
-        Route::get('/notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('notifications.index');
     });
 });
 

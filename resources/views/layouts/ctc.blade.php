@@ -129,10 +129,6 @@
                 <i class="fas fa-images"></i>
                 <span>Galerie</span>
             </a>
-            <a href="{{ route('ctc.messages.index') }}" class="menu-link {{ request()->routeIs('ctc.messages.*') ? 'active' : '' }}">
-                <i class="fas fa-envelope"></i>
-                <span>Messages</span>
-            </a>
             <div class="mt-3 pt-3 border-top border-white border-opacity-25">
                 <a href="{{ url('/') }}" class="menu-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i>
