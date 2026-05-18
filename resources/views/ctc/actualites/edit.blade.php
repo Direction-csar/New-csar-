@@ -28,7 +28,7 @@
                     <h6 class="m-0 font-weight-bold">Informations de l'actualité</h6>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('ctc.actualites.update', $actualite->id) }}" method="POST">
+                    <form action="{{ route('ctc.actualites.update', $actualite->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         
@@ -91,6 +91,22 @@
                             <textarea class="form-control @error('content') is-invalid @enderror" 
                                       id="content" name="content" rows="15" required>{{ old('content', $actualite->content ?? $actualite->contenu) }}</textarea>
                             @error('content')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="cover_image" class="form-label">Image de couverture</label>
+                            @if($actualite->cover_image || $actualite->featured_image)
+                                <div class="mb-2">
+                                    <img src="{{ asset('storage/' . ($actualite->cover_image ?? $actualite->featured_image)) }}" alt="Image actuelle" style="max-width:240px;border-radius:8px;border:1px solid #e5e7eb;">
+                                    <p class="text-muted small mb-1 mt-1">Image actuelle — choisissez un fichier pour la remplacer</p>
+                                </div>
+                            @endif
+                            <input type="file" class="form-control @error('cover_image') is-invalid @enderror"
+                                   id="cover_image" name="cover_image" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp">
+                            <small class="text-muted">JPG, PNG, GIF ou WEBP — max 2 Mo</small>
+                            @error('cover_image')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
