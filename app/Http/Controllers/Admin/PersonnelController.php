@@ -32,7 +32,8 @@ class PersonnelController extends Controller
             ->pluck('count', 'direction_service')
             ->toArray();
 
-        return view('admin.personnel.index', compact(
+        $view = request()->routeIs('admin.drh.*') ? 'admin.drh.personnel.index' : 'admin.personnel.index';
+        return view($view, compact(
             'personnel',
             'totalPersonnel',
             'validatedCount',
@@ -49,7 +50,10 @@ class PersonnelController extends Controller
      */
     public function create()
     {
-        return view('admin.personnel.create');
+        $isDrh = request()->routeIs('admin.drh.*');
+        $view = $isDrh ? 'admin.drh.personnel.create' : 'admin.personnel.create';
+        $routePrefix = $isDrh ? 'admin.drh.personnel' : 'admin.personnel';
+        return view($view, compact('routePrefix'));
     }
 
     /**
@@ -142,7 +146,8 @@ class PersonnelController extends Controller
 
         Personnel::create($validatedData);
 
-        return redirect()->route('admin.personnel.index')->with('success', 'Personnel ajouté avec succès.');
+        $redirectRoute = request()->routeIs('admin.drh.*') ? 'admin.drh.personnel.index' : 'admin.personnel.index';
+        return redirect()->route($redirectRoute)->with('success', 'Personnel ajouté avec succès.');
     }
 
     /**
@@ -150,7 +155,10 @@ class PersonnelController extends Controller
      */
     public function show(Personnel $personnel)
     {
-        return view('admin.personnel.show', compact('personnel'));
+        $isDrh = request()->routeIs('admin.drh.*');
+        $view = $isDrh ? 'admin.drh.personnel.show' : 'admin.personnel.show';
+        $routePrefix = $isDrh ? 'admin.drh.personnel' : 'admin.personnel';
+        return view($view, compact('personnel', 'routePrefix'));
     }
 
     /**
@@ -159,7 +167,10 @@ class PersonnelController extends Controller
     public function edit($id)
     {
         $personnel = Personnel::findOrFail($id);
-        return view('admin.personnel.edit', compact('personnel'));
+        $isDrh = request()->routeIs('admin.drh.*');
+        $view = $isDrh ? 'admin.drh.personnel.edit' : 'admin.personnel.edit';
+        $routePrefix = $isDrh ? 'admin.drh.personnel' : 'admin.personnel';
+        return view($view, compact('personnel', 'routePrefix'));
     }
 
     /**
@@ -234,7 +245,8 @@ class PersonnelController extends Controller
 
         $personnel->update($validatedData);
 
-        return redirect()->route('admin.personnel.index')->with('success', 'Personnel mis à jour avec succès.');
+        $redirectRoute = request()->routeIs('admin.drh.*') ? 'admin.drh.personnel.index' : 'admin.personnel.index';
+        return redirect()->route($redirectRoute)->with('success', 'Personnel mis à jour avec succès.');
     }
 
     /**
@@ -251,7 +263,8 @@ class PersonnelController extends Controller
 
         $personnel->delete();
 
-        return redirect()->route('admin.personnel.index')->with('success', 'Personnel supprimé avec succès.');
+        $redirectRoute = request()->routeIs('admin.drh.*') ? 'admin.drh.personnel.index' : 'admin.personnel.index';
+        return redirect()->route($redirectRoute)->with('success', 'Personnel supprimé avec succès.');
     }
 
     /**
