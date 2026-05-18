@@ -55,6 +55,7 @@ class SecurityHeaders
             'https://cdnjs.cloudflare.com',
             'https://cdn.tiny.cloud',
             'https://www.googletagmanager.com',
+            'https://platform.linkedin.com',
         ];
         $cdnStyles = [
             'https://cdn.jsdelivr.net',
@@ -69,11 +70,14 @@ class SecurityHeaders
             'https://www.youtube.com',
             'https://www.youtube-nocookie.com',
             'https://player.vimeo.com',
+            'https://www.linkedin.com',
         ];
         $connect = [
             'https://api.openweathermap.org',
             'https://nominatim.openstreetmap.org',
             'https://*.tile.openstreetmap.org',
+            'https://www.linkedin.com',
+            'https://platform.linkedin.com',
         ];
 
         // En production : CSP stricte (nonce obligatoire pour les scripts inline).
