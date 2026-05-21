@@ -98,7 +98,7 @@ class SimReportsController extends Controller
             $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string|max:1000',
-                'report_type' => 'required|in:financial,operational,inventory,personnel,general',
+                'report_type' => 'required|string|max:100',
                 'document' => 'required|file|mimes:pdf,ppt,pptx,doc,docx,xls,xlsx|mimetypes:application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet|max:51200', // 50 MB max
                 'is_public' => 'boolean',
                 'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|mimetypes:image/jpeg,image/png,image/gif|max:10240' // 10 MB max pour l'image
@@ -189,7 +189,7 @@ class SimReportsController extends Controller
         try {
             $request->validate([
                 'report_name' => 'required|string|max:255',
-                'report_type' => 'required|in:financial,operational,inventory,personnel',
+                'report_type' => 'required|string|max:100',
                 'report_description' => 'nullable|string|max:1000',
                 'date_from' => 'required|date',
                 'date_to' => 'required|date|after_or_equal:date_from',
@@ -492,7 +492,7 @@ class SimReportsController extends Controller
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string|max:1000',
                 'summary' => 'nullable|string|max:2000',
-                'report_type' => 'required|in:financial,operational,inventory,personnel,general',
+                'report_type' => 'required|string|max:100',
                 'is_public' => 'boolean',
                 'status' => 'required|in:draft,generating,completed,published'
             ]);

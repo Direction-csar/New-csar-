@@ -274,14 +274,7 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label for="upload_report_type" class="form-label">Type <span class="text-danger">*</span></label>
-                                <select class="form-select" id="upload_report_type" name="report_type" required>
-                                    <option value="">Sélectionner un type</option>
-                                    <option value="financial">Financier</option>
-                                    <option value="operational">Opérationnel</option>
-                                    <option value="inventory">Inventaire</option>
-                                    <option value="personnel">Personnel</option>
-                                    <option value="general">Général</option>
-                                </select>
+                                <input type="text" class="form-control" id="upload_report_type" name="report_type" required placeholder="Ex: Financier, Opérationnel, Inventaire, Personnel, Général, Rapport...">
                             </div>
                         </div>
                     </div>
@@ -357,13 +350,7 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label for="report_type" class="form-label">Type <span class="text-danger">*</span></label>
-                                <select class="form-select" id="report_type" name="report_type" required>
-                                    <option value="">Sélectionner un type</option>
-                                    <option value="financial">Financier</option>
-                                    <option value="operational">Opérationnel</option>
-                                    <option value="inventory">Inventaire</option>
-                                    <option value="personnel">Personnel</option>
-                                </select>
+                                <input type="text" class="form-control" id="report_type" name="report_type" required placeholder="Ex: Financier, Opérationnel, Inventaire, Personnel, Rapport...">
                             </div>
                         </div>
                     </div>
