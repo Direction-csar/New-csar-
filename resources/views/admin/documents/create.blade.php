@@ -29,20 +29,14 @@
                             <textarea name="description" class="form-control" rows="4">{{ old('description') }}</textarea>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Fichier * (PDF, DOC, XLS, max 20Mo)</label>
+                            <label class="form-label">Fichier * (PDF, DOC, XLS, max 50Mo)</label>
                             <input type="file" name="file" class="form-control" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" required>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label class="form-label">Type *</label>
-                            <select name="type" class="form-control" required>
-                                <option value="recrutement" {{ old('type') == 'recrutement' ? 'selected' : '' }}>Recrutement</option>
-                                <option value="rapport" {{ old('type') == 'rapport' ? 'selected' : '' }}>Rapport</option>
-                                <option value="communique" {{ old('type') == 'communique' ? 'selected' : '' }}>Communiqué</option>
-                                <option value="appel_offre" {{ old('type') == 'appel_offre' ? 'selected' : '' }}>Appel d'offres</option>
-                                <option value="autre" {{ old('type') == 'autre' ? 'selected' : '' }}>Autre</option>
-                            </select>
+                            <input type="text" name="type" class="form-control" value="{{ old('type', 'Général') }}" required placeholder="Ex: Rapport, Communiqué, Recrutement, Appel d'offres, etc.">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Date de publication</label>

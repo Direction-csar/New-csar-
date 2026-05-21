@@ -12,8 +12,50 @@
     </div>
 </section>
 
+<!-- Documents publiés -->
+@if($documents->count() > 0)
 <section class="py-5 bg-light">
     <div class="container">
+        <h2 class="h3 mb-4">Documents publiés</h2>
+        <div class="row g-4">
+            @foreach($documents as $document)
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 hover-shadow">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="me-3">
+                                <i class="fas fa-file-alt fa-3x text-primary"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title">{{ $document->title }}</h5>
+                                <span class="badge bg-secondary">{{ $document->type }}</span>
+                            </div>
+                        </div>
+                        @if($document->description)
+                        <p class="card-text text-muted small">{{ Str::limit($document->description, 100) }}</p>
+                        @endif
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                {{ $document->published_at ? $document->published_at->format('d/m/Y') : $document->created_at->format('d/m/Y') }}
+                            </small>
+                            <a href="{{ $document->file_url }}" target="_blank" class="btn btn-sm btn-primary">
+                                <i class="fas fa-download me-1"></i> Télécharger
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+<!-- Liens vers autres ressources -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="h3 mb-4">Autres ressources</h2>
         <div class="row g-4">
             <div class="col-md-6 col-lg-3">
                 <a href="{{ route('reports', ['locale' => app()->getLocale()]) }}" class="text-decoration-none">

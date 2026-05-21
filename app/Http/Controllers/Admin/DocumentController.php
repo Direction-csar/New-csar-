@@ -42,8 +42,8 @@ class DocumentController extends Controller
         $request->validate([
             'title'        => 'required|string|max:255',
             'description'  => 'nullable|string',
-            'type'         => 'required|in:recrutement,rapport,communique,appel_offre,autre',
-            'file'         => 'required|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:20480',
+            'type'         => 'required|string|max:100',
+            'file'         => 'required|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:51200',
             'published_at' => 'nullable|date',
             'expires_at'   => 'nullable|date',
             'is_published' => 'boolean',
@@ -85,8 +85,8 @@ class DocumentController extends Controller
         $request->validate([
             'title'        => 'required|string|max:255',
             'description'  => 'nullable|string',
-            'type'         => 'required|in:recrutement,rapport,communique,appel_offre,autre',
-            'file'         => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:20480',
+            'type'         => 'required|string|max:100',
+            'file'         => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx|max:51200',
             'published_at' => 'nullable|date',
             'expires_at'   => 'nullable|date',
             'is_published' => 'boolean',

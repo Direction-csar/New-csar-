@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\PublicDocument;
 
 /**
  * Espace documentaire : rapports, données, cartes, FAQ.
@@ -12,6 +13,11 @@ class RessourcesController extends Controller
 {
     public function index()
     {
-        return view('public.ressources.index');
+        $documents = PublicDocument::published()
+            ->notExpired()
+            ->orderBy('published_at', 'desc')
+            ->get();
+
+        return view('public.ressources.index', compact('documents'));
     }
 }

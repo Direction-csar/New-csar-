@@ -46,13 +46,7 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label class="form-label">Type *</label>
-                            <select name="type" class="form-control" required>
-                                <option value="recrutement" {{ old('type', $document->type) == 'recrutement' ? 'selected' : '' }}>Recrutement</option>
-                                <option value="rapport" {{ old('type', $document->type) == 'rapport' ? 'selected' : '' }}>Rapport</option>
-                                <option value="communique" {{ old('type', $document->type) == 'communique' ? 'selected' : '' }}>Communiqué</option>
-                                <option value="appel_offre" {{ old('type', $document->type) == 'appel_offre' ? 'selected' : '' }}>Appel d'offres</option>
-                                <option value="autre" {{ old('type', $document->type) == 'autre' ? 'selected' : '' }}>Autre</option>
-                            </select>
+                            <input type="text" name="type" class="form-control" value="{{ old('type', $document->type) }}" required placeholder="Ex: Rapport, Communiqué, Recrutement, Appel d'offres, etc.">
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Date de publication</label>
