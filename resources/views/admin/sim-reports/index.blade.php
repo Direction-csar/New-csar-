@@ -16,7 +16,7 @@
                 </div>
                 <div>
                     <button class="btn btn-success-modern btn-modern" data-bs-toggle="modal" data-bs-target="#uploadDocumentModal">
-                        <i class="fas fa-upload me-2"></i>Uploader Document
+                        <i class="fas fa-upload me-2"></i>Publier Document
                     </button>
                     <button class="btn btn-primary-modern btn-modern" data-bs-toggle="modal" data-bs-target="#generateReportModal">
                         <i class="fas fa-plus me-2"></i>Générer Rapport
@@ -252,7 +252,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="uploadDocumentModalLabel">
-                    <i class="fas fa-upload me-2"></i>Uploader un Document
+                    <i class="fas fa-upload me-2"></i>Publier un Document
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
