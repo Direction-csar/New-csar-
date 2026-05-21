@@ -52,6 +52,51 @@
 </section>
 @endif
 
+<!-- Rapports SIM publiés -->
+@if(isset($simReports) && $simReports->count() > 0)
+<section class="py-5 bg-white">
+    <div class="container">
+        <h2 class="h3 mb-4">Rapports SIM</h2>
+        <div class="row g-4">
+            @foreach($simReports as $report)
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 hover-shadow">
+                    @if($report->cover_image)
+                    <img src="{{ $report->cover_image_url }}" class="card-img-top" style="height: 150px; object-fit: cover;" alt="{{ $report->title }}">
+                    @endif
+                    <div class="card-body">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="me-3">
+                                <i class="fas fa-chart-line fa-3x text-success"></i>
+                            </div>
+                            <div>
+                                <h5 class="card-title">{{ $report->title }}</h5>
+                                <span class="badge bg-success">{{ $report->report_type_label }}</span>
+                            </div>
+                        </div>
+                        @if($report->description)
+                        <p class="card-text text-muted small">{{ Str::limit($report->description, 100) }}</p>
+                        @endif
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i>
+                                {{ $report->published_at ? $report->published_at->format('d/m/Y') : $report->created_at->format('d/m/Y') }}
+                            </small>
+                            @if($report->public_download_url)
+                            <a href="{{ $report->public_download_url }}" target="_blank" class="btn btn-sm btn-success">
+                                <i class="fas fa-download me-1"></i> Télécharger
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
 <!-- Liens vers autres ressources -->
 <section class="py-5">
     <div class="container">

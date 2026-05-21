@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\PublicDocument;
+use App\Models\SimReport;
 
 /**
  * Espace documentaire : rapports, données, cartes, FAQ.
@@ -18,6 +19,10 @@ class RessourcesController extends Controller
             ->orderBy('published_at', 'desc')
             ->get();
 
-        return view('public.ressources.index', compact('documents'));
+        $simReports = SimReport::public()
+            ->orderBy('published_at', 'desc')
+            ->get();
+
+        return view('public.ressources.index', compact('documents', 'simReports'));
     }
 }
