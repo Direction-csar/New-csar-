@@ -14,6 +14,11 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         require_once app_path('Helpers/helpers.php');
+
+        // Définir le répertoire temporaire pour contourner le problème PHP-FPM
+        putenv('TMPDIR=' . storage_path('tmp'));
+        putenv('TMP=' . storage_path('tmp'));
+        putenv('TEMP=' . storage_path('tmp'));
     }
 
     /**
