@@ -49,6 +49,9 @@ class SimReportPolicy
 
     public function delete(User $user, SimReport $report): bool
     {
+        if ($user->isAdmin()) {
+            return true;
+        }
         return $report->created_by === $user->id;
     }
 
