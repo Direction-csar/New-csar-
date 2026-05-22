@@ -98,6 +98,7 @@ class SimReportsController extends Controller
             $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string|max:1000',
+                'category' => 'required|in:rapport,bulletin',
                 'report_type' => 'required|string|max:100',
                 'document' => 'required|file|mimes:pdf,ppt,pptx,doc,docx,xls,xlsx|mimetypes:application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet|max:51200', // 50 MB max
                 'is_public' => 'boolean',
@@ -120,6 +121,7 @@ class SimReportsController extends Controller
                 'title' => $request->title,
                 'description' => $request->description,
                 'report_type' => $request->report_type,
+                'category' => $request->category,
                 'status' => 'completed',
                 'document_file' => $documentPath,
                 'cover_image' => $coverImagePath,

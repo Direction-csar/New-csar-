@@ -273,10 +273,19 @@
                         </div>
                         <div class="col-md-6">
                             <div class="form-group mb-3">
-                                <label for="upload_report_type" class="form-label">Type <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="upload_report_type" name="report_type" required placeholder="Ex: Financier, Opérationnel, Inventaire, Personnel, Général, Rapport...">
+                                <label for="upload_category" class="form-label">Catégorie <span class="text-danger">*</span></label>
+                                <select class="form-control" id="upload_category" name="category" required>
+                                    <option value="">Sélectionner une catégorie</option>
+                                    <option value="rapport">Rapport</option>
+                                    <option value="bulletin">Bulletin SIM</option>
+                                </select>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label for="upload_report_type" class="form-label">Type <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="upload_report_type" name="report_type" required placeholder="Ex: Financier, Opérationnel, Inventaire, Personnel, Général, Rapport...">
                     </div>
                     
                     <div class="form-group mb-3">

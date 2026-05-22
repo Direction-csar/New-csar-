@@ -19,6 +19,7 @@ class SimReport extends Model
         'description',
         'summary',
         'report_type',
+        'category',
         'period_start',
         'period_end',
         'status',

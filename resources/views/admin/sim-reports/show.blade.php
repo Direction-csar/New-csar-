@@ -138,7 +138,7 @@
                 <div class="card-body">
                     <div class="row text-center">
                         <div class="col-6">
-                            <div class="h4 text-primary">{{ $report['downloads'] }}</div>
+                            <div class="h4 text-primary">{{ $report['download_count'] ?? 0 }}</div>
                             <small class="text-muted">Téléchargements</small>
                         </div>
                         <div class="col-6">
