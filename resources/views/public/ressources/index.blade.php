@@ -56,10 +56,17 @@
 @if(isset($simReports) && $simReports->count() > 0)
 <section class="py-5 bg-white">
     <div class="container">
-        <h2 class="h3 mb-4">Rapports SIM</h2>
-        <div class="row g-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h3 mb-0">Rapports SIM</h2>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-success active" onclick="filterSimReports('all', this)">Tous</button>
+                <button type="button" class="btn btn-outline-success" onclick="filterSimReports('rapport', this)">Rapports</button>
+                <button type="button" class="btn btn-outline-success" onclick="filterSimReports('bulletin', this)">Bulletins SIM</button>
+            </div>
+        </div>
+        <div class="row g-4" id="sim-reports-container">
             @foreach($simReports as $report)
-            <div class="col-md-6 col-lg-4">
+            <div class="col-md-6 col-lg-4 sim-report-item" data-category="{{ $report->category ?? 'rapport' }}">
                 <div class="card border-0 shadow-sm h-100 hover-shadow">
                     @if($report->cover_image)
                     <img src="{{ $report->cover_image_url }}" class="card-img-top" style="height: 150px; object-fit: cover;" alt="{{ $report->title }}">
@@ -71,7 +78,10 @@
                             </div>
                             <div>
                                 <h5 class="card-title">{{ $report->title }}</h5>
-                                <span class="badge bg-success">{{ $report->report_type_label }}</span>
+                                <span class="badge bg-success">{{ $report->category == 'bulletin' ? 'Bulletin SIM' : 'Rapport' }}</span>
+                                @if($report->report_type)
+                                <span class="badge bg-secondary">{{ $report->report_type }}</span>
+                                @endif
                             </div>
                         </div>
                         @if($report->description)
@@ -95,6 +105,24 @@
         </div>
     </div>
 </section>
+
+<script>
+function filterSimReports(category, button) {
+    // Update button states
+    document.querySelectorAll('.btn-group .btn').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+
+    // Filter items
+    const items = document.querySelectorAll('.sim-report-item');
+    items.forEach(item => {
+        if (category === 'all' || item.dataset.category === category) {
+            item.style.display = '';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+</script>
 @endif
 
 <!-- Liens vers autres ressources -->
