@@ -52,6 +52,9 @@ class SimReportPolicy
         if ($user->isAdmin()) {
             return true;
         }
+        if (in_array($user->role, ['ctc', 'dg', 'responsable'], true)) {
+            return true;
+        }
         return $report->created_by === $user->id;
     }
 
