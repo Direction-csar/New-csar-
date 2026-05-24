@@ -36,6 +36,11 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-bottom: 60px;">
             @foreach($reports as $report)
             <div class="report-card zoom-hover" style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #f3f4f6; transition: all 0.3s ease;">
+                @if($report->cover_image)
+                <div style="height: 200px; background-image: url('{{ asset('storage/' . $report->cover_image) }}'); background-size: cover; background-position: center; position: relative;">
+                    <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(5,150,105,0.7));"></div>
+                </div>
+                @endif
                 <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 30px; position: relative;">
                     <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;">
                         <div style="display: flex; align-items: center;">
@@ -72,13 +77,20 @@
                         </div>
                     </div>
                     
-                    @if($report->download_url)
-                    <a href="{{ $report->download_url }}" 
-                       target="_blank"
-                       class="download-btn" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 15px; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);">
-                        <i class="fas fa-download"></i>
-                        Télécharger PDF
-                    </a>
+                    @if($report->document_file && $report->isPublic())
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <a href="{{ route('sim.view', $report->id) }}"
+                           target="_blank"
+                           style="flex: 1; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; background: #fff; border: 2px solid #059669; color: #059669; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease;">
+                            <i class="fas fa-eye"></i>
+                            Aperçu
+                        </a>
+                        <a href="{{ route('sim.download', $report->id) }}"
+                           class="download-btn" style="flex: 1; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);">
+                            <i class="fas fa-download"></i>
+                            Télécharger PDF
+                        </a>
+                    </div>
                     @else
                     <div style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 15px; background: #f3f4f6; color: #6b7280; border-radius: 12px; font-weight: 600; font-size: 1rem;">
                         <i class="fas fa-lock"></i>
