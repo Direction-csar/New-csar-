@@ -210,16 +210,21 @@
     </div>
 </div>
 
+@php
+    $reportsForJs = $reports->map(function ($r) {
+        return [
+            'id' => $r->id,
+            'title' => $r->title,
+            'description' => $r->description,
+            'view_url' => route('sim.view', $r->id),
+            'download_url' => route('sim.download', $r->id),
+            'published_at' => $r->published_at ? $r->published_at->format('F Y') : null,
+            'view_count' => $r->view_count ?? 0,
+        ];
+    })->values();
+@endphp
 <script>
-const reportsData = @json($reports->map(fn($r) => [
-    'id' => $r->id,
-    'title' => $r->title,
-    'description' => $r->description,
-    'view_url' => route('sim.view', $r->id),
-    'download_url' => route('sim.download', $r->id),
-    'published_at' => $r->published_at ? $r->published_at->format('F Y') : null,
-    'view_count' => $r->view_count ?? 0,
-])->values());
+const reportsData = {!! $reportsForJs->toJson() !!};
 
 let currentReportIdx = 0;
 
