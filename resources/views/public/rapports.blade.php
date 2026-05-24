@@ -79,12 +79,13 @@
                     
                     @if($report->document_file)
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <a href="{{ route('sim.view', $report->id) }}"
-                           target="_blank"
-                           style="flex: 1; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; background: #fff; border: 2px solid #059669; color: #059669; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease;">
+                        <button type="button"
+                                onclick="openReportPreview({{ $loop->index }})"
+                                class="preview-btn"
+                                style="flex: 1; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; background: #fff; border: 2px solid #059669; color: #059669; cursor: pointer; border-radius: 12px; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease;">
                             <i class="fas fa-eye"></i>
                             Aperçu
-                        </a>
+                        </button>
                         <a href="{{ route('sim.download', $report->id) }}"
                            class="download-btn" style="flex: 1; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: #fff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 0.95rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(5, 150, 105, 0.3);">
                             <i class="fas fa-download"></i>
@@ -160,6 +161,274 @@
 
     </div>
 </section>
+
+@if(isset($reports) && $reports->count() > 0)
+<!-- ============ MODAL APERÇU PDF ============ -->
+<div id="reportPreviewModal" class="report-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="report-modal__backdrop" onclick="closeReportPreview()"></div>
+
+    <button type="button" class="report-modal__close" onclick="closeReportPreview()" aria-label="Fermer">
+        <i class="fas fa-times"></i>
+    </button>
+
+    <button type="button" class="report-modal__nav report-modal__nav--prev" onclick="navigateReport(-1)" aria-label="Précédent">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+
+    <button type="button" class="report-modal__nav report-modal__nav--next" onclick="navigateReport(1)" aria-label="Suivant">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+
+    <div class="report-modal__content">
+        <div class="report-modal__header">
+            <div class="report-modal__icon">
+                <i class="fas fa-file-pdf"></i>
+            </div>
+            <div class="report-modal__title-wrap">
+                <h3 id="modalReportTitle" class="report-modal__title"></h3>
+                <p id="modalReportMeta" class="report-modal__meta"></p>
+            </div>
+            <div class="report-modal__counter">
+                <span id="modalReportIndex">1</span> / <span id="modalReportTotal">{{ $reports->count() }}</span>
+            </div>
+        </div>
+
+        <div class="report-modal__viewer">
+            <div id="modalPdfLoader" class="report-modal__loader">
+                <div class="report-modal__spinner"></div>
+                <p>Chargement du document...</p>
+            </div>
+            <iframe id="modalPdfFrame" src="" frameborder="0" onload="document.getElementById('modalPdfLoader').style.display='none'"></iframe>
+        </div>
+
+        <div class="report-modal__footer">
+            <a id="modalDownloadBtn" href="#" class="report-modal__download">
+                <i class="fas fa-download"></i> Télécharger le PDF
+            </a>
+            <div class="report-modal__dots" id="modalDots"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+const reportsData = @json($reports->map(fn($r) => [
+    'id' => $r->id,
+    'title' => $r->title,
+    'description' => $r->description,
+    'view_url' => route('sim.view', $r->id),
+    'download_url' => route('sim.download', $r->id),
+    'published_at' => $r->published_at ? $r->published_at->format('F Y') : null,
+    'view_count' => $r->view_count ?? 0,
+])->values());
+
+let currentReportIdx = 0;
+
+function openReportPreview(index) {
+    currentReportIdx = index;
+    renderReportPreview();
+    const modal = document.getElementById('reportPreviewModal');
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeReportPreview() {
+    const modal = document.getElementById('reportPreviewModal');
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    document.getElementById('modalPdfFrame').src = '';
+}
+
+function navigateReport(delta) {
+    const total = reportsData.length;
+    currentReportIdx = (currentReportIdx + delta + total) % total;
+    renderReportPreview();
+}
+
+function renderReportPreview() {
+    const r = reportsData[currentReportIdx];
+    if (!r) return;
+
+    const viewer = document.querySelector('.report-modal__viewer');
+    viewer.classList.remove('is-animating');
+    void viewer.offsetWidth;
+    viewer.classList.add('is-animating');
+
+    document.getElementById('modalReportTitle').textContent = r.title;
+    document.getElementById('modalReportMeta').textContent =
+        (r.published_at ? r.published_at + ' • ' : '') + r.view_count + ' vues';
+    document.getElementById('modalReportIndex').textContent = currentReportIdx + 1;
+    document.getElementById('modalDownloadBtn').href = r.download_url;
+    document.getElementById('modalPdfLoader').style.display = 'flex';
+    document.getElementById('modalPdfFrame').src = r.view_url;
+
+    const dots = document.getElementById('modalDots');
+    dots.innerHTML = reportsData.map((_, i) =>
+        `<button type="button" class="report-modal__dot${i === currentReportIdx ? ' is-active' : ''}" onclick="currentReportIdx=${i};renderReportPreview()" aria-label="Rapport ${i+1}"></button>`
+    ).join('');
+}
+
+document.addEventListener('keydown', function(e) {
+    if (!document.getElementById('reportPreviewModal').classList.contains('is-open')) return;
+    if (e.key === 'Escape') closeReportPreview();
+    else if (e.key === 'ArrowLeft') navigateReport(-1);
+    else if (e.key === 'ArrowRight') navigateReport(1);
+});
+</script>
+@endif
+
+<style>
+/* ============ MODAL APERÇU PDF ============ */
+.report-modal {
+    position: fixed; inset: 0; z-index: 9999;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+}
+.report-modal.is-open { display: flex; animation: modalFadeIn 0.35s ease-out; }
+
+.report-modal__backdrop {
+    position: absolute; inset: 0;
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    cursor: pointer;
+}
+
+.report-modal__close {
+    position: absolute; top: 20px; right: 20px; z-index: 10;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(255,255,255,0.95); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #1f2937; font-size: 1.2rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.report-modal__close:hover { background: #ef4444; color: #fff; transform: rotate(90deg) scale(1.1); }
+
+.report-modal__nav {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: rgba(255,255,255,0.95); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #059669; font-size: 1.3rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+.report-modal__nav:hover {
+    background: #059669; color: #fff;
+    transform: translateY(-50%) scale(1.15);
+    box-shadow: 0 8px 25px rgba(5, 150, 105, 0.5);
+}
+.report-modal__nav--prev { left: 30px; }
+.report-modal__nav--next { right: 30px; }
+
+.report-modal__content {
+    position: relative; z-index: 5;
+    width: 100%; max-width: 1100px; max-height: 92vh;
+    background: #fff; border-radius: 24px; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+    animation: modalSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.report-modal__header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 20px 28px;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #fff;
+}
+.report-modal__icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: rgba(255,255,255,0.2); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0;
+}
+.report-modal__title-wrap { flex: 1; min-width: 0; }
+.report-modal__title {
+    font-size: 1.15rem; font-weight: 700; margin: 0 0 4px 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.report-modal__meta { font-size: 0.85rem; opacity: 0.9; margin: 0; }
+.report-modal__counter {
+    background: rgba(255,255,255,0.2);
+    padding: 8px 16px; border-radius: 20px;
+    font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+}
+
+.report-modal__viewer {
+    flex: 1; position: relative;
+    background: #f3f4f6;
+    min-height: 60vh;
+}
+.report-modal__viewer.is-animating { animation: pdfFade 0.45s ease-out; }
+.report-modal__viewer iframe { width: 100%; height: 100%; min-height: 60vh; border: 0; display: block; }
+.report-modal__loader {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; color: #6b7280; background: #f3f4f6; z-index: 2;
+}
+.report-modal__spinner {
+    width: 48px; height: 48px; border-radius: 50%;
+    border: 4px solid #d1d5db; border-top-color: #059669;
+    animation: spin 0.8s linear infinite;
+}
+
+.report-modal__footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    padding: 18px 28px; background: #fff; border-top: 1px solid #f3f4f6;
+}
+.report-modal__download {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 24px; border-radius: 12px;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #fff; text-decoration: none; font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(5,150,105,0.3);
+}
+.report-modal__download:hover {
+    color: #fff; transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(5,150,105,0.5);
+}
+.report-modal__dots { display: flex; gap: 8px; }
+.report-modal__dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: none; background: #d1d5db; cursor: pointer;
+    transition: all 0.3s ease;
+}
+.report-modal__dot:hover { background: #9ca3af; }
+.report-modal__dot.is-active {
+    background: #059669; width: 28px; border-radius: 5px;
+}
+
+@keyframes modalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalSlideUp {
+    from { opacity: 0; transform: translateY(40px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pdfFade {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.preview-btn:hover {
+    background: #059669 !important; color: #fff !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(5,150,105,0.35);
+}
+
+@media (max-width: 768px) {
+    .report-modal { padding: 0; }
+    .report-modal__content { max-height: 100vh; height: 100vh; border-radius: 0; }
+    .report-modal__nav { width: 44px; height: 44px; }
+    .report-modal__nav--prev { left: 10px; }
+    .report-modal__nav--next { right: 10px; }
+    .report-modal__title { font-size: 1rem; }
+    .report-modal__counter { padding: 6px 12px; font-size: 0.8rem; }
+    .report-modal__footer { flex-direction: column; gap: 12px; padding: 14px; }
+}
+</style>
 
 <style>
 @keyframes float {
