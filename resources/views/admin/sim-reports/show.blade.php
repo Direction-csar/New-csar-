@@ -14,7 +14,7 @@
             <p class="text-muted">Détails du rapport SIM</p>
         </div>
         <div>
-            @if($report['status'] == 'completed')
+            @if(in_array($report['status'], ['completed', 'published']))
                 <a href="{{ route('admin.sim-reports.download', $report['id']) }}" class="btn btn-success me-2">
                     <i class="fas fa-download me-2"></i>Télécharger
                 </a>
@@ -33,9 +33,19 @@
                     <h6 class="m-0 font-weight-bold text-primary">Contenu du rapport</h6>
                 </div>
                 <div class="card-body">
-                    @if($report['status'] == 'completed')
-                        <div class="report-content">
-                            {!! $report['content'] !!}
+                    @if(in_array($report['status'], ['completed', 'published']))
+                        @if(!empty($report['document_file']))
+                            <iframe src="{{ asset('storage/' . $report['document_file']) }}" style="width:100%;height:600px;border:1px solid #e5e7eb;border-radius:8px;"></iframe>
+                        @elseif(!empty($report['content']))
+                            <div class="report-content">{!! $report['content'] !!}</div>
+                        @else
+                            <p class="text-muted text-center py-5">Contenu non disponible</p>
+                        @endif
+                    @elseif($report['status'] == 'draft')
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                            <h5>Brouillon</h5>
+                            <p class="text-muted">Ce rapport est encore en brouillon.</p>
                         </div>
                     @else
                         <div class="text-center py-5">
@@ -71,8 +81,12 @@
                         <tr>
                             <td><strong>Statut :</strong></td>
                             <td>
-                                @if($report['status'] == 'completed')
-                                    <span class="badge badge-success">Terminé</span>
+                                @if($report['status'] == 'published')
+                                    <span class="badge badge-success">Publié</span>
+                                @elseif($report['status'] == 'completed')
+                                    <span class="badge badge-info">Terminé</span>
+                                @elseif($report['status'] == 'draft')
+                                    <span class="badge badge-secondary">Brouillon</span>
                                 @else
                                     <span class="badge badge-warning">En cours</span>
                                 @endif
@@ -105,14 +119,20 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        @if($report['status'] == 'completed')
+                        @if(in_array($report['status'], ['completed', 'published']))
                             <a href="{{ route('admin.sim-reports.download', $report['id']) }}" class="btn btn-success">
                                 <i class="fas fa-download me-2"></i>Télécharger PDF
                             </a>
                             
+                            @if(!empty($report['document_file']))
+                            <a href="{{ asset('storage/' . $report['document_file']) }}" target="_blank" class="btn btn-info">
+                                <i class="fas fa-eye me-2"></i>Aperçu
+                            </a>
+                            @else
                             <button class="btn btn-info" onclick="previewReport()">
                                 <i class="fas fa-eye me-2"></i>Aperçu
                             </button>
+                            @endif
                             
                             <button class="btn btn-primary" onclick="shareReport()">
                                 <i class="fas fa-share me-2"></i>Partager
@@ -185,7 +205,7 @@ function deleteReport() {
 }
 
 // Actualiser la page si le rapport est en cours de génération
-@if($report['status'] != 'completed')
+@if(!in_array($report['status'], ['completed', 'published', 'draft']))
 setTimeout(function() {
     location.reload();
 }, 5000);
