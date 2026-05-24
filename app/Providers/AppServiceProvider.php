@@ -19,6 +19,12 @@ class AppServiceProvider extends ServiceProvider
         putenv('TMPDIR=' . storage_path('tmp'));
         putenv('TMP=' . storage_path('tmp'));
         putenv('TEMP=' . storage_path('tmp'));
+
+        // Créer le répertoire temporaire s'il n'existe pas
+        $tmpDir = storage_path('tmp');
+        if (!is_dir($tmpDir)) {
+            @mkdir($tmpDir, 0777, true);
+        }
     }
 
     /**

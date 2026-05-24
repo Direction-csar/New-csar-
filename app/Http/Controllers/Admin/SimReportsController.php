@@ -122,7 +122,7 @@ class SimReportsController extends Controller
                 'description' => $request->description,
                 'report_type' => $request->report_type,
                 'category' => $request->category,
-                'status' => 'completed',
+                'status' => $request->boolean('is_public') ? 'published' : 'completed',
                 'document_file' => $documentPath,
                 'cover_image' => $coverImagePath,
                 'is_public' => $request->boolean('is_public', false),
@@ -495,21 +495,30 @@ class SimReportsController extends Controller
                 'description' => 'nullable|string|max:1000',
                 'summary' => 'nullable|string|max:2000',
                 'report_type' => 'required|string|max:100',
+                'category' => 'nullable|in:rapport,bulletin',
                 'is_public' => 'boolean',
                 'status' => 'required|in:draft,generating,completed,published'
             ]);
 
             $report = \App\Models\SimReport::findOrFail($id);
             $this->authorize('update', $report);
-            
+
+            $isPublic = $request->boolean('is_public');
+            $status = $request->status;
+            // Si public coché et status non-publié → forcer publié
+            if ($isPublic && $status !== 'published') {
+                $status = 'published';
+            }
+
             $report->update([
                 'title' => $request->title,
                 'description' => $request->description,
                 'summary' => $request->summary,
                 'report_type' => $request->report_type,
-                'is_public' => $request->boolean('is_public'),
-                'status' => $request->status,
-                'published_at' => $request->status === 'published' ? now() : null
+                'category' => $request->category ?? $report->category ?? 'rapport',
+                'is_public' => $isPublic,
+                'status' => $status,
+                'published_at' => $status === 'published' ? ($report->published_at ?? now()) : null
             ]);
             
             // Créer une notification

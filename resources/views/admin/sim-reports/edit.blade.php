@@ -65,16 +65,23 @@
                             <div class="col-md-4">
                                 <div class="form-group mb-3">
                                     <label for="report_type" class="form-label">Type de rapport *</label>
-                                    <select class="form-select @error('report_type') is-invalid @enderror" 
-                                            id="report_type" name="report_type" required>
-                                        <option value="">Sélectionner un type</option>
-                                        <option value="financial" {{ old('report_type', $report->report_type) == 'financial' ? 'selected' : '' }}>Financier</option>
-                                        <option value="operational" {{ old('report_type', $report->report_type) == 'operational' ? 'selected' : '' }}>Opérationnel</option>
-                                        <option value="inventory" {{ old('report_type', $report->report_type) == 'inventory' ? 'selected' : '' }}>Inventaire</option>
-                                        <option value="personnel" {{ old('report_type', $report->report_type) == 'personnel' ? 'selected' : '' }}>Personnel</option>
-                                        <option value="general" {{ old('report_type', $report->report_type) == 'general' ? 'selected' : '' }}>Général</option>
-                                    </select>
+                                    <input type="text" class="form-control @error('report_type') is-invalid @enderror"
+                                           id="report_type" name="report_type" required maxlength="100"
+                                           value="{{ old('report_type', $report->report_type) }}"
+                                           placeholder="Ex: Annuel, Mensuel, Financier...">
                                     @error('report_type')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+
+                                <div class="form-group mb-3">
+                                    <label for="category" class="form-label">Catégorie *</label>
+                                    <select class="form-select @error('category') is-invalid @enderror"
+                                            id="category" name="category" required>
+                                        <option value="rapport" {{ old('category', $report->category ?? 'rapport') == 'rapport' ? 'selected' : '' }}>Rapport</option>
+                                        <option value="bulletin" {{ old('category', $report->category ?? 'rapport') == 'bulletin' ? 'selected' : '' }}>Bulletin SIM</option>
+                                    </select>
+                                    @error('category')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
