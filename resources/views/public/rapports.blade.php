@@ -37,7 +37,7 @@
             @foreach($reports as $report)
             <div class="report-card zoom-hover" style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #f3f4f6; transition: all 0.3s ease;">
                 @if($report->cover_image)
-                <div style="height: 200px; background-image: url('{{ asset('storage/' . $report->cover_image) }}'); background-size: cover; background-position: center; position: relative;">
+                <div style="height: 200px; background-image: url('{{ $report->cover_image }}'); background-size: cover; background-position: center; position: relative;">
                     <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.1), rgba(5,150,105,0.7));"></div>
                 </div>
                 @endif
@@ -77,7 +77,7 @@
                         </div>
                     </div>
                     
-                    @if($report->document_file && $report->isPublic())
+                    @if($report->document_file)
                     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                         <a href="{{ route('sim.view', $report->id) }}"
                            target="_blank"
