@@ -174,6 +174,9 @@
                         @forelse($reports ?? [] as $report)
                         <div class="report-item p-3 border-bottom" data-report-id="{{ $report->id }}">
                             <div class="d-flex align-items-start">
+                                <div class="flex-shrink-0 me-2 pt-2">
+                                    <input type="checkbox" class="form-check-input report-checkbox" value="{{ $report->id }}">
+                                </div>
                                 <div class="flex-shrink-0 me-3">
                                     <div class="icon-3d" style="background: var(--gradient-{{ $report->report_type ?? 'primary' }}); width: 50px; height: 50px;">
                                         <i class="fas fa-{{ $report->report_type === 'financial' ? 'dollar-sign' : ($report->report_type === 'operational' ? 'cogs' : ($report->report_type === 'inventory' ? 'boxes' : 'users')) }}"></i>
@@ -671,7 +674,10 @@ function loadReports() {
 }
 
 function selectAll() {
-    showToast('Tous les rapports sélectionnés', 'info');
+    const checkboxes = document.querySelectorAll('.report-checkbox');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    checkboxes.forEach(cb => cb.checked = !allChecked);
+    showToast(allChecked ? 'Sélection annulée' : 'Tous les rapports sélectionnés', 'info');
 }
 
 function downloadSelected() {
@@ -683,9 +689,54 @@ function scheduleSelected() {
 }
 
 function deleteSelected() {
-    if (confirm('Êtes-vous sûr de vouloir supprimer les rapports sélectionnés ?')) {
-        showToast('Rapports supprimés', 'success');
+    const checked = document.querySelectorAll('.report-checkbox:checked');
+    if (checked.length === 0) {
+        showToast('Aucun rapport sélectionné', 'warning');
+        return;
     }
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${checked.length} rapport(s) ?`)) {
+        return;
+    }
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                     document.querySelector('input[name="_token"]')?.value;
+    if (!csrfToken) {
+        showToast('Token CSRF non trouvé', 'error');
+        return;
+    }
+    const ids = Array.from(checked).map(cb => cb.value);
+    let successCount = 0;
+    let errorCount = 0;
+    Promise.all(ids.map(id =>
+        fetch(`/admin/sim-reports/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                successCount++;
+                const el = document.querySelector(`[data-report-id="${id}"]`);
+                if (el) el.remove();
+            } else {
+                errorCount++;
+            }
+        })
+        .catch(() => { errorCount++; })
+    )).then(() => {
+        if (successCount > 0) {
+            showToast(`${successCount} rapport(s) supprimé(s) avec succès`, 'success');
+        }
+        if (errorCount > 0) {
+            showToast(`${errorCount} suppression(s) échouée(s)`, 'error');
+        }
+        setTimeout(() => window.location.reload(), 1000);
+    });
 }
 
 function deleteReport(reportId) {
