@@ -68,7 +68,7 @@
                                     <h5 class="mb-1">Bulletin PDF</h5>
                                     <p class="text-muted mb-3">Prévisualisez ou téléchargez le bulletin officiel.</p>
                                     <div class="d-flex gap-2">
-                                        <a href="{{ Storage::disk('public')->url($simReport->document_file) }}" target="_blank" class="btn btn-success">
+                                        <a href="{{ route('sim.view', $simReport->id) }}" target="_blank" class="btn btn-success">
                                             <i class="fas fa-eye me-1"></i> Ouvrir le PDF
                                         </a>
                                         <a href="{{ route('sim.download', $simReport->id) }}" class="btn btn-outline-success">

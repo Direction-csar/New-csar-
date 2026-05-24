@@ -77,23 +77,64 @@ class SimController extends Controller
     /**
      * Afficher un rapport SIM public
      */
-    public function show(SimReport $simReport)
+    public function show($locale, $simReport = null)
     {
+        $simReport = $this->resolveSimReport($simReport ?? $locale);
+
         // Vérifier que le rapport est public
         if (!$simReport->isPublic()) {
             abort(404);
         }
 
         $simReport->incrementViewCount();
-        
+
         return view('public.sim.show', compact('simReport'));
+    }
+
+    /**
+     * Resoudre le SimReport (defensive contre les types mixtes du route binding)
+     */
+    protected function resolveSimReport($value): SimReport
+    {
+        if ($value instanceof SimReport) {
+            return $value;
+        }
+        return SimReport::findOrFail($value);
+    }
+
+    /**
+     * Visualiser le PDF en ligne (sans télécharger)
+     */
+    public function view($locale, $simReport = null)
+    {
+        $simReport = $this->resolveSimReport($simReport ?? $locale);
+
+        if (!$simReport->isPublic()) {
+            abort(404);
+        }
+
+        $simReport->incrementViewCount();
+
+        if ($simReport->document_file) {
+            $path = storage_path('app/public/' . $simReport->document_file);
+            if (file_exists($path)) {
+                return response()->file($path, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . basename($path) . '"',
+                ]);
+            }
+        }
+
+        abort(404, 'Document non disponible');
     }
 
     /**
      * Télécharger un rapport SIM public
      */
-    public function download(SimReport $simReport)
+    public function download($locale, $simReport = null)
     {
+        $simReport = $this->resolveSimReport($simReport ?? $locale);
+
         // Vérifier que le rapport est public
         if (!$simReport->isPublic()) {
             abort(404);

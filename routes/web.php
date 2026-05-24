@@ -239,6 +239,7 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
         Route::get('/sim/magasins', [\App\Http\Controllers\Public\SimController::class, 'magasins'])->name('sim.magasins');
         Route::get('/sim/operations', [\App\Http\Controllers\Public\SimController::class, 'operations'])->name('sim.operations');
         Route::get('/sim/{simReport}/download', [\App\Http\Controllers\Public\SimController::class, 'download'])->name('sim.download');
+        Route::get('/sim/{simReport}/view', [\App\Http\Controllers\Public\SimController::class, 'view'])->name('sim.view');
         Route::get('/sim/{simReport}', [\App\Http\Controllers\Public\SimController::class, 'show'])->name('sim.show');
     });
 
