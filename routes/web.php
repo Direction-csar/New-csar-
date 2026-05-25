@@ -17,7 +17,7 @@ Route::post('/demande', [\App\Http\Controllers\Public\DemandeController::class, 
 // Route directe pour /suivi (sans préfixe de locale) - utilise directement le contrôleur
 Route::get('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'index'])->name('suivi.direct');
 Route::post('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'track'])->name('suivi.track.direct');
-Route::view('/missions', 'public.missions')->name('missions_static');
+Route::get('/missions', [GalleryController::class, 'missions'])->name('missions_static');
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\AboutController;
 use App\Http\Controllers\Public\InstitutionController;
