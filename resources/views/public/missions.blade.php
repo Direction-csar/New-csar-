@@ -109,8 +109,20 @@
 }
 
 /* Carousel animations */
+.carousel-slide {
+    display: none;
+}
+.carousel-slide.active {
+    display: block;
+}
 .carousel-slide.active img {
     transform: scale(1.05);
+    animation: kenBurns 8s ease forwards;
+}
+
+@keyframes kenBurns {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
 }
 
 .nav-arrow:hover {
@@ -142,121 +154,138 @@
 
 @push('scripts')
 <script>
-let currentSlide = 0;
-let totalSlides = {{ count($images) }};
-let isPlaying = true;
-let autoplayInterval;
+(function() {
+    let currentSlide = 0;
+    let totalSlides = {{ count($images) }};
+    let isPlaying = true;
+    let autoplayInterval;
 
-function showSlide(index) {
-    const slides = document.querySelectorAll('.carousel-slide');
-    const thumbs = document.querySelectorAll('.thumb');
-    const progressBar = document.querySelector('.progress-bar');
+    function showSlide(index) {
+        const slides = document.querySelectorAll('.carousel-slide');
+        const thumbs = document.querySelectorAll('.thumb');
+        const progressBar = document.querySelector('.progress-bar');
 
-    // Remove active from all
-    slides.forEach(s => { s.classList.remove('active'); s.style.opacity = '0'; });
-    thumbs.forEach(t => { t.classList.remove('active'); t.style.borderColor = 'transparent'; t.style.opacity = '0.6'; });
+        if (!slides.length) return;
 
-    // Activate current
-    currentSlide = index;
-    if (currentSlide >= totalSlides) currentSlide = 0;
-    if (currentSlide < 0) currentSlide = totalSlides - 1;
+        // Bounds check
+        if (index >= totalSlides) index = 0;
+        if (index < 0) index = totalSlides - 1;
+        currentSlide = index;
 
-    slides[currentSlide].classList.add('active');
-    slides[currentSlide].style.opacity = '1';
-    thumbs[currentSlide].classList.add('active');
-    thumbs[currentSlide].style.borderColor = '#22c55e';
-    thumbs[currentSlide].style.opacity = '1';
+        // Update slides
+        slides.forEach(function(s, i) {
+            s.classList.toggle('active', i === currentSlide);
+        });
 
-    // Update counter
-    document.getElementById('currentSlide').textContent = currentSlide + 1;
+        // Update thumbnails
+        thumbs.forEach(function(t, i) {
+            t.classList.toggle('active', i === currentSlide);
+            t.style.borderColor = (i === currentSlide) ? '#22c55e' : 'transparent';
+            t.style.opacity = (i === currentSlide) ? '1' : '0.6';
+        });
 
-    // Reset progress bar
-    if (progressBar) {
-        progressBar.style.transition = 'none';
-        progressBar.style.width = '0%';
-        setTimeout(() => {
-            progressBar.style.transition = 'width 5s linear';
-            progressBar.style.width = '100%';
-        }, 50);
-    }
+        // Update counter
+        var counter = document.getElementById('currentSlide');
+        if (counter) counter.textContent = currentSlide + 1;
 
-    // Scroll thumbnail into view
-    thumbs[currentSlide].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-}
+        // Reset progress bar
+        if (progressBar) {
+            progressBar.style.transition = 'none';
+            progressBar.style.width = '0%';
+            setTimeout(function() {
+                progressBar.style.transition = 'width 5s linear';
+                progressBar.style.width = '100%';
+            }, 50);
+        }
 
-function nextSlide() {
-    showSlide(currentSlide + 1);
-    if (isPlaying) restartAutoplay();
-}
-
-function prevSlide() {
-    showSlide(currentSlide - 1);
-    if (isPlaying) restartAutoplay();
-}
-
-function goToSlide(index) {
-    showSlide(index);
-    if (isPlaying) restartAutoplay();
-}
-
-function startAutoplay() {
-    if (totalSlides <= 1) return;
-    autoplayInterval = setInterval(() => {
-        if (isPlaying) nextSlide();
-    }, 5000);
-}
-
-function stopAutoplay() {
-    clearInterval(autoplayInterval);
-}
-
-function restartAutoplay() {
-    stopAutoplay();
-    startAutoplay();
-}
-
-function togglePlayPause() {
-    isPlaying = !isPlaying;
-    const icon = document.getElementById('playPauseIcon');
-    const text = document.getElementById('playPauseText');
-
-    if (isPlaying) {
-        icon.textContent = '⏸';
-        text.textContent = 'Pause';
-        startAutoplay();
-    } else {
-        icon.textContent = '▶';
-        text.textContent = 'Lecture';
-        stopAutoplay();
-    }
-}
-
-// Keyboard navigation
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') prevSlide();
-    if (e.key === 'ArrowRight') nextSlide();
-    if (e.key === ' ') { e.preventDefault(); togglePlayPause(); }
-});
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    if (totalSlides > 1) {
-        startAutoplay();
-
-        // Pause on hover
-        const container = document.querySelector('.carousel-container');
-        if (container) {
-            container.addEventListener('mouseenter', () => { if (isPlaying) stopAutoplay(); });
-            container.addEventListener('mouseleave', () => { if (isPlaying) startAutoplay(); });
+        // Scroll thumbnail into view
+        if (thumbs[currentSlide]) {
+            thumbs[currentSlide].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
         }
     }
 
-    // Initialize progress bar
-    const progressBar = document.querySelector('.progress-bar');
-    if (progressBar) {
-        setTimeout(() => { progressBar.style.width = '100%'; }, 100);
+    window.nextSlide = function() {
+        showSlide(currentSlide + 1);
+        if (isPlaying) restartAutoplay();
+    };
+
+    window.prevSlide = function() {
+        showSlide(currentSlide - 1);
+        if (isPlaying) restartAutoplay();
+    };
+
+    window.goToSlide = function(index) {
+        showSlide(index);
+        if (isPlaying) restartAutoplay();
+    };
+
+    function startAutoplay() {
+        if (totalSlides <= 1) return;
+        stopAutoplay();
+        autoplayInterval = setInterval(function() {
+            if (isPlaying) showSlide(currentSlide + 1);
+        }, 5000);
     }
-});
+
+    function stopAutoplay() {
+        clearInterval(autoplayInterval);
+    }
+
+    function restartAutoplay() {
+        stopAutoplay();
+        startAutoplay();
+    }
+
+    window.togglePlayPause = function() {
+        isPlaying = !isPlaying;
+        var icon = document.getElementById('playPauseIcon');
+        var text = document.getElementById('playPauseText');
+
+        if (isPlaying) {
+            if (icon) icon.textContent = '⏸';
+            if (text) text.textContent = 'Pause';
+            startAutoplay();
+        } else {
+            if (icon) icon.textContent = '▶';
+            if (text) text.textContent = 'Lecture';
+            stopAutoplay();
+        }
+    };
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') window.prevSlide();
+        if (e.key === 'ArrowRight') window.nextSlide();
+        if (e.key === ' ') { e.preventDefault(); window.togglePlayPause(); }
+    });
+
+    // Initialize on load
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+
+    function init() {
+        console.log('Carousel initialized. Total slides:', totalSlides);
+        if (totalSlides > 1) {
+            startAutoplay();
+
+            // Pause on hover
+            var container = document.querySelector('.carousel-container');
+            if (container) {
+                container.addEventListener('mouseenter', function() { if (isPlaying) stopAutoplay(); });
+                container.addEventListener('mouseleave', function() { if (isPlaying) startAutoplay(); });
+            }
+        }
+
+        // Initialize progress bar
+        var progressBar = document.querySelector('.progress-bar');
+        if (progressBar) {
+            setTimeout(function() { progressBar.style.width = '100%'; }, 100);
+        }
+    }
+})();
 </script>
 @endpush
 
