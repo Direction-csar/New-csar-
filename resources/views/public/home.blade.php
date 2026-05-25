@@ -2799,6 +2799,26 @@ document.addEventListener('keydown', function(e) {
                 </div>
             </div>
             @endforeach
+            
+            <!-- Navigation Arrows -->
+            <button class="slider-prev" onclick="gallerySliderPrev()" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; z-index: 20; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #1f2937; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease;">
+                ←
+            </button>
+            <button class="slider-next" onclick="gallerySliderNext()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; z-index: 20; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #1f2937; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease;">
+                →
+            </button>
+            
+            <!-- Dots Navigation -->
+            <div class="slider-dots" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 20;">
+                @foreach($galleryImages as $index => $image)
+                <button onclick="gallerySliderGoTo({{ $index }})" class="slider-dot {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}" style="width: 12px; height: 12px; border-radius: 50%; border: none; background: {{ $index === 0 ? '#22c55e' : 'rgba(255,255,255,0.5)' }}; cursor: pointer; transition: all 0.3s ease;"></button>
+                @endforeach
+            </div>
+            
+            <!-- Counter -->
+            <div class="slider-counter" style="position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); color: #fff; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; z-index: 20;">
+                <span id="slider-current">1</span> / <span id="slider-total">{{ $galleryImages->count() }}</span>
+            </div>
         </div>
         @else
         <div style="text-align: center; padding: 4rem 0;">
@@ -3560,6 +3580,84 @@ document.addEventListener('keydown', function(e) {
     }
 });
 @endif
+
+// ========================================
+// GALLERY SLIDER AUTOMATIQUE
+// ========================================
+(function() {
+    var sliderSlides = document.querySelectorAll('.slider-slide');
+    var sliderDots = document.querySelectorAll('.slider-dot');
+    var sliderCurrent = document.getElementById('slider-current');
+    var sliderTotal = document.getElementById('slider-total');
+    var currentSliderIndex = 0;
+    var sliderAutoplayInterval;
+    var totalSliderSlides = sliderSlides.length;
+
+    if (totalSliderSlides <= 1) return;
+
+    function showSliderSlide(index) {
+        if (index >= totalSliderSlides) index = 0;
+        if (index < 0) index = totalSliderSlides - 1;
+        currentSliderIndex = index;
+
+        // Update slides
+        sliderSlides.forEach(function(s, i) {
+            if (i === currentSliderIndex) {
+                s.classList.add('active');
+                s.style.opacity = '1';
+                s.style.transform = 'scale(1)';
+            } else {
+                s.classList.remove('active');
+                s.style.opacity = '0';
+                s.style.transform = 'scale(1.1)';
+            }
+        });
+
+        // Update dots
+        sliderDots.forEach(function(d, i) {
+            d.style.background = (i === currentSliderIndex) ? '#22c55e' : 'rgba(255,255,255,0.5)';
+        });
+
+        // Update counter
+        if (sliderCurrent) sliderCurrent.textContent = currentSliderIndex + 1;
+    }
+
+    function nextSliderSlide() {
+        showSliderSlide(currentSliderIndex + 1);
+    }
+
+    function prevSliderSlide() {
+        showSliderSlide(currentSliderIndex - 1);
+    }
+
+    function startSliderAutoplay() {
+        stopSliderAutoplay();
+        sliderAutoplayInterval = setInterval(function() {
+            showSliderSlide(currentSliderIndex + 1);
+        }, 5000);
+    }
+
+    function stopSliderAutoplay() {
+        clearInterval(sliderAutoplayInterval);
+    }
+
+    // Expose functions globally
+    window.gallerySliderNext = nextSliderSlide;
+    window.gallerySliderPrev = prevSliderSlide;
+    window.gallerySliderGoTo = function(index) {
+        showSliderSlide(index);
+    };
+
+    // Start autoplay
+    startSliderAutoplay();
+
+    // Pause on hover
+    var sliderContainer = document.querySelector('.gallery-slider-container');
+    if (sliderContainer) {
+        sliderContainer.addEventListener('mouseenter', stopSliderAutoplay);
+        sliderContainer.addEventListener('mouseleave', startSliderAutoplay);
+    }
+})();
 
 // ========================================
 // ANIMATED COUNTERS (EFFECT CHRONO)
