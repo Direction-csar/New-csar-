@@ -89,6 +89,7 @@ class SecurityHeaders
             'https://platform.twitter.com',
             'https://syndication.twitter.com',
             'https://www.google.com',
+            'https://docs.google.com',
         ];
         $connect = [
             'https://api.openweathermap.org',

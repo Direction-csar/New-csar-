@@ -821,6 +821,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             'icon'  => $d->icon_class,
                             'url'   => $d->file_url,
                             'download_url' => $d->file_url,
+                            'cover'  => null,
                         ]);
                     }
                 }
@@ -832,6 +833,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             'icon'  => $categoryIcons[$d->category] ?? 'fas fa-file',
                             'url'   => $d->document_file ? asset('storage/' . $d->document_file) : null,
                             'download_url' => $d->public_download_url,
+                            'cover'  => $d->cover_image ? asset('storage/' . $d->cover_image) : null,
                         ]);
                     }
                 }
@@ -839,9 +841,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
             @foreach($allDocs as $idx => $doc)
             <div class="doc-item" data-aos="fade-up" data-aos-delay="{{ ($idx + 1) * 80 }}" style="--doc-idx: {{ $idx }};">
+                @if($doc->cover)
+                <div class="doc-item-cover">
+                    <img src="{{ $doc->cover }}" alt="{{ $doc->title }}" loading="lazy">
+                    <div class="doc-item-cover-overlay">
+                        <i class="{{ $doc->icon }}"></i>
+                    </div>
+                </div>
+                @else
                 <div class="doc-item-icon">
                     <i class="{{ $doc->icon }}"></i>
                 </div>
+                @endif
                 <div class="doc-item-info">
                     <p class="doc-item-label">{{ $doc->label }}</p>
                     <h5 class="doc-item-title">{{ $doc->title }}</h5>
@@ -985,16 +996,22 @@ function renderDocPreview() {
     const loader = document.getElementById('docModalLoader');
     const fallback = document.getElementById('docModalMobileFallback');
 
-    if (isMobileDevice) {
-        // Sur mobile, les iframes PDF s'affichent mal : on propose direct l'ouverture native
-        iframe.style.display = 'none';
-        loader.style.display = 'none';
-        fallback.style.display = 'flex';
+    fallback.style.display = 'none';
+    iframe.style.display = 'block';
+    loader.style.display = 'flex';
+
+    if (d.url) {
+        if (isMobileDevice) {
+            // Mobile : utilise Google Docs Viewer qui rend le PDF en images (compatible tous mobiles)
+            iframe.src = 'https://docs.google.com/gview?url=' + encodeURIComponent(d.url) + '&embedded=true';
+        } else {
+            // Desktop : iframe natif (Chrome, Firefox, Edge gerent nativement les PDFs)
+            iframe.src = d.url;
+        }
     } else {
-        iframe.style.display = 'block';
-        fallback.style.display = 'none';
-        loader.style.display = 'flex';
-        iframe.src = d.url || '';
+        loader.style.display = 'none';
+        iframe.style.display = 'none';
+        fallback.style.display = 'flex';
     }
 
     const dots = document.getElementById('docModalDots');
@@ -1454,6 +1471,55 @@ document.addEventListener('keydown', function(e) {
 @keyframes docSlideIn {
     from { opacity: 0; transform: translateX(-30px); }
     to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ===== Couverture du document (image) ===== */
+.doc-item-cover {
+    width: 70px;
+    min-width: 70px;
+    height: 90px;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.doc-item-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+.doc-item-cover-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(34,197,94,0.85) 0%, rgba(22,163,74,0.85) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.4rem;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+}
+.doc-item:hover .doc-item-cover {
+    transform: scale(1.06) rotate(-2deg);
+    box-shadow: 0 10px 25px rgba(34,197,94,0.35);
+}
+.doc-item:hover .doc-item-cover img {
+    transform: scale(1.1);
+}
+.doc-item:hover .doc-item-cover-overlay {
+    opacity: 1;
+}
+@media (max-width: 768px) {
+    .doc-item-cover {
+        width: 56px;
+        min-width: 56px;
+        height: 72px;
+    }
 }
 
 /* ===== MODAL APERÇU DOCUMENT ===== */
