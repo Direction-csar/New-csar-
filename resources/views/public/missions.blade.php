@@ -35,7 +35,7 @@
             <!-- Main Image Display -->
             <div class="carousel-main" style="position: relative; height: 500px; overflow: hidden;">
                 @foreach($images as $index => $image)
-                <div class="carousel-slide {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: {{ $index === 0 ? 1 : 0 }}; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);">
+                <div class="carousel-slide {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
                     <img src="{{ asset('storage/'.$image->file_path) }}" alt="{{ $image->title }}" style="width: 100%; height: 100%; object-fit: cover; transition: transform 8s ease;">
                     <!-- Overlay -->
                     <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 40px; color: #fff;">
