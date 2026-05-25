@@ -80,6 +80,7 @@
                                             id="category" name="category" required>
                                         <option value="rapport" {{ old('category', $report->category ?? 'rapport') == 'rapport' ? 'selected' : '' }}>Rapport</option>
                                         <option value="bulletin" {{ old('category', $report->category ?? 'rapport') == 'bulletin' ? 'selected' : '' }}>Bulletin SIM</option>
+                                        <option value="documents_officiels" {{ old('category', $report->category ?? 'rapport') == 'documents_officiels' ? 'selected' : '' }}>Documents officiels et avis de recrutement</option>
                                     </select>
                                     @error('category')
                                         <div class="invalid-feedback">{{ $message }}</div>

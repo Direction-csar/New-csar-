@@ -98,7 +98,7 @@ class SimReportsController extends Controller
             $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string|max:1000',
-                'category' => 'required|in:rapport,bulletin',
+                'category' => 'required|in:rapport,bulletin,documents_officiels',
                 'report_type' => 'required|string|max:100',
                 'document' => 'required|file|mimes:pdf,ppt,pptx,doc,docx,xls,xlsx|mimetypes:application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet|max:51200', // 50 MB max
                 'is_public' => 'boolean',
@@ -495,7 +495,7 @@ class SimReportsController extends Controller
                 'description' => 'nullable|string|max:1000',
                 'summary' => 'nullable|string|max:2000',
                 'report_type' => 'required|string|max:100',
-                'category' => 'nullable|in:rapport,bulletin',
+                'category' => 'nullable|in:rapport,bulletin,documents_officiels',
                 'is_public' => 'boolean',
                 'status' => 'required|in:draft,generating,completed,published'
             ]);

@@ -796,7 +796,22 @@ document.addEventListener('DOMContentLoaded', function() {
             <p style="color:#6b7280;font-size:1rem;margin-top:0.5rem;">Documents officiels et avis de recrutement</p>
         </div>
         <div class="doc-list" style="max-width:900px;margin:0 auto;">
-            @if(isset($publicDocuments) && $publicDocuments->count() > 0)
+            @php
+                $hasPublicDocs = isset($publicDocuments) && $publicDocuments->count() > 0;
+                $hasSimDocs = isset($simDocumentations) && $simDocumentations->count() > 0;
+                $categoryLabels = [
+                    'rapport' => 'Rapport',
+                    'bulletin' => 'Bulletin SIM',
+                    'documents_officiels' => 'Document officiel / Recrutement',
+                ];
+                $categoryIcons = [
+                    'rapport' => 'fas fa-file-alt',
+                    'bulletin' => 'fas fa-chart-bar',
+                    'documents_officiels' => 'fas fa-briefcase',
+                ];
+            @endphp
+
+            @if($hasPublicDocs)
                 @foreach($publicDocuments as $idx => $doc)
                 <div class="doc-item" data-aos="fade-up" data-aos-delay="{{ ($idx + 1) * 100 }}">
                     <div class="doc-item-icon">
@@ -811,7 +826,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
                 @endforeach
-            @else
+            @endif
+
+            @if($hasSimDocs)
+                @foreach($simDocumentations as $idx => $doc)
+                <div class="doc-item" data-aos="fade-up" data-aos-delay="{{ ($idx + 1) * 100 }}">
+                    <div class="doc-item-icon">
+                        <i class="{{ $categoryIcons[$doc->category] ?? 'fas fa-file' }}"></i>
+                    </div>
+                    <div class="doc-item-info">
+                        <p class="doc-item-label">{{ $categoryLabels[$doc->category] ?? ucfirst($doc->category) }}</p>
+                        <h5 class="doc-item-title">{{ $doc->title }}</h5>
+                        @if($doc->public_download_url)
+                        <a href="{{ $doc->public_download_url }}" target="_blank" class="doc-download-link"><i class="fas fa-download"></i> Télécharger</a>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            @endif
+
+            @if(!$hasPublicDocs && !$hasSimDocs)
                 <div style="background:white;border-radius:12px;padding:40px 20px;text-align:center;">
                     <i class="fas fa-folder-open" style="font-size:2.5rem;color:#d1d5db;margin-bottom:12px;"></i>
                     <p style="color:#9ca3af;margin:0;font-size:0.95rem;">Aucun document disponible pour le moment.</p>

@@ -281,6 +281,7 @@
                                     <option value="">Sélectionner une catégorie</option>
                                     <option value="rapport">Rapport</option>
                                     <option value="bulletin">Bulletin SIM</option>
+                                    <option value="documents_officiels">Documents officiels et avis de recrutement</option>
                                 </select>
                             </div>
                         </div>

@@ -35,7 +35,7 @@ class SimController extends Controller
             return view('public.sim.index', compact('reports'));
         }
         
-        $query = SimReport::public();
+        $query = SimReport::public()->where('category', 'bulletin');
 
         // Filtres
         if ($request->filled('report_type')) {

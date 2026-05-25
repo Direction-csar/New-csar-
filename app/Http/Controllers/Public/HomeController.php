@@ -173,6 +173,17 @@ class HomeController extends Controller
         } catch (\Exception $e) {
             $publicDocuments = collect([]);
         }
+
+        // Documents SIM publiés (Rapports + Bulletins SIM + Documents officiels) pour la section DOCUMENTATIONS
+        try {
+            $simDocumentations = SimReport::public()
+                ->whereIn('category', ['rapport', 'bulletin', 'documents_officiels'])
+                ->orderBy('published_at', 'desc')
+                ->take(6)
+                ->get();
+        } catch (\Exception $e) {
+            $simDocumentations = collect([]);
+        }
             
         // Préparation des données pour la vue
         $viewData = [
@@ -189,6 +200,7 @@ class HomeController extends Controller
             'simReports' => $simReports,
             'publications' => $publications,
             'publicDocuments' => $publicDocuments,
+            'simDocumentations' => $simDocumentations,
             'requests' => []
         ];
         

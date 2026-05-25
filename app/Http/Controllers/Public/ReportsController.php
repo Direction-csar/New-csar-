@@ -17,6 +17,7 @@ class ReportsController extends Controller
             // Récupérer les rapports SIM publiés depuis la base de données
             $reports = \App\Models\SimReport::where('status', 'published')
                 ->where('is_public', true)
+                ->where('category', 'rapport')
                 ->orderBy('published_at', 'desc')
                 ->get()
                 ->map(function($report) {
