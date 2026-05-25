@@ -811,41 +811,59 @@ document.addEventListener('DOMContentLoaded', function() {
                 ];
             @endphp
 
-            @if($hasPublicDocs)
-                @foreach($publicDocuments as $idx => $doc)
-                <div class="doc-item" data-aos="fade-up" data-aos-delay="{{ ($idx + 1) * 100 }}">
-                    <div class="doc-item-icon">
-                        <i class="{{ $doc->icon_class }}"></i>
-                    </div>
-                    <div class="doc-item-info">
-                        <p class="doc-item-label">{{ $doc->type_label }}</p>
-                        <h5 class="doc-item-title">{{ $doc->title }}</h5>
-                        @if($doc->file_url)
-                        <a href="{{ $doc->file_url }}" target="_blank" class="doc-download-link"><i class="fas fa-download"></i> Télécharger</a>
+            @php
+                $allDocs = collect();
+                if ($hasPublicDocs) {
+                    foreach ($publicDocuments as $d) {
+                        $allDocs->push((object)[
+                            'title' => $d->title,
+                            'label' => $d->type_label,
+                            'icon'  => $d->icon_class,
+                            'url'   => $d->file_url,
+                            'download_url' => $d->file_url,
+                        ]);
+                    }
+                }
+                if ($hasSimDocs) {
+                    foreach ($simDocumentations as $d) {
+                        $allDocs->push((object)[
+                            'title' => $d->title,
+                            'label' => $categoryLabels[$d->category] ?? ucfirst($d->category),
+                            'icon'  => $categoryIcons[$d->category] ?? 'fas fa-file',
+                            'url'   => $d->document_file ? asset('storage/' . $d->document_file) : null,
+                            'download_url' => $d->public_download_url,
+                        ]);
+                    }
+                }
+            @endphp
+
+            @foreach($allDocs as $idx => $doc)
+            <div class="doc-item" data-aos="fade-up" data-aos-delay="{{ ($idx + 1) * 80 }}" style="--doc-idx: {{ $idx }};">
+                <div class="doc-item-icon">
+                    <i class="{{ $doc->icon }}"></i>
+                </div>
+                <div class="doc-item-info">
+                    <p class="doc-item-label">{{ $doc->label }}</p>
+                    <h5 class="doc-item-title">{{ $doc->title }}</h5>
+                    <div class="doc-item-actions">
+                        @if($doc->url)
+                        <button type="button"
+                                class="doc-action-btn doc-preview-btn"
+                                onclick="openDocPreview({{ $idx }})">
+                            <i class="fas fa-eye"></i><span>Aperçu</span>
+                        </button>
+                        @endif
+                        @if($doc->download_url)
+                        <a href="{{ $doc->download_url }}" target="_blank" rel="noopener" class="doc-action-btn doc-download-btn">
+                            <i class="fas fa-download"></i><span>Télécharger</span>
+                        </a>
                         @endif
                     </div>
                 </div>
-                @endforeach
-            @endif
+            </div>
+            @endforeach
 
-            @if($hasSimDocs)
-                @foreach($simDocumentations as $idx => $doc)
-                <div class="doc-item" data-aos="fade-up" data-aos-delay="{{ ($idx + 1) * 100 }}">
-                    <div class="doc-item-icon">
-                        <i class="{{ $categoryIcons[$doc->category] ?? 'fas fa-file' }}"></i>
-                    </div>
-                    <div class="doc-item-info">
-                        <p class="doc-item-label">{{ $categoryLabels[$doc->category] ?? ucfirst($doc->category) }}</p>
-                        <h5 class="doc-item-title">{{ $doc->title }}</h5>
-                        @if($doc->public_download_url)
-                        <a href="{{ $doc->public_download_url }}" target="_blank" class="doc-download-link"><i class="fas fa-download"></i> Télécharger</a>
-                        @endif
-                    </div>
-                </div>
-                @endforeach
-            @endif
-
-            @if(!$hasPublicDocs && !$hasSimDocs)
+            @if($allDocs->isEmpty())
                 <div style="background:white;border-radius:12px;padding:40px 20px;text-align:center;">
                     <i class="fas fa-folder-open" style="font-size:2.5rem;color:#d1d5db;margin-bottom:12px;"></i>
                     <p style="color:#9ca3af;margin:0;font-size:0.95rem;">Aucun document disponible pour le moment.</p>
@@ -854,6 +872,145 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     </div>
 </section>
+
+@if($allDocs->isNotEmpty())
+{{-- ============ MODAL APERÇU DOCUMENT ============ --}}
+<div id="docPreviewModal" class="doc-modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="doc-modal__backdrop" onclick="closeDocPreview()"></div>
+
+    <button type="button" class="doc-modal__close" onclick="closeDocPreview()" aria-label="Fermer">
+        <i class="fas fa-times"></i>
+    </button>
+
+    <button type="button" class="doc-modal__nav doc-modal__nav--prev" onclick="navigateDoc(-1)" aria-label="Précédent">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button type="button" class="doc-modal__nav doc-modal__nav--next" onclick="navigateDoc(1)" aria-label="Suivant">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+
+    <div class="doc-modal__content">
+        <div class="doc-modal__header">
+            <div class="doc-modal__icon"><i id="docModalIcon" class="fas fa-file"></i></div>
+            <div class="doc-modal__title-wrap">
+                <p id="docModalLabel" class="doc-modal__label"></p>
+                <h3 id="docModalTitle" class="doc-modal__title"></h3>
+            </div>
+            <div class="doc-modal__counter"><span id="docModalIndex">1</span> / <span id="docModalTotal">{{ $allDocs->count() }}</span></div>
+        </div>
+
+        <div class="doc-modal__viewer">
+            <div id="docModalLoader" class="doc-modal__loader">
+                <div class="doc-modal__spinner"></div>
+                <p>Chargement du document...</p>
+            </div>
+            <iframe id="docModalFrame" src="" allow="fullscreen" onload="document.getElementById('docModalLoader').style.display='none'"></iframe>
+
+            {{-- Fallback mobile : message + bouton ouvrir --}}
+            <div id="docModalMobileFallback" class="doc-modal__mobile-fallback" style="display:none;">
+                <i class="fas fa-file-pdf"></i>
+                <h4>Aperçu non supporté sur mobile</h4>
+                <p>Pour visualiser ce document sur votre téléphone, ouvrez-le directement.</p>
+                <a id="docModalOpenLink" href="#" target="_blank" rel="noopener" class="doc-modal__open-btn">
+                    <i class="fas fa-external-link-alt"></i> Ouvrir le document
+                </a>
+            </div>
+        </div>
+
+        <div class="doc-modal__footer">
+            <a id="docModalDownload" href="#" target="_blank" rel="noopener" class="doc-modal__download">
+                <i class="fas fa-download"></i> Télécharger
+            </a>
+            <div class="doc-modal__dots" id="docModalDots"></div>
+        </div>
+    </div>
+</div>
+
+@php
+    $docsForJs = $allDocs->map(function ($d) {
+        return [
+            'title' => $d->title,
+            'label' => $d->label,
+            'icon'  => $d->icon,
+            'url'   => $d->url,
+            'download_url' => $d->download_url,
+        ];
+    })->values();
+@endphp
+<script>
+const docPreviewData = {!! $docsForJs->toJson() !!};
+let docPreviewIdx = 0;
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+
+function openDocPreview(index) {
+    docPreviewIdx = index;
+    renderDocPreview();
+    const modal = document.getElementById('docPreviewModal');
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDocPreview() {
+    const modal = document.getElementById('docPreviewModal');
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    document.getElementById('docModalFrame').src = '';
+}
+
+function navigateDoc(delta) {
+    const total = docPreviewData.length;
+    docPreviewIdx = (docPreviewIdx + delta + total) % total;
+    renderDocPreview();
+}
+
+function renderDocPreview() {
+    const d = docPreviewData[docPreviewIdx];
+    if (!d) return;
+
+    const viewer = document.querySelector('.doc-modal__viewer');
+    viewer.classList.remove('is-animating');
+    void viewer.offsetWidth;
+    viewer.classList.add('is-animating');
+
+    document.getElementById('docModalTitle').textContent = d.title;
+    document.getElementById('docModalLabel').textContent = d.label;
+    document.getElementById('docModalIcon').className = d.icon;
+    document.getElementById('docModalIndex').textContent = docPreviewIdx + 1;
+    document.getElementById('docModalDownload').href = d.download_url || d.url || '#';
+    document.getElementById('docModalOpenLink').href = d.url || d.download_url || '#';
+
+    const iframe = document.getElementById('docModalFrame');
+    const loader = document.getElementById('docModalLoader');
+    const fallback = document.getElementById('docModalMobileFallback');
+
+    if (isMobileDevice) {
+        // Sur mobile, les iframes PDF s'affichent mal : on propose direct l'ouverture native
+        iframe.style.display = 'none';
+        loader.style.display = 'none';
+        fallback.style.display = 'flex';
+    } else {
+        iframe.style.display = 'block';
+        fallback.style.display = 'none';
+        loader.style.display = 'flex';
+        iframe.src = d.url || '';
+    }
+
+    const dots = document.getElementById('docModalDots');
+    dots.innerHTML = docPreviewData.map((_, i) =>
+        `<button type="button" class="doc-modal__dot${i === docPreviewIdx ? ' is-active' : ''}" onclick="docPreviewIdx=${i};renderDocPreview()" aria-label="Document ${i+1}"></button>`
+    ).join('');
+}
+
+document.addEventListener('keydown', function(e) {
+    if (!document.getElementById('docPreviewModal').classList.contains('is-open')) return;
+    if (e.key === 'Escape') closeDocPreview();
+    else if (e.key === 'ArrowLeft') navigateDoc(-1);
+    else if (e.key === 'ArrowRight') navigateDoc(1);
+});
+</script>
+@endif
 
 <style>
 /* ===== ACTUALITÉS SONAGED STYLE ===== */
@@ -1199,6 +1356,327 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 .doc-download-link:hover {
     color: #1d4ed8;
+}
+
+/* ===== DOCUMENTATIONS — Actions (Aperçu + Télécharger) ===== */
+.doc-item {
+    position: relative;
+    background: #fff;
+    border-radius: 0;
+    border-left: 3px solid transparent;
+    will-change: transform;
+    animation: docSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(var(--doc-idx, 0) * 60ms);
+}
+.doc-item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(34,197,94,0) 60%);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+}
+.doc-item:hover {
+    background: #fff;
+    transform: translateX(6px);
+    border-left-color: #22c55e;
+    box-shadow: 0 8px 25px rgba(34,197,94,0.12);
+    z-index: 2;
+}
+.doc-item:hover::before { opacity: 1; }
+.doc-item:hover .doc-item-icon {
+    transform: scale(1.08) rotate(-3deg);
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    color: #fff !important;
+}
+.doc-item-icon {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #16a34a;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.doc-item-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+.doc-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+}
+.doc-action-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--x, 50%) var(--y, 50%), rgba(255,255,255,0.5), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+.doc-action-btn:hover::after { opacity: 1; }
+.doc-action-btn i { font-size: 0.85rem; transition: transform 0.3s ease; }
+.doc-preview-btn {
+    background: #fff;
+    color: #059669;
+    border-color: #059669;
+}
+.doc-preview-btn:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(5,150,105,0.35);
+}
+.doc-preview-btn:hover i { transform: scale(1.2); }
+.doc-download-btn {
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(34,197,94,0.3);
+}
+.doc-download-btn:hover {
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(34,197,94,0.5);
+}
+.doc-download-btn:hover i { transform: translateY(2px); }
+
+@keyframes docSlideIn {
+    from { opacity: 0; transform: translateX(-30px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ===== MODAL APERÇU DOCUMENT ===== */
+.doc-modal {
+    position: fixed; inset: 0; z-index: 10000;
+    display: none; align-items: center; justify-content: center;
+    padding: 20px;
+}
+.doc-modal.is-open { display: flex; animation: docModalFade 0.4s ease-out; }
+
+.doc-modal__backdrop {
+    position: absolute; inset: 0;
+    background: rgba(15,23,42,0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    cursor: pointer;
+    animation: docBackdropFade 0.4s ease-out;
+}
+
+.doc-modal__close {
+    position: absolute; top: 20px; right: 20px; z-index: 10;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: rgba(255,255,255,0.95); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #1f2937; font-size: 1.15rem;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+.doc-modal__close:hover {
+    background: #ef4444; color: #fff;
+    transform: rotate(180deg) scale(1.1);
+    box-shadow: 0 6px 20px rgba(239,68,68,0.5);
+}
+
+.doc-modal__nav {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
+    width: 54px; height: 54px; border-radius: 50%;
+    background: rgba(255,255,255,0.95); border: none; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #22c55e; font-size: 1.3rem;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+.doc-modal__nav:hover {
+    background: #22c55e; color: #fff;
+    transform: translateY(-50%) scale(1.15);
+    box-shadow: 0 10px 28px rgba(34,197,94,0.55);
+}
+.doc-modal__nav--prev { left: 30px; }
+.doc-modal__nav--next { right: 30px; }
+
+.doc-modal__content {
+    position: relative; z-index: 5;
+    width: 100%; max-width: 1100px; max-height: 92vh;
+    background: #fff; border-radius: 24px; overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.5);
+    animation: docModalSlideUp 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.doc-modal__header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 20px 28px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+}
+.doc-modal__header::before {
+    content: '';
+    position: absolute;
+    top: -50%; right: -10%;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, transparent 70%);
+    animation: docHeaderPulse 4s ease-in-out infinite;
+}
+.doc-modal__icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: rgba(255,255,255,0.22); backdrop-filter: blur(10px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; flex-shrink: 0; position: relative; z-index: 1;
+}
+.doc-modal__title-wrap { flex: 1; min-width: 0; position: relative; z-index: 1; }
+.doc-modal__label {
+    font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin: 0 0 4px; opacity: 0.85;
+}
+.doc-modal__title {
+    font-size: 1.1rem; font-weight: 700; margin: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.doc-modal__counter {
+    background: rgba(255,255,255,0.22);
+    padding: 8px 16px; border-radius: 20px;
+    font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
+    position: relative; z-index: 1;
+}
+
+.doc-modal__viewer {
+    flex: 1; position: relative;
+    background: #f3f4f6;
+    min-height: 60vh;
+    overflow: hidden;
+}
+.doc-modal__viewer.is-animating { animation: docViewerFade 0.45s ease-out; }
+.doc-modal__viewer iframe { width: 100%; height: 100%; min-height: 60vh; border: 0; display: block; }
+.doc-modal__loader {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 18px; color: #6b7280; background: #f3f4f6; z-index: 2;
+}
+.doc-modal__spinner {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 4px solid #d1d5db; border-top-color: #22c55e;
+    animation: docSpin 0.8s linear infinite;
+}
+.doc-modal__mobile-fallback {
+    position: absolute; inset: 0;
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 30px;
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    text-align: center; z-index: 3;
+}
+.doc-modal__mobile-fallback i {
+    font-size: 4rem; color: #22c55e;
+    animation: docBounce 2s ease-in-out infinite;
+}
+.doc-modal__mobile-fallback h4 {
+    color: #1f2937; font-size: 1.15rem; font-weight: 700; margin: 0;
+}
+.doc-modal__mobile-fallback p { color: #6b7280; margin: 0; font-size: 0.95rem; max-width: 340px; }
+.doc-modal__open-btn {
+    margin-top: 8px;
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 14px 28px; border-radius: 14px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff; text-decoration: none; font-weight: 700; font-size: 1rem;
+    box-shadow: 0 6px 18px rgba(34,197,94,0.4);
+    transition: all 0.3s ease;
+}
+.doc-modal__open-btn:hover {
+    color: #fff; transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 10px 28px rgba(34,197,94,0.55);
+}
+
+.doc-modal__footer {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    padding: 18px 28px; background: #fff; border-top: 1px solid #f3f4f6;
+}
+.doc-modal__download {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 12px 24px; border-radius: 12px;
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    color: #fff; text-decoration: none; font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(34,197,94,0.3);
+}
+.doc-modal__download:hover {
+    color: #fff; transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(34,197,94,0.5);
+}
+.doc-modal__dots { display: flex; gap: 8px; flex-wrap: wrap; }
+.doc-modal__dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    border: none; background: #d1d5db; cursor: pointer;
+    transition: all 0.3s ease;
+}
+.doc-modal__dot:hover { background: #9ca3af; transform: scale(1.3); }
+.doc-modal__dot.is-active {
+    background: #22c55e; width: 28px; border-radius: 5px;
+}
+
+@keyframes docModalFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes docBackdropFade { from { opacity: 0; backdrop-filter: blur(0); } to { opacity: 1; backdrop-filter: blur(10px); } }
+@keyframes docModalSlideUp {
+    from { opacity: 0; transform: translateY(50px) scale(0.93); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes docViewerFade {
+    from { opacity: 0; transform: translateX(25px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes docSpin { to { transform: rotate(360deg); } }
+@keyframes docBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+@keyframes docHeaderPulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.2); opacity: 1; }
+}
+
+/* Responsive mobile */
+@media (max-width: 768px) {
+    .doc-item {
+        flex-direction: row;
+        padding: 16px;
+    }
+    .doc-item:hover { transform: none; }
+    .doc-item-actions { width: 100%; }
+    .doc-action-btn {
+        flex: 1; justify-content: center;
+        padding: 10px 12px; font-size: 0.85rem;
+    }
+    .doc-modal { padding: 0; }
+    .doc-modal__content {
+        max-height: 100vh; height: 100vh;
+        border-radius: 0;
+    }
+    .doc-modal__nav {
+        width: 42px; height: 42px;
+        font-size: 1rem;
+    }
+    .doc-modal__nav--prev { left: 8px; }
+    .doc-modal__nav--next { right: 8px; }
+    .doc-modal__close { top: 12px; right: 12px; width: 42px; height: 42px; }
+    .doc-modal__header { padding: 16px 18px; gap: 12px; }
+    .doc-modal__icon { width: 44px; height: 44px; font-size: 1.2rem; }
+    .doc-modal__title { font-size: 0.95rem; }
+    .doc-modal__counter { padding: 6px 12px; font-size: 0.78rem; }
+    .doc-modal__footer { flex-direction: column; gap: 14px; padding: 14px; }
+    .doc-modal__download { width: 100%; justify-content: center; }
 }
 
 /* ===== MÉTÉO WIDGET ===== */
