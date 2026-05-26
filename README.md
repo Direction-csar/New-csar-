@@ -12,7 +12,7 @@ Application web Laravel du CSAR : site institutionnel public, interface Admin (g
 
 **Interfaces actuellement désactivées** : DRH, Responsable entrepôt, Agent (redirection vers une page « Interface désactivée »).
 
----
+---à
 
 ## 🔗 Accès
 

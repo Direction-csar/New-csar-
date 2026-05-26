@@ -17,7 +17,7 @@ Route::post('/demande', [\App\Http\Controllers\Public\DemandeController::class, 
 // Route directe pour /suivi (sans préfixe de locale) - utilise directement le contrôleur
 Route::get('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'index'])->name('suivi.direct');
 Route::post('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'track'])->name('suivi.track.direct');
-Route::get('/missions', [GalleryController::class, 'missions'])->name('missions_static');
+Route::get('/missions', [\App\Http\Controllers\Public\GalleryController::class, 'missions'])->name('missions_static');
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\AboutController;
 use App\Http\Controllers\Public\InstitutionController;
@@ -209,6 +209,13 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     // Legal pages
     Route::get('/politique-confidentialite', [\App\Http\Controllers\Public\LegalController::class, 'privacy'])->name('privacy');
     Route::get('/conditions-utilisation', [\App\Http\Controllers\Public\LegalController::class, 'terms'])->name('terms');
+
+    // RGPD - Droits utilisateurs (Articles 15, 17, 20)
+    Route::middleware(['auth'])->prefix('mes-donnees')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Public\GdprController::class, 'index'])->name('gdpr.index');
+        Route::post('/exporter', [\App\Http\Controllers\Public\GdprController::class, 'exportData'])->name('gdpr.export');
+        Route::delete('/supprimer-compte', [\App\Http\Controllers\Public\GdprController::class, 'deleteAccount'])->name('gdpr.delete');
+    });
 
     
     // Newsletter - Routes publiques unifiées

@@ -1230,9 +1230,14 @@
                                 <a href="{{ route('privacy', ['locale' => app()->getLocale()]) }}" class="legal-link me-3">
                                     <i class="fas fa-shield-alt me-1"></i>{{ __('messages.footer.privacy') }}
                                 </a>
-                                <a href="{{ route('terms', ['locale' => app()->getLocale()]) }}" class="legal-link">
+                                <a href="{{ route('terms', ['locale' => app()->getLocale()]) }}" class="legal-link me-3">
                                     <i class="fas fa-file-contract me-1"></i>{{ __('messages.footer.terms') }}
                                 </a>
+                                @auth
+                                <a href="{{ url('/' . app()->getLocale() . '/mes-donnees') }}" class="legal-link">
+                                    <i class="fas fa-user-shield me-1"></i>Mes données (RGPD)
+                                </a>
+                                @endauth
                             </div>
                         </div>
                     </div>
