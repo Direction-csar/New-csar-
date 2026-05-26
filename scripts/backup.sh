@@ -69,6 +69,22 @@ echo "[$(date)] Suppression sauvegardes > ${RETENTION_DAYS} jours"
 find "$BACKUP_DIR/db"      -type f -name "*.sql.gz" -mtime +"$RETENTION_DAYS" -delete
 find "$BACKUP_DIR/storage" -type f -name "*.tar.gz" -mtime +"$RETENTION_DAYS" -delete
 
+# === Sauvegarde hors-site (rclone) =========================================
+# Active si la variable BACKUP_REMOTE est définie (ex: BACKUP_REMOTE="s3:csar-backups")
+# Installer rclone : curl https://rclone.org/install.sh | sudo bash
+# Configurer une remote : rclone config (S3, Backblaze B2, Google Drive, etc.)
+if [[ -n "${BACKUP_REMOTE:-}" ]] && command -v rclone >/dev/null 2>&1; then
+    echo "[$(date)] Upload hors-site -> $BACKUP_REMOTE"
+    rclone copy "$DB_FILE"      "$BACKUP_REMOTE/db/"      --quiet || echo "[WARN] Upload DB hors-site échoué"
+    rclone copy "$STORAGE_FILE" "$BACKUP_REMOTE/storage/" --quiet || echo "[WARN] Upload storage hors-site échoué"
+    # Rétention distante : suppression des fichiers > 30 jours
+    rclone delete --min-age 30d "$BACKUP_REMOTE/db/"      --quiet || true
+    rclone delete --min-age 30d "$BACKUP_REMOTE/storage/" --quiet || true
+    echo "[$(date)] Upload hors-site terminé"
+elif [[ -n "${BACKUP_REMOTE:-}" ]]; then
+    echo "[WARN] BACKUP_REMOTE défini mais rclone non installé — backup local uniquement"
+fi
+
 # === Résumé ================================================================
 TOTAL_SIZE="$(du -sh "$BACKUP_DIR" | awk '{print $1}')"
 echo "[$(date)] === Backup terminé — total $TOTAL_SIZE ==="

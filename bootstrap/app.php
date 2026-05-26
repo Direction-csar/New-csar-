@@ -46,5 +46,11 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Intégration Sentry (capture des exceptions en production)
+        // Activée uniquement si le DSN est configuré dans .env (SENTRY_LARAVEL_DSN)
+        if (app()->bound('sentry') && config('sentry.dsn')) {
+            $exceptions->reportable(function (\Throwable $e) {
+                \Sentry\Laravel\Integration::captureUnhandledException($e);
+            });
+        }
     })->create();
