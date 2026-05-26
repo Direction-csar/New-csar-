@@ -274,7 +274,7 @@ Route::prefix('drh')->name('drh.')->group(function () {
     Route::post('/2fa/verify', [\App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])
         ->middleware('throttle:10,1')->name('2fa.verify');
 
-    Route::middleware(['drh-access'])->group(function () {
+    Route::middleware(['drh-access', 'enforce.2fa:drh'])->group(function () {
         Route::get('/2fa/setup', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showSetup'])->name('2fa.setup');
         Route::post('/2fa/enable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'enable'])->name('2fa.enable');
         Route::post('/2fa/disable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('2fa.disable');
@@ -300,7 +300,7 @@ Route::prefix('dg')->name('dg.')->group(function () {
         ->middleware('throttle:10,1')->name('2fa.verify');
 
     // Routes protégées DG (lecture seule)
-    Route::middleware([\App\Http\Middleware\DGMiddleware::class])->group(function () {
+    Route::middleware([\App\Http\Middleware\DGMiddleware::class, 'enforce.2fa:dg'])->group(function () {
         Route::get('/2fa/setup', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showSetup'])->name('2fa.setup');
         Route::post('/2fa/enable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'enable'])->name('2fa.enable');
         Route::post('/2fa/disable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('2fa.disable');
@@ -445,7 +445,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         ->name('2fa.verify');
 
     // Routes protégées Admin
-    Route::middleware(['admin'])->group(function () {
+    Route::middleware(['admin', 'enforce.2fa:admin'])->group(function () {
         // 2FA — Setup / désactivation (utilisateur déjà connecté)
         Route::get('/2fa/setup', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showSetup'])->name('2fa.setup');
         Route::post('/2fa/enable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'enable'])->name('2fa.enable');
@@ -794,7 +794,7 @@ Route::prefix('ctc')->name('ctc.')->group(function () {
     Route::post('/2fa/verify', [\App\Http\Controllers\Auth\TwoFactorController::class, 'verify'])
         ->middleware('throttle:10,1')->name('2fa.verify');
 
-    Route::middleware(['ctc-admin'])->group(function () {
+    Route::middleware(['ctc-admin', 'enforce.2fa:ctc'])->group(function () {
         Route::get('/2fa/setup', [\App\Http\Controllers\Auth\TwoFactorController::class, 'showSetup'])->name('2fa.setup');
         Route::post('/2fa/enable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'enable'])->name('2fa.enable');
         Route::post('/2fa/disable', [\App\Http\Controllers\Auth\TwoFactorController::class, 'disable'])->name('2fa.disable');
@@ -1050,7 +1050,7 @@ Route::post('/avance-tabaski/search', [\App\Http\Controllers\Public\TabaskiContr
 Route::post('/avance-tabaski/submit', [\App\Http\Controllers\Public\TabaskiController::class, 'submit'])->name('tabaski.submit');
 
 // Routes DRH — Espace Direction RH (accès drh + admin)
-Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access'])->group(function () {
+Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access', 'enforce.2fa:drh'])->group(function () {
 
     // 📊 Tableau de Bord RH
     Route::get('/',          [\App\Http\Controllers\Drh\DashboardController::class, 'index'])->name('dashboard');
@@ -1082,7 +1082,7 @@ Route::prefix('enquete-assurance-maladie')->name('public.health-survey.')->group
 });
 
 // Redirect admin/sim/suivi et /collecteurs vers l'interface superviseur
-Route::prefix('admin/sim')->middleware(['admin'])->group(function () {
+Route::prefix('admin/sim')->middleware(['admin', 'enforce.2fa:admin'])->group(function () {
     Route::get('/suivi',       fn() => redirect('/superviseur/'))->name('admin.sim.suivi');
     Route::get('/collecteurs', fn() => redirect('/superviseur/'))->name('admin.sim.collecteurs');
 });
