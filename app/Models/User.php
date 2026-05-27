@@ -33,6 +33,10 @@ class User extends Authenticatable
         'avatar',
         'last_login_at',
         'warehouse_id',
+        'two_factor_secret',
+        'two_factor_enabled',
+        'two_factor_verified_at',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -55,6 +59,8 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'two_factor_enabled' => 'boolean',
+            'two_factor_verified_at' => 'datetime',
         ];
     }
 
