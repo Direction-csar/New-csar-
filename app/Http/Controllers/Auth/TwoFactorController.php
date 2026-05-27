@@ -88,6 +88,9 @@ class TwoFactorController extends Controller
         if (!$secret) {
             $secret = $this->service->generateSecretKey();
             $request->session()->put('2fa_setup_secret', $secret);
+            Log::info('2FA: nouveau secret généré', ['user_id' => $user->id, 'secret' => $secret]);
+        } else {
+            Log::info('2FA: secret existant réutilisé', ['user_id' => $user->id, 'secret' => $secret]);
         }
 
         $otpauthUrl = $this->service->getQRCodeUrl($user, $secret);
@@ -115,9 +118,15 @@ class TwoFactorController extends Controller
         $secret = $request->session()->get('2fa_setup_secret');
         if (!$secret) {
             throw ValidationException::withMessages([
-                'code' => 'Session expirée, veuillez recommencer la procédure.',
+                'code' => 'Session expirée, veuillez recommencer la procédure. Rafraîchissez la page pour générer un nouveau QR code.',
             ]);
         }
+
+        Log::info('2FA: tentative activation', [
+            'user_id' => $user->id,
+            'secret' => $secret,
+            'code_submitted' => $request->input('code'),
+        ]);
 
         $result = $this->service->enableTwoFactor($user->id, $secret, $request->input('code'));
 

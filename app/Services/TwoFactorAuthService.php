@@ -41,14 +41,26 @@ class TwoFactorAuthService
 
     /**
      * Vérifier le code 2FA
+     * @param int $window Tolérance en périodes de 30s (4 = ±2 min)
      */
-    public function verifyCode($secretKey, $code)
+    public function verifyCode($secretKey, $code, $window = 4)
     {
         try {
-            return $this->google2fa->verifyKey($secretKey, $code);
+            $result = $this->google2fa->verifyKey($secretKey, $code, $window);
+
+            Log::info('Vérification 2FA', [
+                'result' => $result ? 'succès' : 'échec',
+                'code_length' => strlen($code),
+                'window' => $window,
+                'server_time' => now()->toDateTimeString(),
+                'secret_length' => strlen($secretKey),
+            ]);
+
+            return $result;
         } catch (\Exception $e) {
             Log::error('Erreur vérification 2FA', [
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'code_length' => strlen($code),
             ]);
             return false;
         }
