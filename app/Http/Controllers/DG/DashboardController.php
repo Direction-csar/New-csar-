@@ -25,6 +25,9 @@ class DashboardController extends Controller
             // Demandes récentes pour l'affichage
             $recentRequests = \App\Models\PublicRequest::latest()->take(5)->get();
             
+            // Donations récentes pour l'affichage
+            $recentDonations = \App\Models\Donation::orderBy('created_at', 'desc')->take(5)->get();
+            
             // Graphiques des données (lecture seule)
             $chartsData = $this->getChartsData();
             
@@ -40,7 +43,7 @@ class DashboardController extends Controller
                 'timestamp' => Carbon::now()
             ]);
 
-            return view('dg.dashboard-executive', compact('stats', 'recentActivities', 'chartsData', 'alerts', 'mapData', 'recentRequests'));
+            return view('dg.dashboard-executive', compact('stats', 'recentActivities', 'chartsData', 'alerts', 'mapData', 'recentRequests', 'recentDonations'));
             
         } catch (\Exception $e) {
             Log::error('Erreur lors du chargement du dashboard DG', [
@@ -74,6 +77,17 @@ class DashboardController extends Controller
                     $stats = array_merge($stats, $perfData);
                 }
                 
+                // Ajouter les stats de donations
+                try {
+                    $stats['total_donations'] = \App\Models\Donation::count();
+                    $stats['donation_success'] = \App\Models\Donation::successful()->count();
+                    $stats['donation_amount'] = \App\Models\Donation::successful()->sum('amount') ?? 0;
+                } catch (\Exception $e) {
+                    $stats['total_donations'] = 0;
+                    $stats['donation_success'] = 0;
+                    $stats['donation_amount'] = 0;
+                }
+                
                 return $stats;
             } else {
                 throw new \Exception('Erreur lors de la récupération des données partagées');
@@ -94,6 +108,9 @@ class DashboardController extends Controller
                 'total_personnel' => 0,
                 'approval_rate' => 0,
                 'average_processing_time' => 0,
+                'total_donations' => 0,
+                'donation_amount' => 0,
+                'donation_success' => 0,
             ];
         }
     }

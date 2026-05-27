@@ -93,6 +93,22 @@
                 </div>
             </div>
         </div>
+
+        <!-- KPI Donations -->
+        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
+            <div class="stats-card">
+                <div class="d-flex align-items-center">
+                    <div class="icon-3d me-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); width: 50px; height: 50px;">
+                        <i class="fas fa-hand-holding-heart"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <h3 class="stats-number" data-stat="total_donations">{{ $stats['total_donations'] ?? 0 }}</h3>
+                        <p class="stats-label">❤️ Donations</p>
+                        <small class="text-success">{{ number_format($stats['donation_amount'] ?? 0, 0, ',', ' ') }} F</small>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Graphique compact et métriques -->
@@ -255,7 +271,16 @@
                         <small>Tous les services fonctionnels</small>
                     </div>
                 </div>
-                
+
+                <!-- Donations alert -->
+                <div class="alert alert-success d-flex align-items-center mb-2">
+                    <i class="fas fa-hand-holding-heart me-2"></i>
+                    <div>
+                        <strong class="small">{{ $stats['donation_success'] ?? 0 }} dons reçus</strong><br>
+                        <small>{{ number_format($stats['donation_amount'] ?? 0, 0, ',', ' ') }} FCFA collectés</small>
+                    </div>
+                </div>
+
                 <!-- Actions rapides pour DG -->
                 <div class="mt-3">
                     <h6 class="small fw-bold mb-2">Actions Rapides</h6>
@@ -263,6 +288,9 @@
                     <a href="{{ route('dg.demandes.index') }}" class="btn btn-outline-primary btn-sm">
                         <i class="fas fa-clipboard-list me-1"></i>Consulter Demandes
                     </a>
+                        <a href="{{ route('dg.donations.index') }}" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-hand-holding-heart me-1"></i>Gérer les Donations
+                        </a>
                         <a href="{{ route('dg.reports.index') }}" class="btn btn-outline-success btn-sm">
                             <i class="fas fa-chart-bar me-1"></i>Générer Rapport
                         </a>
@@ -271,6 +299,92 @@
                         </a>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Donations récentes DG -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card-modern p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-hand-holding-heart me-2 text-danger"></i>
+                        Dons Récemment Reçus
+                    </h6>
+                    <a href="{{ route('dg.donations.index') }}" class="btn btn-danger-modern btn-modern btn-sm">
+                        <i class="fas fa-external-link-alt me-1"></i>Gérer les Dons
+                    </a>
+                </div>
+
+                @if(isset($recentDonations) && $recentDonations->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Donateur</th>
+                                    <th>Montant</th>
+                                    <th>Fournisseur</th>
+                                    <th>Statut</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($recentDonations as $donation)
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="icon-3d me-2" style="width: 30px; height: 30px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                                <i class="fas fa-heart" style="font-size: 12px;"></i>
+                                            </div>
+                                            <div>
+                                                <div class="fw-bold small">{{ $donation->is_anonymous ? 'Anonyme' : $donation->full_name }}</div>
+                                                <small class="text-muted">{{ $donation->is_anonymous ? '' : ($donation->email ?? '') }}</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success small">{{ number_format($donation->amount, 0, ',', ' ') }} {{ $donation->currency ?? 'FCFA' }}</strong>
+                                    </td>
+                                    <td>
+                                        @if($donation->payment_provider === 'paypal')
+                                            <span class="badge bg-primary small">PayPal</span>
+                                        @else
+                                            <span class="badge bg-info small">PayDunya</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if($donation->payment_status === 'success')
+                                            <span class="badge bg-success small">Complété</span>
+                                        @elseif($donation->payment_status === 'pending')
+                                            <span class="badge bg-warning text-dark small">En attente</span>
+                                        @else
+                                            <span class="badge bg-danger small">Échoué</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <small>{{ $donation->created_at->format('d/m/Y') }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('dg.donations.show', $donation->id) }}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="text-center py-4">
+                        <div class="icon-3d mx-auto mb-2" style="width: 60px; height: 60px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                            <i class="fas fa-hand-holding-heart" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <h6 class="text-muted">Aucun don reçu encore</h6>
+                        <p class="text-muted small">Les donations apparaîtront ici une fois reçues</p>
+                    </div>
+                @endif
             </div>
         </div>
     </div>
