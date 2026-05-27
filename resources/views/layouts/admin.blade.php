@@ -989,6 +989,14 @@
                     <span>Chiffres Clés</span>
                 </a>
             </div>
+
+            <!-- Gestion des Dons -->
+            <div class="menu-item">
+                <a href="{{ route('admin.donations.index') }}" class="menu-link {{ request()->routeIs('admin.donations.*') ? 'active' : '' }}">
+                    <i class="fas fa-hand-holding-heart"></i>
+                    <span>Gestion des Dons</span>
+                </a>
+            </div>
             
             <!-- Communication & Publications (hub central : actualités, rapports, newsletter, galerie, messages) -->
             <div class="menu-item">

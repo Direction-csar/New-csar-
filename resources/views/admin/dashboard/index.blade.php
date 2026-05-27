@@ -289,6 +289,9 @@
                     <a href="{{ route('admin.entrepots.create') }}" class="btn btn-info btn-sm">
                         <i class="fas fa-warehouse me-1"></i>Nouvel Entrepôt
                     </a>
+                    <a href="{{ route('admin.donations.index') }}" class="btn btn-danger btn-sm">
+                        <i class="fas fa-hand-holding-heart me-1"></i>Gérer les Dons
+                    </a>
                     <button class="btn btn-warning btn-sm" onclick="generateReport()">
                         <i class="fas fa-file-pdf me-1"></i>Générer Rapport
                     </button>
