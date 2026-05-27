@@ -47,7 +47,7 @@ class SmsServiceTest extends TestCase
         $this->assertFalse($result['valid']);
 
         // Too high
-        $result = $service->validateAmount(5000000);
+        $result = $service->validateAmount(50000000);
         $this->assertFalse($result['valid']);
 
         // Non-numeric

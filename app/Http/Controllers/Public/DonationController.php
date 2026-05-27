@@ -46,8 +46,9 @@ class DonationController extends Controller
         $validator = Validator::make($request->all(), [
             'full_name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
+            'phone_country' => 'nullable|string|max:5',
             'phone' => 'nullable|string|max:20',
-            'amount' => 'required|numeric|min:500|max:1000000',
+            'amount' => 'required|numeric|min:500|max:10000000',
             'payment_method' => 'required|in:wave,orange_money,credit_card,paypal_balance,paypal_card',
             'payment_provider' => 'required|in:paydunya,paypal',
             'donation_type' => 'required|in:single,monthly',
@@ -55,8 +56,8 @@ class DonationController extends Controller
             'message' => 'nullable|string|max:1000',
             'is_anonymous' => 'boolean',
         ], [
-            'amount.min' => __('donations.validation.amount_min', ['min' => 500]),
-            'amount.max' => __('donations.validation.amount_max', ['max' => 1000000]),
+            'amount.min' => __('donations.validation.amount_min', ['min' => '500']),
+            'amount.max' => __('donations.validation.amount_max', ['max' => '10 000 000']),
         ]);
 
         if ($validator->fails()) {
@@ -84,11 +85,16 @@ class DonationController extends Controller
         }
 
         try {
+            // Build international phone number
+            $phone = $request->phone
+                ? trim($request->input('phone_country', '+221')) . preg_replace('/[^0-9]/', '', $request->phone)
+                : null;
+
             // Create donation record
             $donation = Donation::create([
                 'full_name' => $request->full_name,
                 'email' => $request->email,
-                'phone' => $request->phone,
+                'phone' => $phone,
                 'amount' => $request->amount,
                 'payment_method' => $request->payment_method,
                 'payment_provider' => $provider,

@@ -51,13 +51,52 @@
 
                             <div class="mb-3">
                                 <label for="phone" class="form-label">{{ __('donations.form.phone') }}</label>
-                                <input type="tel" class="form-control @error('phone') is-invalid @enderror"
-                                       id="phone" name="phone"
-                                       value="{{ old('phone') }}"
-                                       placeholder="{{ __('donations.form.phone_placeholder') }}">
-                                @error('phone')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
+                                <div class="input-group">
+                                    <select class="form-select" id="phone_country" name="phone_country" style="max-width: 140px;">
+                                        <option value="+221" {{ old('phone_country', '+221') == '+221' ? 'selected' : '' }}>🇸🇳 +221</option>
+                                        <option value="+223" {{ old('phone_country') == '+223' ? 'selected' : '' }}>🇲🇱 +223</option>
+                                        <option value="+224" {{ old('phone_country') == '+224' ? 'selected' : '' }}>🇬🇳 +224</option>
+                                        <option value="+225" {{ old('phone_country') == '+225' ? 'selected' : '' }}>🇨🇮 +225</option>
+                                        <option value="+226" {{ old('phone_country') == '+226' ? 'selected' : '' }}>🇧🇫 +226</option>
+                                        <option value="+227" {{ old('phone_country') == '+227' ? 'selected' : '' }}>🇳🇪 +227</option>
+                                        <option value="+228" {{ old('phone_country') == '+228' ? 'selected' : '' }}>🇹🇬 +228</option>
+                                        <option value="+229" {{ old('phone_country') == '+229' ? 'selected' : '' }}>🇧🇯 +229</option>
+                                        <option value="+230" {{ old('phone_country') == '+230' ? 'selected' : '' }}>🇲🇺 +230</option>
+                                        <option value="+233" {{ old('phone_country') == '+233' ? 'selected' : '' }}>🇬🇭 +233</option>
+                                        <option value="+234" {{ old('phone_country') == '+234' ? 'selected' : '' }}>🇳🇬 +234</option>
+                                        <option value="+237" {{ old('phone_country') == '+237' ? 'selected' : '' }}>🇨🇲 +237</option>
+                                        <option value="+241" {{ old('phone_country') == '+241' ? 'selected' : '' }}>🇬🇦 +241</option>
+                                        <option value="+243" {{ old('phone_country') == '+243' ? 'selected' : '' }}>🇨🇩 +243</option>
+                                        <option value="+244" {{ old('phone_country') == '+244' ? 'selected' : '' }}>🇦🇴 +244</option>
+                                        <option value="+212" {{ old('phone_country') == '+212' ? 'selected' : '' }}>🇲🇦 +212</option>
+                                        <option value="+213" {{ old('phone_country') == '+213' ? 'selected' : '' }}>🇩🇿 +213</option>
+                                        <option value="+216" {{ old('phone_country') == '+216' ? 'selected' : '' }}>🇹🇳 +216</option>
+                                        <option value="+33" {{ old('phone_country') == '+33' ? 'selected' : '' }}>🇫🇷 +33</option>
+                                        <option value="+32" {{ old('phone_country') == '+32' ? 'selected' : '' }}>🇧🇪 +32</option>
+                                        <option value="+41" {{ old('phone_country') == '+41' ? 'selected' : '' }}>🇨🇭 +41</option>
+                                        <option value="+1" {{ old('phone_country') == '+1' ? 'selected' : '' }}>🇺🇸 +1</option>
+                                        <option value="+44" {{ old('phone_country') == '+44' ? 'selected' : '' }}>🇬🇧 +44</option>
+                                        <option value="+49" {{ old('phone_country') == '+49' ? 'selected' : '' }}>🇩🇪 +49</option>
+                                        <option value="+34" {{ old('phone_country') == '+34' ? 'selected' : '' }}>🇪🇸 +34</option>
+                                        <option value="+39" {{ old('phone_country') == '+39' ? 'selected' : '' }}>🇮🇹 +39</option>
+                                        <option value="+351" {{ old('phone_country') == '+351' ? 'selected' : '' }}>🇵🇹 +351</option>
+                                        <option value="+90" {{ old('phone_country') == '+90' ? 'selected' : '' }}>🇹🇷 +90</option>
+                                        <option value="+966" {{ old('phone_country') == '+966' ? 'selected' : '' }}>🇸🇦 +966</option>
+                                        <option value="+971" {{ old('phone_country') == '+971' ? 'selected' : '' }}>🇦🇪 +971</option>
+                                        <option value="+86" {{ old('phone_country') == '+86' ? 'selected' : '' }}>🇨🇳 +86</option>
+                                        <option value="+91" {{ old('phone_country') == '+91' ? 'selected' : '' }}>🇮🇳 +91</option>
+                                        <option value="+81" {{ old('phone_country') == '+81' ? 'selected' : '' }}>🇯🇵 +81</option>
+                                        <option value="+55" {{ old('phone_country') == '+55' ? 'selected' : '' }}>🇧🇷 +55</option>
+                                    </select>
+                                    <input type="tel" class="form-control @error('phone') is-invalid @enderror"
+                                           id="phone" name="phone"
+                                           value="{{ old('phone') }}"
+                                           placeholder="77 123 45 67">
+                                    @error('phone')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                <small class="text-muted">Sélectionnez votre indicatif pays puis saisissez votre numéro</small>
                             </div>
 
                             <div class="form-check mb-3">
@@ -131,14 +170,14 @@
                                 <label for="amount" class="form-label">{{ __('donations.form.custom_amount') }} *</label>
                                 <div class="input-group">
                                     <input type="number" class="form-control @error('amount') is-invalid @enderror"
-                                           id="amount" name="amount" required min="500" max="1000000"
+                                           id="amount" name="amount" required min="500" max="10000000"
                                            value="{{ old('amount', 5000) }}">
                                     <span class="input-group-text">FCFA</span>
                                     @error('amount')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <small class="text-muted">{{ __('donations.form.min_amount', ['min' => 500]) }}</small>
+                                <small class="text-muted">Min : 500 FCFA — Max : 10 000 000 FCFA</small>
                             </div>
                         </div>
 
@@ -154,14 +193,14 @@
                                     <button class="nav-link active" id="paydunya-tab" data-bs-toggle="pill"
                                             data-bs-target="#paydunya-methods" type="button" role="tab"
                                             onclick="selectProvider('paydunya')">
-                                        <i class="fas fa-mobile-alt me-1"></i> Mobile (Sénégal)
+                                        <i class="fas fa-mobile-alt me-1"></i> Mobile Money (Afrique)
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link" id="paypal-tab" data-bs-toggle="pill"
                                             data-bs-target="#paypal-methods" type="button" role="tab"
                                             onclick="selectProvider('paypal')">
-                                        <i class="fab fa-paypal me-1"></i> PayPal / Carte
+                                        <i class="fab fa-paypal me-1"></i> PayPal / Carte internationale
                                     </button>
                                 </li>
                             </ul>

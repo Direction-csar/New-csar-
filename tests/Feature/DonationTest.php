@@ -25,12 +25,27 @@ class DonationTest extends TestCase
         $response->assertJsonValidationErrors(['full_name', 'email', 'amount', 'payment_method', 'payment_provider', 'donation_type']);
     }
 
-    public function test_donation_process_rejects_invalid_amount(): void
+    public function test_donation_process_rejects_amount_too_low(): void
     {
         $response = $this->postJson('/fr/faire-un-don/process', [
             'full_name' => 'Test User',
             'email' => 'test@example.com',
             'amount' => 100, // Under minimum of 500
+            'payment_method' => 'wave',
+            'payment_provider' => 'paydunya',
+            'donation_type' => 'single',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['amount']);
+    }
+
+    public function test_donation_process_rejects_amount_too_high(): void
+    {
+        $response = $this->postJson('/fr/faire-un-don/process', [
+            'full_name' => 'Test User',
+            'email' => 'test@example.com',
+            'amount' => 99999999999, // Over 10M max
             'payment_method' => 'wave',
             'payment_provider' => 'paydunya',
             'donation_type' => 'single',

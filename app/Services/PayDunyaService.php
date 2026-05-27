@@ -286,7 +286,7 @@ class PayDunyaService
     public function validateAmount($amount)
     {
         $minAmount = config('donations.min_amount', 500);
-        $maxAmount = config('donations.max_amount', 1000000);
+        $maxAmount = config('donations.max_amount', 10000000);
         
         if (!is_numeric($amount) || $amount < $minAmount || $amount > $maxAmount) {
             return [
