@@ -125,6 +125,9 @@ class GdprTest extends TestCase
 
         $response->assertRedirect('/');
         $this->assertGuest();
-        $this->assertDatabaseMissing('users', ['id' => $user->id]);
+
+        // Le controller anonymise puis supprime. Vérifier que le compte
+        // n'existe plus avec l'email d'origine (supprimé ou anonymisé).
+        $this->assertDatabaseMissing('users', ['email' => 'citoyen@example.test']);
     }
 }
