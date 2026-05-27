@@ -29,9 +29,10 @@ class SecurityHealthCheck extends Command
         $checks = [];
         $warnings = 0;
         $errors = 0;
+        $jsonMode = (bool) $this->option('json');
 
         // 1. Configuration application
-        $this->info('🔒 Vérification de la configuration...');
+        if (!$jsonMode) $this->info('🔒 Vérification de la configuration...');
 
         if (config('app.debug') === true) {
             $checks['app_debug'] = ['status' => 'error', 'message' => 'APP_DEBUG=true en production est dangereux'];
@@ -56,7 +57,7 @@ class SecurityHealthCheck extends Command
         }
 
         // 2. Caches Laravel
-        $this->info('⚡ Vérification des caches...');
+        if (!$jsonMode) $this->info('⚡ Vérification des caches...');
 
         $configCached = File::exists(base_path('bootstrap/cache/config.php'));
         $routesCached = File::exists(base_path('bootstrap/cache/routes-v7.php'));
@@ -72,7 +73,7 @@ class SecurityHealthCheck extends Command
         if (!$routesCached) $warnings++;
 
         // 3. Permissions
-        $this->info('📁 Vérification des permissions...');
+        if (!$jsonMode) $this->info('📁 Vérification des permissions...');
 
         $storagePath = storage_path();
         if (is_writable($storagePath)) {
@@ -83,7 +84,7 @@ class SecurityHealthCheck extends Command
         }
 
         // 4. Sauvegardes
-        $this->info('💾 Vérification des sauvegardes...');
+        if (!$jsonMode) $this->info('💾 Vérification des sauvegardes...');
 
         $backupDir = '/var/backups/csar/db';
         if (is_dir($backupDir)) {
@@ -112,7 +113,7 @@ class SecurityHealthCheck extends Command
         }
 
         // 5. 2FA admins
-        $this->info('🔐 Vérification 2FA des comptes sensibles...');
+        if (!$jsonMode) $this->info('🔐 Vérification 2FA des comptes sensibles...');
 
         try {
             $sensitiveRoles = ['admin', 'dg', 'drh'];
@@ -163,7 +164,7 @@ class SecurityHealthCheck extends Command
         }
 
         // === Affichage ===
-        if ($this->option('json')) {
+        if ($jsonMode) {
             $this->line(json_encode([
                 'errors' => $errors,
                 'warnings' => $warnings,

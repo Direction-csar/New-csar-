@@ -21,14 +21,15 @@ class EnforceTwoFactorTest extends TestCase
     {
         parent::setUp();
 
-        // Route de test isolée (pas besoin de toute l'app)
-        Route::middleware(['web', 'auth', 'enforce.2fa:web'])
+        // Route de test isolée — utilise le guard 'admin' déjà mappé dans le middleware
+        Route::middleware(['web', 'auth', 'enforce.2fa:admin'])
             ->get('/__test/protected', fn () => 'OK')
             ->name('test.protected');
 
+        // Stub minimal de la route admin.2fa.setup (vraie route définie en prod)
         Route::middleware(['web'])
-            ->get('/web/2fa/setup', fn () => '2FA setup')
-            ->name('web.2fa.setup');
+            ->get('/__test/admin/2fa/setup', fn () => '2FA setup')
+            ->name('admin.2fa.setup');
     }
 
     public function test_user_without_2fa_is_redirected_to_setup(): void
@@ -39,11 +40,13 @@ class EnforceTwoFactorTest extends TestCase
             'two_factor_secret'   => null,
         ]);
 
-        $this->actingAs($user);
+        // Authentifier sur les deux guards : web (pour 'auth') + admin (pour enforce.2fa:admin)
+        $this->actingAs($user, 'web');
+        $this->actingAs($user, 'admin');
 
         $response = $this->get('/__test/protected');
 
-        $response->assertRedirect(route('web.2fa.setup'));
+        $response->assertRedirect(route('admin.2fa.setup'));
     }
 
     public function test_user_with_2fa_enabled_can_access_protected_route(): void
@@ -54,7 +57,8 @@ class EnforceTwoFactorTest extends TestCase
             'two_factor_secret'   => 'SOMEFAKESECRET',
         ]);
 
-        $this->actingAs($user);
+        $this->actingAs($user, 'web');
+        $this->actingAs($user, 'admin');
 
         $response = $this->get('/__test/protected');
 
