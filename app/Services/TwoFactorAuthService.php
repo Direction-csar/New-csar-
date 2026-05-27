@@ -111,6 +111,42 @@ class TwoFactorAuthService
     }
 
     /**
+     * Activer la 2FA sans vérification du code (setup simplifié)
+     */
+    public function enableTwoFactorDirect($userId, $secretKey)
+    {
+        try {
+            $user = User::findOrFail($userId);
+            $user->update([
+                'two_factor_secret' => encrypt($secretKey),
+                'two_factor_enabled' => true,
+                'two_factor_verified_at' => now()
+            ]);
+
+            SecurityService::logAudit('2fa_enabled', 'User', $userId, [
+                'user_email' => $user->email,
+                'ip_address' => request()->ip()
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Authentification à deux facteurs activée avec succès'
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('Erreur activation 2FA directe', [
+                'user_id' => $userId,
+                'error' => $e->getMessage()
+            ]);
+
+            return [
+                'success' => false,
+                'message' => 'Erreur lors de l\'activation de la 2FA'
+            ];
+        }
+    }
+
+    /**
      * Désactiver la 2FA pour un utilisateur
      */
     public function disableTwoFactor($userId, $verificationCode)

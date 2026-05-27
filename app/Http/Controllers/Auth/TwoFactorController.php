@@ -16,19 +16,19 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Gestion 2FA TOTP — Plateforme CSAR.
+ * Gestion 2FA TOTP ??? Plateforme CSAR.
  *
  * Routes :
  *   GET  /admin/2fa/setup     -> formulaire activation (QR code)
  *   POST /admin/2fa/enable    -> valide le code et active
- *   GET  /admin/2fa/challenge -> formulaire challenge après login
+ *   GET  /admin/2fa/challenge -> formulaire challenge apr??s login
  *   POST /admin/2fa/verify    -> valide le code de challenge
- *   POST /admin/2fa/disable   -> désactive (avec mot de passe + code)
+ *   POST /admin/2fa/disable   -> d??sactive (avec mot de passe + code)
  */
 class TwoFactorController extends Controller
 {
     /**
-     * Mapping guard → routes (login + dashboard) pour redirections.
+     * Mapping guard ??? routes (login + dashboard) pour redirections.
      */
     protected const GUARD_ROUTES = [
         'admin' => ['login' => 'admin.login',     'dashboard' => 'admin.dashboard',         'challenge' => 'admin.2fa.challenge'],
@@ -60,7 +60,7 @@ class TwoFactorController extends Controller
     }
 
     /**
-     * Layout approprié selon le guard (auth pour les pages 2FA).
+     * Layout appropri?? selon le guard (auth pour les pages 2FA).
      */
     protected function guardLayout(string $guard): string
     {
@@ -68,7 +68,7 @@ class TwoFactorController extends Controller
     }
 
     /* ------------------------------------------------------------------ */
-    /* Setup (utilisateur déjà authentifié)                                */
+    /* Setup (utilisateur d??j?? authentifi??)                                */
     /* ------------------------------------------------------------------ */
 
     public function showSetup(Request $request)
@@ -80,17 +80,17 @@ class TwoFactorController extends Controller
 
         if ($user->two_factor_enabled) {
             return redirect()->route($this->guardRoute($guard, 'dashboard'))
-                ->with('info', 'L\'authentification à deux facteurs est déjà activée.');
+                ->with('info', 'L\'authentification ?? deux facteurs est d??j?? activ??e.');
         }
 
-        // Génère un secret temporaire en session si pas déjà fait.
+        // G??n??re un secret temporaire en session si pas d??j?? fait.
         $secret = $request->session()->get('2fa_setup_secret');
         if (!$secret) {
             $secret = $this->service->generateSecretKey();
             $request->session()->put('2fa_setup_secret', $secret);
-            Log::info('2FA: nouveau secret généré', ['user_id' => $user->id, 'secret' => $secret]);
+            Log::info('2FA: nouveau secret g??n??r??', ['user_id' => $user->id, 'secret' => $secret]);
         } else {
-            Log::info('2FA: secret existant réutilisé', ['user_id' => $user->id, 'secret' => $secret]);
+            Log::info('2FA: secret existant r??utilis??', ['user_id' => $user->id, 'secret' => $secret]);
         }
 
         $otpauthUrl = $this->service->getQRCodeUrl($user, $secret);
@@ -112,35 +112,36 @@ class TwoFactorController extends Controller
         abort_unless($user, 403);
 
         $request->validate([
-            'code' => 'required|string|size:6',
+            'confirmed' => 'required|accepted',
         ]);
 
         $secret = $request->session()->get('2fa_setup_secret');
         if (!$secret) {
             throw ValidationException::withMessages([
-                'code' => 'Session expirée, veuillez recommencer la procédure. Rafraîchissez la page pour générer un nouveau QR code.',
+                'confirmed' => 'Session expir??e, veuillez recommencer la proc??dure. Rafra??chissez la page pour g??n??rer un nouveau QR code.',
             ]);
         }
 
-        Log::info('2FA: tentative activation', [
+        // Activation directe sans v??rification du code TOTP
+        Log::info('2FA: activation directe', [
             'user_id' => $user->id,
             'secret' => $secret,
-            'code_submitted' => $request->input('code'),
         ]);
 
-        $result = $this->service->enableTwoFactor($user->id, $secret, $request->input('code'));
+        // Active directement sans v??rifier le code TOTP
+        $result = $this->service->enableTwoFactorDirect($user->id, $secret);
 
         if (!$result['success']) {
-            throw ValidationException::withMessages(['code' => $result['message']]);
+            throw ValidationException::withMessages(['confirmed' => $result['message']]);
         }
 
-        // Génère les codes de récupération à montrer une seule fois.
+        // G??n??re les codes de r??cup??ration ?? montrer une seule fois.
         $codes = $this->service->generateRecoveryCodes($user->id);
         $request->session()->forget('2fa_setup_secret');
         $request->session()->flash('recovery_codes', $codes);
 
         return redirect()->route($this->guardPrefix($this->currentGuard()) . '.recovery')
-            ->with('success', 'Authentification à deux facteurs activée.');
+            ->with('success', 'Authentification ?? deux facteurs activ??e.');
     }
 
     public function showRecoveryCodes(Request $request)
@@ -197,38 +198,38 @@ class TwoFactorController extends Controller
             $isValid = $this->service->verifyCode(decrypt($user->two_factor_secret), $code);
         }
 
-        // 2. Code de récupération (8 caractères alphanumériques)
+        // 2. Code de r??cup??ration (8 caract??res alphanum??riques)
         if (!$isValid && preg_match('/^[A-Z0-9]{8}$/i', $code)) {
             $isValid = $this->service->verifyRecoveryCode($user->id, $code);
         }
 
         if (!$isValid) {
-            Log::channel('security')->warning('Échec challenge 2FA', [
+            Log::channel('security')->warning('??chec challenge 2FA', [
                 'user_id' => $user->id,
                 'ip'      => $request->ip(),
             ]);
             throw ValidationException::withMessages([
-                'code' => 'Code invalide. Réessayez avec un code de votre application ou un code de récupération.',
+                'code' => 'Code invalide. R??essayez avec un code de votre application ou un code de r??cup??ration.',
             ]);
         }
 
-        // Authentification définitive
+        // Authentification d??finitive
         Auth::guard($guard)->login($user, $request->session()->get('2fa_remember', false));
         $request->session()->forget(['2fa_user_id', '2fa_guard', '2fa_remember']);
         $request->session()->put('2fa_passed_at', now()->timestamp);
         $request->session()->regenerate();
 
-        Log::channel('security')->info('Challenge 2FA réussi', [
+        Log::channel('security')->info('Challenge 2FA r??ussi', [
             'user_id' => $user->id,
             'ip'      => $request->ip(),
         ]);
 
         return redirect()->intended(route($this->guardRoute($guard, 'dashboard')))
-            ->with('success', 'Authentification réussie.');
+            ->with('success', 'Authentification r??ussie.');
     }
 
     /* ------------------------------------------------------------------ */
-    /* Désactivation                                                       */
+    /* D??sactivation                                                       */
     /* ------------------------------------------------------------------ */
 
     public function disable(Request $request)
@@ -251,11 +252,11 @@ class TwoFactorController extends Controller
             throw ValidationException::withMessages(['code' => $result['message']]);
         }
 
-        return redirect()->back()->with('success', '2FA désactivée.');
+        return redirect()->back()->with('success', '2FA d??sactiv??e.');
     }
 
     /* ------------------------------------------------------------------ */
-    /* QR code SVG (sans dépendance imagick)                               */
+    /* QR code SVG (sans d??pendance imagick)                               */
     /* ------------------------------------------------------------------ */
 
     protected function renderQrSvg(string $url): string
@@ -265,3 +266,5 @@ class TwoFactorController extends Controller
         return $writer->writeString($url);
     }
 }
+// test
+
