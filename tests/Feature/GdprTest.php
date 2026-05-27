@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Middleware\VerifyCsrfToken;
 use App\Models\User;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
@@ -18,7 +19,18 @@ class GdprTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->withoutMiddleware(VerifyCsrfToken::class);
+        // Bypass CSRF for both the custom subclass and the Laravel 11+ parent class
+        $passthrough = new class {
+            public function handle($request, \Closure $next)
+            {
+                return $next($request);
+            }
+        };
+        $this->app->instance(VerifyCsrfToken::class, $passthrough);
+        if (class_exists(ValidateCsrfToken::class)) {
+            $this->app->instance(ValidateCsrfToken::class, $passthrough);
+        }
+        $this->withoutMiddleware([VerifyCsrfToken::class, ValidateCsrfToken::class]);
     }
 
     private function authedUser(array $attrs = []): User
