@@ -91,7 +91,7 @@
                                     <input type="tel" class="form-control @error('phone') is-invalid @enderror"
                                            id="phone" name="phone"
                                            value="{{ old('phone') }}"
-                                           placeholder="77 123 45 67">
+                                           placeholder="Votre numéro">
                                     @error('phone')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
