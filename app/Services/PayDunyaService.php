@@ -28,6 +28,20 @@ class PayDunyaService
     }
 
     /**
+     * Get standard PayDunya API headers
+     */
+    private function getHeaders(): array
+    {
+        return [
+            'Content-Type' => 'application/json',
+            'PAYDUNYA-MASTER-KEY' => $this->masterKey,
+            'PAYDUNYA-PRIVATE-KEY' => $this->privateKey,
+            'PAYDUNYA-PUBLIC-KEY' => $this->apiKey,
+            'PAYDUNYA-TOKEN' => $this->token,
+        ];
+    }
+
+    /**
      * Create a payment invoice for donation
      */
     public function createDonationPayment(Donation $donation)
@@ -35,7 +49,7 @@ class PayDunyaService
         try {
             $invoiceData = [
                 'invoice' => [
-                    'total_amount' => $donation->amount,
+                    'total_amount' => (int) $donation->amount,
                     'description' => __('donations.payment_description', [
                         'amount' => $donation->amount,
                         'currency' => $donation->currency
@@ -62,12 +76,21 @@ class PayDunyaService
                 ]
             ];
 
-            $response = Http::withHeaders([
-                'Content-Type' => 'application/json',
-                'PAYDUNYA-MASTER-KEY' => $this->masterKey,
-                'PAYDUNYA-PRIVATE-KEY' => $this->privateKey,
-                'PAYDUNYA-TOKEN' => $this->token,
-            ])->post($this->baseUrl . '/checkout-invoice/create', $invoiceData);
+            Log::info('PayDunya request', [
+                'donation_id' => $donation->id,
+                'amount' => (int) $donation->amount,
+                'mode' => $this->mode,
+                'url' => $this->baseUrl . '/checkout-invoice/create',
+            ]);
+
+            $response = Http::withHeaders($this->getHeaders())
+                ->post($this->baseUrl . '/checkout-invoice/create', $invoiceData);
+
+            Log::info('PayDunya response', [
+                'donation_id' => $donation->id,
+                'status' => $response->status(),
+                'body' => $response->json(),
+            ]);
 
             if ($response->successful()) {
                 $data = $response->json();
@@ -134,12 +157,8 @@ class PayDunyaService
     public function verifyPayment($invoiceToken)
     {
         try {
-            $response = Http::withHeaders([
-                'Content-Type' => 'application/json',
-                'PAYDUNYA-MASTER-KEY' => $this->privateKey,
-                'PAYDUNYA-PRIVATE-KEY' => $this->privateKey,
-                'PAYDUNYA-TOKEN' => $this->token,
-            ])->get($this->baseUrl . '/checkout-invoice/confirm/' . $invoiceToken);
+            $response = Http::withHeaders($this->getHeaders())
+                ->get($this->baseUrl . '/checkout-invoice/confirm/' . $invoiceToken);
 
             if ($response->successful()) {
                 $data = $response->json();

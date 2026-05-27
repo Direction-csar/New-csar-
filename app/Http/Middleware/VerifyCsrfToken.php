@@ -16,5 +16,8 @@ class VerifyCsrfToken extends Middleware
         'api/*',
         // Webhooks externes (si nécessaire)
         'webhooks/*',
+        // Payment callbacks (PayDunya, PayPal)
+        '*/faire-un-don/callback',
+        '*/paypal/webhook',
     ];
 }
