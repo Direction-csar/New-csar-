@@ -52,42 +52,21 @@
                             <div class="mb-3">
                                 <label for="phone" class="form-label">{{ __('donations.form.phone') }}</label>
                                 <div class="input-group">
-                                    <select class="form-select" id="phone_country" name="phone_country" style="max-width: 140px;">
-                                        <option value="+221" {{ old('phone_country', '+221') == '+221' ? 'selected' : '' }}>🇸🇳 +221</option>
-                                        <option value="+223" {{ old('phone_country') == '+223' ? 'selected' : '' }}>🇲🇱 +223</option>
-                                        <option value="+224" {{ old('phone_country') == '+224' ? 'selected' : '' }}>🇬🇳 +224</option>
-                                        <option value="+225" {{ old('phone_country') == '+225' ? 'selected' : '' }}>🇨🇮 +225</option>
-                                        <option value="+226" {{ old('phone_country') == '+226' ? 'selected' : '' }}>🇧🇫 +226</option>
-                                        <option value="+227" {{ old('phone_country') == '+227' ? 'selected' : '' }}>🇳🇪 +227</option>
-                                        <option value="+228" {{ old('phone_country') == '+228' ? 'selected' : '' }}>🇹🇬 +228</option>
-                                        <option value="+229" {{ old('phone_country') == '+229' ? 'selected' : '' }}>🇧🇯 +229</option>
-                                        <option value="+230" {{ old('phone_country') == '+230' ? 'selected' : '' }}>🇲🇺 +230</option>
-                                        <option value="+233" {{ old('phone_country') == '+233' ? 'selected' : '' }}>🇬🇭 +233</option>
-                                        <option value="+234" {{ old('phone_country') == '+234' ? 'selected' : '' }}>🇳🇬 +234</option>
-                                        <option value="+237" {{ old('phone_country') == '+237' ? 'selected' : '' }}>🇨🇲 +237</option>
-                                        <option value="+241" {{ old('phone_country') == '+241' ? 'selected' : '' }}>🇬🇦 +241</option>
-                                        <option value="+243" {{ old('phone_country') == '+243' ? 'selected' : '' }}>🇨🇩 +243</option>
-                                        <option value="+244" {{ old('phone_country') == '+244' ? 'selected' : '' }}>🇦🇴 +244</option>
-                                        <option value="+212" {{ old('phone_country') == '+212' ? 'selected' : '' }}>🇲🇦 +212</option>
-                                        <option value="+213" {{ old('phone_country') == '+213' ? 'selected' : '' }}>🇩🇿 +213</option>
-                                        <option value="+216" {{ old('phone_country') == '+216' ? 'selected' : '' }}>🇹🇳 +216</option>
-                                        <option value="+33" {{ old('phone_country') == '+33' ? 'selected' : '' }}>🇫🇷 +33</option>
-                                        <option value="+32" {{ old('phone_country') == '+32' ? 'selected' : '' }}>🇧🇪 +32</option>
-                                        <option value="+41" {{ old('phone_country') == '+41' ? 'selected' : '' }}>🇨🇭 +41</option>
-                                        <option value="+1" {{ old('phone_country') == '+1' ? 'selected' : '' }}>🇺🇸 +1</option>
-                                        <option value="+44" {{ old('phone_country') == '+44' ? 'selected' : '' }}>🇬🇧 +44</option>
-                                        <option value="+49" {{ old('phone_country') == '+49' ? 'selected' : '' }}>🇩🇪 +49</option>
-                                        <option value="+34" {{ old('phone_country') == '+34' ? 'selected' : '' }}>🇪🇸 +34</option>
-                                        <option value="+39" {{ old('phone_country') == '+39' ? 'selected' : '' }}>🇮🇹 +39</option>
-                                        <option value="+351" {{ old('phone_country') == '+351' ? 'selected' : '' }}>🇵🇹 +351</option>
-                                        <option value="+90" {{ old('phone_country') == '+90' ? 'selected' : '' }}>🇹🇷 +90</option>
-                                        <option value="+966" {{ old('phone_country') == '+966' ? 'selected' : '' }}>🇸🇦 +966</option>
-                                        <option value="+971" {{ old('phone_country') == '+971' ? 'selected' : '' }}>🇦🇪 +971</option>
-                                        <option value="+86" {{ old('phone_country') == '+86' ? 'selected' : '' }}>🇨🇳 +86</option>
-                                        <option value="+91" {{ old('phone_country') == '+91' ? 'selected' : '' }}>🇮🇳 +91</option>
-                                        <option value="+81" {{ old('phone_country') == '+81' ? 'selected' : '' }}>🇯🇵 +81</option>
-                                        <option value="+55" {{ old('phone_country') == '+55' ? 'selected' : '' }}>🇧🇷 +55</option>
-                                    </select>
+                                    <div class="phone-country-wrapper position-relative" style="min-width: 180px;">
+                                        <button type="button" class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-between"
+                                                id="phoneCountryBtn" onclick="toggleCountryDropdown()">
+                                            <span id="phoneCountryDisplay">�� Sénégal +221</span>
+                                            <i class="fas fa-chevron-down ms-2" style="font-size: 0.7rem;"></i>
+                                        </button>
+                                        <input type="hidden" id="phone_country" name="phone_country" value="{{ old('phone_country', '+221') }}">
+                                        <div class="phone-country-dropdown" id="phoneCountryDropdown">
+                                            <div class="phone-country-search-box">
+                                                <input type="text" class="form-control form-control-sm" id="phoneCountrySearch"
+                                                       placeholder="Rechercher un pays..." autocomplete="off">
+                                            </div>
+                                            <div class="phone-country-list" id="phoneCountryList"></div>
+                                        </div>
+                                    </div>
                                     <input type="tel" class="form-control @error('phone') is-invalid @enderror"
                                            id="phone" name="phone"
                                            value="{{ old('phone') }}"
@@ -96,7 +75,6 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <small class="text-muted">Sélectionnez votre indicatif pays puis saisissez votre numéro</small>
                             </div>
 
                             <div class="form-check mb-3">
@@ -324,11 +302,173 @@
     background-color: var(--bs-primary);
     color: white;
 }
+/* Phone country selector */
+.phone-country-wrapper { z-index: 10; }
+.phone-country-dropdown {
+    display: none; position: absolute; top: 100%; left: 0; right: 0;
+    background: #fff; border: 1px solid #dee2e6; border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12); z-index: 1050;
+    margin-top: 4px; max-height: 300px; overflow: hidden;
+}
+.phone-country-dropdown.show { display: block; }
+.phone-country-search-box { padding: 8px; border-bottom: 1px solid #e9ecef; }
+.phone-country-list { max-height: 240px; overflow-y: auto; }
+.phone-country-item {
+    padding: 8px 12px; cursor: pointer; display: flex; align-items: center;
+    gap: 8px; font-size: 0.9rem; transition: background 0.15s;
+}
+.phone-country-item:hover { background: #f0f9f4; }
+.phone-country-item .country-flag { font-size: 1.2rem; }
+.phone-country-item .country-name { flex: 1; color: #374151; }
+.phone-country-item .country-code { color: #6b7280; font-weight: 600; }
+#phoneCountryBtn { font-size: 0.85rem; height: 100%; border-radius: 0.375rem 0 0 0.375rem; }
 </style>
 @endpush
 
 @push('scripts')
 <script>
+// === Phone Country Selector with Search ===
+const phoneCountries = [
+    { code: '+221', flag: '🇸🇳', name: 'Sénégal' },
+    { code: '+223', flag: '🇲🇱', name: 'Mali' },
+    { code: '+224', flag: '🇬🇳', name: 'Guinée' },
+    { code: '+225', flag: '🇨🇮', name: 'Côte d\'Ivoire' },
+    { code: '+226', flag: '🇧🇫', name: 'Burkina Faso' },
+    { code: '+227', flag: '🇳🇪', name: 'Niger' },
+    { code: '+228', flag: '🇹🇬', name: 'Togo' },
+    { code: '+229', flag: '🇧🇯', name: 'Bénin' },
+    { code: '+230', flag: '🇲🇺', name: 'Maurice' },
+    { code: '+231', flag: '🇱🇷', name: 'Liberia' },
+    { code: '+232', flag: '🇸🇱', name: 'Sierra Leone' },
+    { code: '+233', flag: '🇬🇭', name: 'Ghana' },
+    { code: '+234', flag: '🇳🇬', name: 'Nigeria' },
+    { code: '+235', flag: '🇹🇩', name: 'Tchad' },
+    { code: '+236', flag: '🇨🇫', name: 'Centrafrique' },
+    { code: '+237', flag: '🇨🇲', name: 'Cameroun' },
+    { code: '+238', flag: '🇨🇻', name: 'Cap-Vert' },
+    { code: '+240', flag: '🇬🇶', name: 'Guinée équatoriale' },
+    { code: '+241', flag: '🇬🇦', name: 'Gabon' },
+    { code: '+242', flag: '🇨🇬', name: 'Congo' },
+    { code: '+243', flag: '🇨🇩', name: 'RD Congo' },
+    { code: '+244', flag: '🇦🇴', name: 'Angola' },
+    { code: '+245', flag: '🇬🇼', name: 'Guinée-Bissau' },
+    { code: '+248', flag: '🇸🇨', name: 'Seychelles' },
+    { code: '+250', flag: '🇷🇼', name: 'Rwanda' },
+    { code: '+251', flag: '🇪🇹', name: 'Éthiopie' },
+    { code: '+252', flag: '🇸🇴', name: 'Somalie' },
+    { code: '+253', flag: '🇩🇯', name: 'Djibouti' },
+    { code: '+254', flag: '🇰🇪', name: 'Kenya' },
+    { code: '+255', flag: '🇹🇿', name: 'Tanzanie' },
+    { code: '+256', flag: '🇺🇬', name: 'Ouganda' },
+    { code: '+257', flag: '🇧🇮', name: 'Burundi' },
+    { code: '+258', flag: '🇲🇿', name: 'Mozambique' },
+    { code: '+260', flag: '🇿🇲', name: 'Zambie' },
+    { code: '+261', flag: '🇲🇬', name: 'Madagascar' },
+    { code: '+262', flag: '🇷🇪', name: 'Réunion' },
+    { code: '+263', flag: '🇿🇼', name: 'Zimbabwe' },
+    { code: '+265', flag: '🇲🇼', name: 'Malawi' },
+    { code: '+212', flag: '🇲🇦', name: 'Maroc' },
+    { code: '+213', flag: '🇩🇿', name: 'Algérie' },
+    { code: '+216', flag: '🇹🇳', name: 'Tunisie' },
+    { code: '+218', flag: '🇱🇾', name: 'Libye' },
+    { code: '+220', flag: '🇬🇲', name: 'Gambie' },
+    { code: '+269', flag: '🇰🇲', name: 'Comores' },
+    { code: '+27', flag: '🇿🇦', name: 'Afrique du Sud' },
+    { code: '+1', flag: '🇺🇸', name: 'États-Unis' },
+    { code: '+1', flag: '🇨🇦', name: 'Canada' },
+    { code: '+33', flag: '🇫🇷', name: 'France' },
+    { code: '+32', flag: '🇧🇪', name: 'Belgique' },
+    { code: '+41', flag: '🇨🇭', name: 'Suisse' },
+    { code: '+44', flag: '🇬🇧', name: 'Royaume-Uni' },
+    { code: '+49', flag: '🇩🇪', name: 'Allemagne' },
+    { code: '+34', flag: '🇪🇸', name: 'Espagne' },
+    { code: '+39', flag: '🇮🇹', name: 'Italie' },
+    { code: '+351', flag: '🇵🇹', name: 'Portugal' },
+    { code: '+31', flag: '🇳🇱', name: 'Pays-Bas' },
+    { code: '+46', flag: '🇸🇪', name: 'Suède' },
+    { code: '+47', flag: '🇳🇴', name: 'Norvège' },
+    { code: '+48', flag: '🇵🇱', name: 'Pologne' },
+    { code: '+90', flag: '🇹🇷', name: 'Turquie' },
+    { code: '+7', flag: '🇷🇺', name: 'Russie' },
+    { code: '+966', flag: '🇸🇦', name: 'Arabie Saoudite' },
+    { code: '+971', flag: '🇦🇪', name: 'Émirats Arabes Unis' },
+    { code: '+974', flag: '🇶🇦', name: 'Qatar' },
+    { code: '+965', flag: '🇰🇼', name: 'Koweït' },
+    { code: '+961', flag: '🇱🇧', name: 'Liban' },
+    { code: '+86', flag: '🇨🇳', name: 'Chine' },
+    { code: '+91', flag: '🇮🇳', name: 'Inde' },
+    { code: '+81', flag: '🇯🇵', name: 'Japon' },
+    { code: '+82', flag: '🇰🇷', name: 'Corée du Sud' },
+    { code: '+55', flag: '🇧🇷', name: 'Brésil' },
+    { code: '+52', flag: '🇲🇽', name: 'Mexique' },
+    { code: '+54', flag: '🇦🇷', name: 'Argentine' },
+    { code: '+57', flag: '🇨🇴', name: 'Colombie' },
+    { code: '+61', flag: '🇦🇺', name: 'Australie' },
+    { code: '+65', flag: '🇸🇬', name: 'Singapour' },
+    { code: '+60', flag: '🇲🇾', name: 'Malaisie' },
+    { code: '+62', flag: '🇮🇩', name: 'Indonésie' },
+    { code: '+63', flag: '🇵🇭', name: 'Philippines' },
+    { code: '+66', flag: '🇹🇭', name: 'Thaïlande' },
+    { code: '+84', flag: '🇻🇳', name: 'Vietnam' },
+];
+
+let countryDropdownOpen = false;
+
+function toggleCountryDropdown() {
+    const dd = document.getElementById('phoneCountryDropdown');
+    countryDropdownOpen = !countryDropdownOpen;
+    dd.classList.toggle('show', countryDropdownOpen);
+    if (countryDropdownOpen) {
+        const search = document.getElementById('phoneCountrySearch');
+        search.value = '';
+        search.focus();
+        renderCountryList('');
+    }
+}
+
+function renderCountryList(filter) {
+    const list = document.getElementById('phoneCountryList');
+    const f = filter.toLowerCase();
+    const filtered = phoneCountries.filter(c =>
+        c.name.toLowerCase().includes(f) || c.code.includes(f)
+    );
+    list.innerHTML = filtered.map(c =>
+        `<div class="phone-country-item" onclick="selectCountry('${c.code}','${c.flag}','${c.name}')">
+            <span class="country-flag">${c.flag}</span>
+            <span class="country-name">${c.name}</span>
+            <span class="country-code">${c.code}</span>
+        </div>`
+    ).join('');
+}
+
+function selectCountry(code, flag, name) {
+    document.getElementById('phone_country').value = code;
+    document.getElementById('phoneCountryDisplay').textContent = `${flag} ${name} ${code}`;
+    document.getElementById('phoneCountryDropdown').classList.remove('show');
+    countryDropdownOpen = false;
+    document.getElementById('phone').focus();
+}
+
+// Search filter
+document.getElementById('phoneCountrySearch').addEventListener('input', function() {
+    renderCountryList(this.value);
+});
+
+// Close dropdown on outside click
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('.phone-country-wrapper')) {
+        document.getElementById('phoneCountryDropdown').classList.remove('show');
+        countryDropdownOpen = false;
+    }
+});
+
+// Initialize with saved value
+(function() {
+    const saved = document.getElementById('phone_country').value || '+221';
+    const c = phoneCountries.find(x => x.code === saved) || phoneCountries[0];
+    document.getElementById('phoneCountryDisplay').textContent = `${c.flag} ${c.name} ${c.code}`;
+})();
+
 function toggleFrequency(show) {
     document.getElementById('frequencySection').style.display = show ? 'block' : 'none';
     if (show) {
