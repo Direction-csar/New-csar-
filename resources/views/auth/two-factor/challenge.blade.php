@@ -1,4 +1,4 @@
-@extends('layouts.guest')
+@extends($layout ?? 'layouts.auth')
 
 @section('title', 'Vérification 2FA')
 
@@ -24,7 +24,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('admin.2fa.verify') }}">
+                    <form method="POST" action="{{ route($verifyRoute ?? 'admin.2fa.verify') }}">
                         @csrf
                         <div class="mb-3">
                             <input type="text"

@@ -59,6 +59,14 @@ class TwoFactorController extends Controller
         return $guard === 'admin' ? 'admin.2fa' : $guard . '.2fa';
     }
 
+    /**
+     * Layout approprié selon le guard (auth pour les pages 2FA).
+     */
+    protected function guardLayout(string $guard): string
+    {
+        return 'layouts.auth';
+    }
+
     /* ------------------------------------------------------------------ */
     /* Setup (utilisateur déjà authentifié)                                */
     /* ------------------------------------------------------------------ */
@@ -68,8 +76,10 @@ class TwoFactorController extends Controller
         $user = $request->user();
         abort_unless($user, 403);
 
+        $guard = $this->currentGuard();
+
         if ($user->two_factor_enabled) {
-            return redirect()->route('admin.dashboard')
+            return redirect()->route($this->guardRoute($guard, 'dashboard'))
                 ->with('info', 'L\'authentification à deux facteurs est déjà activée.');
         }
 
@@ -87,7 +97,9 @@ class TwoFactorController extends Controller
             'secret'      => $secret,
             'qrSvg'       => $qrSvg,
             'qrUrl'       => $otpauthUrl,
-            'enableRoute' => $this->guardPrefix($this->currentGuard()) . '.enable',
+            'layout'      => $this->guardLayout($guard),
+            'enableRoute' => $this->guardPrefix($guard) . '.enable',
+            'dashboardRoute' => $this->guardRoute($guard, 'dashboard'),
         ]);
     }
 
@@ -125,10 +137,15 @@ class TwoFactorController extends Controller
     public function showRecoveryCodes(Request $request)
     {
         $codes = $request->session()->get('recovery_codes', []);
+        $guard = $this->currentGuard();
         if (empty($codes)) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route($this->guardRoute($guard, 'dashboard'));
         }
-        return view('auth.two-factor.recovery', ['codes' => $codes]);
+        return view('auth.two-factor.recovery', [
+            'codes' => $codes,
+            'layout' => $this->guardLayout($guard),
+            'dashboardRoute' => $this->guardRoute($guard, 'dashboard'),
+        ]);
     }
 
     /* ------------------------------------------------------------------ */
@@ -141,7 +158,11 @@ class TwoFactorController extends Controller
         if (!$request->session()->has('2fa_user_id')) {
             return redirect()->route($this->guardRoute($guard, 'login'));
         }
-        return view('auth.two-factor.challenge', ['guard' => $guard]);
+        return view('auth.two-factor.challenge', [
+            'guard' => $guard,
+            'layout' => $this->guardLayout($guard),
+            'verifyRoute' => $this->guardPrefix($guard) . '.verify',
+        ]);
     }
 
     public function verify(Request $request)

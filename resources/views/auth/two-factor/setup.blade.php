@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends($layout ?? 'layouts.auth')
 
 @section('title', 'Activer l\'authentification 2FA')
 
@@ -26,7 +26,7 @@
 
                     <p>2. Saisissez le code à 6 chiffres généré par votre application :</p>
 
-                    <form method="POST" action="{{ route(($enableRoute ?? 'admin.2fa.enable')) }}">
+                    <form method="POST" action="{{ route($enableRoute ?? 'admin.2fa.enable') }}">
                         @csrf
                         <div class="mb-3">
                             <input type="text"

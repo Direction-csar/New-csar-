@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends($layout ?? 'layouts.auth')
 
 @section('title', 'Codes de récupération 2FA')
 
@@ -26,7 +26,7 @@
                         <i class="fas fa-print me-1"></i> Imprimer
                     </button>
 
-                    <a href="{{ route('admin.dashboard') }}" class="btn btn-success">
+                    <a href="{{ route($dashboardRoute ?? 'admin.dashboard') }}" class="btn btn-success">
                         <i class="fas fa-check me-1"></i> J'ai sauvegardé mes codes
                     </a>
                 </div>
