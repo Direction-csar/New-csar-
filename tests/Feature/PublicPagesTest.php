@@ -7,11 +7,9 @@ use App\Models\News;
 use App\Models\Warehouse;
 use App\Models\Speech;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group legacy
- * Factories News/Warehouse manquantes + URLs sitemap/robots/legal — à réécrire.
- */
+#[Group('legacy')]
 class PublicPagesTest extends TestCase
 {
     use RefreshDatabase;

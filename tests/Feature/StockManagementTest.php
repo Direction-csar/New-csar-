@@ -9,11 +9,9 @@ use App\Models\Warehouse;
 use App\Models\StockType;
 use App\Models\StockMovement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group legacy
- * Migration warehouses.latitude sans default + factories manquantes — à réécrire.
- */
+#[Group('legacy')]
 class StockManagementTest extends TestCase
 {
     use RefreshDatabase;

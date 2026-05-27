@@ -5,11 +5,9 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\Models\PublicRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group legacy
- * Routes /demande non-localisées + signature controller à réaligner.
- */
+#[Group('legacy')]
 class PublicRequestSubmissionTest extends TestCase
 {
     use RefreshDatabase;

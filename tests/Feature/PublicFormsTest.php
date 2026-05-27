@@ -7,11 +7,9 @@ use App\Models\PublicRequest;
 use App\Models\ContactMessage;
 use App\Models\NewsletterSubscriber;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\Group;
 
-/**
- * @group legacy
- * Routes /demande, /contact, /newsletter en URLs non-localisées — à réécrire.
- */
+#[Group('legacy')]
 class PublicFormsTest extends TestCase
 {
     use RefreshDatabase;
