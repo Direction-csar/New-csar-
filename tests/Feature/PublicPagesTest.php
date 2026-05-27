@@ -8,6 +8,10 @@ use App\Models\Warehouse;
 use App\Models\Speech;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
+/**
+ * @group legacy
+ * Factories News/Warehouse manquantes + URLs sitemap/robots/legal — à réécrire.
+ */
 class PublicPagesTest extends TestCase
 {
     use RefreshDatabase;

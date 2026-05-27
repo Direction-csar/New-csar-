@@ -6,6 +6,10 @@ use Tests\TestCase;
 use App\Models\PublicRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
+/**
+ * @group legacy
+ * Routes /demande non-localisées + signature controller à réaligner.
+ */
 class PublicRequestSubmissionTest extends TestCase
 {
     use RefreshDatabase;

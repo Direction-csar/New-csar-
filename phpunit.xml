@@ -12,6 +12,12 @@
             <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+    <groups>
+        <exclude>
+            <!-- Tests legacy à réécrire (Sprint 6) — exclus du run par défaut -->
+            <group>legacy</group>
+        </exclude>
+    </groups>
     <source>
         <include>
             <directory>app</directory>

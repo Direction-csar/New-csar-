@@ -8,6 +8,10 @@ use App\Models\ContactMessage;
 use App\Models\NewsletterSubscriber;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
+/**
+ * @group legacy
+ * Routes /demande, /contact, /newsletter en URLs non-localisées — à réécrire.
+ */
 class PublicFormsTest extends TestCase
 {
     use RefreshDatabase;

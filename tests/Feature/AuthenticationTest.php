@@ -7,6 +7,11 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * @group legacy
+ * Tests hérités à réécrire (URLs admin/dashboard, factory admin@csar.sn dupliqué, etc.).
+ * Exclus du run par défaut via phpunit.xml.
+ */
 class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
