@@ -43,6 +43,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'ctc-admin' => \App\Http\Middleware\CTCAdminMiddleware::class,
             'supervisor' => \App\Http\Middleware\SupervisorMiddleware::class,
             'enforce.2fa' => \App\Http\Middleware\EnforceTwoFactor::class,
+            'http-cache' => \App\Http\Middleware\HttpCache::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
@@ -39,5 +40,21 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+
+        // Directive Blade @lazyImage pour images optimisées (lazy-loading + dimensions)
+        // Usage : @lazyImage('/storage/images/photo.jpg', 'Description', ['class' => 'w-full', 'width' => 800, 'height' => 600])
+        Blade::directive('lazyImage', function ($expression) {
+            return "<?php
+                \$args = [{$expression}];
+                \$src = \$args[0] ?? '';
+                \$alt = \$args[1] ?? '';
+                \$attrs = \$args[2] ?? [];
+                \$attrStr = '';
+                foreach (\$attrs as \$k => \$v) {
+                    \$attrStr .= ' ' . \$k . '=\"' . htmlspecialchars((string) \$v, ENT_QUOTES) . '\"';
+                }
+                echo '<img src=\"' . e(\$src) . '\" alt=\"' . e(\$alt) . '\" loading=\"lazy\" decoding=\"async\"' . \$attrStr . '>';
+            ?>";
+        });
     }
 }
