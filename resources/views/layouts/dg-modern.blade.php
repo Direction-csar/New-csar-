@@ -631,6 +631,13 @@
                         <span>SIM</span>
                     </a>
                 </div>
+
+                <div class="menu-item">
+                    <a href="{{ route('dg.donations.index') }}" class="menu-link {{ request()->routeIs('dg.donations.*') ? 'active' : '' }}">
+                        <i class="fas fa-hand-holding-heart"></i>
+                        <span>Donations</span>
+                    </a>
+                </div>
                 
                 <div class="menu-item">
                     <a href="#" class="menu-link" onclick="toggleDarkMode()">

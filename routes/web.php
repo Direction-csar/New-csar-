@@ -354,6 +354,11 @@ Route::prefix('dg')->name('dg.')->group(function () {
             Route::get('/collectes', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collections'])->name('collectes');
         });
 
+        // Donations (lecture seule)
+        Route::get('/donations', [App\Http\Controllers\DG\DonationController::class, 'index'])->name('donations.index');
+        Route::get('/donations/export', [App\Http\Controllers\DG\DonationController::class, 'export'])->name('donations.export');
+        Route::get('/donations/{id}', [App\Http\Controllers\DG\DonationController::class, 'show'])->name('donations.show');
+
         // Profil DG
         // Routes à implémenter si nécessaire
     });
