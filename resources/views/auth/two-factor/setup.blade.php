@@ -24,18 +24,12 @@
 
                     <hr>
 
-                    <p>2. Une fois le QR code scanné dans votre application, confirmez ci-dessous :</p>
+                    <p>2. Après avoir scanné le QR code (ou saisi la clé), cliquez ci-dessous pour finaliser :</p>
 
                     <form method="POST" action="{{ route($enableRoute ?? 'admin.2fa.enable') }}">
                         @csrf
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" name="confirmed" value="1" id="confirmScan" required>
-                            <label class="form-check-label" for="confirmScan">
-                                J'ai scanné le QR code (ou saisi la clé manuellement) dans mon application d'authentification.
-                            </label>
-                        </div>
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="fas fa-check me-1"></i> Activer la 2FA
+                        <button type="submit" class="btn btn-success w-100 btn-lg">
+                            <i class="fas fa-arrow-right me-2"></i> Continuer vers les codes de récupération
                         </button>
                     </form>
                 </div>
