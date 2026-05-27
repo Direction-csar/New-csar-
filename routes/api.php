@@ -317,6 +317,9 @@ Route::middleware('auth:sanctum')->group(function () {
     });
 });
 
+// Chatbot IA (public, rate-limited)
+Route::post('/chatbot/ask', [\App\Http\Controllers\Api\ChatbotController::class, 'ask']);
+
 // Routes publiques pour les tests
 Route::get('/test/status', function () {
     return response()->json([

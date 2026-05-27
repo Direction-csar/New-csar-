@@ -229,17 +229,65 @@
         messagesEl.scrollTop = messagesEl.scrollHeight;
     }
 
-    function sendQuestion() {
+    let conversationHistory = [];
+    let isLoading = false;
+
+    function showTyping() {
+        const div = document.createElement('div');
+        div.className = 'csar-chatbot-msg csar-chatbot-msg-bot csar-chatbot-typing';
+        div.innerHTML = '<p><em>En train de réfléchir...</em></p>';
+        messagesEl.appendChild(div);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function removeTyping() {
+        const typing = messagesEl.querySelector('.csar-chatbot-typing');
+        if (typing) typing.remove();
+    }
+
+    async function sendQuestion() {
         const input = document.getElementById('csar-chatbot-input');
-        if (!input) return;
+        if (!input || isLoading) return;
         const text = (input.value || '').trim();
         if (!text) return;
         appendUserMessage(text);
         input.value = '';
         input.style.height = 'auto';
-        const action = getActionFromQuestion(text);
-        const reply = action && replies[action] ? replies[action].html : defaultReply;
-        appendBotMessage(reply);
+        isLoading = true;
+        showTyping();
+
+        try {
+            const res = await fetch('/api/chatbot/ask', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ message: text, history: conversationHistory.slice(-6) })
+            });
+
+            removeTyping();
+
+            if (res.ok) {
+                const data = await res.json();
+                const reply = data.message || defaultReply;
+                appendBotMessage(reply);
+                conversationHistory.push({ role: 'user', content: text });
+                conversationHistory.push({ role: 'assistant', content: reply });
+            } else if (res.status === 429) {
+                appendBotMessage('<p>⏳ Trop de messages envoyés. Veuillez patienter quelques secondes.</p>');
+            } else {
+                // Fallback to keyword matching
+                const action = getActionFromQuestion(text);
+                const reply = action && replies[action] ? replies[action].html : defaultReply;
+                appendBotMessage(reply);
+            }
+        } catch (err) {
+            removeTyping();
+            // Offline fallback
+            const action = getActionFromQuestion(text);
+            const reply = action && replies[action] ? replies[action].html : defaultReply;
+            appendBotMessage(reply);
+        }
+
+        isLoading = false;
     }
 
     if (toggle) toggle.addEventListener('click', openPanel);

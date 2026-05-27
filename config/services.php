@@ -187,4 +187,18 @@ return [
         'org_id'           => env('LINKEDIN_ORG_ID'),
         'cache_minutes'    => env('LINKEDIN_CACHE_MINUTES', 60),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Chatbot IA Configuration
+    |--------------------------------------------------------------------------
+    | Provider: 'gemini' (gratuit) ou 'openai'
+    | Gemini: https://aistudio.google.com/app/apikey
+    | OpenAI: https://platform.openai.com/api-keys
+    */
+    'chatbot' => [
+        'provider' => env('CHATBOT_PROVIDER', 'gemini'),
+        'api_key'  => env('CHATBOT_API_KEY'),
+        'model'    => env('CHATBOT_MODEL', 'gemini-2.0-flash'),
+    ],
 ];
