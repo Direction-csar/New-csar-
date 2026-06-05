@@ -4,303 +4,247 @@
     <meta charset="UTF-8">
     <title>Contrat de Travail à Durée Indéterminée</title>
     <style>
-        @page {
-            size: A4;
-            margin: 1cm 1.2cm 2cm 1.2cm;
-        }
+        @page { size: A4; margin: 0.5cm 0.8cm 1.3cm 0.8cm; }
         * { box-sizing: border-box; }
         body {
             font-family: "DejaVu Sans", Arial, sans-serif;
-            font-size: 9.5pt;
-            line-height: 1.22;
-            color: #1a1a1a;
+            font-size: 8.3pt;
+            line-height: 1.1;
+            color: #000;
             margin: 0;
         }
-        /* ── Pied de page répété sur CHAQUE page ── */
+
+        /* Footer répété sur chaque page */
         .page-footer {
             position: fixed;
-            bottom: -1.7cm;
-            left: 0;
-            right: 0;
+            bottom: -1.2cm;
+            left: 0; right: 0;
             text-align: center;
-            font-size: 7.3pt;
-            line-height: 1.3;
-            color: #555;
-            border-top: 1px solid #1d6b3a;
-            padding-top: 4px;
-        }
-        .page-footer strong { color: #1d6b3a; }
-
-        /* ── En-tête République ── */
-        .rep-header {
-            text-align: center;
-            margin-bottom: 3px;
-        }
-        .rep-header .rep {
-            font-size: 10pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .rep-header .devise {
-            font-size: 7.5pt;
-            font-style: italic;
-            color: #444;
-            margin-top: 1px;
-        }
-        .rep-header .ministere {
-            font-size: 8pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-top: 3px;
-            color: #1d6b3a;
-        }
-        .rep-header .org {
-            font-size: 8.2pt;
-            margin-top: 1px;
-        }
-        .sep {
-            border: none;
-            border-top: 1.5px solid #1d6b3a;
-            margin: 5px 0 6px 0;
+            font-size: 6.8pt;
+            line-height: 1.2;
+            color: #333;
+            border-top: 1px solid #000;
+            padding-top: 2px;
         }
 
-        /* ── Titre ── */
-        .doc-title {
-            text-align: center;
-            margin: 4px 0 8px 0;
+        /* Header officiel */
+        .head { width: 100%; border-collapse: collapse; }
+        .head td { vertical-align: middle; }
+        .head .logo-cell { width: 48px; text-align: center; }
+        .head .logo-cell img { max-width: 42px; max-height: 42px; }
+        .head .logo-ph {
+            width: 42px; height: 42px; border: 1px dashed #999;
+            font-size: 6.5pt; color: #999; text-align: center; line-height: 42px;
         }
-        .doc-title h1 {
-            font-size: 12pt;
-            text-transform: uppercase;
-            margin: 0;
-            letter-spacing: 0.5px;
-        }
-        .doc-title .ref {
-            font-size: 8pt;
-            color: #666;
-            margin-top: 2px;
-        }
+        .head .title-cell { text-align: center; }
+        .head .rep { font-size: 9pt; font-weight: bold; text-transform: uppercase; }
+        .head .devise { font-size: 6.8pt; font-style: italic; margin-top: 1px; }
+        .head .min { font-size: 7.2pt; font-weight: bold; text-transform: uppercase; margin-top: 2px; }
+        .head .org { font-size: 7.2pt; font-weight: bold; text-transform: uppercase; margin-top: 1px; }
 
-        .intro { text-align: justify; margin-bottom: 4px; }
+        .sep { border: none; border-top: 1.5px solid #000; margin: 2px 0 3px 0; }
 
-        /* ── Tableau état civil ── */
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 3px 0 5px 0;
-            font-size: 9pt;
+        /* Ref / date */
+        .ref-row { width: 100%; font-size: 7.8pt; margin-bottom: 3px; }
+        .ref-row .ref { text-align: left; }
+        .ref-row .date { text-align: right; }
+
+        /* Titre */
+        .doc-title { text-align: center; margin: 2px 0 3px 0; }
+        .doc-title h1 { font-size: 10.5pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin: 0; }
+        .doc-title h2 { font-size: 9.5pt; font-weight: bold; text-transform: uppercase; margin: 1px 0 0 0; }
+
+        .section-title { font-weight: bold; margin: 2px 0 1px 0; }
+
+        /* Tableaux parties */
+        .party-table {
+            width: 100%; border-collapse: collapse; margin: 1px 0;
+            font-size: 8.3pt;
         }
-        .info-table td {
-            border: 1px solid #cfcfcf;
-            padding: 2px 5px;
+        .party-table th {
+            border: 1px solid #000; padding: 1px 3px;
+            text-align: center; font-weight: bold;
+            background: #e8e8e8; text-transform: uppercase;
+            font-size: 8.3pt;
+        }
+        .party-table td {
+            border: 1px solid #000; padding: 1px 3px;
             vertical-align: top;
         }
-        .info-table td.label {
-            background: #f1f6f2;
-            font-weight: bold;
-            width: 32%;
-            color: #1d6b3a;
+        .party-table td.label { font-weight: bold; width: 38%; }
+
+        .part-label {
+            text-align: center; font-weight: bold;
+            border: 1px solid #000; padding: 1px;
+            background: #e8e8e8; font-size: 8.3pt;
+            margin: 1px 0;
         }
 
-        .parties-title {
-            font-weight: bold;
-            font-size: 9.5pt;
-            text-transform: uppercase;
-            color: #1d6b3a;
-            margin: 5px 0 2px 0;
-        }
+        /* Articles */
+        .article { margin: 1px 0; text-align: justify; }
+        .article .art-title { font-weight: bold; text-transform: uppercase; font-size: 8.3pt; }
 
-        /* ── Articles ── */
-        .article { margin: 3px 0; text-align: justify; }
-        .article .art-title {
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 9.5pt;
-            color: #14532d;
+        /* Tableau rémunération */
+        .salary-table {
+            width: 100%; border-collapse: collapse; margin: 1px 0;
+            font-size: 8.3pt;
         }
+        .salary-table td {
+            border: 1px solid #000; padding: 1px 3px;
+        }
+        .salary-table td.label { font-weight: bold; width: 62%; }
+        .salary-table td.amount { text-align: right; font-weight: bold; width: 38%; }
 
-        /* ── Signatures ── */
+        /* Signatures */
         .signatures {
-            width: 100%;
-            margin-top: 14px;
-            border-collapse: collapse;
+            width: 100%; margin-top: 4px;
+            border-collapse: collapse; font-size: 8.3pt;
         }
         .signatures td {
-            width: 50%;
-            text-align: center;
-            vertical-align: top;
-            padding: 0 10px;
+            width: 33%; text-align: center;
+            vertical-align: top; padding: 1px;
         }
-        .signatures .sig-role {
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 9pt;
-        }
-        .signatures .sig-note {
+        .signatures .role {
+            font-weight: bold; text-transform: uppercase;
             font-size: 8pt;
-            color: #666;
-            margin-top: 2px;
         }
-        .signatures .sig-line {
-            margin-top: 32px;
-            border-top: 1px solid #333;
-            padding-top: 3px;
-            font-size: 8.5pt;
-        }
-        .lieu-date { margin-top: 10px; font-size: 9pt; }
+        .signatures .space { height: 18px; }
     </style>
 </head>
 <body>
-    {{-- Pied de page obligatoire — répété automatiquement sur chaque page --}}
     <div class="page-footer">
         <strong>COMMISSARIAT À LA SÉCURITÉ ALIMENTAIRE ET À LA RÉSILIENCE (CSAR)</strong><br>
-        2 Rue Amadou Assane NDIAYE X Bretagne Ferrand, Dakar — SÉNÉGAL<br>
-        Tél. : (+221) 33 832 01 70 — Email : contact@csar.sn — RCCM : SN DKR 2014 B 22224 — NINEA : 005047162 2G
+        2 Rue Amadou Assane NDIAYE X Bretagne Ferrand, Dakar — SÉNÉGAL — Tél. : (+221) 33 832 01 70 — RCCM : SN DKR 2014 B 22224 — NINEA : 005047162 2G
     </div>
 
-    {{-- ───────────────────────── PAGE 1 ───────────────────────── --}}
-    <div class="rep-header">
-        <div class="rep">République du Sénégal</div>
-        <div class="devise">Un Peuple — Un But — Une Foi</div>
-        <div class="ministere">Ministère de l'Agriculture, de la Souveraineté Alimentaire et de l'Élevage</div>
-        <div class="org">Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)</div>
-    </div>
-    <hr class="sep">
-
-    <div class="doc-title">
-        <h1>Contrat de Travail à Durée Indéterminée</h1>
-        <div class="ref">Réf. : {{ $reference ?? 'CTI-' . ($personnel?->matricule ?? '____') . '-' . now()->format('Y') }}</div>
-    </div>
-
-    <p class="intro">Entre les soussignés :</p>
-
-    <div class="parties-title">I. L'Employeur</div>
-    <p class="intro" style="margin-bottom:6px;">
-        Le <strong>Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)</strong>, établissement public
-        sis 2 Rue Amadou Assane Ndiaye X Bretagne Ferrand à Dakar, représenté par son Directeur Général,
-        ci-après dénommé <strong>« l'Employeur »</strong>,
-    </p>
-    <p class="intro" style="margin-bottom:6px;">D'une part,</p>
-
-    <div class="parties-title">II. L'Employé(e)</div>
-    <table class="info-table">
+    {{-- Header officiel --}}
+    <table class="head">
         <tr>
-            <td class="label">Prénom(s) et Nom</td>
-            <td>{{ $personnel?->prenoms_nom ?? '' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Date et lieu de naissance</td>
-            <td>{{ optional($personnel?->date_naissance)->format('d/m/Y') ?? '____' }} à {{ $personnel?->lieu_naissance ?? '____' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Sexe / Situation matrimoniale</td>
-            <td>{{ $personnel?->sexe ?? '—' }} / {{ $personnel?->situation_matrimoniale ?? '—' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Nationalité</td>
-            <td>{{ $personnel?->nationalite ?? 'Sénégalaise' }}</td>
-        </tr>
-        <tr>
-            <td class="label">N° CNI / NINEA</td>
-            <td>{{ $personnel?->cni ?? $personnel?->numero_cni ?? '____' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Adresse</td>
-            <td>{{ $personnel?->adresse ?? '____' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Téléphone / Email</td>
-            <td>{{ $personnel?->telephone ?? '—' }} / {{ $personnel?->email ?? '—' }}</td>
-        </tr>
-        <tr>
-            <td class="label">Matricule</td>
-            <td>{{ $personnel?->matricule ?? '____' }}</td>
+            <td class="logo-cell">
+                @php $logoPath = public_path('images/csar-logo.png'); @endphp
+                @if(file_exists($logoPath))
+                    <img src="{{ $logoPath }}" alt="CSAR">
+                @else
+                    <div class="logo-ph">LOGO</div>
+                @endif
+            </td>
+            <td class="title-cell">
+                <div class="rep">RÉPUBLIQUE DU SÉNÉGAL</div>
+                <div class="devise">Un Peuple — Un But — Une Foi</div>
+                <div class="min">MINISTÈRE DE LA FAMILLE, DE L'ACTION SOCIALE ET DES SOLIDARITÉS</div>
+                <div class="org">COMMISSARIAT À LA SÉCURITÉ ALIMENTAIRE ET À LA RÉSILIENCE</div>
+            </td>
+            <td class="logo-cell"></td>
         </tr>
     </table>
-    <p class="intro" style="margin-bottom:6px;">Ci-après dénommé(e) <strong>« l'Employé(e) »</strong>, d'autre part.</p>
+    <hr class="sep">
 
-    <p class="intro">Il a été convenu et arrêté ce qui suit :</p>
+    {{-- Réf / Date --}}
+    <table class="ref-row">
+        <tr>
+            <td class="ref">N° {{ $reference ?? '_________' }}/MIFASS/CSAR/SG/DRH</td>
+            <td class="date">Dakar, le {{ now()->format('d/m/Y') }}</td>
+        </tr>
+    </table>
+
+    {{-- Titre --}}
+    <div class="doc-title">
+        <h1>CONTRAT DE TRAVAIL</h1>
+        <h2>A DUREE INDETERMINEE</h2>
+    </div>
+
+    <p class="section-title">Entre les Soussignés :</p>
+
+    {{-- Employeur --}}
+    <table class="party-table">
+        <tr><th colspan="2">EMPLOYEUR</th></tr>
+        <tr><td colspan="2">La Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR), sis au 2 Rue Amadou Assane NDIAYE X Bretagne Ferrand, Dakar représenté par Madame <strong>Marième Soda NDIAYE</strong>, en sa qualité de Directeur général ;</td></tr>
+    </table>
+
+    <div class="part-label">D'UNE PART</div>
+
+    {{-- Travailleur --}}
+    <table class="party-table">
+        <tr><th colspan="2">TRAVAILLEUR</th></tr>
+        <tr><td class="label">Prénom :</td><td>{{ $personnel?->prenom ?? ($personnel?->prenoms ?? '____') }}</td></tr>
+        <tr><td class="label">Nom :</td><td>{{ $personnel?->nom ?? '____' }}</td></tr>
+        <tr><td class="label">Date et Lieu de Naissance :</td><td>{{ optional($personnel?->date_naissance)->format('d/m/Y') ?? '__/__/____' }} à {{ $personnel?->lieu_naissance ?? '____' }}</td></tr>
+        <tr><td class="label">Filiation :</td><td>{{ $personnel?->filiation ?? '____' }}</td></tr>
+        <tr><td class="label">N° Identification Nationale :</td><td>{{ $personnel?->cni ?? $personnel?->numero_cni ?? '____' }} du {{ $personnel?->date_delivrance_cni ?? '____' }}</td></tr>
+        <tr><td class="label">Domicile actuel :</td><td>{{ $personnel?->adresse ?? '____' }}</td></tr>
+        <tr><td class="label">Nationalité :</td><td>{{ $personnel?->nationalite ?? 'Sénégalaise' }}</td></tr>
+        <tr><td class="label">Situation de Famille :</td><td>{{ $personnel?->situation_matrimoniale ?? '____' }}</td></tr>
+        <tr><td class="label">Nombre d'épouses :</td><td>{{ $personnel?->nombre_epouses ?? '0' }}</td></tr>
+        <tr><td class="label">Nombre d'enfants :</td><td>{{ $personnel?->nombre_enfants ?? '0' }}</td></tr>
+    </table>
+
+    <div class="part-label">D'AUTRE PART</div>
+
+    <p style="text-align:center; font-weight:bold; margin:2px 0;">Il a été convenu et arrêté ce qui suit :</p>
 
     <div class="article">
-        <span class="art-title">Article 1 — Engagement.</span>
-        L'Employeur engage l'Employé(e), qui accepte, dans le cadre d'un contrat de travail à durée
-        <strong>indéterminée</strong> régi par le Code du Travail du Sénégal et la Convention Collective applicable.
+        <span class="art-title">ARTICLE 1 :</span>
+        Monsieur <strong>{{ $personnel?->prenoms_nom ?? '____' }}</strong>, titulaire d'un <strong>{{ $diplome ?? '____________________' }}</strong>, est engagé pour servir en qualité de <strong>{{ $personnel?->poste_actuel ?? '____' }}</strong> à la Direction générale du Commissariat à la Sécurité Alimentaire et à la Résilience pour une durée indéterminée à compter du <strong>{{ optional($personnel?->date_prise_service_csar ?? $personnel?->date_recrutement_csar)->format('d/m/Y') ?? '__/__/____' }}</strong>. Il sera classé à la catégorie <strong>{{ $categorie ?? '____' }}</strong> C conformément à la convention collective du commerce.
     </div>
 
     <div class="article">
-        <span class="art-title">Article 2 — Fonctions.</span>
-        L'Employé(e) est engagé(e) en qualité de <strong>{{ $personnel?->poste_actuel ?? '____' }}</strong>,
-        affecté(e) à la <strong>{{ $personnel?->direction_service ?? '____' }}</strong>
-        (lieu : {{ $personnel?->localisation_region ?? 'Dakar' }}). Il/elle exécutera toutes tâches liées à cette fonction
-        et pourra être affecté(e) à d'autres postes selon les nécessités de service.
+        <span class="art-title">ARTICLE 2 :</span>
+        <strong>Rémunération :</strong>
+        <table class="salary-table">
+            <tr><td class="label">Salaire de base, complément spécial de solde et indemnité résidence :</td><td class="amount">{{ isset($salaire_base) ? number_format((float)$salaire_base, 0, ',', ' ') . ' F' : '____ F' }}</td></tr>
+            <tr><td class="label">Sur-salaire :</td><td class="amount">{{ isset($sur_salaire) ? number_format((float)$sur_salaire, 0, ',', ' ') . ' F' : '____ F' }}</td></tr>
+            <tr><td class="label">Indemnité de transport :</td><td class="amount">{{ isset($indemnite_transport) ? number_format((float)$indemnite_transport, 0, ',', ' ') . ' F' : '____ F' }}</td></tr>
+            <tr><td class="label">Salaire brut global :</td><td class="amount">{{ isset($salaire_brut_global) ? number_format((float)$salaire_brut_global, 0, ',', ' ') . ' F' : '____ F' }}</td></tr>
+        </table>
+        Toutefois, l'agent subira sur traitement une retenue pour la constitution d'une retraite au titre de l'IPRES.
     </div>
 
     <div class="article">
-        <span class="art-title">Article 3 — Prise de service.</span>
-        Le présent contrat prend effet à compter du
-        <strong>{{ optional($personnel?->date_prise_service_csar ?? $personnel?->date_recrutement_csar)->format('d/m/Y') ?? '____' }}</strong>.
+        <span class="art-title">ARTICLE 3 :</span>
+        L'horaire hebdomadaire est de <strong>40 Heures</strong> correspondant au salaire indiqué ci-dessus.
     </div>
 
     <div class="article">
-        <span class="art-title">Article 4 — Période d'essai.</span>
-        L'engagement devient définitif à l'issue d'une période d'essai de <strong>{{ $periode_essai ?? 'trois (03) mois' }}</strong>,
-        renouvelable une fois, durant laquelle chaque partie peut rompre le contrat sans préavis ni indemnité.
-    </div>
-
-    {{-- ───────────────────────── PAGE 2 ───────────────────────── --}}
-    <div style="page-break-before: always;"></div>
-
-    <div class="article">
-        <span class="art-title">Article 5 — Rémunération.</span>
-        En contrepartie de ses services, l'Employé(e) percevra une rémunération mensuelle brute de
-        <strong>{{ isset($salaire_brut) ? number_format($salaire_brut, 0, ',', ' ') . ' FCFA' : '____ FCFA' }}</strong>,
-        payable à terme échu, outre les primes et indemnités prévues par les textes en vigueur.
+        <span class="art-title">ARTICLE 4 :</span>
+        Le lieu d'exécution du présent contrat de travail est situé à : <strong>Dakar, 22 Rue Amadou Assane NDIAYE X Bretagne Ferrand</strong>
     </div>
 
     <div class="article">
-        <span class="art-title">Article 6 — Durée du travail.</span>
-        La durée hebdomadaire de travail est fixée conformément à la législation en vigueur, soit
-        <strong>quarante (40) heures</strong>, réparties selon l'horaire de l'établissement.
+        <span class="art-title">ARTICLE 5 :</span>
+        Monsieur <strong>{{ $personnel?->prenoms_nom ?? '____' }}</strong> est appelé à servir dans tous les services du CSAR partout où besoin sera.
     </div>
 
     <div class="article">
-        <span class="art-title">Article 7 — Congés.</span>
-        L'Employé(e) bénéficie d'un congé payé dans les conditions prévues par le Code du Travail,
-        soit deux (02) jours ouvrables par mois de service effectif.
+        <span class="art-title">ARTICLE 6 :</span>
+        Monsieur <strong>{{ $personnel?->prenoms_nom ?? '____' }}</strong> déclare formellement n'être actuellement à aucun employeur et libre de tout engagement.
     </div>
 
     <div class="article">
-        <span class="art-title">Article 8 — Obligations et discrétion.</span>
-        L'Employé(e) s'engage à exécuter ses fonctions avec diligence et loyauté, à respecter le règlement
-        intérieur et à observer une stricte confidentialité sur les informations dont il/elle a connaissance.
+        <span class="art-title">ARTICLE 7 :</span>
+        Référence des textes qui régissent l'ensemble des rapports de travail entre employeur et travailleur : Code du travail et décret d'application ; Convention collective nationale interprofessionnelle ; Convention collective du commerce ; Eventuellement grille interne du CSAR.
     </div>
 
     <div class="article">
-        <span class="art-title">Article 9 — Rupture et préavis.</span>
-        Le contrat peut être rompu par l'une ou l'autre des parties dans le respect des dispositions légales,
-        moyennant un préavis dont la durée est fixée par la Convention Collective.
+        <span class="art-title">ARTICLE 8 :</span>
+        Toute modification aux dispositions du présent contrat de travail fera l'objet d'un avenant qui sera notifié à l'intéressé.
     </div>
-
-    <div class="article">
-        <span class="art-title">Article 10 — Litiges.</span>
-        Tout différend relatif à l'exécution du présent contrat, à défaut de règlement amiable, sera soumis
-        à la juridiction compétente du travail de Dakar.
-    </div>
-
-    <div class="lieu-date">Fait à Dakar, en deux (02) exemplaires originaux, le {{ now()->format('d/m/Y') }}.</div>
 
     <table class="signatures">
         <tr>
             <td>
-                <div class="sig-role">L'Employé(e)</div>
-                <div class="sig-note">(Lu et approuvé)</div>
-                <div class="sig-line">{{ $personnel?->prenoms_nom ?? '' }}</div>
+                <div class="role">Le Travailleur</div>
+                <div class="space"></div>
+                <div>{{ $personnel?->prenoms_nom ?? '' }}</div>
             </td>
             <td>
-                <div class="sig-role">L'Employeur</div>
-                <div class="sig-note">Le Directeur Général du CSAR</div>
-                <div class="sig-line">{{ $directeur_general ?? '' }}</div>
+                <div class="role">Le Directeur Général<br>du Commissariat à la Sécurité<br>Alimentaire et à la Résilience</div>
+                <div class="space"></div>
+                <div><strong>Marième Soda NDIAYE</strong></div>
+            </td>
+            <td>
+                <div class="role">Visa de l'Inspecteur du<br>Travail et de la Sécurité<br>Sociale</div>
+                <div class="space"></div>
+                <div></div>
             </td>
         </tr>
     </table>
