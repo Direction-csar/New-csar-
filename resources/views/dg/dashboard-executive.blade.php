@@ -32,6 +32,48 @@
         </div>
     </div>
 
+    <!-- Filtres DG -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card-modern p-3">
+                <form method="GET" class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Période</label>
+                        <select name="period" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="week" {{ ($filters['period'] ?? '') === 'week' ? 'selected' : '' }}>Cette semaine</option>
+                            <option value="month" {{ ($filters['period'] ?? 'month') === 'month' ? 'selected' : '' }}>Ce mois</option>
+                            <option value="quarter" {{ ($filters['period'] ?? '') === 'quarter' ? 'selected' : '' }}>Ce trimestre</option>
+                            <option value="year" {{ ($filters['period'] ?? '') === 'year' ? 'selected' : '' }}>Cette année</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Région</label>
+                        <select name="region" class="form-select form-select-sm">
+                            <option value="">Toutes les régions</option>
+                            @foreach($filters['regions'] ?? [] as $region)
+                                <option value="{{ $region }}" {{ request('region') === $region ? 'selected' : '' }}>{{ $region }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label small fw-bold">Direction</label>
+                        <select name="direction" class="form-select form-select-sm">
+                            <option value="">Toutes les directions</option>
+                            @foreach($filters['directions'] ?? [] as $direction)
+                                <option value="{{ $direction }}" {{ request('direction') === $direction ? 'selected' : '' }}>{{ $direction }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary-modern btn-modern btn-sm w-100">
+                            <i class="fas fa-filter me-1"></i>Filtrer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Métriques KPI essentielles pour DG -->
     <div class="row mb-3">
         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
@@ -106,6 +148,237 @@
                         <p class="stats-label">❤️ Donations</p>
                         <small class="text-success">{{ number_format($stats['donation_amount'] ?? 0, 0, ',', ' ') }} F</small>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── SECTION DRH ── -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <h5 class="fw-bold text-primary mb-2"><i class="fas fa-users me-2"></i>Direction des Ressources Humaines (DRH)</h5>
+        </div>
+        <div class="col-xl-2 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-dark mb-1">{{ $drhStats['total'] ?? 0 }}</h4>
+                    <small class="text-muted">Agents</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-info mb-1">{{ $drhStats['cdi'] ?? 0 }}</h4>
+                    <small class="text-muted">CDI</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-warning mb-1">{{ $drhStats['cdd'] ?? 0 }}</h4>
+                    <small class="text-muted">CDD</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-success mb-1">{{ number_format($drhStats['masse_salariale'] ?? 0, 0, ',', ' ') }} F</h4>
+                    <small class="text-muted">Masse salariale</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-danger mb-1">{{ $drhStats['retraites'] ?? 0 }}</h4>
+                    <small class="text-muted">Retraités imminents</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-secondary mb-1">{{ $drhStats['documents'] ?? 0 }}</h4>
+                    <small class="text-muted">Docs RH générés</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── SECTION DSAR ── -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <h5 class="fw-bold text-success mb-2"><i class="fas fa-chart-bar me-2"></i>DSAR — Suivi des marchés</h5>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-dark mb-1">{{ $dsarStats['markets'] ?? 0 }}</h4>
+                    <small class="text-muted">Marchés actifs</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-dark mb-1">{{ $dsarStats['products'] ?? 0 }}</h4>
+                    <small class="text-muted">Produits suivis</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-dark mb-1">{{ $dsarStats['collectors'] ?? 0 }}</h4>
+                    <small class="text-muted">Collecteurs actifs</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-dark mb-1">{{ $dsarStats['collections_month'] ?? 0 }}</h4>
+                    <small class="text-muted">Collectes ce mois</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── SECTION STOCKS & PROJETS ── -->
+    <div class="row mb-3">
+        <div class="col-lg-6">
+            <h5 class="fw-bold text-info mb-2"><i class="fas fa-boxes me-2"></i>Stocks & Entrepôts</h5>
+            <div class="row">
+                <div class="col-4 mb-2">
+                    <div class="stats-card">
+                        <div class="text-center">
+                            <h4 class="fw-bold text-dark mb-1">{{ $stockStats['warehouses'] ?? 0 }}</h4>
+                            <small class="text-muted">Entrepôts</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 mb-2">
+                    <div class="stats-card">
+                        <div class="text-center">
+                            <h4 class="fw-bold text-dark mb-1">{{ $stockStats['active'] ?? 0 }}</h4>
+                            <small class="text-muted">Actifs</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 mb-2">
+                    <div class="stats-card">
+                        <div class="text-center">
+                            <h4 class="fw-bold text-dark mb-1">{{ $stockStats['movements'] ?? 0 }}</h4>
+                            <small class="text-muted">Mouvements</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <h5 class="fw-bold text-warning mb-2"><i class="fas fa-project-diagram me-2"></i>Projets</h5>
+            <div class="row">
+                <div class="col-3 mb-2">
+                    <div class="stats-card">
+                        <div class="text-center">
+                            <h4 class="fw-bold text-dark mb-1">{{ $projetStats['total'] ?? 0 }}</h4>
+                            <small class="text-muted">Total</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3 mb-2">
+                    <div class="stats-card">
+                        <div class="text-center">
+                            <h4 class="fw-bold text-info mb-1">{{ $projetStats['en_cours'] ?? 0 }}</h4>
+                            <small class="text-muted">En cours</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3 mb-2">
+                    <div class="stats-card">
+                        <div class="text-center">
+                            <h4 class="fw-bold text-success mb-1">{{ $projetStats['termines'] ?? 0 }}</h4>
+                            <small class="text-muted">Terminés</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-3 mb-2">
+                    <div class="stats-card">
+                        <div class="text-center">
+                            <h4 class="fw-bold text-secondary mb-1">{{ $projetStats['en_attente'] ?? 0 }}</h4>
+                            <small class="text-muted">En attente</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── SECTION COMMUNICATION ── -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <h5 class="fw-bold text-danger mb-2"><i class="fas fa-bullhorn me-2"></i>Communication</h5>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-dark mb-1">{{ $commStats['news'] ?? 0 }}</h4>
+                    <small class="text-muted">Actualités</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-dark mb-1">{{ $commStats['newsletters'] ?? 0 }}</h4>
+                    <small class="text-muted">Newsletters</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-dark mb-1">{{ $commStats['subscribers'] ?? 0 }}</h4>
+                    <small class="text-muted">Abonnés</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-dark mb-1">{{ $commStats['messages'] ?? 0 }}</h4>
+                    <small class="text-muted">Messages contact</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── GRAPHIQUES STRATÉGIQUES ── -->
+    <div class="row mb-3">
+        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
+            <div class="card-modern p-3">
+                <h6 class="fw-bold mb-3"><i class="fas fa-users text-primary me-2"></i>DRH — Types de contrat</h6>
+                <div style="height: 200px; position: relative;">
+                    <canvas id="chartContracts"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-5 col-lg-6 col-md-6 mb-3">
+            <div class="card-modern p-3">
+                <h6 class="fw-bold mb-3"><i class="fas fa-building text-primary me-2"></i>DRH — Personnel par direction (Top 10)</h6>
+                <div style="height: 200px; position: relative;">
+                    <canvas id="chartDirections"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-lg-6 col-md-6 mb-3">
+            <div class="card-modern p-3">
+                <h6 class="fw-bold mb-3"><i class="fas fa-chart-bar text-success me-2"></i>DSAR — Marchés par région</h6>
+                <div style="height: 200px; position: relative;">
+                    <canvas id="chartMarketsRegion"></canvas>
                 </div>
             </div>
         </div>
@@ -489,6 +762,71 @@
                     borderJoinStyle: 'round',
                     borderCapStyle: 'round'
                 }
+            }
+        }
+    });
+
+    // ── Chart: DRH Contract Types ──
+    new Chart(document.getElementById('chartContracts'), {
+        type: 'doughnut',
+        data: {
+            labels: ['CDI', 'CDD', 'Intérim'],
+            datasets: [{
+                data: [
+                    {{ $drhStats['cdi'] ?? 0 }},
+                    {{ $drhStats['cdd'] ?? 0 }},
+                    {{ $drhStats['interim'] ?? 0 }}
+                ],
+                backgroundColor: ['#0d6efd', '#ffc107', '#6c757d'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+        }
+    });
+
+    // ── Chart: DRH Personnel by Direction ──
+    new Chart(document.getElementById('chartDirections'), {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode(array_keys($drhStats['par_direction'] ?? [])) !!},
+            datasets: [{
+                label: 'Agents',
+                data: {!! json_encode(array_values($drhStats['par_direction'] ?? [])) !!},
+                backgroundColor: '#0d6efd',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 30 }, grid: { display: false } }
+            }
+        }
+    });
+
+    // ── Chart: DSAR Markets by Region ──
+    new Chart(document.getElementById('chartMarketsRegion'), {
+        type: 'bar',
+        data: {
+            labels: {!! json_encode(array_keys($dsarStats['markets_by_region'] ?? [])) !!},
+            datasets: [{
+                label: 'Marchés',
+                data: {!! json_encode(array_values($dsarStats['markets_by_region'] ?? [])) !!},
+                backgroundColor: '#198754',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { ticks: { font: { size: 10 }, maxRotation: 45 }, grid: { display: false } }
             }
         }
     });

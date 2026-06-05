@@ -13,45 +13,71 @@ class DashboardController extends Controller
     /**
      * Afficher le tableau de bord DG (lecture seule)
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
+            // Filtres période
+            $period = $request->get('period', 'month');
+            $dates = $this->getPeriodDates($period);
+            $dateFrom = $dates['from'];
+            $dateTo = $dates['to'];
+
+            // Filtres optionnels
+            $regionFilter = $request->get('region');
+            $directionFilter = $request->get('direction');
+
             // Statistiques générales (lecture seule)
             $stats = $this->getDashboardStats();
-            
+
+            // Données consolidées par direction
+            $drhStats = $this->getDrhStats($dateFrom, $dateTo, $regionFilter, $directionFilter);
+            $dsarStats = $this->getDsarStats($dateFrom, $dateTo, $regionFilter);
+            $stockStats = $this->getStockStats($dateFrom, $dateTo, $regionFilter);
+            $projetStats = $this->getProjetStats($dateFrom, $dateTo, $regionFilter, $directionFilter);
+            $commStats = $this->getCommunicationStats($dateFrom, $dateTo);
+
             // Activités récentes (lecture seule)
             $recentActivities = $this->getRecentActivities();
-            
+
             // Demandes récentes pour l'affichage
             $recentRequests = \App\Models\PublicRequest::latest()->take(5)->get();
-            
-            // Donations récentes pour l'affichage
-            $recentDonations = \App\Models\Donation::orderBy('created_at', 'desc')->take(5)->get();
-            
+            $recentDonations = \App\Models\Donation::latest()->take(5)->get();
             // Graphiques des données (lecture seule)
             $chartsData = $this->getChartsData();
-            
+
             // Alertes système (lecture seule)
             $alerts = $this->getSystemAlerts();
-            
+
             // Données de la carte interactive
             $mapData = $this->getMapData();
-            
+
+            // Données de filtrage pour la vue
+            $filters = [
+                'period' => $period,
+                'regions' => \App\Models\Warehouse::distinct()->pluck('region')->filter()->values()->toArray(),
+                'directions' => \App\Models\Personnel::distinct()->pluck('direction_service')->filter()->values()->toArray(),
+            ];
+
             // Log de l'accès au dashboard DG
             Log::info('Accès au dashboard DG', [
                 'user_id' => auth()->id(),
-                'timestamp' => Carbon::now()
+                'timestamp' => Carbon::now(),
+                'filters' => $filters
             ]);
 
-            return view('dg.dashboard-executive', compact('stats', 'recentActivities', 'chartsData', 'alerts', 'mapData', 'recentRequests', 'recentDonations'));
-            
+            return view('dg.dashboard-executive', compact(
+                'stats', 'recentActivities', 'chartsData', 'alerts', 'mapData',
+                'recentRequests', 'recentDonations',
+                'drhStats', 'dsarStats', 'stockStats', 'projetStats', 'commStats',
+                'filters'
+            ));
         } catch (\Exception $e) {
             Log::error('Erreur lors du chargement du dashboard DG', [
                 'user_id' => auth()->id(),
                 'error' => $e->getMessage(),
                 'timestamp' => Carbon::now()
             ]);
-            
+
             return redirect()->back()->with('error', 'Erreur lors du chargement du tableau de bord.');
         }
     }
@@ -682,18 +708,189 @@ class DashboardController extends Controller
             $requests = \App\Models\PublicRequest::whereNotNull('processed_at')
                 ->whereNotNull('created_at')
                 ->get();
-            
+
             if ($requests->isEmpty()) {
                 return 0;
             }
-            
+
             $totalHours = $requests->sum(function($request) {
                 return $request->created_at->diffInHours($request->processed_at);
             });
-            
+
             return round($totalHours / $requests->count(), 1);
         } catch (\Exception $e) {
             return 0;
+        }
+    }
+
+    /**
+     * Statistiques DRH consolidées
+     */
+    private function getDrhStats($dateFrom, $dateTo, $regionFilter = null, $directionFilter = null)
+    {
+        try {
+            $query = \App\Models\Personnel::query();
+            if ($regionFilter) {
+                $query->where('localisation_region', $regionFilter);
+            }
+            if ($directionFilter) {
+                $query->where('direction_service', $directionFilter);
+            }
+
+            $total = $query->count();
+            $cdi = (clone $query)->where('statut', 'CDI')->count();
+            $cdd = (clone $query)->where('statut', 'CDD')->count();
+            $interim = (clone $query)->where('statut', 'Intérim')->count();
+
+            $masseSalariale = \App\Models\SalarySlip::whereBetween('periode_debut', [$dateFrom, $dateTo])
+                ->sum('salaire_brut');
+
+            $retraites = (clone $query)->whereNotNull('date_naissance')
+                ->whereRaw("TIMESTAMPDIFF(YEAR, date_naissance, CURDATE()) >= 58")
+                ->count();
+
+            $documents = \App\Models\HRDocument::whereBetween('created_at', [$dateFrom, $dateTo])->count();
+
+            $parDirection = (clone $query)
+                ->selectRaw('direction_service, count(*) as total')
+                ->groupBy('direction_service')
+                ->orderByDesc('total')
+                ->limit(10)
+                ->pluck('total', 'direction_service')
+                ->toArray();
+
+            $parRegion = (clone $query)
+                ->selectRaw('localisation_region, count(*) as total')
+                ->groupBy('localisation_region')
+                ->pluck('total', 'localisation_region')
+                ->toArray();
+
+            return [
+                'total' => $total,
+                'cdi' => $cdi,
+                'cdd' => $cdd,
+                'interim' => $interim,
+                'masse_salariale' => $masseSalariale,
+                'retraites' => $retraites,
+                'documents' => $documents,
+                'par_direction' => $parDirection,
+                'par_region' => $parRegion,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Erreur getDrhStats DG', ['error' => $e->getMessage()]);
+            return ['total' => 0, 'cdi' => 0, 'cdd' => 0, 'interim' => 0, 'masse_salariale' => 0, 'retraites' => 0, 'documents' => 0, 'par_direction' => [], 'par_region' => []];
+        }
+    }
+
+    /**
+     * Statistiques DSAR consolidées
+     */
+    private function getDsarStats($dateFrom, $dateTo, $regionFilter = null)
+    {
+        try {
+            $marketsQuery = \App\Models\SimMarket::query();
+            if ($regionFilter) {
+                $marketsQuery->whereHas('department', function ($q) use ($regionFilter) {
+                    $q->where('region', $regionFilter);
+                });
+            }
+
+            $markets = $marketsQuery->count();
+            $products = \App\Models\SimProduct::where('is_active', true)->count();
+            $collectors = \App\Models\SimMarket::whereHas('assignments')->count();
+            $collectionsMonth = \App\Models\SimMarket::whereHas('collections', function ($q) use ($dateFrom, $dateTo) {
+                $q->whereBetween('collection_date', [$dateFrom, $dateTo]);
+            })->count();
+
+            $marketsByRegion = \App\Models\SimMarket::whereHas('department')
+                ->with('department')
+                ->get()
+                ->groupBy('department.region')
+                ->map->count()
+                ->toArray();
+
+            return [
+                'markets' => $markets,
+                'products' => $products,
+                'collectors' => $collectors,
+                'collections_month' => $collectionsMonth,
+                'markets_by_region' => $marketsByRegion,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Erreur getDsarStats DG', ['error' => $e->getMessage()]);
+            return ['markets' => 0, 'products' => 0, 'collectors' => 0, 'collections_month' => 0, 'markets_by_region' => []];
+        }
+    }
+
+    /**
+     * Statistiques Stocks consolidées
+     */
+    private function getStockStats($dateFrom, $dateTo, $regionFilter = null)
+    {
+        try {
+            $warehouseQuery = \App\Models\Warehouse::query();
+            if ($regionFilter) {
+                $warehouseQuery->where('region', $regionFilter);
+            }
+
+            $warehouses = $warehouseQuery->count();
+            $active = $warehouseQuery->clone()->where('is_active', true)->count();
+            $movements = \App\Models\StockMovement::whereBetween('created_at', [$dateFrom, $dateTo])->count();
+
+            return [
+                'warehouses' => $warehouses,
+                'active' => $active,
+                'movements' => $movements,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Erreur getStockStats DG', ['error' => $e->getMessage()]);
+            return ['warehouses' => 0, 'active' => 0, 'movements' => 0];
+        }
+    }
+
+    /**
+     * Statistiques Projets consolidées
+     */
+    private function getProjetStats($dateFrom, $dateTo, $regionFilter = null, $directionFilter = null)
+    {
+        try {
+            $total = \App\Models\Projet::count();
+            $enCours = \App\Models\Projet::where('statut', 'en_cours')->count();
+            $termines = \App\Models\Projet::where('statut', 'termine')->count();
+            $enAttente = \App\Models\Projet::where('statut', 'en_attente')->count();
+
+            return [
+                'total' => $total,
+                'en_cours' => $enCours,
+                'termines' => $termines,
+                'en_attente' => $enAttente,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Erreur getProjetStats DG', ['error' => $e->getMessage()]);
+            return ['total' => 0, 'en_cours' => 0, 'termines' => 0, 'en_attente' => 0];
+        }
+    }
+
+    /**
+     * Statistiques Communication consolidées
+     */
+    private function getCommunicationStats($dateFrom, $dateTo)
+    {
+        try {
+            $news = \App\Models\News::whereBetween('created_at', [$dateFrom, $dateTo])->count();
+            $newsletters = \App\Models\Newsletter::whereBetween('created_at', [$dateFrom, $dateTo])->count();
+            $subscribers = 0; // TODO: implement subscriber count if table exists
+            $messages = \App\Models\ContactMessage::whereBetween('created_at', [$dateFrom, $dateTo])->count();
+
+            return [
+                'news' => $news,
+                'newsletters' => $newsletters,
+                'subscribers' => $subscribers,
+                'messages' => $messages,
+            ];
+        } catch (\Exception $e) {
+            Log::error('Erreur getCommunicationStats DG', ['error' => $e->getMessage()]);
+            return ['news' => 0, 'newsletters' => 0, 'subscribers' => 0, 'messages' => 0];
         }
     }
 }
