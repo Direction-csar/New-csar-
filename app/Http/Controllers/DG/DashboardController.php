@@ -738,9 +738,9 @@ class DashboardController extends Controller
             }
 
             $total = $query->count();
-            $cdi = (clone $query)->where('statut', 'CDI')->count();
-            $cdd = (clone $query)->where('statut', 'CDD')->count();
-            $interim = (clone $query)->where('statut', 'Intérim')->count();
+            $fonctionnaires = (clone $query)->where('statut', 'Fonctionnaire')->count();
+            $contractuels = (clone $query)->where('statut', 'Contractuel')->count();
+            $stagiaires = (clone $query)->where('statut', 'Stagiaire')->count();
 
             $masseSalariale = \App\Models\SalarySlip::whereBetween('periode_debut', [$dateFrom, $dateTo])
                 ->sum('salaire_brut');
@@ -767,9 +767,9 @@ class DashboardController extends Controller
 
             return [
                 'total' => $total,
-                'cdi' => $cdi,
-                'cdd' => $cdd,
-                'interim' => $interim,
+                'fonctionnaires' => $fonctionnaires,
+                'contractuels' => $contractuels,
+                'stagiaires' => $stagiaires,
                 'masse_salariale' => $masseSalariale,
                 'retraites' => $retraites,
                 'documents' => $documents,
@@ -778,7 +778,7 @@ class DashboardController extends Controller
             ];
         } catch (\Exception $e) {
             Log::error('Erreur getDrhStats DG', ['error' => $e->getMessage()]);
-            return ['total' => 0, 'cdi' => 0, 'cdd' => 0, 'interim' => 0, 'masse_salariale' => 0, 'retraites' => 0, 'documents' => 0, 'par_direction' => [], 'par_region' => []];
+            return ['total' => 0, 'fonctionnaires' => 0, 'contractuels' => 0, 'stagiaires' => 0, 'masse_salariale' => 0, 'retraites' => 0, 'documents' => 0, 'par_direction' => [], 'par_region' => []];
         }
     }
 
@@ -790,22 +790,19 @@ class DashboardController extends Controller
         try {
             $marketsQuery = \App\Models\SimMarket::query();
             if ($regionFilter) {
-                $marketsQuery->whereHas('department', function ($q) use ($regionFilter) {
-                    $q->where('region', $regionFilter);
+                $marketsQuery->whereHas('department.region', function ($q) use ($regionFilter) {
+                    $q->where('name', $regionFilter);
                 });
             }
 
             $markets = $marketsQuery->count();
             $products = \App\Models\SimProduct::where('is_active', true)->count();
             $collectors = \App\Models\SimMarket::whereHas('assignments')->count();
-            $collectionsMonth = \App\Models\SimMarket::whereHas('collections', function ($q) use ($dateFrom, $dateTo) {
-                $q->whereBetween('collection_date', [$dateFrom, $dateTo]);
-            })->count();
+            $collectionsMonth = \App\Models\SimCollection::whereBetween('collected_on', [$dateFrom, $dateTo])->count();
 
-            $marketsByRegion = \App\Models\SimMarket::whereHas('department')
-                ->with('department')
+            $marketsByRegion = \App\Models\SimMarket::with('department.region')
                 ->get()
-                ->groupBy('department.region')
+                ->groupBy(fn ($m) => optional(optional($m->department)->region)->name ?? 'Non défini')
                 ->map->count()
                 ->toArray();
 
@@ -855,19 +852,19 @@ class DashboardController extends Controller
     {
         try {
             $total = \App\Models\Projet::count();
-            $enCours = \App\Models\Projet::where('statut', 'en_cours')->count();
+            $enCours = \App\Models\Projet::where('statut', 'actif')->count();
             $termines = \App\Models\Projet::where('statut', 'termine')->count();
-            $enAttente = \App\Models\Projet::where('statut', 'en_attente')->count();
+            $suspendus = \App\Models\Projet::where('statut', 'suspendu')->count();
 
             return [
                 'total' => $total,
                 'en_cours' => $enCours,
                 'termines' => $termines,
-                'en_attente' => $enAttente,
+                'suspendus' => $suspendus,
             ];
         } catch (\Exception $e) {
             Log::error('Erreur getProjetStats DG', ['error' => $e->getMessage()]);
-            return ['total' => 0, 'en_cours' => 0, 'termines' => 0, 'en_attente' => 0];
+            return ['total' => 0, 'en_cours' => 0, 'termines' => 0, 'suspendus' => 0];
         }
     }
 

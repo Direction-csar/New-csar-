@@ -169,16 +169,16 @@
         <div class="col-xl-2 col-lg-3 col-md-4 col-6 mb-2">
             <div class="stats-card">
                 <div class="text-center">
-                    <h4 class="fw-bold text-info mb-1">{{ $drhStats['cdi'] ?? 0 }}</h4>
-                    <small class="text-muted">CDI</small>
+                    <h4 class="fw-bold text-info mb-1">{{ $drhStats['fonctionnaires'] ?? 0 }}</h4>
+                    <small class="text-muted">Fonctionnaires</small>
                 </div>
             </div>
         </div>
         <div class="col-xl-2 col-lg-3 col-md-4 col-6 mb-2">
             <div class="stats-card">
                 <div class="text-center">
-                    <h4 class="fw-bold text-warning mb-1">{{ $drhStats['cdd'] ?? 0 }}</h4>
-                    <small class="text-muted">CDD</small>
+                    <h4 class="fw-bold text-warning mb-1">{{ $drhStats['contractuels'] ?? 0 }}</h4>
+                    <small class="text-muted">Contractuels</small>
                 </div>
             </div>
         </div>
@@ -308,8 +308,8 @@
                 <div class="col-3 mb-2">
                     <div class="stats-card">
                         <div class="text-center">
-                            <h4 class="fw-bold text-secondary mb-1">{{ $projetStats['en_attente'] ?? 0 }}</h4>
-                            <small class="text-muted">En attente</small>
+                            <h4 class="fw-bold text-secondary mb-1">{{ $projetStats['suspendus'] ?? 0 }}</h4>
+                            <small class="text-muted">Suspendus</small>
                         </div>
                     </div>
                 </div>
@@ -770,12 +770,12 @@
     new Chart(document.getElementById('chartContracts'), {
         type: 'doughnut',
         data: {
-            labels: ['CDI', 'CDD', 'Intérim'],
+            labels: ['Fonctionnaires', 'Contractuels', 'Stagiaires'],
             datasets: [{
                 data: [
-                    {{ $drhStats['cdi'] ?? 0 }},
-                    {{ $drhStats['cdd'] ?? 0 }},
-                    {{ $drhStats['interim'] ?? 0 }}
+                    {{ $drhStats['fonctionnaires'] ?? 0 }},
+                    {{ $drhStats['contractuels'] ?? 0 }},
+                    {{ $drhStats['stagiaires'] ?? 0 }}
                 ],
                 backgroundColor: ['#0d6efd', '#ffc107', '#6c757d'],
                 borderWidth: 0
