@@ -14,10 +14,10 @@
     <p><strong>Article 1 :</strong> Un congé
         <strong>{{ $type_conge ?? 'annuel' }}</strong> de
         <strong>{{ $nombre_jours ?? '____' }}</strong> jour(s) est accordé à
-        Monsieur/Madame <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,
-        <strong>{{ $personnel->poste_actuel ?? '__________' }}</strong>
-        à la <strong>{{ $personnel->direction_service ?? '__________' }}</strong>.</p>
+        Monsieur/Madame <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
+        <strong>{{ $personnel?->poste_actuel ?? '__________' }}</strong>
+        à la <strong>{{ $personnel?->direction_service ?? '__________' }}</strong>.</p>
 
     <p><strong>Article 2 :</strong> Ce congé court du
         <strong>{{ isset($date_debut) ? \Carbon\Carbon::parse($date_debut)->format('d/m/Y') : '__________' }}</strong>

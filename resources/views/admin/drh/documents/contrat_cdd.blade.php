@@ -107,7 +107,7 @@
 
     <div class="doc-title">
         <h1>Contrat de Travail à Durée Déterminée</h1>
-        <div class="ref">Réf. : {{ $reference ?? 'CTD-' . ($personnel->matricule ?? '____') . '-' . now()->format('Y') }}</div>
+        <div class="ref">Réf. : {{ $reference ?? 'CTD-' . ($personnel?->matricule ?? '____') . '-' . now()->format('Y') }}</div>
     </div>
 
     <p class="intro">Entre les soussignés :</p>
@@ -124,35 +124,35 @@
     <table class="info-table">
         <tr>
             <td class="label">Prénom(s) et Nom</td>
-            <td>{{ $personnel->prenoms_nom ?? '' }}</td>
+            <td>{{ $personnel?->prenoms_nom ?? '' }}</td>
         </tr>
         <tr>
             <td class="label">Date et lieu de naissance</td>
-            <td>{{ optional($personnel->date_naissance)->format('d/m/Y') ?? '____' }} à {{ $personnel->lieu_naissance ?? '____' }}</td>
+            <td>{{ optional($personnel?->date_naissance)->format('d/m/Y') ?? '____' }} à {{ $personnel?->lieu_naissance ?? '____' }}</td>
         </tr>
         <tr>
             <td class="label">Sexe / Situation matrimoniale</td>
-            <td>{{ $personnel->sexe ?? '—' }} / {{ $personnel->situation_matrimoniale ?? '—' }}</td>
+            <td>{{ $personnel?->sexe ?? '—' }} / {{ $personnel?->situation_matrimoniale ?? '—' }}</td>
         </tr>
         <tr>
             <td class="label">Nationalité</td>
-            <td>{{ $personnel->nationalite ?? 'Sénégalaise' }}</td>
+            <td>{{ $personnel?->nationalite ?? 'Sénégalaise' }}</td>
         </tr>
         <tr>
             <td class="label">N° CNI / NINEA</td>
-            <td>{{ $personnel->cni ?? $personnel->numero_cni ?? '____' }}</td>
+            <td>{{ $personnel?->cni ?? $personnel?->numero_cni ?? '____' }}</td>
         </tr>
         <tr>
             <td class="label">Adresse</td>
-            <td>{{ $personnel->adresse ?? '____' }}</td>
+            <td>{{ $personnel?->adresse ?? '____' }}</td>
         </tr>
         <tr>
             <td class="label">Téléphone / Email</td>
-            <td>{{ $personnel->telephone ?? '—' }} / {{ $personnel->email ?? '—' }}</td>
+            <td>{{ $personnel?->telephone ?? '—' }} / {{ $personnel?->email ?? '—' }}</td>
         </tr>
         <tr>
             <td class="label">Matricule</td>
-            <td>{{ $personnel->matricule ?? '____' }}</td>
+            <td>{{ $personnel?->matricule ?? '____' }}</td>
         </tr>
     </table>
     <p class="intro" style="margin-bottom:6px;">Ci-après dénommé(e) <strong>« l'Employé(e) »</strong>, d'autre part.</p>
@@ -167,15 +167,15 @@
 
     <div class="article">
         <span class="art-title">Article 2 — Fonctions.</span>
-        L'Employé(e) est engagé(e) en qualité de <strong>{{ $personnel->poste_actuel ?? '____' }}</strong>,
-        affecté(e) à la <strong>{{ $personnel->direction_service ?? '____' }}</strong>
-        (lieu : {{ $personnel->localisation_region ?? 'Dakar' }}), et exécutera toutes tâches liées à cette fonction.
+        L'Employé(e) est engagé(e) en qualité de <strong>{{ $personnel?->poste_actuel ?? '____' }}</strong>,
+        affecté(e) à la <strong>{{ $personnel?->direction_service ?? '____' }}</strong>
+        (lieu : {{ $personnel?->localisation_region ?? 'Dakar' }}), et exécutera toutes tâches liées à cette fonction.
     </div>
 
     <div class="article">
         <span class="art-title">Article 3 — Durée du contrat.</span>
         Le présent contrat est conclu pour une durée déterminée allant du
-        <strong>{{ optional($date_debut ?? $personnel->date_prise_service_csar)->format('d/m/Y') ?? '____' }}</strong>
+        <strong>{{ optional($date_debut ?? $personnel?->date_prise_service_csar)->format('d/m/Y') ?? '____' }}</strong>
         au <strong>{{ optional($date_fin)->format('d/m/Y') ?? '____' }}</strong>
         (soit {{ $duree ?? '____' }}). Il prend fin de plein droit à son terme, sans préavis ni indemnité de rupture.
     </div>
@@ -233,7 +233,7 @@
             <td>
                 <div class="sig-role">L'Employé(e)</div>
                 <div class="sig-note">(Lu et approuvé)</div>
-                <div class="sig-line">{{ $personnel->prenoms_nom ?? '' }}</div>
+                <div class="sig-line">{{ $personnel?->prenoms_nom ?? '' }}</div>
             </td>
             <td>
                 <div class="sig-role">L'Employeur</div>

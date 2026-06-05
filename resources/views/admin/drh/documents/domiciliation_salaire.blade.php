@@ -8,8 +8,8 @@
     <p>Le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</p>
 
     <p>Atteste que le salaire de Monsieur/Madame
-        <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,
+        <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
         est domicilié à la banque suivante :</p>
 
     <p><strong>Banque / Établissement :</strong> {{ $banque ?? '________________________________________' }}<br>

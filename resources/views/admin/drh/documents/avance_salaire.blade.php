@@ -8,10 +8,10 @@
     <p>Le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</p>
 
     <p>Vu la demande introduite par Monsieur/Madame
-        <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,
-        <strong>{{ $personnel->poste_actuel ?? '__________' }}</strong>
-        à la <strong>{{ $personnel->direction_service ?? '__________' }}</strong>,</p>
+        <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
+        <strong>{{ $personnel?->poste_actuel ?? '__________' }}</strong>
+        à la <strong>{{ $personnel?->direction_service ?? '__________' }}</strong>,</p>
 
     <p><strong>DÉCIDE :</strong></p>
 

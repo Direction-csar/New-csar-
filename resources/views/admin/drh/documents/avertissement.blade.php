@@ -7,10 +7,10 @@
 @section('corps')
     <p>Objet : <strong>Avertissement disciplinaire</strong></p>
 
-    <p>Monsieur/Madame <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,
-        <strong>{{ $personnel->poste_actuel ?? '__________' }}</strong>
-        à la <strong>{{ $personnel->direction_service ?? '__________' }}</strong>,</p>
+    <p>Monsieur/Madame <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
+        <strong>{{ $personnel?->poste_actuel ?? '__________' }}</strong>
+        à la <strong>{{ $personnel?->direction_service ?? '__________' }}</strong>,</p>
 
     <p>Nous sommes au regret de vous adresser le présent avertissement à la suite des faits suivants,
         survenus le <strong>{{ isset($date_faits) ? \Carbon\Carbon::parse($date_faits)->format('d/m/Y') : '__________' }}</strong> :</p>

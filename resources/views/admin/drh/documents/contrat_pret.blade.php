@@ -8,9 +8,9 @@
     <p>Entre le <strong>Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)</strong>,
         représenté par son Directeur Général, ci-après dénommé <strong>« le Prêteur »</strong>, d'une part,</p>
 
-    <p>Et Monsieur/Madame <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,
-        <strong>{{ $personnel->poste_actuel ?? '__________' }}</strong>,
+    <p>Et Monsieur/Madame <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
+        <strong>{{ $personnel?->poste_actuel ?? '__________' }}</strong>,
         ci-après dénommé(e) <strong>« l'Emprunteur »</strong>, d'autre part,</p>
 
     <p>Il a été convenu ce qui suit :</p>

@@ -7,10 +7,10 @@
 @section('corps')
     <p>Objet : <strong>Autorisation de sortie exceptionnelle</strong></p>
 
-    <p>Monsieur/Madame <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,
-        <strong>{{ $personnel->poste_actuel ?? '__________' }}</strong>
-        à la <strong>{{ $personnel->direction_service ?? '__________' }}</strong>,</p>
+    <p>Monsieur/Madame <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
+        <strong>{{ $personnel?->poste_actuel ?? '__________' }}</strong>
+        à la <strong>{{ $personnel?->direction_service ?? '__________' }}</strong>,</p>
 
     <p>est autorisé(e) à quitter le service le
         <strong>{{ isset($date_sortie) ? \Carbon\Carbon::parse($date_sortie)->format('d/m/Y') : '__________' }}</strong>,
@@ -29,7 +29,7 @@
             <td style="width:33%; text-align:center; vertical-align:top;">
                 <div style="font-weight:bold;">Le Demandeur</div>
                 <div style="height:45px;"></div>
-                <div>{{ $personnel->prenoms_nom ?? '' }}</div>
+                <div>{{ $personnel?->prenoms_nom ?? '' }}</div>
             </td>
             <td style="width:33%; text-align:center; vertical-align:top;">
                 <div style="font-weight:bold;">Visa Chef de Service</div>

@@ -8,10 +8,10 @@
     <p>Objet : <strong>Déplacement en mission</strong></p>
 
     <p>Par la présente, le Directeur Général du CSAR ordonne à
-        Monsieur/Madame <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,
-        <strong>{{ $personnel->poste_actuel ?? '__________' }}</strong>
-        à la <strong>{{ $personnel->direction_service ?? '__________' }}</strong>,
+        Monsieur/Madame <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
+        <strong>{{ $personnel?->poste_actuel ?? '__________' }}</strong>
+        à la <strong>{{ $personnel?->direction_service ?? '__________' }}</strong>,
         de se rendre en mission à <strong>{{ $destination ?? '__________' }}</strong>,
         du <strong>{{ isset($date_depart) ? \Carbon\Carbon::parse($date_depart)->format('d/m/Y') : '__________' }}</strong>
         au <strong>{{ isset($date_retour) ? \Carbon\Carbon::parse($date_retour)->format('d/m/Y') : '__________' }}</strong>.</p>

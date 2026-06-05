@@ -7,10 +7,10 @@
 @section('corps')
     <p>Objet : <strong>Mise en demeure pour abandon de poste</strong></p>
 
-    <p>Monsieur/Madame <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,
-        exerçant les fonctions de <strong>{{ $personnel->poste_actuel ?? '__________' }}</strong>
-        au sein de la <strong>{{ $personnel->direction_service ?? '__________' }}</strong>,</p>
+    <p>Monsieur/Madame <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
+        exerçant les fonctions de <strong>{{ $personnel?->poste_actuel ?? '__________' }}</strong>
+        au sein de la <strong>{{ $personnel?->direction_service ?? '__________' }}</strong>,</p>
 
     <p>Nous constatons que vous êtes absent(e) de votre poste de travail sans justification ni autorisation
         préalable depuis le <strong>{{ isset($date_debut_absence) ? \Carbon\Carbon::parse($date_debut_absence)->format('d/m/Y') : '__________' }}</strong>.</p>

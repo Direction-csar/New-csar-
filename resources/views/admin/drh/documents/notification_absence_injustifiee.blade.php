@@ -7,10 +7,10 @@
 @section('corps')
     <p>Objet : <strong>Constat d'absence injustifiée</strong></p>
 
-    <p>Monsieur/Madame <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,
-        <strong>{{ $personnel->poste_actuel ?? '__________' }}</strong>
-        à la <strong>{{ $personnel->direction_service ?? '__________' }}</strong>,</p>
+    <p>Monsieur/Madame <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
+        <strong>{{ $personnel?->poste_actuel ?? '__________' }}</strong>
+        à la <strong>{{ $personnel?->direction_service ?? '__________' }}</strong>,</p>
 
     <p>Nous avons constaté votre absence non autorisée et non justifiée à votre poste de travail
         @if(isset($date_debut_absence) && isset($date_fin_absence))

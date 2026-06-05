@@ -98,7 +98,7 @@
 
     <div class="doc-title">
         <h1>Convention de Stage</h1>
-        <div class="ref">Réf. : {{ $reference ?? 'STG-' . ($personnel->matricule ?? '____') . '-' . now()->format('Y') }}</div>
+        <div class="ref">Réf. : {{ $reference ?? 'STG-' . ($personnel?->matricule ?? '____') . '-' . now()->format('Y') }}</div>
     </div>
 
     <p class="intro">Entre les soussignés :</p>
@@ -113,12 +113,12 @@
 
     <div class="parties-title">II. Le Stagiaire</div>
     <table class="info-table">
-        <tr><td class="label">Prénom(s) et Nom</td><td>{{ $personnel->prenoms_nom ?? '' }}</td></tr>
-        <tr><td class="label">Date et lieu de naissance</td><td>{{ optional($personnel->date_naissance)->format('d/m/Y') ?? '____' }} à {{ $personnel->lieu_naissance ?? '____' }}</td></tr>
-        <tr><td class="label">Sexe / Nationalité</td><td>{{ $personnel->sexe ?? '—' }} / {{ $personnel->nationalite ?? 'Sénégalaise' }}</td></tr>
-        <tr><td class="label">N° CNI</td><td>{{ $personnel->cni ?? $personnel->numero_cni ?? '____' }}</td></tr>
-        <tr><td class="label">Adresse</td><td>{{ $personnel->adresse ?? '____' }}</td></tr>
-        <tr><td class="label">Téléphone / Email</td><td>{{ $personnel->telephone ?? '—' }} / {{ $personnel->email ?? '—' }}</td></tr>
+        <tr><td class="label">Prénom(s) et Nom</td><td>{{ $personnel?->prenoms_nom ?? '' }}</td></tr>
+        <tr><td class="label">Date et lieu de naissance</td><td>{{ optional($personnel?->date_naissance)->format('d/m/Y') ?? '____' }} à {{ $personnel?->lieu_naissance ?? '____' }}</td></tr>
+        <tr><td class="label">Sexe / Nationalité</td><td>{{ $personnel?->sexe ?? '—' }} / {{ $personnel?->nationalite ?? 'Sénégalaise' }}</td></tr>
+        <tr><td class="label">N° CNI</td><td>{{ $personnel?->cni ?? $personnel?->numero_cni ?? '____' }}</td></tr>
+        <tr><td class="label">Adresse</td><td>{{ $personnel?->adresse ?? '____' }}</td></tr>
+        <tr><td class="label">Téléphone / Email</td><td>{{ $personnel?->telephone ?? '—' }} / {{ $personnel?->email ?? '—' }}</td></tr>
         <tr><td class="label">Établissement / Filière</td><td>{{ $etablissement ?? '____' }} / {{ $filiere ?? '____' }}</td></tr>
         <tr><td class="label">Niveau d'études</td><td>{{ $niveau_etudes ?? '____' }}</td></tr>
     </table>
@@ -141,7 +141,7 @@
 
     <div class="article">
         <span class="art-title">Article 3 — Missions.</span>
-        Le Stagiaire sera affecté à la <strong>{{ $personnel->direction_service ?? '____' }}</strong>
+        Le Stagiaire sera affecté à la <strong>{{ $personnel?->direction_service ?? '____' }}</strong>
         et exercera les missions suivantes : {{ $missions ?? 'missions conformes au programme de stage' }}.
     </div>
 
@@ -196,7 +196,7 @@
             <td>
                 <div class="sig-role">Le Stagiaire</div>
                 <div class="sig-note">(Lu et approuvé)</div>
-                <div class="sig-line">{{ $personnel->prenoms_nom ?? '' }}</div>
+                <div class="sig-line">{{ $personnel?->prenoms_nom ?? '' }}</div>
             </td>
             <td>
                 <div class="sig-role">L'Organisme d'accueil</div>

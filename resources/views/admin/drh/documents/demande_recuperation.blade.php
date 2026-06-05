@@ -5,10 +5,10 @@
 @section('titre', 'Demande de Récupération')
 
 @section('corps')
-    <p>Je soussigné(e) <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,
-        exerçant les fonctions de <strong>{{ $personnel->poste_actuel ?? '__________' }}</strong>
-        au sein de la <strong>{{ $personnel->direction_service ?? '__________' }}</strong>,</p>
+    <p>Je soussigné(e) <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
+        exerçant les fonctions de <strong>{{ $personnel?->poste_actuel ?? '__________' }}</strong>
+        au sein de la <strong>{{ $personnel?->direction_service ?? '__________' }}</strong>,</p>
 
     <p>ai l'honneur de solliciter de votre haute bienveillance l'autorisation de récupérer
         <strong>{{ $nombre_jours ?? '____' }}</strong> jour(s) au titre des heures supplémentaires effectuées
@@ -27,7 +27,7 @@
             <td style="width:50%; text-align:center; vertical-align:top;">
                 <div style="font-weight:bold;">Le Demandeur</div>
                 <div style="height:55px;"></div>
-                <div style="font-weight:bold;">{{ $personnel->prenoms_nom ?? '' }}</div>
+                <div style="font-weight:bold;">{{ $personnel?->prenoms_nom ?? '' }}</div>
             </td>
             <td style="width:50%; text-align:center; vertical-align:top;">
                 <div style="font-weight:bold;">Avis du Supérieur Hiérarchique</div>

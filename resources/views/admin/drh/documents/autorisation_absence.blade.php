@@ -10,8 +10,8 @@
     <p>Le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</p>
 
     <p>Vu la demande de Monsieur/Madame
-        <strong>{{ $personnel->prenoms_nom ?? '____________________' }}</strong>,
-        matricule <strong>{{ $personnel->matricule ?? '________' }}</strong>,</p>
+        <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
+        matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,</p>
 
     <p><strong>Accorde à l'intéressé(e) une autorisation d'absence</strong>
         du <strong>{{ isset($date_debut) ? \Carbon\Carbon::parse($date_debut)->format('d/m/Y') : '__________' }}</strong>
