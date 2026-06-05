@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <title>@yield('doc-title', 'Document CSAR')</title>
     <style>
-        @page { size: A4; margin: 1.3cm 1.7cm 2.4cm 1.7cm; }
+        @page { size: A4; margin: 0.9cm 1.2cm 1.8cm 1.2cm; }
         * { box-sizing: border-box; }
         body {
             font-family: "DejaVu Sans", Arial, sans-serif;
-            font-size: 11pt;
-            line-height: 1.4;
+            font-size: 10pt;
+            line-height: 1.2;
             color: #1a1a1a;
             margin: 0;
         }
@@ -17,7 +17,7 @@
         /* ── Pied de page obligatoire (bas absolu, chaque page) ── */
         .page-footer {
             position: fixed;
-            bottom: -1.7cm;
+            bottom: -1.5cm;
             left: 0; right: 0;
             text-align: center;
             font-size: 7.3pt;
@@ -31,48 +31,48 @@
         /* ── En-tête (logo + bloc officiel) ── */
         .head { width: 100%; border-collapse: collapse; }
         .head td { vertical-align: middle; }
-        .head .logo-cell { width: 95px; text-align: center; }
-        .head .logo-cell img { max-width: 85px; max-height: 85px; }
+        .head .logo-cell { width: 70px; text-align: center; }
+        .head .logo-cell img { max-width: 60px; max-height: 60px; }
         .head .logo-ph {
-            width: 80px; height: 80px; border: 1px dashed #aaa;
-            font-size: 7pt; color: #999; text-align: center; line-height: 80px;
+            width: 60px; height: 60px; border: 1px dashed #aaa;
+            font-size: 7pt; color: #999; text-align: center; line-height: 60px;
         }
         .head .title-cell { text-align: center; }
-        .head .rep { font-size: 11.5pt; font-weight: bold; text-transform: uppercase; }
-        .head .devise { font-size: 8.5pt; font-style: italic; color: #444; margin-top: 1px; }
-        .head .min { font-size: 8.6pt; font-weight: bold; text-transform: uppercase; margin-top: 4px; }
-        .head .org { font-size: 8.6pt; font-weight: bold; text-transform: uppercase; color: #1d6b3a; margin-top: 1px; }
+        .head .rep { font-size: 10pt; font-weight: bold; text-transform: uppercase; }
+        .head .devise { font-size: 7.5pt; font-style: italic; color: #444; margin-top: 1px; }
+        .head .min { font-size: 7.8pt; font-weight: bold; text-transform: uppercase; margin-top: 3px; }
+        .head .org { font-size: 7.8pt; font-weight: bold; text-transform: uppercase; color: #1d6b3a; margin-top: 1px; }
 
-        .sep { border: none; border-top: 1.4px solid #1d6b3a; margin: 8px 0 6px 0; }
+        .sep { border: none; border-top: 1.4px solid #1d6b3a; margin: 5px 0 4px 0; }
 
         /* ── Références / date ── */
-        .ref-row { width: 100%; border-collapse: collapse; font-size: 9.5pt; margin-bottom: 14px; }
+        .ref-row { width: 100%; border-collapse: collapse; font-size: 9pt; margin-bottom: 8px; }
         .ref-row .ref { text-align: left; }
         .ref-row .date { text-align: right; }
 
         /* ── Titre du document ── */
         .doc-h1 {
             text-align: center;
-            font-size: 14pt;
+            font-size: 12pt;
             font-weight: bold;
             text-decoration: underline;
             text-transform: uppercase;
-            margin: 6px 0 18px 0;
+            margin: 4px 0 10px 0;
             letter-spacing: 0.5px;
         }
 
         /* ── Corps ── */
         .corps { text-align: justify; }
-        .corps p { margin: 0 0 9px 0; }
+        .corps p { margin: 0 0 4px 0; }
         .corps strong { font-weight: bold; }
 
         /* ── Signature ── */
         .sign-block {
-            margin-top: 26px;
+            margin-top: 14px;
             text-align: right;
         }
         .sign-block .role { font-weight: bold; }
-        .sign-block .space { height: 60px; }
+        .sign-block .space { height: 35px; }
         .sign-block .name { font-weight: bold; }
     </style>
 </head>

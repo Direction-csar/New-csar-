@@ -6,20 +6,20 @@
     <style>
         @page {
             size: A4;
-            margin: 1.4cm 1.6cm 2.6cm 1.6cm;
+            margin: 1cm 1.2cm 2cm 1.2cm;
         }
         * { box-sizing: border-box; }
         body {
             font-family: "DejaVu Sans", Arial, sans-serif;
-            font-size: 10.5pt;
-            line-height: 1.42;
+            font-size: 9.5pt;
+            line-height: 1.22;
             color: #1a1a1a;
             margin: 0;
         }
         /* ── Pied de page répété sur CHAQUE page ── */
         .page-footer {
             position: fixed;
-            bottom: -1.9cm;
+            bottom: -1.7cm;
             left: 0;
             right: 0;
             text-align: center;
@@ -34,25 +34,25 @@
         /* ── En-tête République ── */
         .rep-header {
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 3px;
         }
         .rep-header .rep {
-            font-size: 11pt;
+            font-size: 10pt;
             font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .rep-header .devise {
-            font-size: 8.2pt;
+            font-size: 7.5pt;
             font-style: italic;
             color: #444;
             margin-top: 1px;
         }
         .rep-header .ministere {
-            font-size: 8.6pt;
+            font-size: 8pt;
             font-weight: bold;
             text-transform: uppercase;
-            margin-top: 5px;
+            margin-top: 3px;
             color: #1d6b3a;
         }
         .rep-header .org {
@@ -62,38 +62,38 @@
         .sep {
             border: none;
             border-top: 1.5px solid #1d6b3a;
-            margin: 8px 0 10px 0;
+            margin: 5px 0 6px 0;
         }
 
         /* ── Titre ── */
         .doc-title {
             text-align: center;
-            margin: 6px 0 12px 0;
+            margin: 4px 0 8px 0;
         }
         .doc-title h1 {
-            font-size: 13pt;
+            font-size: 12pt;
             text-transform: uppercase;
             margin: 0;
             letter-spacing: 0.5px;
         }
         .doc-title .ref {
-            font-size: 8.5pt;
+            font-size: 8pt;
             color: #666;
-            margin-top: 3px;
+            margin-top: 2px;
         }
 
-        .intro { text-align: justify; margin-bottom: 8px; }
+        .intro { text-align: justify; margin-bottom: 4px; }
 
         /* ── Tableau état civil ── */
         .info-table {
             width: 100%;
             border-collapse: collapse;
-            margin: 6px 0 10px 0;
-            font-size: 9.8pt;
+            margin: 3px 0 5px 0;
+            font-size: 9pt;
         }
         .info-table td {
             border: 1px solid #cfcfcf;
-            padding: 4px 8px;
+            padding: 2px 5px;
             vertical-align: top;
         }
         .info-table td.label {
@@ -105,37 +105,37 @@
 
         .parties-title {
             font-weight: bold;
-            font-size: 10pt;
+            font-size: 9.5pt;
             text-transform: uppercase;
             color: #1d6b3a;
-            margin: 8px 0 3px 0;
+            margin: 5px 0 2px 0;
         }
 
         /* ── Articles ── */
-        .article { margin: 7px 0; text-align: justify; }
+        .article { margin: 3px 0; text-align: justify; }
         .article .art-title {
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 10pt;
+            font-size: 9.5pt;
             color: #14532d;
         }
 
         /* ── Signatures ── */
         .signatures {
             width: 100%;
-            margin-top: 26px;
+            margin-top: 14px;
             border-collapse: collapse;
         }
         .signatures td {
             width: 50%;
             text-align: center;
             vertical-align: top;
-            padding: 0 14px;
+            padding: 0 10px;
         }
         .signatures .sig-role {
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 9.6pt;
+            font-size: 9pt;
         }
         .signatures .sig-note {
             font-size: 8pt;
@@ -143,12 +143,12 @@
             margin-top: 2px;
         }
         .signatures .sig-line {
-            margin-top: 52px;
+            margin-top: 32px;
             border-top: 1px solid #333;
             padding-top: 3px;
             font-size: 8.5pt;
         }
-        .lieu-date { margin-top: 16px; font-size: 9.6pt; }
+        .lieu-date { margin-top: 10px; font-size: 9pt; }
     </style>
 </head>
 <body>
