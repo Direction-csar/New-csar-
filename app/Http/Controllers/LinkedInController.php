@@ -9,9 +9,9 @@ use Illuminate\Support\Facades\Log;
 
 class LinkedInController extends Controller
 {
-    private string $clientId;
-    private string $clientSecret;
-    private string $redirectUri;
+    private ?string $clientId;
+    private ?string $clientSecret;
+    private ?string $redirectUri;
     private ?string $orgId;
 
     public function __construct()
