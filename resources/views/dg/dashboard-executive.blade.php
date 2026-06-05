@@ -356,29 +356,37 @@
         </div>
     </div>
 
-    <!-- ── GRAPHIQUES STRATÉGIQUES ── -->
+    <!-- ── GRAPHIQUES STRATÉGIQUES (2 par ligne) ── -->
     <div class="row mb-3">
-        <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="card-modern p-3">
+        <div class="col-lg-6 col-md-6 mb-3">
+            <div class="card-modern p-3 h-100">
                 <h6 class="fw-bold mb-3"><i class="fas fa-users text-primary me-2"></i>DRH — Types de contrat</h6>
-                <div style="height: 200px; position: relative;">
+                <div style="height: 240px; position: relative;">
                     <canvas id="chartContracts"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-xl-5 col-lg-6 col-md-6 mb-3">
-            <div class="card-modern p-3">
+        <div class="col-lg-6 col-md-6 mb-3">
+            <div class="card-modern p-3 h-100">
                 <h6 class="fw-bold mb-3"><i class="fas fa-building text-primary me-2"></i>DRH — Personnel par direction (Top 10)</h6>
-                <div style="height: 200px; position: relative;">
+                <div style="height: 240px; position: relative;">
                     <canvas id="chartDirections"></canvas>
                 </div>
             </div>
         </div>
-        <div class="col-xl-4 col-lg-6 col-md-6 mb-3">
-            <div class="card-modern p-3">
+        <div class="col-lg-6 col-md-6 mb-3">
+            <div class="card-modern p-3 h-100">
                 <h6 class="fw-bold mb-3"><i class="fas fa-chart-bar text-success me-2"></i>DSAR — Marchés par région</h6>
-                <div style="height: 200px; position: relative;">
+                <div style="height: 240px; position: relative;">
                     <canvas id="chartMarketsRegion"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-6 mb-3">
+            <div class="card-modern p-3 h-100">
+                <h6 class="fw-bold mb-3"><i class="fas fa-project-diagram text-warning me-2"></i>Répartition des projets</h6>
+                <div style="height: 240px; position: relative;">
+                    <canvas id="chartProjets"></canvas>
                 </div>
             </div>
         </div>
@@ -828,6 +836,27 @@
                 y: { beginAtZero: true, grid: { display: false } },
                 x: { ticks: { font: { size: 10 }, maxRotation: 45 }, grid: { display: false } }
             }
+        }
+    });
+
+    // ── Chart: Répartition des projets ──
+    new Chart(document.getElementById('chartProjets'), {
+        type: 'doughnut',
+        data: {
+            labels: ['En cours', 'Terminés', 'Suspendus'],
+            datasets: [{
+                data: [
+                    {{ $projetStats['en_cours'] ?? 0 }},
+                    {{ $projetStats['termines'] ?? 0 }},
+                    {{ $projetStats['suspendus'] ?? 0 }}
+                ],
+                backgroundColor: ['#0dcaf0', '#198754', '#ffc107'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
         }
     });
 
