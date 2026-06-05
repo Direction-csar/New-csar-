@@ -392,6 +392,15 @@ class DashboardController extends Controller
                 'total_revenus' => 0 // À implémenter selon votre logique
             ];
 
+            // Données consolidées de toutes les directions
+            $data['consolidated'] = [
+                'drh' => $this->getDrhStats($dateFrom, $dateTo),
+                'dsar' => $this->getDsarStats($dateFrom, $dateTo),
+                'stocks' => $this->getStockStats($dateFrom, $dateTo),
+                'projets' => $this->getProjetStats($dateFrom, $dateTo),
+                'communication' => $this->getCommunicationStats($dateFrom, $dateTo),
+            ];
+
             // Données détaillées selon le type
             switch ($type) {
                 case 'financial':
@@ -876,7 +885,7 @@ class DashboardController extends Controller
         try {
             $news = \App\Models\News::whereBetween('created_at', [$dateFrom, $dateTo])->count();
             $newsletters = \App\Models\Newsletter::whereBetween('created_at', [$dateFrom, $dateTo])->count();
-            $subscribers = 0; // TODO: implement subscriber count if table exists
+            $subscribers = \App\Models\NewsletterSubscriber::where('status', 'active')->count();
             $messages = \App\Models\ContactMessage::whereBetween('created_at', [$dateFrom, $dateTo])->count();
 
             return [

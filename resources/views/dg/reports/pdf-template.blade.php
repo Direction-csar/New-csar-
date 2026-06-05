@@ -160,6 +160,41 @@
         </div>
     @endif
 
+    @if(isset($data['consolidated']) && !empty($data['consolidated']))
+        <div style="page-break-before: always;"></div>
+        <div class="details-section">
+            <h3>Données consolidées par direction</h3>
+
+            @php
+                $consolidatedLabels = [
+                    'drh' => 'Direction des Ressources Humaines (DRH)',
+                    'dsar' => 'DSAR — Suivi des marchés',
+                    'stocks' => 'Stocks & Entrepôts',
+                    'projets' => 'Projets',
+                    'communication' => 'Communication',
+                ];
+            @endphp
+
+            @foreach($data['consolidated'] as $dir => $values)
+                @if(is_array($values))
+                    <h4 style="color: #495057; margin-top: 25px;">{{ $consolidatedLabels[$dir] ?? ucfirst($dir) }}</h4>
+                    <table class="data-table">
+                        <tbody>
+                            @foreach($values as $key => $value)
+                                @if(!is_array($value))
+                                    <tr>
+                                        <th style="width: 40%;">{{ ucfirst(str_replace('_', ' ', $key)) }}</th>
+                                        <td>{{ is_numeric($value) ? number_format($value, 0, ',', ' ') : $value }}</td>
+                                    </tr>
+                                @endif
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
+            @endforeach
+        </div>
+    @endif
+
     @if(isset($data['details']) && !empty($data['details']))
         <div class="details-section">
             <h3>Analyse Détaillée</h3>
