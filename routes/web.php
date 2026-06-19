@@ -507,8 +507,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Gestion de la galerie
         Route::resource('galerie', \App\Http\Controllers\Admin\GalerieController::class);
         Route::post('/galerie/{id}/toggle-status', [\App\Http\Controllers\Admin\GalerieController::class, 'toggleStatus'])->name('galerie.toggle-status');
-        
-        
+
+        // QR Media Share - Partage de photos/vidéos par QR Code
+        Route::resource('media-share', \App\Http\Controllers\Admin\MediaShareController::class);
+        Route::post('/media-share/{id}/upload', [\App\Http\Controllers\Admin\MediaShareController::class, 'uploadMedia'])->name('media-share.upload');
+        Route::delete('/media-share/{id}/files/{fileId}', [\App\Http\Controllers\Admin\MediaShareController::class, 'destroyMedia'])->name('media-share.files.destroy');
+        Route::get('/media-share/{id}/qrcode', [\App\Http\Controllers\Admin\MediaShareController::class, 'downloadQr'])->name('media-share.qrcode');
+
+
         // Logs d'audit
         Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
         Route::get('/audit/{id}', [AuditController::class, 'show'])->name('audit.show');
@@ -816,6 +822,12 @@ Route::prefix('ctc')->name('ctc.')->group(function () {
         Route::resource('galerie', \App\Http\Controllers\Admin\GalerieController::class);
         Route::post('/galerie/{id}/toggle-status', [\App\Http\Controllers\Admin\GalerieController::class, 'toggleStatus'])->name('galerie.toggle-status');
 
+        // QR Media Share - Partage de photos/vidéos par QR Code
+        Route::resource('media-share', \App\Http\Controllers\Admin\MediaShareController::class);
+        Route::post('/media-share/{id}/upload', [\App\Http\Controllers\Admin\MediaShareController::class, 'uploadMedia'])->name('media-share.upload');
+        Route::delete('/media-share/{id}/files/{fileId}', [\App\Http\Controllers\Admin\MediaShareController::class, 'destroyMedia'])->name('media-share.files.destroy');
+        Route::get('/media-share/{id}/qrcode', [\App\Http\Controllers\Admin\MediaShareController::class, 'downloadQr'])->name('media-share.qrcode');
+
         Route::get('/newsletter', [\App\Http\Controllers\Admin\NewsletterController::class, 'index'])->name('newsletter.index');
         Route::get('/newsletter/export', [\App\Http\Controllers\Admin\NewsletterController::class, 'exportSubscribers'])->name('newsletter.export');
         Route::get('/newsletter/stats', [\App\Http\Controllers\Admin\NewsletterController::class, 'getStats'])->name('newsletter.stats');
@@ -847,6 +859,12 @@ Route::get('/actualites/stats', [\App\Http\Controllers\Public\ActualitesControll
 // Routes publiques - Galerie
 Route::get('/galerie', [\App\Http\Controllers\Public\GalerieController::class, 'index'])->name('public.galerie');
 Route::get('/galerie/stats', [\App\Http\Controllers\Public\GalerieController::class, 'getStats'])->name('public.galerie.stats');
+
+// Routes publiques - Album média partagé par QR Code
+Route::get('/event/{slug}', [\App\Http\Controllers\Public\MediaAlbumController::class, 'show'])->name('public.media.album');
+Route::get('/event/{slug}/file/{fileId}', [\App\Http\Controllers\Public\MediaAlbumController::class, 'downloadFile'])->name('public.media.download');
+Route::get('/event/{slug}/zip/{kind}', [\App\Http\Controllers\Public\MediaAlbumController::class, 'downloadZip'])
+    ->where('kind', 'images|videos')->name('public.media.zip');
 
 // Routes publiques - Messages et Newsletter (routes de test supprimées)
 

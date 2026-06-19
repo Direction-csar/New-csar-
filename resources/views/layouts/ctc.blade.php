@@ -129,6 +129,10 @@
                 <i class="fas fa-images"></i>
                 <span>Galerie</span>
             </a>
+            <a href="{{ route('ctc.media-share.index') }}" class="menu-link {{ request()->routeIs('ctc.media-share.*') ? 'active' : '' }}">
+                <i class="fas fa-qrcode"></i>
+                <span>QR Media Share</span>
+            </a>
             <div class="mt-3 pt-3 border-top border-white border-opacity-25">
                 <a href="{{ url('/') }}" class="menu-link" target="_blank">
                     <i class="fas fa-external-link-alt"></i>

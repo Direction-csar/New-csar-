@@ -6,7 +6,7 @@
 @endphp
 
 <div class="mb-3">
-    <label class="form-label fw-semibold">{{ $label }}</label>
+    <label class="form-label fw-semibold">{{ $label }}@if($required) <span class="text-danger">*</span>@endif</label>
     <div class="d-flex flex-column gap-2">
         @foreach($options as $val => $lbl)
             <div class="form-check">

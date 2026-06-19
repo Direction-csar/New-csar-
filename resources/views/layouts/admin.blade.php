@@ -899,6 +899,12 @@
                 </a>
             </div>
             <div class="menu-item">
+                <a href="{{ route('ctc.media-share.index') }}" class="menu-link {{ request()->routeIs('ctc.media-share.*') ? 'active' : '' }}">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Media Share</span>
+                </a>
+            </div>
+            <div class="menu-item">
                 <a href="{{ route('ctc.messages.index') }}" class="menu-link {{ request()->routeIs('ctc.messages.*') ? 'active' : '' }}">
                     <i class="fas fa-envelope"></i>
                     <span>Messages</span>
@@ -1003,6 +1009,14 @@
                 <a href="{{ route('admin.communications.index') }}" class="menu-link {{ request()->routeIs('admin.communications.*') || request()->routeIs('admin.communication.*') || request()->routeIs('admin.actualites.*') || request()->routeIs('admin.newsletter.*') || request()->routeIs('admin.sim-reports.*') || request()->routeIs('admin.galerie.*') || request()->routeIs('admin.messages.*') ? 'active' : '' }}">
                     <i class="fas fa-bullhorn"></i>
                     <span>Communication & Publications</span>
+                </a>
+            </div>
+
+            <!-- QR Media Share -->
+            <div class="menu-item">
+                <a href="{{ route('admin.media-share.index') }}" class="menu-link {{ request()->routeIs('admin.media-share.*') ? 'active' : '' }}">
+                    <i class="fas fa-qrcode"></i>
+                    <span>QR Media Share</span>
                 </a>
             </div>
 

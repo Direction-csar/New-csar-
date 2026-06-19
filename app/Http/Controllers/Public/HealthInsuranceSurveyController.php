@@ -22,19 +22,19 @@ class HealthInsuranceSurveyController extends Controller
             'agent_direction'        => 'nullable|string|max:150',
             'agent_region'           => 'nullable|string|max:100',
 
-            'q1_info_level'          => 'required|in:totalement,partiellement,non',
-            'q2_documents_clarity'   => 'required|in:tres_clairs,moyennement,peu_clairs',
-            'q3_difficulty'          => 'required|in:jamais,parfois,souvent',
+            'q1_info_level'          => 'required|in:totalement,partiellement,non,pas_concerne',
+            'q2_documents_clarity'   => 'required|in:tres_clairs,moyennement,peu_clairs,pas_concerne',
+            'q3_difficulty'          => 'required|in:jamais,parfois,souvent,pas_concerne',
 
-            'q4_soins_response'      => 'required|in:largement,avec_limites,non',
-            'q5_panier_soins'        => 'required|in:tres_suffisant,assez_suffisant,insuffisant',
-            'q6_delais_remboursement'=> 'required|in:rapides,acceptables,longs',
-            'q7_service_client'      => 'required|in:oui,non',
+            'q4_soins_response'      => 'required|in:largement,avec_limites,non,pas_concerne',
+            'q5_panier_soins'        => 'required|in:tres_suffisant,assez_suffisant,insuffisant,pas_concerne',
+            'q6_delais_remboursement'=> 'required|in:rapides,acceptables,longs,pas_concerne',
+            'q7_service_client'      => 'required|in:oui,non,pas_concerne',
             'q8_probleme_recent'     => 'nullable|string|max:2000',
 
-            'q9_coassurance'         => 'required|in:tres_satisfait,satisfait,pas_satisfait,autre',
+            'q9_coassurance'         => 'required|in:tres_satisfait,satisfait,pas_satisfait,autre,pas_concerne',
             'q9_autre'               => 'nullable|string|max:500',
-            'q10_reseau_soins'       => 'required|in:tres_accessible,accessible,pas_accessible,autre',
+            'q10_reseau_soins'       => 'required|in:tres_accessible,accessible,pas_accessible,autre,pas_concerne',
             'q10_autre'              => 'nullable|string|max:500',
 
             'q11_aspects'            => 'nullable|array',
