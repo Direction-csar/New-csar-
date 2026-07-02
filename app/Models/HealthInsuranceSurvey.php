@@ -18,6 +18,7 @@ class HealthInsuranceSurvey extends Model
         'q11_aspects', 'q11_autre', 'q12_propositions',
         'q13_note',
         'ip_address', 'user_agent', 'submitted_at',
+        'status', 'expires_at',
     ];
 
     protected $casts = [
@@ -25,7 +26,28 @@ class HealthInsuranceSurvey extends Model
         'is_anonymous' => 'boolean',
         'q13_note'     => 'integer',
         'submitted_at' => 'datetime',
+        'expires_at'   => 'datetime',
     ];
+
+    public function scopeConfirmed($query)
+    {
+        return $query->where('status', 'confirmed');
+    }
+
+    public function scopeDraft($query)
+    {
+        return $query->where('status', 'draft');
+    }
+
+    public function isExpired(): bool
+    {
+        return $this->expires_at && $this->expires_at->isPast();
+    }
+
+    public function canEdit(): bool
+    {
+        return $this->status === 'draft' && !$this->isExpired();
+    }
 
     public static function questionLabels(): array
     {

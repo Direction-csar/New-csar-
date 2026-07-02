@@ -1,0 +1,408 @@
+================================================================================
+  RAPPORT D'ACTIVITÉS - RESPONSABLE DE L'INFORMATIQUE
+  SEMESTRE 1 : JANVIER ──── JUIN 2026
+================================================================================
+
+
+I. INFORMATIONS GÉNÉRALES
+--------------------------------------------------------------------------------
+
+Nom du responsable :        Mohamed SOW
+Titre / Poste :             Administrateur des Systèmes, Bases de Données
+                            et Plateforme Numérique (ASBDPN)
+Structure / Service :       ASBDPN – CSAR
+Période couverte :          Janvier 2026 à Juin 2026 (Semestre 1)
+Date de rédaction :         15 Juin 2026
+Destinataire :              Direction Générale du CSAR / Conseil de Coordination
+
+
+II. RÉSUMÉ EXÉCUTIF
+--------------------------------------------------------------------------------
+
+Synthèse des faits marquants et points clés du semestre :
+
+  • Construction complète du socle numérique du CSAR (zéro -> plateforme
+    opérationnelle en 6 mois)
+  • Site institutionnel csar.sn en ligne en 3 langues (FR / EN / AR)
+  • 6 interfaces métiers déployées et sécurisées (Admin, DG, DSAR, DRH, CTC,
+    Superviseur SIM)
+  • 3 applications mobiles livrées (SIM Collect, CSAR App, Admin Mobile)
+  • Digitalisation de la gestion des stocks des magasins (entrants, sortants,
+    inventaire) + gestion des magasiniers + application en cours de création
+  • Module RH complet (fiches, documents, présences) + assurance maladie
+    (suivi des agents affiliés)
+  • Logiciel de paie Finpaie : révisions Janv–Avr 2026, cahier des charges
+    avec le DRH Darwich, formation prévue
+  • Système Avancement Tabaski 2026 (lancé par le DRH en mai 2026)
+  • Numérisation des archives lancée (stagiaire archiviste en place, cahier
+    des charges en cours, portée : toutes les directions du CSAR)
+  • Matériel de collecte SIM financé par le FSRP (21 600 000 FCFA)
+  • Matériel CSAR reçu : ordinateur HP, serveur PowerEdge R760, onduleur,
+    écrans (omission UC pour écrans identifiée, en cours avec FSRP)
+  • Collaboration SONATEL en cours (fibre optique, API Orange Money,
+    cybersécurité)
+  • Audit sécurité 2026 réalisé et corrigé, conformité RGPD opérationnelle
+  • Notifications temps réel pour les demandes d'aide citoyennes actives
+
+
+III. RÉALISATIONS DU SEMESTRE
+--------------------------------------------------------------------------------
+
+3.1  Maintenance du parc informatique
+--------------------------------------------------------------------------------
+
+  Élément                          Statut        Détail
+  -------------------------------  ------------  --------------------------------
+  Serveur dédié BDD                Opérationnel  PowerEdge R760
+  Base MySQL 8.0+                  Opérationnel  50+ tables, architecture
+                                                   normalisée
+  Site web csar.sn                 En ligne      Certificat SSL/TLS 1.3 actif
+  Emails professionnels            5 comptes     Créés et actifs
+  Backups automatiques             Quotidiens    Chiffrés, testés mensuellement
+  Cache et performance             Redis         Index optimisés
+
+  Matériel reçu (CSAR / FSRP) :
+    • 1 ordinateur HP (poste de travail)
+    • 1 serveur PowerEdge R760 (opérationnel)
+    • 1 onduleur
+    • Écrans reçus
+
+  Omission identifiée lors des spécifications :
+    -> Unités centrales pour les écrans manquantes (omission lors de la
+       rédaction des spécifications techniques)
+
+  Environnement du serveur :
+    -> Un environnement parfait est requis pour la sécurité et la pérennité
+       du serveur (climatisation, accès contrôlé, protection électrique)
+
+  Spécifications complémentaires :
+    -> Les spécifications complètes du matériel sont en cours de finalisation
+       avec notre partenaire FSRP
+
+
+3.2  Gestion du réseau et des infrastructures
+--------------------------------------------------------------------------------
+
+  • Architecture réseau interne configurée
+  • Interconnexion siège et inspections régionales planifiée (collaboration
+    SONATEL en cours)
+  • Fibre optique : offre en révision avec la SONATEL pour le siège et
+    14 inspections régionales
+  • Prérequis : coordonnées GPS des inspections régionales transmises à SONATEL
+  • Visite d'ingénieur SONATEL sur site prévue pour configuration réseau optimale
+  • Pour la SONATEL, la démarche est en cours depuis la réunion du 21 avril 2026
+
+
+3.3  Assistance et support technique aux utilisateurs
+--------------------------------------------------------------------------------
+
+  • Support technique aux 6 directions utilisatrices des interfaces métiers
+  • Maintenance corrective et évolutive des applications
+  • Préparation des formations utilisateurs pour le second semestre :
+      - Inspecteurs SIM sur l'application SIM Collect
+      - Directions sur leurs interfaces internes respectives
+  • Accompagnement des équipes SIM pour le déploiement du matériel de collecte
+  • Notifications temps réel actuellement reçues pour les demandes d'aide
+    citoyennes
+
+
+3.4  Développement / Projets applicatifs
+--------------------------------------------------------------------------------
+
+A. Plateforme Publique csar.sn
+    ------------------------------
+    Site responsive (mobile, tablette, ordinateur) en 3 langues
+    Modules opérationnels : Accueil, Institution, Actualités, Rapports,
+    Galerie, FAQ, Projets, Formulaire demande d'aide (géolocalisé + code suivi),
+    Donations en ligne (PayPal), Carte interactive, Newsletter
+
+    Développements S2 identifiés :
+      • Intégration paiements mobiles (Wave, Orange Money)
+      • Budget en cours de validation avec la DFC
+
+B. 6 Interfaces Métiers – Déployées et en ligne
+    -------------------------------------------
+    Admin (IT/ASBDPN), DG (Lecture), DSAR (Sécurité Alimentaire),
+    DRH (Personnel, paie, magasiniers), CTC (Communication), Superviseur SIM
+    • Contrôle d'accès par rôle + Double authentification 2FA TOTP
+
+C. SIM – Système d'Information des Marchés
+    -----------------------------------------
+    Plateforme Web SIM + Application Mobile SIM Collect (hors connexion,
+    synchronisation auto, GPS, QR Code, upload photos)
+
+    Matériel de collecte SIM (FSRP 2026) :
+      Tablettes Samsung Galaxy Tab A8 : 50
+      PC Portables HP EliteBook 840 G11 : 7
+      SSD SanDisk Extreme Portable : 5
+      Power Banks 20000 mAh : 50
+      Puces SIM 4G LTE : 50
+      Serveur PowerEdge R760 : 1
+    Budget FSRP : 21 600 000 FCFA
+
+D. Gestion des Stocks des Magasins + Magasiniers
+    ----------------------------------------------
+    • Digitalisation complète de la gestion des stocks
+    • Suivi des entrants, sortants et inventaire
+    • Gestion des magasiniers intégrée au module RH
+    • Interface dédiée pour le suivi en temps réel
+    • Application pour les magasiniers : en cours de création
+
+E. Module RH, Assurance Maladie, Paie (Finpaie) et Avancement Tabaski
+    -----------------------------------------------------------------
+    Livrables S1 2026 :
+      • Fiches personnel complètes (agents, magasiniers)
+      • Documents RH numérisés (contrats, attestations, fiches de paie)
+      • Suivi des présences (en ligne)
+      • Export en masse (PDF et Excel)
+      • Assurance maladie : module développé pour le DRH (suivi des agents)
+
+    Logiciel de paie (Finpaie) :
+      • Le CSAR dispose déjà du logiciel Finpaie
+      • Révisions des états de paie : Janvier, Février, Mars, Avril 2026
+      • Participation aux réunions avec le DRH Darwich pour le cahier des charges
+      • Analyse des écarts TRIMF/IR avec Youssef et Ibrahima
+      • RDV du 22 Avril 2026 pour analyse des livres de paie générés
+      • Darwich prévoit une formation sur le logiciel Finpaie
+
+    Avancement Tabaski 2026 (lancé par le DRH en mai 2026) :
+      • Gestion des agents concernés
+      • Workflow de validation hiérarchique
+      • Configuration paramétrable
+      • Génération automatique des documents officiels
+
+F. Numérisation des Archives
+    ----------------------------
+    Objectif : Transformer les archives papier de toutes les directions du CSAR
+    en documents numériques, indexés et accessibles par rôle.
+
+    Équipe et organisation :
+      • Stagiaire archiviste en place et compétent
+      • Cahier des charges en cours de rédaction
+
+    Phasage par direction :
+      Phase 1 : CPM (Numérisation active)
+      Phase 2 S2 : DRH, DFC, DTL/DSAR, DPSE (Planifié)
+
+
+3.5  Sécurité informatique
+--------------------------------------------------------------------------------
+
+  Domaine                  Mesure
+  -----------------------  ------------------------------------------------
+  Authentification         2FA TOTP (Admin, DG, DRH, CTC)
+  Audit logs               Traçabilité complète : qui, quoi, quand
+  RGPD                     Export données, droit à l'oubli, consentement
+  Backups                  Quotidiens, chiffrés, testés mensuellement
+  Audit 2026               Réalisé et remédiations appliquées
+  CSP Headers              Protection XSS, injection
+  Collaboration SONATEL  Séance cybersécurité planifiée avec spécialistes
+
+
+3.6  Formations et sensibilisations
+--------------------------------------------------------------------------------
+
+  Formation                          Cible                Période
+  ---------------------------------  -------------------  ---------------
+  Inspecteurs SIM – SIM Collect      Enquêteurs           Juillet–Août S2
+  Utilisateurs par interface         Toutes les directions  Juillet–Août S2
+  Manuels utilisateurs               Tous                 Septembre S2
+  Logiciel Finpaie                   Personnel RH         Prévue (Darwich)
+
+
+================================================================================
+IV. ÉTAT DU PARC INFORMATIQUE
+================================================================================
+
+  Équipement                  Total   En serv.  En panne  Réformé  Observations
+  --------------------------  ------  --------  --------  -------  ------------------
+  Ordinateurs de bureau       1       1         0         0        HP reçu (CSAR)
+  Ordinateurs portables       7       7         0         0        HP EliteBook SIM
+  Serveurs                    1       1         0         0        PowerEdge R760
+  Imprimantes / Scanners      -       -         -         -        -
+  Écrans / Moniteurs          +       +         -         -        Reçus, UC manquantes
+  Équipements réseau          -       -         -         -        Fibre SONATEL cours
+  Onduleur                    1       1         0         0        Reçu avec serveur
+  Tablettes collecte SIM      50      50        0         0        FSRP 2026
+  Power banks                 50      50        0         0        20000 mAh
+  Puces SIM 4G                50      50        0         0        Enquêteurs
+
+  Omission identifiée : unités centrales pour les écrans non prévues dans
+  les spécifications initiales -> En cours de rectification avec FSRP
+
+  Environnement serveur : environnement sécurisé requis (climatisation,
+  accès contrôlé, protection électrique)
+
+
+================================================================================
+V. INCIDENTS ET RÉSOLUTIONS
+================================================================================
+
+  Date      Description                      Impact          Action prise           Statut
+  --------  -------------------------------  --------------  ---------------------  --------
+  S1 2026   Retard Note technique SONATEL    Fibre optique   Relance DG + reprise   En cours
+                                             reportée        Chef Cellule
+  S1 2026   Complexité acquisition API       Paiements       Négociation SONATEL    En cours
+                                             mobiles rep. S2 + DFC
+  S1 2026   Arrêt maladie Chef Cellule Info  Ralentissement  Prise en charge        Résolu
+                                             processus       ASBDPN
+                                             SONATEL
+  S1 2026   Omission UC pour écrans          Matériel        Signalement FSRP,      En cours
+                                             incomplet       rectification en cours
+
+
+================================================================================
+VI. INDICATEURS DE PERFORMANCE (KPIs)
+================================================================================
+
+  Indicateur                        Objectif   Réalisé   Taux     Statut
+  --------------------------------  ---------  --------  -------  --------
+  Taux de disponibilité du réseau   99%        99%       100%     Atteint
+  Délai moyen résolution incidents  < 24h      < 24h     100%     Atteint
+  Nb de demandes traitées           -          -         -        À mesurer
+  Taux satisfaction utilisateurs    -          -         -        À mesurer S2
+  Nb de sauvegardes effectuées      180/sem.   180/sem.  100%     Atteint
+  Nb de mises à jour réalisées      Continu    Continu   -        En cours
+  Tables BDD créées                 50+        50+       100%     Atteint
+  Interfaces métiers déployées      6          6         100%     Atteint
+  Applications mobiles livrées      3          3         100%     Atteint
+  Langues site public               3          3         100%     Atteint
+
+
+================================================================================
+VII. DIFFICULTÉS RENCONTRÉES
+================================================================================
+
+Contraintes, blocages ou obstacles identifiés durant la période :
+
+  1. Paiements mobiles (Wave, Orange Money) :
+       Nécessitent des abonnements API complémentaires.
+       Budget en cours de validation avec la DFC.
+
+  2. Fibre optique SONATEL :
+       Retard lié à la finalisation de la Note technique (indisponibilité
+       Chef Cellule). Nouvelle offre en révision.
+
+  3. Module financier DFC :
+       En cours de spécification. Validation budget requise.
+
+  4. Carte bancaire institutionnelle :
+       Retard de réception a impacté le paiement des abonnements API.
+
+  5. Formation des équipes :
+       Dépend de la disponibilité des directions et du calendrier DG.
+
+  6. Matériel informatique (omission) :
+       Unités centrales pour les écrans non prévues dans les spécifications
+       initiales. En cours de rectification avec le FSRP.
+
+  7. Environnement serveur :
+       Nécessite un espace sécurisé (climatisation, accès contrôlé,
+       protection électrique). À définir avec la direction.
+
+
+================================================================================
+VIII. PLAN D'ACTION — SECOND SEMESTRE 2026
+================================================================================
+
+  Action planifiée                     Responsable    Délai        Priorité
+  -----------------------------------  -------------  -----------  --------
+  Formations Inspecteurs SIM           ASBDPN         Juil–Août    Haute
+  Formations utilisateurs par          ASBDPN         Juil–Août    Haute
+    interface (toutes les directions)
+  Formation Finpaie (Darwich)          DRH            S2           Moyenne
+  Manuels utilisateurs finalisés       ASBDPN         Septembre    Moyenne
+  Statistiques avancées (croisés)       ASBDPN         Octobre      Moyenne
+  Module financier DFC                 ASBDPN+DFC     Octobre      Haute
+  SIM v2 (hors-ligne amélioré)         ASBDPN         Novembre     Moyenne
+  Numérisation archives DRH            ASBDPN+DRH     Novembre     Moyenne
+  Audit cybersécurité + Pentest        ASBDPN+SONATEL Décembre     Haute
+  Numérisation archives DFC            ASBDPN+DFC     Décembre     Moyenne
+  Déploiement paiements mobiles        ASBDPN+DFC+    S2           Haute
+                                       SONATEL
+  Fibre optique siège + 14 inspect.    SONATEL+CSAR   S2           Haute
+  Séance cybersécurité SONATEL         SONATEL+CSAR   S2           Moyenne
+  Rectification matériel (UC écrans)   ASBDPN+FSRP    S2           Moyenne
+  Aménagement environnement serveur    ASBDPN+DG      S2           Haute
+  Application magasiniers              ASBDPN         S2           Moyenne
+
+
+================================================================================
+IX. BESOINS ET RECOMMANDATIONS
+================================================================================
+
+Matériels, logiciels, ressources humaines ou formations nécessaires :
+
+  1. Budget module financier DFC :
+       Validation requise pour le développement du module.
+
+  2. Abonnements API :
+       Wave, Orange Money, cartographie avancée, emails transactionnels.
+       Validation DFC nécessaire.
+
+  3. Disponibilité des équipes :
+       Directions et inspecteurs pour les ateliers de formation S2.
+
+  4. Carte bancaire institutionnelle :
+       Réception urgente pour activer les abonnements API et services cloud.
+
+  5. Serveur cybersécurité :
+       Équipements complémentaires pour renforcer la protection.
+
+  6. Ressources humaines :
+       Renforcement de la Cellule Informatique pour accompagner la
+       montée en charge.
+
+  7. Matériel complémentaire :
+       Unités centrales pour les écrans (omission spécifications initiales).
+
+  8. Environnement serveur :
+       Espace sécurisé avec climatisation, accès contrôlé et protection
+       électrique pour la pérennité du serveur.
+
+
+================================================================================
+X. CONCLUSION
+================================================================================
+
+  CE QUI EST EN PLACE
+  -------------------
+  -> Infrastructure, site en ligne (PayPal), applications, sécurité déployée
+
+  CE QUI AVANCE
+  -------------
+  -> Numérisation archives (CPM en cours, stagiaire archiviste + cahier des
+     charges), formations en préparation, collaboration SONATEL en cours
+  -> Application magasiniers en cours de création
+  -> Paie (Finpaie) : révisions Janv–Avr avec Darwich, formation prévue
+
+  ÉVOLUTIONS PRIORITAIRES S2
+  --------------------------
+  -> Paiements mobiles (Wave, Orange Money) – abonnements API en validation
+  -> Module financier DFC
+  -> Fibre optique siège et 14 inspections régionales
+  -> Cybersécurité renforcée avec SONATEL
+
+  SOLICITATIONS
+  -------------
+  -> Budget module financier DFC + abonnements API (validation DFC)
+  -> Disponibilité des équipes pour les ateliers de formation
+  -> Carte bancaire institutionnelle pour activation des services
+  -> Rectification omission matériel (UC écrans) avec FSRP
+  -> Aménagement environnement sécurisé pour le serveur
+
+
+--------------------------------------------------------------------------------
+  SIGNATURES
+--------------------------------------------------------------------------------
+
+  Le Responsable Informatique          Le Supérieur Hiérarchique
+  ---------------------------          -------------------------
+  Nom & Prénom : Mohamed SOW           Nom & Prénom : ........................
+  Date : 15 Juin 2026                  Date : ........................
+  Signature :                            Signature / Cachet :
+
+
+================================================================================
+  FIN DU RAPPORT SEMESTRIEL
+================================================================================

@@ -34,14 +34,14 @@ class AdminLoginController extends Controller
         $key = 'admin-login:' . $request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
-            
+
             Log::warning('Trop de tentatives de connexion Admin', [
                 'ip' => $request->ip(),
                 'user_agent' => $request->userAgent(),
                 'seconds_remaining' => $seconds,
                 'timestamp' => Carbon::now()
             ]);
-            
+
             throw ValidationException::withMessages([
                 'email' => "Trop de tentatives de connexion. Réessayez dans {$seconds} secondes.",
             ]);
@@ -64,21 +64,22 @@ class AdminLoginController extends Controller
 
         if (Auth::guard($this->guard)->attempt($credentials, $remember)) {
             $user = Auth::guard($this->guard)->user();
-            
-            // Vérifier que l'utilisateur est bien un admin
-            if ($user->role !== 'admin') {
+
+            // Vérifier que l'utilisateur a un rôle autorisé (admin ou rôle workflow)
+            $allowedRoles = ['admin', 'super_admin', 'signataire', 'scanneur', 'dg', 'directeur_general'];
+            if (!in_array($user->role, $allowedRoles)) {
                 Auth::guard($this->guard)->logout();
                 RateLimiter::hit($key, 300); // 5 minutes
-                
-                Log::warning('Tentative de connexion Admin avec un compte non-admin', [
+
+                Log::warning('Tentative de connexion interface admin/DSAR avec un compte non-autorisé', [
                     'email' => $request->email,
                     'user_role' => $user->role,
                     'ip' => $request->ip(),
                     'timestamp' => Carbon::now()
                 ]);
-                
+
                 throw ValidationException::withMessages([
-                    'email' => 'Ces identifiants ne correspondent pas à un compte administrateur.',
+                    'email' => 'Ces identifiants ne correspondent pas à un compte autorisé.',
                 ]);
             }
 
@@ -86,14 +87,14 @@ class AdminLoginController extends Controller
             if (!$user->is_active) {
                 Auth::guard($this->guard)->logout();
                 RateLimiter::hit($key, 300);
-                
+
                 Log::warning('Tentative de connexion Admin avec un compte inactif', [
                     'user_id' => $user->id,
                     'email' => $request->email,
                     'ip' => $request->ip(),
                     'timestamp' => Carbon::now()
                 ]);
-                
+
                 throw ValidationException::withMessages([
                     'email' => 'Votre compte administrateur a été désactivé.',
                 ]);
@@ -119,7 +120,7 @@ class AdminLoginController extends Controller
             // Connexion réussie
             $request->session()->regenerate();
             RateLimiter::clear($key);
-            
+
             // Mettre à jour les informations de connexion
             $user->update([
                 'last_login_at' => Carbon::now(),
@@ -137,7 +138,7 @@ class AdminLoginController extends Controller
 
         // Échec de la connexion
         RateLimiter::hit($key, 300);
-        
+
         Log::warning('Échec de connexion Admin', [
             'email' => $request->email,
             'ip' => $request->ip(),
@@ -156,7 +157,7 @@ class AdminLoginController extends Controller
     public function logout(Request $request)
     {
         $user = Auth::guard($this->guard)->user();
-        
+
         if ($user) {
             Log::info('Déconnexion Admin', [
                 'user_id' => $user->id,

@@ -1261,7 +1261,11 @@
                                                     if ($size) { $downloadLabel = 'PDF ' . $size; }
                                                 }
                                             @endphp
-                                            <a href="{{ route('sim.download', ['locale' => app()->getLocale(), 'simReport' => $report->id]) }}" class="btn-download w-100">
+                                            <a href="{{ route('flipbook.show', $report->id) }}" class="btn-view">
+                                                <i class="fas fa-book-open"></i>
+                                                Lire
+                                            </a>
+                                            <a href="{{ route('sim.download', ['locale' => app()->getLocale(), 'simReport' => $report->id]) }}" class="btn-download">
                                                 <i class="fas fa-download"></i>
                                                 {{ $downloadLabel }}
                                             </a>

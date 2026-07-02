@@ -641,12 +641,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div class="actu-featured-img">
                     @php
                         $fImg = $featured->cover_image ?? $featured->featured_image ?? null;
-                    @endphp
-                    @if($fImg)
-                        @php
+                        $fUrl = null;
+                        if ($fImg) {
                             $fp = trim((string) $fImg);
                             $fUrl = preg_match('/^https?:\/\//i', $fp) ? $fp : asset('storage/' . ltrim($fp, '/'));
-                        @endphp
+                        } elseif (!empty($featured->youtube_url) && preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/', $featured->youtube_url, $ytM)) {
+                            $fUrl = 'https://img.youtube.com/vi/' . $ytM[1] . '/maxresdefault.jpg';
+                        } elseif (!empty($featured->content) && preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $featured->content, $imgM)) {
+                            $raw = html_entity_decode($imgM[1]);
+                            $fUrl = preg_match('/^(https?:|data:)/i', $raw) ? $raw : asset('storage/' . ltrim(preg_replace('#^(\.\./)+storage/#', '', $raw), '/'));
+                        }
+                    @endphp
+                    @if($fUrl)
                         <img src="{{ $fUrl }}" alt="{{ $featured->title }}" class="home-image-cover" loading="eager" fetchpriority="high" decoding="async" onerror="this.src='{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}'">
                     @else
                         <div style="width:100%;height:100%;background:linear-gradient(135deg,#22c55e,#16a34a);display:flex;align-items:center;justify-content:center;">
@@ -669,12 +675,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="actu-list-thumb">
                         @php
                             $nImg = $news->cover_image ?? $news->featured_image ?? null;
-                        @endphp
-                        @if($nImg)
-                            @php
+                            $nUrl = null;
+                            if ($nImg) {
                                 $np = trim((string) $nImg);
                                 $nUrl = preg_match('/^https?:\/\//i', $np) ? $np : asset('storage/' . ltrim($np, '/'));
-                            @endphp
+                            } elseif (!empty($news->youtube_url) && preg_match('/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/', $news->youtube_url, $nytM)) {
+                                $nUrl = 'https://img.youtube.com/vi/' . $nytM[1] . '/hqdefault.jpg';
+                            } elseif (!empty($news->content) && preg_match('/<img[^>]+src=["\']([^"\']+)["\']/i', $news->content, $nimgM)) {
+                                $nraw = html_entity_decode($nimgM[1]);
+                                $nUrl = preg_match('/^(https?:|data:)/i', $nraw) ? $nraw : asset('storage/' . ltrim(preg_replace('#^(\.\./)+storage/#', '', $nraw), '/'));
+                            }
+                        @endphp
+                        @if($nUrl)
                             <img src="{{ $nUrl }}" alt="{{ $news->title }}" class="home-image-cover" loading="lazy" decoding="async" onerror="this.src='{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}'">
                         @else
                             <div style="width:100%;height:100%;background:linear-gradient(135deg,#3b82f6,#2563eb);display:flex;align-items:center;justify-content:center;">
@@ -834,6 +846,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             'url'   => $d->document_file ? asset('storage/' . $d->document_file) : null,
                             'download_url' => $d->public_download_url,
                             'cover'  => $d->cover_image ? asset('storage/' . $d->cover_image) : null,
+                            'flipbook_url' => route('flipbook.show', $d->id),
                         ]);
                     }
                 }
@@ -857,7 +870,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p class="doc-item-label">{{ $doc->label }}</p>
                     <h5 class="doc-item-title">{{ $doc->title }}</h5>
                     <div class="doc-item-actions">
-                        @if($doc->url)
+                        @if($doc->flipbook_url)
+                        <a href="{{ $doc->flipbook_url }}" class="doc-action-btn doc-preview-btn" style="text-decoration:none;">
+                            <i class="fas fa-book-open"></i><span>Lire le livre</span>
+                        </a>
+                        @elseif($doc->url)
                         <button type="button"
                                 class="doc-action-btn doc-preview-btn"
                                 onclick="openDocPreview({{ $idx }})">

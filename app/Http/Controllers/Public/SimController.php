@@ -8,6 +8,7 @@ use App\Models\SimReport;
 use App\Services\SimAnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 
 class SimController extends Controller
 {
@@ -59,7 +60,22 @@ class SimController extends Controller
 
         $reports = $query->with('generator')
             ->orderBy('published_at', 'desc')
-            ->paginate(12);
+            ->get()
+            ->filter(function($report) {
+                return $report->document_file && Storage::disk('public')->exists($report->document_file);
+            })
+            ->values();
+
+        // Pagination manuelle car filter() convertit en collection
+        $page = $request->input('page', 1);
+        $perPage = 12;
+        $paginatedReports = new \Illuminate\Pagination\LengthAwarePaginator(
+            $reports->forPage($page, $perPage),
+            $reports->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'query' => $request->query()]
+        );
 
         // Dernières actualités (si disponibles)
         try {
@@ -71,7 +87,7 @@ class SimController extends Controller
             $latestNews = collect();
         }
 
-        return view('public.sim.index', compact('reports', 'latestNews'));
+        return view('public.sim.index', ['reports' => $paginatedReports, 'latestNews' => $latestNews]);
     }
 
     /**

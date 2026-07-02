@@ -336,23 +336,24 @@
             'information_generale'=> 'Information générale',
             'autre'               => 'Autre demande',
         ];
-        $typeLabel = $typeLabels[$request->type_demande] ?? ucfirst(str_replace('_', ' ', $request->type_demande ?? 'Non spécifié'));
+        $typeLabel = $typeLabels[$request->type] ?? ucfirst(str_replace('_', ' ', $request->type ?? 'Non spécifié'));
         $statutLabels = [
             'pending'    => 'EN ATTENTE',
-            'en_cours'   => 'EN TRAITEMENT',
-            'traite'     => 'TRAITÉE',
-            'approuve'   => 'APPROUVÉE',
-            'rejete'     => 'REJETÉE',
             'approved'   => 'APPROUVÉE',
             'rejected'   => 'REJETÉE',
+            'completed'  => 'CLÔTURÉE',
         ];
-        $statutLabel = $statutLabels[$request->statut] ?? strtoupper($request->statut ?? 'Non défini');
-        $statutClass = in_array($request->statut, ['approved','approuve','traite']) ? 'status-approved'
-            : (in_array($request->statut, ['rejected','rejete']) ? 'status-rejected'
-            : (($request->statut === 'en_cours') ? 'status-completed' : 'status-pending'));
+        $statutLabel = $statutLabels[$request->status] ?? strtoupper($request->status ?? 'Non défini');
+        $statutClass = in_array($request->status, ['approved','completed']) ? 'status-approved'
+            : (in_array($request->status, ['rejected']) ? 'status-rejected'
+            : 'status-pending');
         $verifyUrl = url('/fr/verifier/' . $request->tracking_code);
-        $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(100)->generate($verifyUrl);
-        $qrBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrCode);
+        if (class_exists('SimpleSoftwareIO\QrCode\Facades\QrCode')) {
+            $qrCode = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(100)->generate($verifyUrl);
+            $qrBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrCode);
+        } else {
+            $qrBase64 = '';
+        }
     @endphp
 
     <div class="info-section">
@@ -385,7 +386,7 @@
         <div class="info-grid">
             <div class="info-row">
                 <div class="info-label">NOM COMPLET</div>
-                <div class="info-value">{{ trim(($request->nom ?? '') . ' ' . ($request->prenom ?? '')) ?: 'Non renseigné' }}</div>
+                <div class="info-value">{{ $request->full_name ?? 'Non renseigné' }}</div>
             </div>
             <div class="info-row">
                 <div class="info-label">ADRESSE EMAIL</div>
@@ -393,12 +394,12 @@
             </div>
             <div class="info-row">
                 <div class="info-label">NUMÉRO DE TÉLÉPHONE</div>
-                <div class="info-value">{{ $request->telephone ?? 'Non renseigné' }}</div>
+                <div class="info-value">{{ $request->phone ?? 'Non renseigné' }}</div>
             </div>
-            @if($request->adresse)
+            @if($request->address)
             <div class="info-row">
                 <div class="info-label">ADRESSE</div>
-                <div class="info-value">{{ $request->adresse }}</div>
+                <div class="info-value">{{ $request->address }}</div>
             </div>
             @endif
             @if($request->region)
@@ -419,23 +420,24 @@
     <div class="info-section">
         <div class="section-title">DESCRIPTION DE LA DEMANDE</div>
         <div class="description-box">
-            @if($request->objet)
-            <div class="description-title">Objet : {{ $request->objet }}</div>
+            @if($request->subject)
+            <div class="description-title">Objet : {{ $request->subject }}</div>
             @endif
             <div class="description-content">{!! nl2br(e($request->description)) !!}</div>
         </div>
     </div>
     @endif
 
-    @if($request->commentaire_admin)
+    @if($request->admin_comment)
     <div class="info-section">
         <div class="section-title">Réponse / Commentaire administratif</div>
         <div class="description-box" style="background: #fef3c7; border-color: #f59e0b;">
-            {!! nl2br(e($request->commentaire_admin)) !!}
+            {!! nl2br(e($request->admin_comment)) !!}
         </div>
     </div>
     @endif
 
+    @if($qrBase64)
     <div class="info-section" style="margin-top: 20px;">
         <div style="display: table; width: 100%; border: 1px solid #22c55e; border-radius: 6px; padding: 15px; background: #f0fdf4;">
             <div style="display: table-cell; vertical-align: middle; width: 120px; text-align: center;">
@@ -450,6 +452,7 @@
             </div>
         </div>
     </div>
+    @endif
 
     <div class="security-note">
         ⚠️ <strong>Note de confidentialité :</strong> Ce document contient des informations personnelles confidentielles. 

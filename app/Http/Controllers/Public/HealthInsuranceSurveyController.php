@@ -8,19 +8,12 @@ use Illuminate\Http\Request;
 
 class HealthInsuranceSurveyController extends Controller
 {
-    public function show()
+    private function validationRules(): array
     {
-        return view('public.health-insurance-survey');
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
+        return [
             'is_anonymous'           => 'nullable|boolean',
             'agent_nom'              => 'nullable|string|max:100',
             'agent_prenom'           => 'nullable|string|max:100',
-            'agent_direction'        => 'nullable|string|max:150',
-            'agent_region'           => 'nullable|string|max:100',
 
             'q1_info_level'          => 'required|in:totalement,partiellement,non,pas_concerne',
             'q2_documents_clarity'   => 'required|in:tres_clairs,moyennement,peu_clairs,pas_concerne',
@@ -43,7 +36,24 @@ class HealthInsuranceSurveyController extends Controller
             'q12_propositions'       => 'nullable|string|max:2000',
 
             'q13_note'               => 'required|integer|between:1,5',
-        ]);
+        ];
+    }
+
+    public function show(Request $request)
+    {
+        // Si on revient modifier un draft
+        if ($request->filled('draft_id')) {
+            $draft = HealthInsuranceSurvey::find($request->draft_id);
+            if ($draft && $draft->canEdit()) {
+                return view('public.health-insurance-survey', ['draft' => $draft]);
+            }
+        }
+        return view('public.health-insurance-survey');
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate($this->validationRules());
 
         $isAnonymous = (bool) $request->boolean('is_anonymous');
         if ($isAnonymous) {
@@ -55,12 +65,75 @@ class HealthInsuranceSurveyController extends Controller
         $validated['ip_address']   = $request->ip();
         $validated['user_agent']   = substr((string) $request->userAgent(), 0, 500);
         $validated['submitted_at'] = now();
+        $validated['status']       = 'draft';
+        $validated['expires_at']   = now()->addMinutes(10);
 
-        HealthInsuranceSurvey::create($validated);
+        $survey = HealthInsuranceSurvey::create($validated);
+
+        return redirect()
+            ->route('public.health-survey.pending', $survey->id)
+            ->with('draft_id', $survey->id);
+    }
+
+    public function pending(HealthInsuranceSurvey $survey)
+    {
+        if ($survey->status !== 'draft' || $survey->isExpired()) {
+            abort(404);
+        }
+
+        return view('public.health-insurance-survey-pending', compact('survey'));
+    }
+
+    public function confirm(HealthInsuranceSurvey $survey)
+    {
+        if ($survey->status !== 'draft' || $survey->isExpired()) {
+            abort(404);
+        }
+
+        $survey->update([
+            'status'     => 'confirmed',
+            'expires_at' => null,
+        ]);
 
         return redirect()
             ->route('public.health-survey.thanks')
-            ->with('success', 'Merci ! Votre questionnaire a été enregistré avec succès.');
+            ->with('success', 'Merci ! Votre questionnaire a été confirmé et enregistré définitivement.');
+    }
+
+    public function editDraft(HealthInsuranceSurvey $survey)
+    {
+        if (!$survey->canEdit()) {
+            abort(404);
+        }
+
+        return redirect()->route('public.health-survey.show', ['draft_id' => $survey->id]);
+    }
+
+    public function updateDraft(Request $request, HealthInsuranceSurvey $survey)
+    {
+        if (!$survey->canEdit()) {
+            abort(404);
+        }
+
+        $validated = $request->validate($this->validationRules());
+
+        $isAnonymous = (bool) $request->boolean('is_anonymous');
+        if ($isAnonymous) {
+            $validated['agent_nom']    = null;
+            $validated['agent_prenom'] = null;
+        }
+
+        $validated['is_anonymous'] = $isAnonymous;
+        $validated['ip_address']   = $request->ip();
+        $validated['user_agent']   = substr((string) $request->userAgent(), 0, 500);
+        $validated['submitted_at'] = now();
+        $validated['expires_at']   = now()->addMinutes(10);
+
+        $survey->update($validated);
+
+        return redirect()
+            ->route('public.health-survey.pending', $survey->id)
+            ->with('draft_id', $survey->id);
     }
 
     public function thanks()

@@ -211,13 +211,26 @@
                         <input type="text" class="form-control form-control-sm" id="searchInput" placeholder="Rechercher une demande...">
                     </div>
                     <div class="col-lg-2 col-md-6 mb-2">
-                        <label class="form-label small fw-bold">📊 Statut</label>
-                        <select class="form-select form-select-sm" id="statusFilter">
-                            <option value="">Tous les statuts</option>
-                            <option value="pending">En attente</option>
-                            <option value="approved">Approuvée</option>
-                            <option value="rejected">Rejetée</option>
-                            <option value="completed">Terminée</option>
+                        <label class="form-label small fw-bold">📊 Workflow</label>
+                        <select class="form-select form-select-sm" id="workflowFilter">
+                            <option value="">Tous</option>
+                            <option value="soumise">Soumise</option>
+                            <option value="en_revue">En revue</option>
+                            <option value="document_attente">Attente doc</option>
+                            <option value="signee">Signée</option>
+                            <option value="scannee">Scannée</option>
+                            <option value="validee_dg">Validée DG</option>
+                            <option value="approuvee">Approuvée</option>
+                            <option value="rejetee">Rejetée</option>
+                            <option value="cloturee">Clôturée</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-2 col-md-6 mb-2">
+                        <label class="form-label small fw-bold">⚠️ Doublon</label>
+                        <select class="form-select form-select-sm" id="duplicateFilter">
+                            <option value="">Tous</option>
+                            <option value="1">Doublons</option>
+                            <option value="0">Uniques</option>
                         </select>
                     </div>
                     <div class="col-lg-2 col-md-6 mb-2">
@@ -302,6 +315,23 @@
                         <button class="btn btn-outline-primary btn-sm" onclick="selectAll()">
                             <i class="fas fa-check-square"></i> Tout sélectionner
                         </button>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" id="bulkWorkflowDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-forward"></i> Avancer workflow
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="bulkWorkflowDropdown">
+                                <li><h6 class="dropdown-header">Avancer vers :</h6></li>
+                                <li><a class="dropdown-item" href="#" onclick="bulkWorkflowAction('en_revue'); return false;"><i class="fas fa-eye text-info me-2"></i>En revue</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="bulkWorkflowAction('document_attente'); return false;"><i class="fas fa-file-alt text-warning me-2"></i>Attente document</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="bulkWorkflowAction('signee'); return false;"><i class="fas fa-signature text-primary me-2"></i>Signée</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="bulkWorkflowAction('scannee'); return false;"><i class="fas fa-file-pdf text-info me-2"></i>Scannée</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="bulkWorkflowAction('approuvee'); return false;"><i class="fas fa-check-circle text-success me-2"></i>Approuvée</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="bulkWorkflowAction('rejetee'); return false;"><i class="fas fa-times-circle text-danger me-2"></i>Rejeter</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" onclick="bulkWorkflowAction('cloturee'); return false;"><i class="fas fa-archive text-dark me-2"></i>Clôturer</a></li>
+                            </ul>
+                        </div>
                         <button class="btn btn-outline-danger btn-sm" onclick="bulkAction('delete')">
                             <i class="fas fa-trash"></i> Supprimer
                         </button>
@@ -326,7 +356,16 @@
                         </thead>
                         <tbody id="demandesTableBody">
                             @forelse($demandes as $demande)
-                                <tr data-id="{{ $demande->id }}" class="demande-row">
+                                @php
+                                    $isStale = false;
+                                    $daysSince = \Carbon\Carbon::parse($demande->created_at)->diffInDays(now());
+                                    if (in_array($demande->workflow_status, ['soumise', 'en_revue']) && $daysSince > 7) {
+                                        $isStale = true;
+                                    } elseif ($demande->workflow_status === 'document_attente' && $daysSince > 3) {
+                                        $isStale = true;
+                                    }
+                                @endphp
+                                <tr data-id="{{ $demande->id }}" class="demande-row {{ $isStale ? 'table-warning' : '' }} {{ $demande->is_duplicate ? 'duplicate-row' : '' }}">
                                     <td>
                                         <input type="checkbox" class="form-check-input demande-checkbox" value="{{ $demande->id }}">
                                     </td>
@@ -347,33 +386,19 @@
                                                 <i class="fas fa-user text-white" style="font-size: 12px;"></i>
                                             </div>
                                             <div>
-                                                <strong>{{ ($demande->nom ?? '') . ' ' . ($demande->prenom ?? '') }}</strong>
+                                                <strong>{{ $demande->full_name ?? (($demande->nom ?? '') . ' ' . ($demande->prenom ?? '')) }}</strong>
                                                 <br><small class="text-muted">{{ $demande->email ?? 'email@example.com' }}</small>
+                                                @if($demande->is_duplicate)
+                                                    <br><span class="badge bg-danger" style="font-size:0.65rem;">Doublon</span>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge bg-info">{{ ucfirst($demande->type_demande ?? 'Demande') }}</span>
+                                        <span class="badge bg-info">{{ ucfirst($demande->type ?? $demande->type_demande ?? 'Demande') }}</span>
                                     </td>
                                     <td>
-                                        @php
-                                            $statutBadge = match($demande->statut ?? 'en_attente') {
-                                                'traitee' => 'success',
-                                                'rejetee' => 'danger',
-                                                'en_cours' => 'info',
-                                                default => 'warning'
-                                            };
-                                            $statutLabel = match($demande->statut ?? 'en_attente') {
-                                                'traitee' => 'Traitée',
-                                                'rejetee' => 'Rejetée',
-                                                'en_cours' => 'En cours',
-                                                'en_attente' => 'En attente',
-                                                default => 'En attente'
-                                            };
-                                        @endphp
-                                        <span class="badge bg-{{ $statutBadge }}">
-                                            {{ $statutLabel }}
-                                        </span>
+                                        {!! $demande->workflow_status_badge !!}
                                     </td>
                                     <td>
                                         <span class="badge bg-secondary">
@@ -386,6 +411,9 @@
                                         @endphp
                                         <small>{{ $createdAt->format('d/m/Y') }}</small>
                                         <br><small class="text-muted">{{ $createdAt->diffForHumans() }}</small>
+                                        @if($isStale)
+                                        <br><span class="badge bg-warning text-dark" style="font-size: 0.6rem;"><i class="fas fa-exclamation-triangle me-1"></i>{{ $daysSince }}j sans action</span>
+                                        @endif
                                     </td>
                                     <td>
                                         <div class="btn-group btn-group-sm">
@@ -792,7 +820,8 @@ function exportDemandes(format = 'excel') {
     const filters = {
         format: format,
         search: document.getElementById('searchInput')?.value || '',
-        status: document.getElementById('statusFilter')?.value || '',
+        workflow_status: document.getElementById('workflowFilter')?.value || '',
+        is_duplicate: document.getElementById('duplicateFilter')?.value || '',
         type: document.getElementById('typeFilter')?.value || '',
         region: document.getElementById('regionFilter')?.value || '',
         date_from: document.getElementById('dateFromFilter')?.value || '',
@@ -865,11 +894,12 @@ function animateValue(elementId, start, end, duration) {
 // Fonction de filtrage
 function applyFilters() {
     const search = document.getElementById('searchInput').value;
-    const status = document.getElementById('statusFilter').value;
+    const workflow = document.getElementById('workflowFilter').value;
+    const duplicate = document.getElementById('duplicateFilter').value;
     const date = document.getElementById('dateFilter').value;
     const sort = document.getElementById('sortFilter').value;
     
-    currentFilters = { search, status, date, sort };
+    currentFilters = { search, workflow, duplicate, date, sort };
     
     // Appliquer les filtres (simulation)
     filterTable();
@@ -880,8 +910,9 @@ function applyFilters() {
 // Fonction de filtrage du tableau
 function filterTable() {
     const rows = document.querySelectorAll('.demande-row');
-    const search = currentFilters.search.toLowerCase();
-    const status = currentFilters.status;
+    const search = (currentFilters.search || '').toLowerCase();
+    const workflow = currentFilters.workflow || '';
+    const duplicate = currentFilters.duplicate || '';
     
     rows.forEach(row => {
         let show = true;
@@ -894,12 +925,35 @@ function filterTable() {
             }
         }
         
-        // Filtre de statut
-        if (status) {
-            const statusBadge = row.querySelector('.badge');
-            if (statusBadge && !statusBadge.textContent.toLowerCase().includes(status)) {
-                show = false;
-            }
+        // Filtre workflow (cherche dans les badges de statut)
+        if (workflow && show) {
+            const badges = row.querySelectorAll('td .badge');
+            let hasWorkflow = false;
+            badges.forEach(badge => {
+                const text = badge.textContent.toLowerCase().trim();
+                const workflowMap = {
+                    'soumise': 'soumise',
+                    'en_revue': 'en revue',
+                    'document_attente': 'attente doc',
+                    'signee': 'signée',
+                    'scannee': 'scannée',
+                    'validee_dg': 'validée dg',
+                    'approuvee': 'approuvée',
+                    'rejetee': 'rejetée',
+                    'cloturee': 'clôturée'
+                };
+                if (text === workflowMap[workflow]) {
+                    hasWorkflow = true;
+                }
+            });
+            if (!hasWorkflow) show = false;
+        }
+        
+        // Filtre doublon
+        if (duplicate !== '' && show) {
+            const isDup = row.classList.contains('duplicate-row');
+            if (duplicate === '1' && !isDup) show = false;
+            if (duplicate === '0' && isDup) show = false;
         }
         
         row.style.display = show ? '' : 'none';
@@ -909,7 +963,8 @@ function filterTable() {
 // Fonction d'effacement des filtres
 function clearFilters() {
     document.getElementById('searchInput').value = '';
-    document.getElementById('statusFilter').value = '';
+    document.getElementById('workflowFilter').value = '';
+    document.getElementById('duplicateFilter').value = '';
     document.getElementById('typeFilter').value = '';
     document.getElementById('regionFilter').value = '';
     document.getElementById('dateFilter').value = '';
@@ -984,6 +1039,58 @@ function bulkAction(action) {
             form.submit();
         }
     }
+}
+
+// Fonction d'action en lot sur le workflow
+function bulkWorkflowAction(newStatus) {
+    if (selectedDemandes.length === 0) {
+        showToast('Veuillez sélectionner au moins une demande', 'warning');
+        return;
+    }
+
+    const statusLabels = {
+        'en_revue': 'En revue',
+        'document_attente': 'Attente document',
+        'signee': 'Signée',
+        'scannee': 'Scannée',
+        'approuvee': 'Approuvée',
+        'rejetee': 'Rejetée',
+        'cloturee': 'Clôturée',
+    };
+
+    const label = statusLabels[newStatus] || newStatus;
+    const verb = newStatus === 'rejetee' ? 'rejeter' : (newStatus === 'cloturee' ? 'clôturer' : 'avancer');
+
+    if (!confirm(`Êtes-vous sûr de vouloir ${verb} ${selectedDemandes.length} demande(s) vers "${label}" ?`)) {
+        return;
+    }
+
+    showToast('Traitement en cours...', 'info');
+
+    fetch('{{ route("admin.demandes.bulk-workflow") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            ids: selectedDemandes,
+            status: newStatus
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Workflow avancé avec succès !', 'success');
+            setTimeout(() => window.location.reload(), 1200);
+        } else {
+            showToast(data.message || 'Une erreur est survenue.', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Erreur:', error);
+        showToast('Erreur lors de l\'avancement du workflow.', 'danger');
+    });
 }
 
 // Fonction de suppression d'une demande

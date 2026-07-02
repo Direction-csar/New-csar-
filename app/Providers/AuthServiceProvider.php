@@ -17,6 +17,7 @@ class AuthServiceProvider extends ServiceProvider
         \App\Models\SimReport::class  => \App\Policies\SimReportPolicy::class,
         \App\Models\Demande::class    => \App\Policies\DemandePolicy::class,
         \App\Models\Stock::class      => \App\Policies\StockPolicy::class,
+        \App\Models\Archive::class    => \App\Policies\ArchivePolicy::class,
     ];
 
     /**
@@ -47,4 +48,4 @@ class AuthServiceProvider extends ServiceProvider
             return $user->role === 'ctc' || (isset($user->attributes['role']) && $user->attributes['role'] === 'ctc');
         });
     }
-} 
+}

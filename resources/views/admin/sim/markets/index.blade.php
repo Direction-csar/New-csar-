@@ -13,7 +13,10 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-store me-2"></i>Marchés SIM</h1>
-        <a href="{{ route('admin.sim.markets') }}?add=1" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Nouveau marché</a>
+        <div>
+            <a href="{{ route('admin.sim.markets.geo') }}" class="btn btn-warning me-2"><i class="fas fa-map-marker-alt me-1"></i> Géolocalisation</a>
+            <a href="{{ route('admin.sim.markets') }}?add=1" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Nouveau marché</a>
+        </div>
     </div>
 
     <div class="card shadow mb-3">

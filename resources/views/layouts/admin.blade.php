@@ -927,18 +927,74 @@
             </div>
             
             <!-- Gestion des demandes -->
+            @php
+                $userRole = auth()->user()->role ?? 'admin';
+                $isAdmin = in_array($userRole, ['admin', 'super_admin']);
+                $isSignataire = $isAdmin || $userRole === 'signataire';
+                $isScanneur = $isAdmin || $userRole === 'scanneur';
+                $isDg = $isAdmin || $userRole === 'dg';
+            @endphp
             <div class="menu-item">
-                <a href="{{ route('admin.demandes.index') }}" class="menu-link {{ request()->routeIs('admin.demandes.*') ? 'active' : '' }}">
+                <a href="{{ route('admin.demandes.index') }}" class="menu-link {{ request()->routeIs('admin.demandes.*') && !request()->routeIs('admin.demandes.duplicates.*') && !request()->routeIs('admin.demandes.dg-*') ? 'active' : '' }}">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Demandes</span>
                 </a>
             </div>
+            @if($isAdmin)
+            <div class="menu-item">
+                <a href="{{ route('admin.demandes.duplicates.index') }}" class="menu-link {{ request()->routeIs('admin.demandes.duplicates.*') ? 'active' : '' }}">
+                    <i class="fas fa-clone"></i>
+                    <span>Doublons</span>
+                </a>
+            </div>
+            @endif
+            @if($isSignataire || $isScanneur || $isDg)
+            <div class="menu-item">
+                <a href="{{ route('admin.demandes.dg-dashboard') }}" class="menu-link {{ request()->routeIs('admin.demandes.dg-dashboard') ? 'active' : '' }}">
+                    <i class="fas fa-tasks"></i>
+                    <span>Workflow</span>
+                    @php
+                        $wfCount = 0;
+                        if ($isSignataire) $wfCount += \App\Models\PublicRequest::where('workflow_status', 'document_attente')->count();
+                        if ($isScanneur) $wfCount += \App\Models\PublicRequest::where('workflow_status', 'signee')->count();
+                        if ($isDg) $wfCount += \App\Models\PublicRequest::where('workflow_status', 'scannee')->count();
+                    @endphp
+                    @if($wfCount > 0)
+                    <span class="badge bg-danger ms-auto" style="font-size: 0.65rem;">{{ $wfCount }}</span>
+                    @endif
+                </a>
+            </div>
+            @endif
+            @if($isDg)
+            <div class="menu-item">
+                <a href="{{ route('admin.demandes.dg-pending') }}" class="menu-link {{ request()->routeIs('admin.demandes.dg-pending') ? 'active' : '' }}">
+                    <i class="fas fa-stamp"></i>
+                    <span>Validation DG</span>
+                    @php
+                        $dgPendingCount = \App\Models\PublicRequest::where('workflow_status', 'scannee')->count();
+                    @endphp
+                    @if($dgPendingCount > 0)
+                    <span class="badge bg-danger ms-auto" style="font-size: 0.65rem;">{{ $dgPendingCount }}</span>
+                    @endif
+                </a>
+            </div>
+            @endif
+            @if($isAdmin || $isDg)
+            <div class="menu-item">
+                <a href="{{ route('admin.demandes.workflow-history') }}" class="menu-link {{ request()->routeIs('admin.demandes.workflow-history') ? 'active' : '' }}">
+                    <i class="fas fa-history"></i>
+                    <span>Historique</span>
+                </a>
+            </div>
+            @endif
+            @if($isAdmin)
             <div class="menu-item">
                 <a href="{{ route('admin.carte-demandes.index') }}" class="menu-link {{ request()->routeIs('admin.carte-demandes.*') ? 'active' : '' }}">
                     <i class="fas fa-map-marked-alt"></i>
                     <span>Carte des demandes d'aide</span>
                 </a>
             </div>
+            @endif
             
             <!-- Gestion des utilisateurs -->
             <div class="menu-item">

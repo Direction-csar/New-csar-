@@ -95,6 +95,7 @@ class DocumentController extends Controller
         return view('admin.drh.documents.form', [
             'type'      => $type,
             'docInfo'   => $types[$type],
+            'fields'    => $types[$type]['fields'] ?? [],
             'agent'     => $agent,
             'savedDocument' => $savedDocument,
             'savedData' => $savedData,
@@ -104,109 +105,109 @@ class DocumentController extends Controller
     public function certificatTravail(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.certificat_travail', array_merge(['agent' => $agent], $request->all()), 'certificat-travail.pdf');
+        return $this->pdf('admin.drh.documents.certificat_travail', array_merge(['personnel' => $agent], $request->all()), 'certificat-travail.pdf');
     }
 
     public function noteService(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.note_service', array_merge(['agent' => $agent], $request->all()), 'note-service.pdf');
+        return $this->pdf('admin.drh.documents.note_service', array_merge(['personnel' => $agent], $request->all()), 'note-service.pdf');
     }
 
     public function decisionConge(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.decision_conge', array_merge(['agent' => $agent], $request->all()), 'decision-conge.pdf');
+        return $this->pdf('admin.drh.documents.decision_conge', array_merge(['personnel' => $agent], $request->all()), 'decision-conge.pdf');
     }
 
     public function domiciliation(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.domiciliation', array_merge(['agent' => $agent], $request->all()), 'domiciliation-salaire.pdf');
+        return $this->pdf('admin.drh.documents.domiciliation', array_merge(['personnel' => $agent], $request->all()), 'domiciliation-salaire.pdf');
     }
 
     public function ordreMission(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.ordre_mission', array_merge(['agent' => $agent], $request->all()), 'ordre-mission.pdf');
+        return $this->pdf('admin.drh.documents.ordre_mission', array_merge(['personnel' => $agent], $request->all()), 'ordre-mission.pdf');
     }
 
     public function autorisationAbsence(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.autorisation_absence', array_merge(['agent' => $agent], $request->all()), 'autorisation-absence.pdf');
+        return $this->pdf('admin.drh.documents.autorisation_absence', array_merge(['personnel' => $agent], $request->all()), 'autorisation-absence.pdf');
     }
 
     public function contratCdi(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.contrat_cdi', array_merge(['agent' => $agent], $request->all()), 'contrat-cdi.pdf');
+        return $this->pdf('admin.drh.documents.contrat_cdi', array_merge(['personnel' => $agent], $request->all()), 'contrat-cdi.pdf');
     }
 
     public function contratCdd(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.contrat_cdd', array_merge(['agent' => $agent], $request->all()), 'contrat-cdd.pdf');
+        return $this->pdf('admin.drh.documents.contrat_cdd', array_merge(['personnel' => $agent], $request->all()), 'contrat-cdd.pdf');
     }
 
     public function attestationTravail(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.attestation_travail', array_merge(['agent' => $agent], $request->all()), 'attestation-travail.pdf');
+        return $this->pdf('admin.drh.documents.attestation_travail', array_merge(['personnel' => $agent], $request->all()), 'attestation-travail.pdf');
     }
 
     public function attestationTravailSalaire(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.attestation_travail_salaire', array_merge(['agent' => $agent], $request->all()), 'attestation-travail-salaire.pdf');
+        return $this->pdf('admin.drh.documents.attestation_travail_salaire', array_merge(['personnel' => $agent], $request->all()), 'attestation-travail-salaire.pdf');
     }
 
     public function abandonPoste(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.abandon_poste', array_merge(['agent' => $agent], $request->all()), 'abandon-poste.pdf');
+        return $this->pdf('admin.drh.documents.abandon_poste', array_merge(['personnel' => $agent], $request->all()), 'abandon-poste.pdf');
     }
 
     public function notificationAbsence(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.notification_absence', array_merge(['agent' => $agent], $request->all()), 'notification-absence.pdf');
+        return $this->pdf('admin.drh.documents.notification_absence', array_merge(['personnel' => $agent], $request->all()), 'notification-absence.pdf');
     }
 
     public function avertissement(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.avertissement', array_merge(['agent' => $agent], $request->all()), 'avertissement.pdf');
+        return $this->pdf('admin.drh.documents.avertissement', array_merge(['personnel' => $agent], $request->all()), 'avertissement.pdf');
     }
 
     public function contratPret(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.contrat_pret', array_merge(['agent' => $agent], $request->all()), 'contrat-pret.pdf');
+        return $this->pdf('admin.drh.documents.contrat_pret', array_merge(['personnel' => $agent], $request->all()), 'contrat-pret.pdf');
     }
 
     public function avanceSalaire(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.avance_salaire', array_merge(['agent' => $agent], $request->all()), 'avance-salaire.pdf');
+        return $this->pdf('admin.drh.documents.avance_salaire', array_merge(['personnel' => $agent], $request->all()), 'avance-salaire.pdf');
     }
 
     public function demandeRecuperation(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.demande_recuperation', array_merge(['agent' => $agent], $request->all()), 'demande-recuperation.pdf');
+        return $this->pdf('admin.drh.documents.demande_recuperation', array_merge(['personnel' => $agent], $request->all()), 'demande-recuperation.pdf');
     }
 
     public function bonSortie(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.bon_sortie', array_merge(['agent' => $agent], $request->all()), 'bon-sortie.pdf');
+        return $this->pdf('admin.drh.documents.bon_sortie', array_merge(['personnel' => $agent], $request->all()), 'bon-sortie.pdf');
     }
 
     public function contratStagiaire(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.contrat_stagiaire', array_merge(['agent' => $agent], $request->all()), 'contrat-stagiaire.pdf');
+        return $this->pdf('admin.drh.documents.contrat_stagiaire', array_merge(['personnel' => $agent], $request->all()), 'contrat-stagiaire.pdf');
     }
 
     // ========== SAUVEGARDE & HISTORIQUE ==========
@@ -299,7 +300,7 @@ class DocumentController extends Controller
     public function exportDocument(RhDocument $document)
     {
         $agent = $document->personnel;
-        $data = array_merge(['agent' => $agent], $document->data ?? []);
+        $data = array_merge(['personnel' => $agent], $document->data ?? []);
 
         $viewMap = [
             'contrat-cdi' => 'admin.drh.documents.contrat_cdi',

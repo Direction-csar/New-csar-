@@ -17,7 +17,7 @@ class MediaAlbumController extends Controller
      */
     public function show(Request $request, string $slug)
     {
-        $event = MediaEvent::with(['images', 'videos'])
+        $event = MediaEvent::with(['images', 'videos', 'documents'])
             ->where('slug', $slug)
             ->where('status', 'active')
             ->firstOrFail();
@@ -62,7 +62,8 @@ class MediaAlbumController extends Controller
     {
         $event = MediaEvent::where('slug', $slug)->where('status', 'active')->firstOrFail();
 
-        $type = $kind === 'videos' ? 'video' : 'image';
+        $typeMap = ['images' => 'image', 'videos' => 'video', 'documents' => 'document'];
+        $type = $typeMap[$kind] ?? 'image';
         $files = MediaFile::where('media_event_id', $event->id)->where('type', $type)->get();
 
         if ($files->isEmpty()) {
@@ -95,7 +96,11 @@ class MediaAlbumController extends Controller
             'media_event_id' => $event->id,
             'media_file_id'  => null,
             'ip_address'     => $request->ip(),
-            'kind'           => $type === 'video' ? 'zip_videos' : 'zip_images',
+            'kind'           => match ($type) {
+                'video' => 'zip_videos',
+                'document' => 'zip_documents',
+                default => 'zip_images',
+            },
         ]);
 
         return response()->download($zipPath, $zipName)->deleteFileAfterSend(true);

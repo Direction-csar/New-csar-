@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class ReportsController extends Controller
 {
@@ -20,6 +21,10 @@ class ReportsController extends Controller
                 ->where('category', 'rapport')
                 ->orderBy('published_at', 'desc')
                 ->get()
+                ->filter(function($report) {
+                    return $report->document_file && Storage::disk('public')->exists($report->document_file);
+                })
+                ->values()
                 ->map(function($report) {
                     return (object)[
                         'id' => $report->id,

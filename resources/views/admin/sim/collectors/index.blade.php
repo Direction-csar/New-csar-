@@ -52,6 +52,7 @@
                         <th>Email</th>
                         <th>Téléphone</th>
                         <th>Statut</th>
+                        <th>Marchés assignés</th>
                         <th>Collectes</th>
                         <th>Dernière sync</th>
                         <th class="text-end">Actions</th>
@@ -72,13 +73,26 @@
                                 <span class="badge bg-danger">Suspendu</span>
                             @endif
                         </td>
+                        <td>
+                            @php $assigned = collect($markets)->whereIn('id', $collector->assigned_zones ?? []); @endphp
+                            @if($assigned->count())
+                                @foreach($assigned as $m)
+                                    <span class="badge bg-info text-dark me-1">{{ $m->name }}</span>
+                                @endforeach
+                            @else
+                                <span class="text-muted">—</span>
+                            @endif
+                        </td>
                         <td>{{ $collector->total_collections }}</td>
                         <td class="small text-muted">
                             {{ $collector->last_sync ? $collector->last_sync->diffForHumans() : 'Jamais' }}
                         </td>
                         <td class="text-end">
+                            <a href="{{ route('admin.sim.collections', ['collector_id' => $collector->id]) }}" class="btn btn-sm btn-outline-primary" title="Voir les collectes">
+                                <i class="fas fa-eye"></i>
+                            </a>
                             <button class="btn btn-sm btn-outline-warning"
-                                onclick="openEdit({{ $collector->id }}, '{{ addslashes($collector->name) }}', '{{ $collector->email }}', '{{ $collector->phone }}', '{{ $collector->status }}')">
+                                onclick="openEdit({{ $collector->id }}, '{{ addslashes($collector->name) }}', '{{ $collector->email }}', '{{ $collector->phone }}', '{{ $collector->status }}', @json($collector->assigned_zones ?? []))">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <form action="{{ route('admin.sim.collectors.destroy', $collector->id) }}" method="POST" class="d-inline"
@@ -142,6 +156,15 @@
                             <option value="suspended">Suspendu</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Marchés de collecte assignés</label>
+                        <select name="assigned_markets[]" class="form-select" multiple size="6">
+                            @foreach($markets as $market)
+                                <option value="{{ $market->id }}">{{ $market->name }} ({{ $market->commune }})</option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Maintenez Ctrl pour sélectionner plusieurs marchés</div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -191,6 +214,15 @@
                             <option value="suspended">Suspendu</option>
                         </select>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Marchés de collecte assignés</label>
+                        <select name="assigned_markets[]" id="editMarkets" class="form-select" multiple size="6">
+                            @foreach($markets as $market)
+                                <option value="{{ $market->id }}">{{ $market->name }} ({{ $market->commune }})</option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Maintenez Ctrl pour sélectionner plusieurs marchés</div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
@@ -203,12 +235,16 @@
 
 @push('scripts')
 <script>
-function openEdit(id, name, email, phone, status) {
+function openEdit(id, name, email, phone, status, markets) {
     document.getElementById('formEdit').action = '/admin/sim/collectors/' + id;
     document.getElementById('editName').value   = name;
     document.getElementById('editEmail').value  = email;
     document.getElementById('editPhone').value  = phone;
     document.getElementById('editStatus').value = status;
+    const select = document.getElementById('editMarkets');
+    for (let i = 0; i < select.options.length; i++) {
+        select.options[i].selected = markets.map(String).includes(select.options[i].value);
+    }
     new bootstrap.Modal(document.getElementById('modalEdit')).show();
 }
 </script>

@@ -78,8 +78,17 @@ class SimCollectionController extends Controller
     public function getMarkets(): JsonResponse
     {
         $collector = Auth::user();
-        
+
+        // Bloquer complètement si aucun marché assigné
+        if (empty($collector->assigned_zones)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vous n\'avez aucun marché de collecte assigné. Contactez l\'administrateur.'
+            ], 403);
+        }
+
         $markets = Market::where('is_active', true)
+            ->whereIn('id', $collector->assigned_zones)
             ->select('id', 'name', 'commune', 'market_type', 'latitude', 'longitude')
             ->orderBy('name')
             ->get();
@@ -143,15 +152,21 @@ class SimCollectionController extends Controller
             return response()->json(['success' => false, 'message' => 'Non autorisé'], 401);
         }
 
-        // Vérifier zone du collecteur si des zones sont assignées
-        if ($collector->assigned_zones) {
-            $market = Market::find($request->market_id);
-            if ($market && !$collector->canAccessZone($market->commune)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Vous n\'êtes pas autorisé à collecter dans cette zone'
-                ], 403);
-            }
+        // Bloquer complètement si aucun marché assigné
+        if (empty($collector->assigned_zones)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vous n\'avez aucun marché de collecte assigné. Contactez l\'administrateur.'
+            ], 403);
+        }
+
+        // Vérifier que le marché est assigné au collecteur
+        $market = Market::find($request->market_id);
+        if ($market && !in_array((int)$market->id, array_map('intval', $collector->assigned_zones))) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ce marché ne vous est pas assigné. Contactez l\'administrateur.'
+            ], 403);
         }
 
         try {
@@ -177,6 +192,16 @@ class SimCollectionController extends Controller
             $collector->incrementCollectionCount();
 
             DB::commit();
+
+            // Notifier les admins
+            $marketName = $market ? $market->name : 'Marché inconnu';
+            \App\Services\NotificationService::notifyAdmins(
+                'Nouvelle collecte mobile',
+                "Le collecteur {$collector->name} a soumis une collecte sur le marché {$marketName}.",
+                'info',
+                ['collection_id' => $collection->id, 'collector_id' => $collector->id],
+                route('admin.sim.collections', ['collector_id' => $collector->id])
+            );
 
             return response()->json([
                 'success' => true,
@@ -243,7 +268,7 @@ class SimCollectionController extends Controller
             foreach ($pendingCollections as $collection) {
                 // Ici vous pourriez ajouter la logique pour synchroniser avec le système SIM principal
                 // Pour l'instant, on marque juste comme synchronisé
-                
+
                 $collection->markAsSynced();
                 $syncedCount++;
                 $syncedIds[] = $collection->id;
@@ -376,7 +401,7 @@ class SimCollectionController extends Controller
     public function logout(): JsonResponse
     {
         $collector = Auth::user();
-        
+
         // Révoquer tous les tokens
         $collector->tokens()->delete();
 

@@ -152,6 +152,19 @@ class DemandesController extends Controller
                 $updateData['assigned_to'] = $request->assigned_to;
             }
 
+            // Synchroniser le workflow_status si le statut legacy change
+            if (isset($updateData['status']) && $oldStatut !== $updateData['status']) {
+                $workflowMap = [
+                    'pending' => 'en_revue',
+                    'approved' => 'approuvee',
+                    'rejected' => 'rejetee',
+                    'completed' => 'cloturee',
+                ];
+                if (isset($workflowMap[$updateData['status']]) && $demande->workflow_status !== $workflowMap[$updateData['status']]) {
+                    $demande->advanceWorkflow($workflowMap[$updateData['status']], 'Synchronisé depuis le changement de statut admin');
+                }
+            }
+
             $demande->update($updateData);
 
             // Créer une notification si le statut a changé
@@ -396,7 +409,7 @@ class DemandesController extends Controller
     {
         try {
             $format = $request->get('format', 'excel');
-            $filters = $request->only(['statut', 'region', 'type_demande', 'date_from', 'date_to', 'search']);
+            $filters = $request->only(['statut', 'workflow_status', 'is_duplicate', 'region', 'type_demande', 'date_from', 'date_to', 'search']);
 
             // Construire la requête avec les mêmes filtres que l'index
             $query = PublicRequest::query();
@@ -415,6 +428,14 @@ class DemandesController extends Controller
 
             if (!empty($filters['statut'])) {
                 $query->where('status', $filters['statut']);
+            }
+
+            if (!empty($filters['workflow_status'])) {
+                $query->where('workflow_status', $filters['workflow_status']);
+            }
+
+            if (isset($filters['is_duplicate']) && $filters['is_duplicate'] !== '') {
+                $query->where('is_duplicate', $filters['is_duplicate']);
             }
 
             if (!empty($filters['type_demande'])) {
@@ -455,7 +476,7 @@ class DemandesController extends Controller
     }
 
     /**
-     * Exporter vers Excel
+     * Exporter vers Excel (PublicRequest avec colonnes workflow)
      */
     private function exportToExcel($demandes)
     {
@@ -465,48 +486,62 @@ class DemandesController extends Controller
 
         // En-têtes
         $headers = [
-            'Code de Suivi', 'Nom Demandeur', 'Email', 'Téléphone', 'Type', 'Statut',
-            'Région', 'Commune', 'Département', 'Adresse', 'Description', 'Priorité',
-            'Assigné à', 'Date de Demande', 'Date de Traitement', 'Commentaire Admin',
-            'SMS Envoyé', 'Date de Création', 'Date de Mise à Jour'
+            'Code de Suivi', 'Nom Complet', 'Email', 'Téléphone', 'Type', 'Objet',
+            'Statut Legacy', 'Statut Workflow', 'Région', 'Adresse', 'Description',
+            'Urgence', 'Référence Courrier', 'Date Courrier',
+            'Document Signé', 'Document Scanné', 'Validée par DG', 'Date Validation DG',
+            'Commentaire Admin', 'Date de Création', 'Date de Mise à Jour'
         ];
 
-        // Ajouter les en-têtes
+        // Style en-têtes
+        $headerStyle = [
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => 'solid', 'startColor' => ['rgb' => '2c5282']],
+            'alignment' => ['horizontal' => 'center', 'vertical' => 'center'],
+        ];
+
         $col = 1;
         foreach ($headers as $header) {
-            $sheet->setCellValueByColumnAndRow($col, 1, $header);
+            $cell = $sheet->getCellByColumnAndRow($col, 1);
+            $cell->setValue($header);
+            $cell->getStyle()->applyFromArray($headerStyle);
             $col++;
         }
 
         // Ajouter les données
         $row = 2;
         foreach ($demandes as $demande) {
-            $sheet->setCellValue('A' . $row, $demande->code_suivi ?? 'N/A');
-            $sheet->setCellValue('B' . $row, $demande->nom_demandeur ?? 'N/A');
+            $sheet->setCellValue('A' . $row, $demande->tracking_code ?? 'N/A');
+            $sheet->setCellValue('B' . $row, $demande->full_name ?? 'N/A');
             $sheet->setCellValue('C' . $row, $demande->email ?? 'N/A');
-            $sheet->setCellValue('D' . $row, $demande->telephone ?? 'N/A');
-            $sheet->setCellValue('E' . $row, $demande->type_francais ?? 'N/A');
-            $sheet->setCellValue('F' . $row, $demande->statut_francais ?? 'N/A');
-            $sheet->setCellValue('G' . $row, $demande->region ?? 'N/A');
-            $sheet->setCellValue('H' . $row, $demande->commune ?? 'N/A');
-            $sheet->setCellValue('I' . $row, $demande->departement ?? 'N/A');
-            $sheet->setCellValue('J' . $row, $demande->adresse ?? 'N/A');
+            $sheet->setCellValue('D' . $row, $demande->phone ?? 'N/A');
+            $sheet->setCellValue('E' . $row, $demande->type ?? 'N/A');
+            $sheet->setCellValue('F' . $row, $demande->subject ?? 'N/A');
+            $sheet->setCellValue('G' . $row, $demande->status ?? 'N/A');
+            $sheet->setCellValue('H' . $row, $demande->workflow_status_label ?? 'N/A');
+            $sheet->setCellValue('I' . $row, $demande->region ?? 'N/A');
+            $sheet->setCellValue('J' . $row, $demande->address ?? 'N/A');
             $sheet->setCellValue('K' . $row, $demande->description ?? 'N/A');
-            $sheet->setCellValue('L' . $row, $demande->priorite_francais ?? 'N/A');
-            $sheet->setCellValue('M' . $row, $demande->assignee->name ?? 'N/A');
-            $sheet->setCellValue('N' . $row, $demande->date_demande ? $demande->date_demande->format('d/m/Y') : 'N/A');
-            $sheet->setCellValue('O' . $row, $demande->date_traitement ? $demande->date_traitement->format('d/m/Y') : 'N/A');
-            $sheet->setCellValue('P' . $row, $demande->commentaire_admin ?? 'N/A');
-            $sheet->setCellValue('Q' . $row, $demande->sms_envoye ? 'Oui' : 'Non');
-            $sheet->setCellValue('R' . $row, $demande->created_at->format('d/m/Y H:i'));
-            $sheet->setCellValue('S' . $row, $demande->updated_at->format('d/m/Y H:i'));
+            $sheet->setCellValue('L' . $row, $demande->urgency ?? 'N/A');
+            $sheet->setCellValue('M' . $row, $demande->courier_reference ?? 'N/A');
+            $sheet->setCellValue('N' . $row, $demande->courier_date ? $demande->courier_date->format('d/m/Y') : 'N/A');
+            $sheet->setCellValue('O' . $row, $demande->dg_signature_file ? 'Oui' : 'Non');
+            $sheet->setCellValue('P' . $row, $demande->scan_file ? 'Oui' : 'Non');
+            $sheet->setCellValue('Q' . $row, $demande->dgApprover?->name ?? 'N/A');
+            $sheet->setCellValue('R' . $row, $demande->dg_approved_at ? $demande->dg_approved_at->format('d/m/Y H:i') : 'N/A');
+            $sheet->setCellValue('S' . $row, $demande->admin_comment ?? 'N/A');
+            $sheet->setCellValue('T' . $row, $demande->created_at ? $demande->created_at->format('d/m/Y H:i') : 'N/A');
+            $sheet->setCellValue('U' . $row, $demande->updated_at ? $demande->updated_at->format('d/m/Y H:i') : 'N/A');
             $row++;
         }
 
         // Ajuster la largeur des colonnes
-        foreach (range('A', 'S') as $column) {
+        foreach (range('A', 'U') as $column) {
             $sheet->getColumnDimension($column)->setAutoSize(true);
         }
+
+        // Figer la première ligne
+        $sheet->freezePane('A2');
 
         // Créer le fichier
         $filename = 'demandes_export_' . date('Y-m-d_H-i-s') . '.xlsx';
@@ -527,45 +562,48 @@ class DemandesController extends Controller
 
         $callback = function() use ($demandes) {
             $file = fopen('php://output', 'w');
-            
+
             // BOM pour UTF-8
             fwrite($file, "\xEF\xBB\xBF");
-            
+
             // En-têtes
             $headers = [
-                'Code de Suivi', 'Nom Demandeur', 'Email', 'Téléphone', 'Type', 'Statut',
-                'Région', 'Commune', 'Département', 'Adresse', 'Description', 'Priorité',
-                'Assigné à', 'Date de Demande', 'Date de Traitement', 'Commentaire Admin',
-                'SMS Envoyé', 'Date de Création', 'Date de Mise à Jour'
+                'Code de Suivi', 'Nom Complet', 'Email', 'Téléphone', 'Type', 'Objet',
+                'Statut Legacy', 'Statut Workflow', 'Région', 'Adresse', 'Description',
+                'Urgence', 'Référence Courrier', 'Date Courrier',
+                'Document Signé', 'Document Scanné', 'Validée par DG', 'Date Validation DG',
+                'Commentaire Admin', 'Date de Création', 'Date de Mise à Jour'
             ];
             fputcsv($file, $headers, ';');
-            
+
             // Données
             foreach ($demandes as $demande) {
                 $rowData = [
-                    $demande->code_suivi ?? 'N/A',
-                    $demande->nom_demandeur ?? 'N/A',
+                    $demande->tracking_code ?? 'N/A',
+                    $demande->full_name ?? 'N/A',
                     $demande->email ?? 'N/A',
-                    $demande->telephone ?? 'N/A',
-                    $demande->type_francais ?? 'N/A',
-                    $demande->statut_francais ?? 'N/A',
+                    $demande->phone ?? 'N/A',
+                    $demande->type ?? 'N/A',
+                    $demande->subject ?? 'N/A',
+                    $demande->status ?? 'N/A',
+                    $demande->workflow_status_label ?? 'N/A',
                     $demande->region ?? 'N/A',
-                    $demande->commune ?? 'N/A',
-                    $demande->departement ?? 'N/A',
-                    $demande->adresse ?? 'N/A',
+                    $demande->address ?? 'N/A',
                     $demande->description ?? 'N/A',
-                    $demande->priorite_francais ?? 'N/A',
-                    $demande->assignee->name ?? 'N/A',
-                    $demande->date_demande ? $demande->date_demande->format('d/m/Y') : 'N/A',
-                    $demande->date_traitement ? $demande->date_traitement->format('d/m/Y') : 'N/A',
-                    $demande->commentaire_admin ?? 'N/A',
-                    $demande->sms_envoye ? 'Oui' : 'Non',
-                    $demande->created_at->format('d/m/Y H:i'),
-                    $demande->updated_at->format('d/m/Y H:i')
+                    $demande->urgency ?? 'N/A',
+                    $demande->courier_reference ?? 'N/A',
+                    $demande->courier_date ? $demande->courier_date->format('d/m/Y') : 'N/A',
+                    $demande->dg_signature_file ? 'Oui' : 'Non',
+                    $demande->scan_file ? 'Oui' : 'Non',
+                    $demande->dgApprover?->name ?? 'N/A',
+                    $demande->dg_approved_at ? $demande->dg_approved_at->format('d/m/Y H:i') : 'N/A',
+                    $demande->admin_comment ?? 'N/A',
+                    $demande->created_at ? $demande->created_at->format('d/m/Y H:i') : 'N/A',
+                    $demande->updated_at ? $demande->updated_at->format('d/m/Y H:i') : 'N/A',
                 ];
                 fputcsv($file, $rowData, ';');
             }
-            
+
             fclose($file);
         };
 
@@ -946,5 +984,499 @@ Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)
 Plateforme de Gestion des Demandes
 Document généré le " . now()->format('d/m/Y à H:i') . "
         ";
+    }
+
+    /**
+     * Avancer le workflow d'une demande à l'étape suivante
+     */
+    public function advanceWorkflow(Request $request, $id)
+    {
+        $request->validate([
+            'workflow_status' => 'required|string|in:soumise,en_revue,document_attente,signee,scannee,validee_dg,approuvee,rejetee,cloturee',
+            'comment' => 'nullable|string|max:2000',
+        ]);
+
+        try {
+            $demande = PublicRequest::findOrFail($id);
+            $oldStatus = $demande->workflow_status;
+            $newStatus = $request->workflow_status;
+
+            $demande->advanceWorkflow($newStatus, $request->comment);
+
+            // Synchroniser le statut legacy
+            $statusMap = [
+                'soumise' => 'pending',
+                'en_revue' => 'pending',
+                'document_attente' => 'pending',
+                'signee' => 'pending',
+                'scannee' => 'pending',
+                'validee_dg' => 'pending',
+                'approuvee' => 'approved',
+                'rejetee' => 'rejected',
+                'cloturee' => 'completed',
+            ];
+            if (isset($statusMap[$newStatus])) {
+                $demande->update(['status' => $statusMap[$newStatus]]);
+            }
+
+            // Notifier le demandeur du changement de statut
+            try {
+                \App\Services\RequestNotificationService::notifyWorkflowUpdate($demande, $oldStatus, $newStatus);
+            } catch (\Exception $e) {
+                Log::error('Erreur notification workflow: ' . $e->getMessage());
+            }
+
+            // Notifications par rôle selon le nouveau statut
+            if ($newStatus === 'document_attente') {
+                try {
+                    \App\Services\RequestNotificationService::notifySignataires($demande);
+                } catch (\Exception $e) {
+                    Log::error('Erreur notification signataires: ' . $e->getMessage());
+                }
+            }
+
+            if ($newStatus === 'signee') {
+                try {
+                    \App\Services\RequestNotificationService::notifyScanneurs($demande);
+                } catch (\Exception $e) {
+                    Log::error('Erreur notification scanneurs: ' . $e->getMessage());
+                }
+            }
+
+            if ($newStatus === 'scannee') {
+                try {
+                    \App\Services\RequestNotificationService::notifyDgForApproval($demande);
+                } catch (\Exception $e) {
+                    Log::error('Erreur notification DG: ' . $e->getMessage());
+                }
+            }
+
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Workflow avancé: ' . $oldStatus . ' → ' . $newStatus,
+                    'workflow_status' => $demande->workflow_status,
+                    'workflow_status_label' => $demande->workflow_status_label,
+                    'workflow_status_badge' => $demande->workflow_status_badge,
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Workflow avancé avec succès');
+        } catch (\Exception $e) {
+            Log::error('Erreur avancement workflow: ' . $e->getMessage());
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Erreur lors de l\'avancement du workflow'], 500);
+            }
+            return redirect()->back()->with('error', 'Erreur lors de l\'avancement du workflow');
+        }
+    }
+
+    /**
+     * Uploader le document signé
+     */
+    public function uploadSignature(Request $request, $id)
+    {
+        $request->validate([
+            'signature_file' => 'required|file|mimes:pdf,png,jpg,jpeg|max:10240',
+            'courier_reference' => 'nullable|string|max:255',
+            'courier_date' => 'nullable|date',
+            'comment' => 'nullable|string|max:2000',
+        ]);
+
+        try {
+            $demande = PublicRequest::findOrFail($id);
+
+            if ($request->hasFile('signature_file')) {
+                $path = $request->file('signature_file')->store('demandes/signatures', 'public');
+                $demande->update(['dg_signature_file' => $path]);
+            }
+
+            $updateData = ['processed_by' => auth()->id()];
+            if ($request->filled('courier_reference')) {
+                $updateData['courier_reference'] = $request->courier_reference;
+            }
+            if ($request->filled('courier_date')) {
+                $updateData['courier_date'] = $request->courier_date;
+            }
+            if ($request->filled('comment')) {
+                $updateData['document_notes'] = $request->comment;
+            }
+            $demande->update($updateData);
+
+            // Avancer automatiquement si pas encore signée
+            if (in_array($demande->workflow_status, ['soumise', 'en_revue', 'document_attente'])) {
+                $demande->advanceWorkflow('signee', 'Document signé uploadé par ' . auth()->user()->name);
+            }
+
+            return redirect()->back()->with('success', 'Document signé enregistré avec succès');
+        } catch (\Exception $e) {
+            Log::error('Erreur upload signature: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de l\'enregistrement du document signé');
+        }
+    }
+
+    /**
+     * Uploader le scan du document
+     */
+    public function uploadScan(Request $request, $id)
+    {
+        $request->validate([
+            'scan_file' => 'required|file|mimes:pdf,png,jpg,jpeg|max:10240',
+            'comment' => 'nullable|string|max:2000',
+        ]);
+
+        try {
+            $demande = PublicRequest::findOrFail($id);
+
+            if ($request->hasFile('scan_file')) {
+                $path = $request->file('scan_file')->store('demandes/scans', 'public');
+                $demande->update(['scan_file' => $path]);
+            }
+
+            if ($request->filled('comment')) {
+                $demande->update(['document_notes' => $request->comment]);
+            }
+
+            // Avancer automatiquement si pas encore scannée
+            if (in_array($demande->workflow_status, ['soumise', 'en_revue', 'document_attente', 'signee'])) {
+                $demande->advanceWorkflow('scannee', 'Scan uploadé par ' . auth()->user()->name);
+            }
+
+            return redirect()->back()->with('success', 'Scan enregistré avec succès');
+        } catch (\Exception $e) {
+            Log::error('Erreur upload scan: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de l\'enregistrement du scan');
+        }
+    }
+
+    /**
+     * Validation par le DG
+     */
+    public function validateDg(Request $request, $id)
+    {
+        $request->validate([
+            'dg_approved' => 'required|boolean',
+            'dg_comment' => 'nullable|string|max:2000',
+        ]);
+
+        try {
+            $demande = PublicRequest::findOrFail($id);
+
+            $oldStatus = $demande->workflow_status;
+
+            if ($request->boolean('dg_approved')) {
+                $demande->update([
+                    'dg_approved_by' => auth()->id(),
+                    'dg_approved_at' => now(),
+                ]);
+                $demande->advanceWorkflow('validee_dg', $request->dg_comment ?? 'Validée par la Direction Générale');
+                $message = 'Demande validée par le DG';
+            } else {
+                $demande->advanceWorkflow('rejetee', $request->dg_comment ?? 'Rejetée par la Direction Générale');
+                $demande->update(['status' => 'rejected']);
+                $message = 'Demande rejetée par le DG';
+            }
+
+            // Notifier le demandeur
+            try {
+                \App\Services\RequestNotificationService::notifyWorkflowUpdate($demande, $oldStatus, $demande->workflow_status);
+            } catch (\Exception $e) {
+                Log::error('Erreur notification DG validation: ' . $e->getMessage());
+            }
+
+            return redirect()->back()->with('success', $message);
+        } catch (\Exception $e) {
+            Log::error('Erreur validation DG: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de la validation DG');
+        }
+    }
+
+    /**
+     * Marquer une demande comme doublon et la fusionner
+     */
+    public function markDuplicate(Request $request, $id)
+    {
+        $request->validate([
+            'original_id' => 'required|exists:public_requests,id',
+            'comment' => 'nullable|string|max:2000',
+        ]);
+
+        try {
+            $demande = PublicRequest::findOrFail($id);
+            $original = PublicRequest::findOrFail($request->original_id);
+
+            $demande->update([
+                'is_duplicate' => true,
+                'duplicate_of' => $request->original_id,
+                'status' => 'rejected',
+                'workflow_status' => 'rejetee',
+                'admin_comment' => ($request->comment ?? '') . ' [Doublon de ' . $original->tracking_code . ']',
+            ]);
+
+            $demande->logWorkflowAction('Marquée comme doublon', 'Fusionnée avec ' . $original->tracking_code);
+
+            return redirect()->back()->with('success', 'Demande marquée comme doublon et fusionnée avec ' . $original->tracking_code);
+        } catch (\Exception $e) {
+            Log::error('Erreur marquage doublon: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors du marquage du doublon');
+        }
+    }
+
+    /**
+     * Liste des demandes identifiées comme doublons
+     */
+    public function duplicates(Request $request)
+    {
+        try {
+            $query = PublicRequest::where('is_duplicate', true)
+                ->orWhere(function ($q) {
+                    $q->whereNotNull('requester_id')
+                      ->whereRaw('requester_id IN (SELECT requester_id FROM public_requests GROUP BY requester_id HAVING COUNT(*) > 1)')
+                      ->where('is_duplicate', false);
+                });
+
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function($q) use ($search) {
+                    $q->where('tracking_code', 'like', "%{$search}%")
+                      ->orWhere('full_name', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%");
+                });
+            }
+
+            $duplicates = $query->with('originalRequest')->orderBy('created_at', 'desc')->paginate(15);
+            $stats = [
+                'total_duplicates' => PublicRequest::where('is_duplicate', true)->count(),
+                'potential_duplicates' => PublicRequest::whereNotNull('requester_id')
+                    ->where('is_duplicate', false)
+                    ->whereIn('requester_id', function($q) {
+                        $q->select('requester_id')
+                          ->from('public_requests')
+                          ->groupBy('requester_id')
+                          ->havingRaw('COUNT(*) > 1');
+                    })->count(),
+            ];
+
+            return view('admin.demandes.duplicates', compact('duplicates', 'stats'));
+        } catch (\Exception $e) {
+            Log::error('Erreur liste doublons: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors du chargement des doublons');
+        }
+    }
+
+    /**
+     * Vue DG : demandes scannées en attente de validation
+     */
+    public function dgPending(Request $request)
+    {
+        try {
+            $demandes = PublicRequest::where('workflow_status', 'scannee')
+                ->where('is_duplicate', false)
+                ->orderBy('created_at', 'asc')
+                ->paginate(20);
+
+            $pendingCount = PublicRequest::where('workflow_status', 'scannee')->count();
+            $validatedToday = PublicRequest::where('workflow_status', 'validee_dg')
+                ->whereDate('dg_approved_at', today())
+                ->count();
+            $rejectedToday = PublicRequest::where('workflow_status', 'rejetee')
+                ->whereDate('updated_at', today())
+                ->count();
+
+            return view('admin.demandes.dg-pending', compact('demandes', 'pendingCount', 'validatedToday', 'rejectedToday'));
+        } catch (\Exception $e) {
+            Log::error('Erreur vue DG pending: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors du chargement des validations DG');
+        }
+    }
+
+    /**
+     * Avancer le workflow en masse pour plusieurs demandes
+     */
+    public function bulkWorkflow(Request $request)
+    {
+        try {
+            $request->validate([
+                'ids' => 'required|array',
+                'ids.*' => 'integer|exists:public_requests,id',
+                'status' => 'required|string|in:soumise,en_revue,document_attente,signee,scannee,validee_dg,approuvee,rejetee,cloturee',
+            ]);
+
+            $ids = $request->input('ids', []);
+            $newStatus = $request->input('status');
+            $updated = 0;
+
+            foreach ($ids as $id) {
+                $demande = PublicRequest::find($id);
+                if (!$demande) continue;
+
+                $oldStatus = $demande->workflow_status;
+
+                // Synchroniser le statut legacy
+                $legacyMap = [
+                    'soumise' => 'pending',
+                    'en_revue' => 'pending',
+                    'document_attente' => 'pending',
+                    'signee' => 'pending',
+                    'scannee' => 'pending',
+                    'validee_dg' => 'approved',
+                    'approuvee' => 'approved',
+                    'rejetee' => 'rejected',
+                    'cloturee' => 'completed',
+                ];
+
+                $demande->update([
+                    'workflow_status' => $newStatus,
+                    'status' => $legacyMap[$newStatus] ?? $demande->status,
+                    'updated_at' => now(),
+                ]);
+
+                $demande->logWorkflowAction("Transition en masse: {$oldStatus} → {$newStatus}", 'Action groupée');
+
+                // Notification au demandeur
+                try {
+                    \App\Services\RequestNotificationService::notifyWorkflowUpdate($demande, $oldStatus, $newStatus);
+                } catch (\Exception $e) {
+                    Log::error('Notification workflow bulk failed: ' . $e->getMessage());
+                }
+
+                $updated++;
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$updated} demande(s) avancée(s) avec succès vers le statut « {$newStatus} »",
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Erreur bulk workflow: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors du traitement en masse : ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Dashboard DG / Signataire / Scanneur dédié
+     * Affiche les demandes à signer, scanner et valider
+     */
+    public function dgDashboard(Request $request)
+    {
+        try {
+            $user = auth()->user();
+            $role = $user->role ?? 'dg';
+
+            // À signer (attente document)
+            $toSign = PublicRequest::where('workflow_status', 'document_attente')
+                ->orderBy('created_at', 'asc')
+                ->limit(50)
+                ->get();
+
+            // À scanner (signée)
+            $toScan = PublicRequest::where('workflow_status', 'signee')
+                ->orderBy('created_at', 'asc')
+                ->limit(50)
+                ->get();
+
+            // À valider (scannée)
+            $toValidate = PublicRequest::where('workflow_status', 'scannee')
+                ->orderBy('created_at', 'asc')
+                ->limit(50)
+                ->get();
+
+            // Stats
+            $signCount = $toSign->count();
+            $scanCount = $toScan->count();
+            $validateCount = $toValidate->count();
+
+            // Déterminer quels onglets sont visibles selon le rôle
+            // Le DG peut tout faire : signer, scanner et valider
+            $canSign = in_array($role, ['admin', 'super_admin', 'signataire', 'dg', 'directeur_general']);
+            $canScan = in_array($role, ['admin', 'super_admin', 'scanneur', 'dg', 'directeur_general']);
+            $canValidate = in_array($role, ['admin', 'super_admin', 'dg', 'directeur_general']);
+
+            return view('admin.demandes.dg-dashboard', compact(
+                'toSign', 'toScan', 'toValidate',
+                'signCount', 'scanCount', 'validateCount',
+                'canSign', 'canScan', 'canValidate', 'role'
+            ));
+        } catch (\Exception $e) {
+            Log::error('Erreur DG dashboard: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors du chargement du tableau de bord DG.');
+        }
+    }
+
+    /**
+     * Historique global des actions workflow (journal d'audit)
+     */
+    public function workflowHistory(Request $request)
+    {
+        try {
+            $query = PublicRequest::query();
+
+            // Filtres
+            if ($request->filled('tracking_code')) {
+                $query->where('tracking_code', 'like', "%{$request->tracking_code}%");
+            }
+            if ($request->filled('action_type')) {
+                // Filtrer par type d'action dans l'historique JSON
+            }
+            if ($request->filled('date_from')) {
+                $query->whereDate('updated_at', '>=', $request->date_from);
+            }
+            if ($request->filled('date_to')) {
+                $query->whereDate('updated_at', '<=', $request->date_to);
+            }
+
+            $requests = $query->orderBy('updated_at', 'desc')
+                ->limit(200)
+                ->get(['id', 'tracking_code', 'full_name', 'subject', 'workflow_status', 'workflow_history', 'dg_signature_file', 'scan_file', 'dg_approved_by', 'dg_approved_at', 'updated_at']);
+
+            // Construire la timeline
+            $timeline = [];
+            foreach ($requests as $req) {
+                $history = $req->workflow_history ?? [];
+                foreach ($history as $entry) {
+                    $timeline[] = [
+                        'timestamp' => $entry['timestamp'] ?? $req->updated_at,
+                        'action' => $entry['action'] ?? '-',
+                        'comment' => $entry['comment'] ?? '-',
+                        'user_id' => $entry['user_id'] ?? null,
+                        'tracking_code' => $req->tracking_code,
+                        'full_name' => $req->full_name,
+                        'request_id' => $req->id,
+                        'current_status' => $req->workflow_status,
+                        'has_signature' => !empty($req->dg_signature_file),
+                        'has_scan' => !empty($req->scan_file),
+                        'dg_approved_at' => $req->dg_approved_at,
+                    ];
+                }
+            }
+
+            // Trier par date décroissante
+            usort($timeline, function ($a, $b) {
+                return strtotime($b['timestamp']) <=> strtotime($a['timestamp']);
+            });
+
+            // Pagination manuelle
+            $perPage = 50;
+            $page = $request->get('page', 1);
+            $total = count($timeline);
+            $timeline = array_slice($timeline, ($page - 1) * $perPage, $perPage);
+
+            // Stats
+            $totalSignatures = PublicRequest::whereNotNull('dg_signature_file')->count();
+            $totalScans = PublicRequest::whereNotNull('scan_file')->count();
+            $totalValidated = PublicRequest::whereIn('workflow_status', ['validee_dg', 'approuvee', 'cloturee'])->count();
+            $totalRejected = PublicRequest::where('workflow_status', 'rejetee')->count();
+
+            return view('admin.demandes.workflow-history', compact(
+                'timeline', 'total', 'page', 'perPage',
+                'totalSignatures', 'totalScans', 'totalValidated', 'totalRejected'
+            ));
+        } catch (\Exception $e) {
+            Log::error('Erreur historique workflow: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors du chargement de l\'historique.');
+        }
     }
 }

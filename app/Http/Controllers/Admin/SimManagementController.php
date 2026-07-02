@@ -300,6 +300,10 @@ class SimManagementController extends Controller
             $query->where('sim_market_id', $request->integer('market_id'));
         }
 
+        if ($request->filled('collector_id')) {
+            $query->where('collected_by', $request->integer('collector_id'));
+        }
+
         $collections = $query->latest('collected_on')->paginate(20);
         $markets = SimMarket::where('is_active', true)->orderBy('name')->get();
 
@@ -585,6 +589,16 @@ class SimManagementController extends Controller
         return redirect()->route('admin.sim.assignments')->with('success', 'Assignation supprimée.');
     }
 
+    public function collectorTracking()
+    {
+        $locations = \App\Models\CollectorLocation::with('collector')
+            ->where('last_activity_at', '>=', now()->subMinutes(30))
+            ->orderBy('last_activity_at', 'desc')
+            ->get();
+
+        return view('admin.sim.collectors.tracking', compact('locations'));
+    }
+
     public function live()
     {
         return response()->json([
@@ -607,5 +621,41 @@ class SimManagementController extends Controller
         }
 
         return $slug;
+    }
+
+    public function geoMarkets(Request $request)
+    {
+        $query = SimMarket::with(['department.region'])
+            ->when($request->filled('status'), function ($q) use ($request) {
+                if ($request->status === 'missing') {
+                    $q->whereNull('latitude')->orWhereNull('longitude');
+                } elseif ($request->status === 'ok') {
+                    $q->whereNotNull('latitude')->whereNotNull('longitude');
+                }
+            })
+            ->orderBy('sim_department_id')
+            ->orderBy('name');
+
+        $markets = $query->get();
+        $missingCount = SimMarket::whereNull('latitude')->orWhereNull('longitude')->count();
+        $okCount = SimMarket::whereNotNull('latitude')->whereNotNull('longitude')->count();
+
+        return view('admin.sim.markets.geo', compact('markets', 'missingCount', 'okCount'));
+    }
+
+    public function updateGeoMarket(Request $request, SimMarket $simMarket)
+    {
+        $validated = $request->validate([
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+
+        $simMarket->update($validated);
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => true, 'market' => $simMarket]);
+        }
+
+        return back()->with('success', 'Coordonnées de « ' . $simMarket->name . ' » mises à jour.');
     }
 }

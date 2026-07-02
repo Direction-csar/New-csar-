@@ -67,13 +67,13 @@
         <div class="col-lg-8">
             <div class="card shadow-sm mb-4">
                 <div class="card-body">
-                    <h5 class="mb-3"><i class="fas fa-cloud-upload-alt me-2"></i>Ajouter des photos / vidéos</h5>
+                    <h5 class="mb-3"><i class="fas fa-cloud-upload-alt me-2"></i>Ajouter des photos / vidéos / documents</h5>
                     <form action="{{ route($rp . '.media-share.upload', $event->id) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <div class="mb-3">
                             <input type="file" name="files[]" class="form-control" multiple
-                                   accept="image/jpeg,image/png,image/jpg,image/webp,image/gif,video/mp4,video/quicktime,video/x-msvideo,video/webm" required>
-                            <small class="text-muted">Images (JPG, PNG, WEBP, GIF) et vidéos (MP4, MOV, AVI, WEBM). Max 150 Mo / fichier.</small>
+                                   accept="image/jpeg,image/png,image/jpg,image/webp,image/gif,video/mp4,video/quicktime,video/x-msvideo,video/webm,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" required>
+                            <small class="text-muted">Images (JPG, PNG, WEBP, GIF), vidéos (MP4, MOV, AVI, WEBM) et documents (PDF, PPT, PPTX). Max 1 Go / fichier.</small>
                         </div>
                         <button type="submit" class="btn btn-success"><i class="fas fa-upload me-2"></i>Téléverser</button>
                     </form>
@@ -106,7 +106,7 @@
             </div>
 
             {{-- Vidéos --}}
-            <div class="card shadow-sm">
+            <div class="card shadow-sm mb-4">
                 <div class="card-body">
                     <h5 class="mb-3"><i class="fas fa-video me-2 text-danger"></i>Vidéos ({{ $event->videos->count() }})</h5>
                     @if($event->videos->isEmpty())
@@ -125,6 +125,34 @@
                                             </form>
                                         </div>
                                     </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Documents --}}
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="mb-3"><i class="fas fa-file-alt me-2 text-warning"></i>Documents ({{ $event->documents->count() }})</h5>
+                    @if($event->documents->isEmpty())
+                        <p class="text-muted mb-0">Aucun document pour le moment.</p>
+                    @else
+                        <div class="list-group">
+                            @foreach($event->documents as $doc)
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-file-{{ strtolower(pathinfo($doc->file_name, PATHINFO_EXTENSION)) === 'pdf' ? 'pdf' : 'powerpoint' }} fa-2x me-3 text-warning"></i>
+                                        <div>
+                                            <div class="fw-semibold">{{ $doc->file_name }}</div>
+                                            <small class="text-muted">{{ $doc->human_size }}</small>
+                                        </div>
+                                    </div>
+                                    <form action="{{ route($rp . '.media-share.files.destroy', [$event->id, $doc->id]) }}" method="POST" onsubmit="return confirm('Supprimer ce document ?');">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                    </form>
                                 </div>
                             @endforeach
                         </div>

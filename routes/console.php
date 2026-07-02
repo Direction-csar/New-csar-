@@ -28,3 +28,11 @@ Artisan::command('schedule:sim-reports', function () {
     Artisan::call('sim:schedule');
     $this->info('📊 Rapports SIM planifiés générés.');
 })->purpose('Générer automatiquement les rapports SIM selon la planification');
+
+// Résumé quotidien des demandes en attente (tous les jours à 8h)
+Artisan::command('schedule:daily-requests-summary', function () {
+    if (now()->hour === 8) {
+        Artisan::call('requests:send-daily-summary');
+        $this->info('📧 Résumé quotidien des demandes envoyé.');
+    }
+})->purpose('Envoyer le résumé quotidien des demandes en attente aux administrateurs');

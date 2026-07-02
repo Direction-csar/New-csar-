@@ -13,6 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')
                 ->prefix('mobile')
                 ->group(base_path('routes/mobile-api.php'));
+
+            Route::middleware('api')
+                ->prefix('warehouse')
+                ->group(base_path('routes/warehouse-api.php'));
         },
         health: '/up',
     )
@@ -44,6 +48,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'supervisor' => \App\Http\Middleware\SupervisorMiddleware::class,
             'enforce.2fa' => \App\Http\Middleware\EnforceTwoFactor::class,
             'http-cache' => \App\Http\Middleware\HttpCache::class,
+            'workflow.role' => \App\Http\Middleware\CheckWorkflowRole::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

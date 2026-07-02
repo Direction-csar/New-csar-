@@ -72,6 +72,8 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
         'dg' => \App\Http\Middleware\DGMiddleware::class,
+        'drh-access' => \App\Http\Middleware\DrhAccessMiddleware::class,
+        'ctc-admin' => \App\Http\Middleware\CTCAdminMiddleware::class,
         'role' => \App\Http\Middleware\CheckRole::class,
         'locale' => \App\Http\Middleware\SetLocale::class,
     ];

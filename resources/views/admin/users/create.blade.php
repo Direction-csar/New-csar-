@@ -30,7 +30,7 @@
             <div class="card-modern p-3">
                 <form action="{{ route('admin.users.store') }}" method="POST">
                     @csrf
-                    
+
                     @if ($errors->any())
                         <div class="alert alert-danger">
                             <ul class="mb-0">
@@ -40,43 +40,62 @@
                             </ul>
                         </div>
                     @endif
-                    
+
                     <div class="row">
                         <!-- Informations personnelles -->
                         <div class="col-lg-6 mb-3">
                             <h6 class="fw-bold mb-3">👤 Informations Personnelles</h6>
-                            
+
                             <div class="mb-3">
                                 <label for="name" class="form-label small fw-bold">Nom complet *</label>
                                 <input type="text" class="form-control form-control-sm" id="name" name="name" value="{{ old('name') }}" required>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label for="email" class="form-label small fw-bold">Email *</label>
                                 <input type="email" class="form-control form-control-sm" id="email" name="email" value="{{ old('email') }}" required>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label for="phone" class="form-label small fw-bold">Téléphone *</label>
                                 <input type="tel" class="form-control form-control-sm" id="phone" name="phone" value="{{ old('phone') }}" required>
                             </div>
                         </div>
-                        
+
                         <!-- Rôle et statut -->
                         <div class="col-lg-6 mb-3">
                             <h6 class="fw-bold mb-3">🔐 Rôle et Accès</h6>
-                            
+
                             <div class="mb-3">
                                 <label for="role" class="form-label small fw-bold">Rôle *</label>
-                                <select class="form-select form-select-sm" id="role" name="role" required>
+                                <select class="form-select form-select-sm" id="role" name="role" required onchange="toggleWarehouse()">
                                     <option value="">Sélectionner un rôle</option>
                                     <option value="admin" {{ old('role') == 'admin' ? 'selected' : '' }}>Administrateur</option>
                                     <option value="dg" {{ old('role') == 'dg' ? 'selected' : '' }}>Directeur Général</option>
+                                    <option value="drh" {{ old('role') == 'drh' ? 'selected' : '' }}>DRH</option>
                                     <option value="responsable" {{ old('role') == 'responsable' ? 'selected' : '' }}>Responsable</option>
+                                    <option value="magasinier" {{ old('role') == 'magasinier' ? 'selected' : '' }}>Magasinier</option>
                                     <option value="agent" {{ old('role') == 'agent' ? 'selected' : '' }}>Agent</option>
                                 </select>
                             </div>
-                            
+
+                            <div class="mb-3" id="warehouse_group" style="display: none;">
+                                <label for="warehouse_id" class="form-label small fw-bold">Magasin assigné (zone) *</label>
+                                <select class="form-select form-select-sm" id="warehouse_id" name="warehouse_id">
+                                    <option value="">Sélectionner un magasin</option>
+                                    @isset($warehouses)
+                                        @foreach ($warehouses as $region => $group)
+                                            <optgroup label="{{ $region }}">
+                                                @foreach ($group as $wh)
+                                                    <option value="{{ $wh->id }}" {{ old('warehouse_id') == $wh->id ? 'selected' : '' }}>{{ $wh->name }}</option>
+                                                @endforeach
+                                            </optgroup>
+                                        @endforeach
+                                    @endisset
+                                </select>
+                                <div class="form-text small">Le magasinier ne pourra gérer que ce magasin.</div>
+                            </div>
+
                             <div class="mb-3">
                                 <label for="status" class="form-label small fw-bold">Statut *</label>
                                 <select class="form-select form-select-sm" id="status" name="status" required>
@@ -87,19 +106,19 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Mot de passe -->
                     <div class="row">
                         <div class="col-12 mb-3">
                             <h6 class="fw-bold mb-3">🔑 Mot de Passe</h6>
-                            
+
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="password" class="form-label small fw-bold">Mot de passe *</label>
                                     <input type="password" class="form-control form-control-sm" id="password" name="password" required>
                                     <div class="form-text small">Minimum 8 caractères</div>
                                 </div>
-                                
+
                                 <div class="col-md-6 mb-3">
                                     <label for="password_confirmation" class="form-label small fw-bold">Confirmer le mot de passe *</label>
                                     <input type="password" class="form-control form-control-sm" id="password_confirmation" name="password_confirmation" required>
@@ -107,7 +126,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Actions -->
                     <div class="row">
                         <div class="col-12">
@@ -128,37 +147,56 @@
 </div>
 @endsection
 
+@push('scripts')
+<script>
+    function toggleWarehouse() {
+        const role = document.getElementById('role').value;
+        const group = document.getElementById('warehouse_group');
+        const select = document.getElementById('warehouse_id');
+        if (role === 'magasinier') {
+            group.style.display = 'block';
+            select.setAttribute('required', 'required');
+        } else {
+            group.style.display = 'none';
+            select.removeAttribute('required');
+            select.value = '';
+        }
+    }
+    document.addEventListener('DOMContentLoaded', toggleWarehouse);
+</script>
+@endpush
+
 @push('styles')
 <style>
   /* Optimisation de l'espace */
   .container-fluid { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
-  
+
   /* Cards plus compactes */
   .card-modern { margin-bottom: 0.5rem !important; }
-  
+
   /* Réduction des marges */
   .row { margin-bottom: 0.5rem !important; }
   .mb-2 { margin-bottom: 0.5rem !important; }
-  
+
   /* Textes plus compacts */
   .h4 { font-size: 1.25rem !important; }
   .h6 { font-size: 0.9rem !important; }
-  
+
   /* Boutons plus petits et cliquables */
-  .btn-sm { 
-    padding: 0.25rem 0.5rem !important; 
-    font-size: 0.8rem !important; 
+  .btn-sm {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.8rem !important;
     cursor: pointer !important;
     pointer-events: auto !important;
     z-index: 10 !important;
   }
-  
+
   /* Formulaires compacts */
   .form-control-sm, .form-select-sm {
     font-size: 0.8rem !important;
     padding: 0.25rem 0.5rem !important;
   }
-  
+
   /* Labels */
   .form-label {
     font-size: 0.8rem !important;

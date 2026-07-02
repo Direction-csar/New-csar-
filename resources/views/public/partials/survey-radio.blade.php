@@ -3,6 +3,7 @@
     $label = $label ?? '';
     $options = $options ?? [];
     $required = $required ?? true;
+    $draftValue = $draft ?? null;
 @endphp
 
 <div class="mb-3">
@@ -14,7 +15,7 @@
                        name="{{ $name }}"
                        id="{{ $name }}_{{ $val }}"
                        value="{{ $val }}"
-                       @if(old($name) === $val) checked @endif
+                       @if(old($name, $draftValue) === $val) checked @endif
                        @if($required) required @endif>
                 <label class="form-check-label" for="{{ $name }}_{{ $val }}">{{ $lbl }}</label>
             </div>

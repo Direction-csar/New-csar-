@@ -27,7 +27,7 @@ class StockController extends Controller
             $mouvementsPaginated = $this->getStockMovements($request);
             $stats = $this->getStockStats();
             $chartData = $this->getChartData();
-            
+
             // Passer les variables de filtrage à la vue
             $search = $request->get('search', '');
             $type = $request->get('type', '');
@@ -35,16 +35,16 @@ class StockController extends Controller
             $entrepot = $request->get('entrepot', '');
             $date_debut = $request->get('date_debut', '');
             $date_fin = $request->get('date_fin', '');
-            
+
             return view('admin.stock.index', compact(
-                'mouvementsPaginated', 
-                'stats', 
+                'mouvementsPaginated',
+                'stats',
                 'chartData',
-                'search', 
-                'type', 
-                'mouvement', 
-                'entrepot', 
-                'date_debut', 
+                'search',
+                'type',
+                'mouvement',
+                'entrepot',
+                'date_debut',
                 'date_fin'
             ));
         } catch (\Exception $e) {
@@ -72,7 +72,7 @@ class StockController extends Controller
             $entrepots = Warehouse::where('is_active', true)->get();
             $stockTypes = StockType::all();
             $stocks = Stock::with('warehouse')->where('is_active', true)->get();
-            
+
             return view('admin.stock.create', compact('entrepots', 'stockTypes', 'stocks'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'affichage du formulaire de création: ' . $e->getMessage());
@@ -100,22 +100,22 @@ class StockController extends Controller
 
             // Générer la référence automatique si non fournie
             $reference = $request->reference ?: $this->generateUniqueReference($request->type);
-            
+
             // Gestion du stock : produit existant ou nouveau
             if ($request->stock_id) {
                 // Produit existant sélectionné
                 $stock = Stock::findOrFail($request->stock_id);
                 $quantityBefore = $stock->quantity;
-                
+
                 // Calculer la nouvelle quantité
                 $quantityChange = $request->type === 'in' ? $request->quantity : -$request->quantity;
                 $quantityAfter = $quantityBefore + $quantityChange;
-                
+
                 // Vérifier que la quantité après n'est pas négative
                 if ($quantityAfter < 0) {
                     throw new \Exception('Quantité insuffisante en stock. Stock actuel: ' . $quantityBefore);
                 }
-                
+
                 // Mettre à jour le stock existant
                 $stock->update(['quantity' => $quantityAfter]);
             } else {
@@ -135,7 +135,7 @@ class StockController extends Controller
                     throw new \Exception('Impossible de faire une sortie sur un produit qui n\'existe pas en stock.');
                 }
             }
-            
+
             // Créer le mouvement de stock
             $mouvement = StockMovement::create([
                 'warehouse_id' => $request->warehouse_id,
@@ -201,9 +201,16 @@ class StockController extends Controller
             });
         }
 
-        // Filtre par type
+        // Filtre par type (mapper les types du panel admin vers les types API mobile)
         if ($request->filled('type')) {
-            $query->where('type', $request->type);
+            $typeMap = [
+                'entree' => ['in', 'entry', 'report'],
+                'sortie' => ['out', 'exit'],
+                'transfert' => ['transfert'],
+                'ajustement' => ['ajustement', 'adjustment'],
+            ];
+            $types = $typeMap[$request->type] ?? [$request->type];
+            $query->whereIn('type', $types);
         }
 
         // Filtre par entrepôt
@@ -232,7 +239,7 @@ class StockController extends Controller
             // Extraire le nom du produit depuis le stock ou le reason
             $produit = 'Non spécifié';
             $unite = 'unité';
-            
+
             if ($mouvement->stock) {
                 $produit = $mouvement->stock->item_name ?? 'Non spécifié';
                 // Récupérer l'unité depuis le StockType si disponible
@@ -279,10 +286,10 @@ class StockController extends Controller
         try {
             $stats = [
                 'total_movements' => StockMovement::count(),
-                'entrees' => StockMovement::where('type', 'in')->count(),
-                'sorties' => StockMovement::where('type', 'out')->count(),
+                'entrees' => StockMovement::whereIn('type', ['in', 'entry', 'report'])->count(),
+                'sorties' => StockMovement::whereIn('type', ['out', 'exit'])->count(),
                 'transferts' => StockMovement::where('type', 'transfert')->count(),
-                'ajustements' => StockMovement::where('type', 'ajustement')->count(),
+                'ajustements' => StockMovement::whereIn('type', ['ajustement', 'adjustment'])->count(),
                 'valeur_totale' => StockMovement::sum('quantity'),
                 'total' => StockMovement::count()
             ];
@@ -296,10 +303,18 @@ class StockController extends Controller
     private function getChartData()
     {
         try {
-            $types = StockMovement::selectRaw('type, COUNT(*) as count')
+            $rawTypes = StockMovement::selectRaw('type, COUNT(*) as count')
                 ->groupBy('type')
                 ->pluck('count', 'type')
                 ->toArray();
+
+            // Mapper les types API mobile vers les types du panel admin
+            $types = [
+                'entree' => ($rawTypes['in'] ?? 0) + ($rawTypes['entry'] ?? 0) + ($rawTypes['report'] ?? 0),
+                'sortie' => ($rawTypes['out'] ?? 0) + ($rawTypes['exit'] ?? 0),
+                'transfert' => $rawTypes['transfert'] ?? 0,
+                'ajustement' => ($rawTypes['ajustement'] ?? 0) + ($rawTypes['adjustment'] ?? 0),
+            ];
 
             $entrepots = StockMovement::with('warehouse')
                 ->selectRaw('warehouse_id, COUNT(*) as count')
@@ -330,18 +345,18 @@ class StockController extends Controller
     {
         $prefix = $type === 'in' ? 'STK-IN' : 'STK-OUT';
         $year = date('Y');
-        
+
         // Récupérer la dernière référence de ce type pour cette année
         $lastMovement = StockMovement::where('reference', 'LIKE', "{$prefix}-{$year}-%")
             ->orderBy('reference', 'desc')
             ->first();
-        
+
         if ($lastMovement && preg_match('/-(\d+)$/', $lastMovement->reference, $matches)) {
             $number = intval($matches[1]) + 1;
         } else {
             $number = 1;
         }
-        
+
         return "{$prefix}-{$year}-{$number}";
     }
 
@@ -353,7 +368,7 @@ class StockController extends Controller
         try {
             $type = $request->input('type', 'in');
             $reference = $this->generateUniqueReference($type);
-            
+
             return response()->json([
                 'success' => true,
                 'reference' => $reference
@@ -377,12 +392,12 @@ class StockController extends Controller
         try {
             // Générer le contenu HTML du reçu
             $html = $this->generateReceiptHtml($mouvement);
-            
+
             // Créer le PDF avec DomPDF ou fallback vers HTML
             if (class_exists('\Barryvdh\DomPDF\Facade\Pdf')) {
                 $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
                 $pdf->setPaper('A4', 'portrait');
-                
+
                 return $pdf->download('receipt_' . $mouvement->reference . '.pdf');
             } else {
                 // Fallback vers HTML si DomPDF n'est pas disponible
@@ -392,7 +407,7 @@ class StockController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Erreur lors de la génération du PDF: ' . $e->getMessage());
-            
+
             // Fallback vers texte simple
             $content = $this->generateSimpleReceipt($mouvement);
             return response($content)
@@ -406,23 +421,27 @@ class StockController extends Controller
         // Utiliser le logo CSAR disponible
         $logoPath = public_path('images/logos/LOGO CSAR vectoriel-01.png');
         $logoBase64 = '';
-        
+
         if (file_exists($logoPath)) {
             $logoContent = file_get_contents($logoPath);
             $logoBase64 = 'data:image/png;base64,' . base64_encode($logoContent);
         }
-        
+
         $typeLabels = [
             'in' => 'ENTRÉE',
             'out' => 'SORTIE',
             'entree' => 'ENTRÉE',
             'sortie' => 'SORTIE',
+            'entry' => 'ENTRÉE',
+            'exit' => 'SORTIE',
+            'report' => 'ENTRÉE',
             'transfert' => 'TRANSFERT',
-            'ajustement' => 'AJUSTEMENT'
+            'ajustement' => 'AJUSTEMENT',
+            'adjustment' => 'AJUSTEMENT'
         ];
-        
+
         $typeLabel = $typeLabels[$mouvement->type] ?? strtoupper($mouvement->type);
-        
+
         $html = '
         <!DOCTYPE html>
         <html>
@@ -583,12 +602,12 @@ class StockController extends Controller
                     font-style: italic;
                 }
                 @media print {
-                    body { 
-                        margin: 0; 
+                    body {
+                        margin: 0;
                         padding: 0;
                         background: white;
                     }
-                    .receipt-container { 
+                    .receipt-container {
                         box-shadow: none;
                         max-width: none;
                         margin: 0;
@@ -629,9 +648,9 @@ class StockController extends Controller
                         <h1>CSAR</h1>
                         <p class="subtitle">Commissariat à la Sécurité Alimentaire<br>et à la Résilience</p>
                     </div>
-                    
+
                     <div class="receipt-title">REÇU DE MOUVEMENT DE STOCK</div>
-                    
+
                     <div class="receipt-info">
                         <div class="info-row">
                             <span class="info-label">Référence:</span>
@@ -666,7 +685,7 @@ class StockController extends Controller
                             <span class="info-value">' . ($mouvement->creator->name ?? 'Administrateur CSAR') . '</span>
                         </div>
                     </div>
-                    
+
                     <div class="signatures">
                         <div class="signature-box">
                             <div class="signature-line"></div>
@@ -677,7 +696,7 @@ class StockController extends Controller
                             <div class="signature-label">Signature Agent</div>
                         </div>
                     </div>
-                    
+
                     <div class="footer">
                         <div class="footer-title">Centre de Secours et d\'Assistance Rapide (CSAR)</div>
                         <div>Plateforme de Gestion des Stocks</div>
@@ -689,7 +708,7 @@ class StockController extends Controller
             </div>
         </body>
         </html>';
-        
+
         return $html;
     }
 
@@ -704,15 +723,15 @@ class StockController extends Controller
             $mouvement = StockMovement::findOrFail($id);
             $this->authorize('delete', $mouvement);
             $reference = $mouvement->reference;
-            
+
             // Récupérer le stock associé
             $stock = $mouvement->stock;
-            
+
             if ($stock) {
                 // Restaurer la quantité précédente
                 $stock->update(['quantity' => $mouvement->quantity_before]);
             }
-            
+
             // Supprimer le mouvement
             $mouvement->delete();
 
@@ -744,12 +763,16 @@ class StockController extends Controller
             'out' => 'SORTIE',
             'entree' => 'ENTRÉE',
             'sortie' => 'SORTIE',
+            'entry' => 'ENTRÉE',
+            'exit' => 'SORTIE',
+            'report' => 'ENTRÉE',
             'transfert' => 'TRANSFERT',
-            'ajustement' => 'AJUSTEMENT'
+            'ajustement' => 'AJUSTEMENT',
+            'adjustment' => 'AJUSTEMENT'
         ];
-        
+
         $typeLabel = $typeLabels[$mouvement->type] ?? strtoupper($mouvement->type);
-        
+
         return "
 CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience
 ================================================================

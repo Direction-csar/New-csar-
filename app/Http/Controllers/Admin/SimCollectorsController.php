@@ -28,8 +28,12 @@ class SimCollectorsController extends Controller
             }
 
             $collectors = $query->latest()->paginate(20);
+            $markets = \App\Models\SimMarket::where('is_active', true)
+                ->select('id', 'name', 'commune')
+                ->orderBy('name')
+                ->get();
 
-            return view('admin.sim.collectors.index', compact('collectors'));
+            return view('admin.sim.collectors.index', compact('collectors', 'markets'));
         } catch (\Exception $e) {
             Log::error('SimCollectorsController@index: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Erreur lors du chargement des collecteurs.');
@@ -44,6 +48,8 @@ class SimCollectorsController extends Controller
             'phone'    => 'required|string|max:20',
             'password' => 'required|string|min:6|confirmed',
             'status'   => 'required|in:active,inactive,suspended',
+            'assigned_markets' => 'nullable|array',
+            'assigned_markets.*' => 'integer|exists:sim_markets,id',
         ]);
 
         try {
@@ -53,7 +59,7 @@ class SimCollectorsController extends Controller
                 'phone'         => $request->phone,
                 'password_hash' => password_hash($request->password, PASSWORD_BCRYPT),
                 'status'        => $request->status,
-                'assigned_zones' => [],
+                'assigned_zones' => $request->assigned_markets ?? [],
             ]);
 
             return redirect()->route('admin.sim.collectors')
@@ -74,6 +80,8 @@ class SimCollectorsController extends Controller
             'email'  => 'required|email|unique:sim_collectors,email,' . $id,
             'phone'  => 'required|string|max:20',
             'status' => 'required|in:active,inactive,suspended',
+            'assigned_markets' => 'nullable|array',
+            'assigned_markets.*' => 'integer|exists:sim_markets,id',
         ]);
 
         try {
@@ -82,6 +90,7 @@ class SimCollectorsController extends Controller
                 'email'  => $request->email,
                 'phone'  => $request->phone,
                 'status' => $request->status,
+                'assigned_zones' => $request->assigned_markets ?? [],
             ];
 
             if ($request->filled('password')) {

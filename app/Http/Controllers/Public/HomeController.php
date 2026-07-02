@@ -22,6 +22,7 @@ use App\Services\EmailService;
 use App\Services\SecurityService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class HomeController extends Controller
 {
@@ -144,6 +145,10 @@ class HomeController extends Controller
                 ->orderBy('published_at', 'desc')
                 ->take(4)
                 ->get()
+                ->filter(function($report) {
+                    return $report->document_file && Storage::disk('public')->exists($report->document_file);
+                })
+                ->values()
                 ->map(function($report) {
                     $report->excerpt = Str::limit(strip_tags($report->summary ?? $report->description), 100);
                     return $report;
@@ -180,7 +185,11 @@ class HomeController extends Controller
                 ->whereIn('category', ['rapport', 'bulletin', 'documents_officiels'])
                 ->orderBy('published_at', 'desc')
                 ->take(6)
-                ->get();
+                ->get()
+                ->filter(function($doc) {
+                    return $doc->document_file && Storage::disk('public')->exists($doc->document_file);
+                })
+                ->values();
         } catch (\Exception $e) {
             $simDocumentations = collect([]);
         }

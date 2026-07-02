@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -40,6 +41,11 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             URL::forceScheme('https');
         }
+
+        // Partager la route courante avec toutes les vues utilisant le layout DRH
+        View::composer('layouts.drh-portal', function ($view) {
+            $view->with('currentRoute', request()->route()?->getName());
+        });
 
         // Directive Blade @lazyImage pour images optimisées (lazy-loading + dimensions)
         // Usage : @lazyImage('/storage/images/photo.jpg', 'Description', ['class' => 'w-full', 'width' => 800, 'height' => 600])

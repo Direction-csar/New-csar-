@@ -9,14 +9,16 @@ use App\Http\Controllers\LinkedInController;
 Route::get('/login', function () {
     return redirect('/');
 })->name('login');
+
 // Rediriger les anciens liens /about vers la bonne route /a-propos
 Route::redirect('/about', '/a-propos', 302);
 // Route directe pour /demande (sans préfixe de locale) - utilise directement le contrôleur
 Route::get('/demande', [\App\Http\Controllers\Public\DemandeController::class, 'create'])->name('demande.create.direct');
 Route::post('/demande', [\App\Http\Controllers\Public\DemandeController::class, 'store'])->name('demande.store.direct');
-// Route directe pour /suivi (sans préfixe de locale) - utilise directement le contrôleur
+// Route directe pour /suivi et PDF (sans préfixe de locale)
 Route::get('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'index'])->name('suivi.direct');
 Route::post('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'track'])->name('suivi.track.direct');
+Route::get('/telecharger-pdf/{code}', [\App\Http\Controllers\Public\TrackController::class, 'download'])->where('code', '[A-Za-z0-9\-]+')->name('track.download.direct');
 Route::get('/missions', [\App\Http\Controllers\Public\GalleryController::class, 'missions'])->name('missions_static');
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\AboutController;
@@ -60,6 +62,13 @@ use App\Http\Controllers\DG\DashboardController as DGDashboardController;
 use App\Http\Controllers\Auth\AdminLoginController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\DGLoginController;
+
+// Routes DSAR (interface dédiée, auth via admin)
+Route::prefix('Dsar')->group(function () {
+    Route::get('/login', fn () => view('auth.dsar-login'))->name('dsar.login');
+    Route::post('/login', [AdminLoginController::class, 'login'])->name('dsar.login.submit');
+    Route::get('/', fn () => redirect()->route('admin.dashboard'))->name('dsar.dashboard');
+});
 
 // Contrôleurs Public
 use App\Http\Controllers\Public\AboutController as PublicAboutController;
@@ -123,7 +132,10 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     Route::get('/rapports', [ReportsController::class, 'index'])->name('reports');
     Route::get('/rapports/{id}/telecharger', [ReportsController::class, 'download'])->name('reports.download');
     Route::get('/rapports/{id}/download', [\App\Http\Controllers\Public\ReportsController::class, 'download'])->name('public.reports.download');
-    
+
+    // Flipbook route
+    Route::get('/flipbook/{id}', [\App\Http\Controllers\Public\FlipbookController::class, 'show'])->name('flipbook.show');
+
     // Contact routes
     Route::get('/contact', [ContactController::class, 'index'])->name('contact');
     Route::post('/contact', [ContactController::class, 'submit'])->name('contact.submit');
@@ -162,6 +174,11 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     // FAQ
     Route::get('/faq', [\App\Http\Controllers\Public\FaqController::class, 'index'])->name('faq.index');
 
+    // Témoignages
+    Route::get('/temoignages', [\App\Http\Controllers\TestimonialController::class, 'index'])->name('testimonials.index');
+    Route::get('/temoignages/nouveau', [\App\Http\Controllers\TestimonialController::class, 'create'])->name('testimonials.create');
+    Route::post('/temoignages', [\App\Http\Controllers\TestimonialController::class, 'store'])->name('testimonials.store');
+
     // Recherche (outil de recherche plateforme)
     Route::get('/recherche', [\App\Http\Controllers\Public\SearchController::class, 'index'])->name('search.index');
 
@@ -172,12 +189,12 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     Route::get('/faire-un-don/cancel', [DonationController::class, 'cancel'])->name('donations.cancel');
     Route::post('/faire-un-don/callback', [DonationController::class, 'callback'])->name('donations.callback');
     Route::get('/faire-un-don/track', [DonationController::class, 'track'])->name('donations.track');
-    
+
     // PayPal specific routes
     Route::get('/faire-un-don/paypal/success/{donation}', [DonationController::class, 'paypalSuccess'])->name('donations.paypal.success');
     Route::get('/faire-un-don/paypal/cancel', [DonationController::class, 'paypalCancel'])->name('donations.paypal.cancel');
     Route::post('/faire-un-don/paypal/webhook', [DonationController::class, 'paypalWebhook'])->name('donations.paypal.webhook');
-    
+
     // API Routes pour donations
     Route::prefix('api/donations')->group(function () {
         Route::get('/statistics', [DonationController::class, 'statistics'])->name('donations.statistics');
@@ -217,7 +234,7 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
         Route::delete('/supprimer-compte', [\App\Http\Controllers\Public\GdprController::class, 'deleteAccount'])->name('gdpr.delete');
     });
 
-    
+
     // Newsletter - Routes publiques unifiées
     Route::post('/newsletter', [\App\Http\Controllers\Public\NewsletterController::class, 'subscribe'])->name('newsletter.store');
     Route::post('/newsletter/subscribe', [\App\Http\Controllers\Public\NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
@@ -254,7 +271,7 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     Route::get('/demande', [DemandeController::class, 'create'])->name('demande.create');
     Route::post('/demande', [DemandeController::class, 'store'])->name('demande.store');
     Route::get('/demande-succes', [DemandeController::class, 'success'])->name('demande.success');
-    
+
     // Alias pour les routes requests (compatibilité avec la navigation)
     Route::get('/demandes', [DemandeController::class, 'create'])->name('requests.index');
     Route::get('/demandes/create', [DemandeController::class, 'create'])->name('requests.create');
@@ -311,34 +328,34 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::get('/api/realtime', [App\Http\Controllers\DG\DashboardController::class, 'getRealtimeStats'])->name('api.realtime');
         Route::post('/api/generate-report', [App\Http\Controllers\DG\DashboardController::class, 'generateReport'])->name('api.generate-report');
         Route::get('/reports/download/{filename}', [App\Http\Controllers\DG\DashboardController::class, 'downloadReport'])->name('reports.download');
-        
+
         // Gestion des demandes (système unifié)
         Route::get('/demandes', [App\Http\Controllers\DG\DemandeController::class, 'index'])->name('demandes.index');
         Route::get('/demandes/{id}', [App\Http\Controllers\DG\DemandeController::class, 'show'])->name('demandes.show');
         Route::put('/demandes/{id}', [App\Http\Controllers\DG\DemandeController::class, 'update'])->name('demandes.update');
-        
+
         // Consultation des entrepôts (lecture seule)
         Route::get('/warehouses', [App\Http\Controllers\DG\WarehouseController::class, 'index'])->name('warehouses.index');
         Route::get('/warehouses/{id}', [App\Http\Controllers\DG\WarehouseController::class, 'show'])->name('warehouses.show');
-        
+
         // Consultation des stocks (lecture seule)
         Route::get('/stocks', [App\Http\Controllers\DG\StockController::class, 'index'])->name('stocks.index');
         Route::get('/stocks/{id}', [App\Http\Controllers\DG\StockController::class, 'show'])->name('stocks.show');
-        
+
         // Consultation du personnel (lecture seule)
         Route::get('/personnel', [App\Http\Controllers\DG\PersonnelController::class, 'index'])->name('personnel.index');
         Route::get('/personnel/{id}', [App\Http\Controllers\DG\PersonnelController::class, 'show'])->name('personnel.show');
-        
+
         // Consultation des utilisateurs (lecture seule)
         Route::get('/users', [App\Http\Controllers\DG\UsersController::class, 'index'])->name('users.index');
         Route::get('/users/{user}', [App\Http\Controllers\DG\UsersController::class, 'show'])->name('users.show');
-        
+
         // Rapports (lecture seule)
         Route::get('/reports', [App\Http\Controllers\DG\ReportsController::class, 'index'])->name('reports.index');
         Route::get('/reports/generate', [App\Http\Controllers\DG\ReportsController::class, 'generate'])->name('reports.generate');
         Route::get('/reports/export', [App\Http\Controllers\DG\ReportsController::class, 'export'])->name('reports.export');
         Route::get('/reports/{filename}', [App\Http\Controllers\DG\ReportsController::class, 'show'])->name('reports.show');
-        
+
         // Carte interactive
         Route::get('/map', [App\Http\Controllers\DG\MapController::class, 'index'])->name('map');
         Route::get('/map/data', [App\Http\Controllers\DG\MapController::class, 'getData'])->name('map.data');
@@ -464,7 +481,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/dashboard/filter-map', [AdminDashboardController::class, 'filterMapData'])->name('dashboard.filter-map');
         Route::post('/dashboard/generate-report', [AdminDashboardController::class, 'generateReport'])->name('dashboard.generate-report');
         Route::get('/reports/download/{filename}', [AdminDashboardController::class, 'downloadReport'])->name('reports.download');
-        
+
         // Gestion des demandes (sans création - les demandes viennent du public)
         Route::resource('demandes', DemandesController::class)->except(['create', 'store']);
         Route::get('/carte-demandes', [\App\Http\Controllers\Admin\CarteDemandesController::class, 'index'])->name('carte-demandes.index');
@@ -472,38 +489,59 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/demandes/{id}/pdf', [DemandesController::class, 'downloadPdf'])->name('demandes.pdf');
         Route::post('/demandes/export', [DemandesController::class, 'export'])->name('demandes.export');
         Route::post('/demandes/bulk-delete', [DemandesController::class, 'bulkDelete'])->name('demandes.bulk-delete');
-        
+
+        // Workflow avancé des demandes
+        Route::post('/demandes/{id}/workflow', [DemandesController::class, 'advanceWorkflow'])->name('demandes.workflow');
+        Route::post('/demandes/{id}/signature', [DemandesController::class, 'uploadSignature'])->middleware('workflow.role:admin,super_admin,signataire,dg,directeur_general')->name('demandes.signature');
+        Route::post('/demandes/{id}/scan', [DemandesController::class, 'uploadScan'])->middleware('workflow.role:admin,super_admin,scanneur,dg,directeur_general')->name('demandes.scan');
+        Route::post('/demandes/{id}/dg-validate', [DemandesController::class, 'validateDg'])->middleware('workflow.role:admin,super_admin,dg')->name('demandes.dg-validate');
+        Route::post('/demandes/{id}/duplicate', [DemandesController::class, 'markDuplicate'])->name('demandes.duplicate');
+        Route::get('/demandes-duplicates', [DemandesController::class, 'duplicates'])->name('demandes.duplicates.index');
+        Route::get('/demandes-dg-pending', [DemandesController::class, 'dgPending'])->middleware('workflow.role:admin,super_admin,dg')->name('demandes.dg-pending');
+        Route::post('/demandes/bulk-workflow', [DemandesController::class, 'bulkWorkflow'])->name('demandes.bulk-workflow');
+        Route::get('/dg-dashboard', [DemandesController::class, 'dgDashboard'])->name('demandes.dg-dashboard');
+        Route::get('/workflow-history', [DemandesController::class, 'workflowHistory'])->name('demandes.workflow-history');
+
         // Gestion des entrepôts
         Route::resource('entrepots', EntrepotsController::class);
         Route::get('/entrepots/export', [EntrepotsController::class, 'export'])->name('entrepots.export');
-        
+
         // Gestion des stocks
         Route::post('/stock/generate-reference', [\App\Http\Controllers\Admin\StockController::class, 'generateReference'])->name('stock.generate-reference');
         Route::resource('stock', \App\Http\Controllers\Admin\StockController::class);
         Route::get('/stock/{id}/receipt', [\App\Http\Controllers\Admin\StockController::class, 'downloadReceipt'])->name('stock.receipt');
         Route::post('/stock/export', [\App\Http\Controllers\Admin\StockController::class, 'export'])->name('stock.export');
-        
+
         // Gestion des produits
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class);
         Route::get('/products-api', [\App\Http\Controllers\Admin\ProductController::class, 'getProducts'])->name('products.api');
         Route::post('/products/quick-create', [\App\Http\Controllers\Admin\ProductController::class, 'quickCreate'])->name('products.quick-create');
-        
-        
+
+
         // Gestion du personnel
         Route::resource('personnel', \App\Http\Controllers\Admin\PersonnelController::class);
         Route::post('/personnel/{id}/toggle-status', [\App\Http\Controllers\Admin\PersonnelController::class, 'toggleStatus'])->name('personnel.toggle-status');
         Route::post('/personnel/{id}/reset-password', [\App\Http\Controllers\Admin\PersonnelController::class, 'resetPassword'])->name('personnel.reset-password');
         Route::get('/personnel/export', [\App\Http\Controllers\Admin\PersonnelController::class, 'export'])->name('personnel.export');
-        
-        // Gestion du contenu - SUPPRIMÉ (section non utilisée)
-        // Route::resource('contenu', ContenuController::class);
-        
+
+        // Gestion du contenu
+        Route::resource('content', \App\Http\Controllers\Admin\ContentController::class)->names([
+            'index' => 'content.index',
+            'create' => 'content.create',
+            'store' => 'content.store',
+            'show' => 'content.show',
+            'edit' => 'content.edit',
+            'update' => 'content.update',
+            'destroy' => 'content.destroy',
+        ]);
+        Route::post('/content/{id}/toggle-status', [\App\Http\Controllers\Admin\ContentController::class, 'toggleStatus'])->name('content.toggle-status');
+
         // Gestion des actualités
         Route::resource('actualites', \App\Http\Controllers\Admin\ActualitesController::class);
         Route::get('actualites/{id}/download', [\App\Http\Controllers\Admin\ActualitesController::class, 'downloadDocument'])->name('actualites.download');
         Route::get('actualites/{id}/preview', [\App\Http\Controllers\Admin\ActualitesController::class, 'preview'])->name('actualites.preview');
         Route::post('actualites/upload-image', [\App\Http\Controllers\Admin\ActualitesController::class, 'uploadImage'])->name('actualites.upload-image');
-        
+
         // Gestion de la galerie
         Route::resource('galerie', \App\Http\Controllers\Admin\GalerieController::class);
         Route::post('/galerie/{id}/toggle-status', [\App\Http\Controllers\Admin\GalerieController::class, 'toggleStatus'])->name('galerie.toggle-status');
@@ -527,34 +565,34 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Gestion des utilisateurs
         Route::resource('users', UserController::class);
-        
+
         // Gestion du contenu
         Route::resource('content', \App\Http\Controllers\Admin\ContentController::class);
         Route::post('/content/{id}/toggle-status', [\App\Http\Controllers\Admin\ContentController::class, 'toggleStatus'])->name('content.toggle-status');
         Route::get('/content-preview', [\App\Http\Controllers\Admin\ContentController::class, 'preview'])->name('content.preview');
-        
+
         // Routes pour la gestion des statistiques de contenu (supprimées car non implémentées)
         // Route::get('/content/statistics', [\App\Http\Controllers\Admin\ContentController::class, 'statistics'])->name('content.statistics');
         // Route::post('/content/statistics/create', [\App\Http\Controllers\Admin\ContentController::class, 'createStatistic'])->name('content.statistics.create');
         // Route::post('/content/statistics/{id}/update', [\App\Http\Controllers\Admin\ContentController::class, 'updateStatistic'])->name('content.statistics.update');
         // Route::delete('/content/statistics/{id}/delete', [\App\Http\Controllers\Admin\ContentController::class, 'deleteStatistic'])->name('content.statistics.delete');
-        
+
         // Routes pour les statistiques générales
         Route::get('/statistics', [\App\Http\Controllers\Admin\StatisticsController::class, 'index'])->name('statistics');
         Route::post('/statistics/export', [\App\Http\Controllers\Admin\StatisticsController::class, 'export'])->name('statistics.export');
-        
+
         // Routes pour la gestion des chiffres clés
         Route::resource('chiffres-cles', \App\Http\Controllers\Admin\ChiffresClesController::class)->except(['create', 'show', 'destroy']);
         Route::post('/chiffres-cles/update-batch', [\App\Http\Controllers\Admin\ChiffresClesController::class, 'updateBatch'])->name('chiffres-cles.update-batch');
         Route::post('/chiffres-cles/{id}/toggle-status', [\App\Http\Controllers\Admin\ChiffresClesController::class, 'toggleStatus'])->name('chiffres-cles.toggle-status');
         Route::post('/chiffres-cles/reset', [\App\Http\Controllers\Admin\ChiffresClesController::class, 'reset'])->name('chiffres-cles.reset');
         Route::get('/chiffres-cles/api', [\App\Http\Controllers\Admin\ChiffresClesController::class, 'api'])->name('chiffres-cles.api');
-        
+
         // Routes pour le nettoyage de la base de données
         Route::get('/database-cleanup', [\App\Http\Controllers\Admin\DatabaseCleanupController::class, 'index'])->name('database-cleanup');
         Route::post('/database-cleanup/cleanup', [\App\Http\Controllers\Admin\DatabaseCleanupController::class, 'cleanup'])->name('database-cleanup.cleanup');
         Route::get('/database-cleanup/check-connection', [\App\Http\Controllers\Admin\DatabaseCleanupController::class, 'checkConnection'])->name('database-cleanup.check-connection');
-        
+
         // Gestion des actualités
         Route::resource('news', \App\Http\Controllers\Admin\NewsController::class);
         Route::post('/news/{id}/toggle-status', [\App\Http\Controllers\Admin\NewsController::class, 'toggleStatus'])->name('news.toggle-status');
@@ -562,7 +600,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/news-preview', [\App\Http\Controllers\Admin\NewsController::class, 'preview'])->name('news.preview');
         Route::delete('/news-comments/{id}', [\App\Http\Controllers\Admin\NewsCommentController::class, 'destroy'])->name('news.comments.destroy');
         Route::get('/news/{id}/comments', [\App\Http\Controllers\Admin\NewsCommentController::class, 'index'])->name('news.comments.index');
-        
+
         // Gestion de la galerie
         Route::resource('gallery', \App\Http\Controllers\Admin\GalleryController::class);
         Route::post('/gallery/upload', [\App\Http\Controllers\Admin\GalleryController::class, 'upload'])->name('gallery.upload');
@@ -570,7 +608,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/gallery/{id}/download', [\App\Http\Controllers\Admin\GalleryController::class, 'download'])->name('gallery.download');
         Route::post('/gallery/move', [\App\Http\Controllers\Admin\GalleryController::class, 'move'])->name('gallery.move');
         Route::post('/gallery/optimize', [\App\Http\Controllers\Admin\GalleryController::class, 'optimize'])->name('gallery.optimize');
-        
+
         // Communication
         Route::resource('communication', \App\Http\Controllers\Admin\CommunicationController::class);
         Route::post('/communication/send-message', [\App\Http\Controllers\Admin\CommunicationController::class, 'sendMessage'])->name('communication.send-message');
@@ -579,7 +617,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/communication/send-broadcast', [\App\Http\Controllers\Admin\CommunicationController::class, 'sendBroadcast'])->name('communication.send-broadcast');
         Route::get('/communication/stats', [\App\Http\Controllers\Admin\CommunicationController::class, 'getStats'])->name('communication.stats');
         Route::get('/communication/analytics', [\App\Http\Controllers\Admin\CommunicationController::class, 'getAnalytics'])->name('communication.analytics');
-        
+
         // Messages (lecture seule - pas de création depuis l'admin)
         Route::get('/messages', [\App\Http\Controllers\Admin\MessageController::class, 'index'])->name('messages.index');
         Route::get('/messages/{id}', [\App\Http\Controllers\Admin\MessageController::class, 'show'])->name('messages.show');
@@ -587,13 +625,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/messages/{id}/mark-read', [\App\Http\Controllers\Admin\MessageController::class, 'markAsRead'])->name('messages.mark-read');
         Route::post('/messages/mark-all-read', [\App\Http\Controllers\Admin\MessageController::class, 'markAllAsRead'])->name('messages.mark-all-read');
         Route::post('/messages/{id}/reply', [\App\Http\Controllers\Admin\MessageController::class, 'reply'])->name('messages.reply');
-        
+
         // Newsletter (lecture seule - pas de création depuis l'admin)
         Route::get('/newsletter', [\App\Http\Controllers\Admin\NewsletterController::class, 'index'])->name('newsletter.index');
         Route::get('/newsletter/export', [\App\Http\Controllers\Admin\NewsletterController::class, 'exportSubscribers'])->name('newsletter.export');
         Route::get('/newsletter/stats', [\App\Http\Controllers\Admin\NewsletterController::class, 'getStats'])->name('newsletter.stats');
         Route::get('/newsletter/analytics', [\App\Http\Controllers\Admin\NewsletterController::class, 'getAnalytics'])->name('newsletter.analytics');
-        
+
         // Rapports SIM
         // Route::resource('sim-reports', \App\Http\Controllers\Admin\SimReportsController::class); // CONFLIT - remplacé par routes manuelles ci-dessous
         Route::get('/sim-reports', [\App\Http\Controllers\Admin\SimReportsController::class, 'index'])->name('sim-reports.index');
@@ -631,6 +669,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/collectors/{id}', [\App\Http\Controllers\Admin\SimCollectorsController::class, 'update'])->name('collectors.update');
             Route::delete('/collectors/{id}', [\App\Http\Controllers\Admin\SimCollectorsController::class, 'destroy'])->name('collectors.destroy');
             Route::get('/live', [\App\Http\Controllers\Admin\SimManagementController::class, 'live'])->name('live');
+            Route::get('/collectors/tracking', [\App\Http\Controllers\Admin\SimManagementController::class, 'collectorTracking'])->name('collectors.tracking');
 
             Route::get('/regions', [\App\Http\Controllers\Admin\SimManagementController::class, 'regions'])->name('regions');
             Route::post('/regions', [\App\Http\Controllers\Admin\SimManagementController::class, 'storeRegion'])->name('regions.store');
@@ -655,6 +694,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/markets/{simMarket}', [\App\Http\Controllers\Admin\SimManagementController::class, 'updateMarket'])->name('markets.update');
             Route::delete('/markets/{simMarket}', [\App\Http\Controllers\Admin\SimManagementController::class, 'destroyMarket'])->name('markets.destroy');
 
+            Route::get('/markets-geolocation', [\App\Http\Controllers\Admin\SimManagementController::class, 'geoMarkets'])->name('markets.geo');
+            Route::post('/markets-geolocation/{simMarket}', [\App\Http\Controllers\Admin\SimManagementController::class, 'updateGeoMarket'])->name('markets.geo.update');
+
             Route::get('/categories', [\App\Http\Controllers\Admin\SimManagementController::class, 'categories'])->name('categories');
             Route::post('/categories', [\App\Http\Controllers\Admin\SimManagementController::class, 'storeCategory'])->name('categories.store');
             Route::get('/categories/{simProductCategory}/edit', [\App\Http\Controllers\Admin\SimManagementController::class, 'editCategory'])->name('categories.edit');
@@ -677,7 +719,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/access-requests/{simDataAccessRequest}', [\App\Http\Controllers\Admin\SimManagementController::class, 'showAccessRequest'])->name('access-requests.show');
             Route::post('/access-requests/{simDataAccessRequest}/decision', [\App\Http\Controllers\Admin\SimManagementController::class, 'decideAccessRequest'])->name('access-requests.decision');
         });
-        
+
         // Routes API pour les notifications (pour le dropdown et AJAX)
         Route::get('/api/notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'getNotifications'])->name('notifications.api');
         Route::get('/api/notifications/count', [\App\Http\Controllers\Admin\NotificationsController::class, 'getUnreadCount'])->name('notifications.count');
@@ -685,7 +727,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/api/notifications/{id}/mark-unread', [\App\Http\Controllers\Admin\NotificationsController::class, 'markAsUnread'])->name('notifications.api.mark-unread');
         Route::post('/api/notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationsController::class, 'markAllAsRead'])->name('notifications.api.mark-all-read');
         Route::delete('/api/notifications/{id}', [\App\Http\Controllers\Admin\NotificationsController::class, 'destroy'])->name('notifications.api.destroy');
-        
+
         // Audit & Sécurité
         Route::get('/audit', [\App\Http\Controllers\Admin\AuditController::class, 'index'])->name('audit.index');
         Route::get('/audit/logs', [\App\Http\Controllers\Admin\AuditController::class, 'getLogs'])->name('audit.logs');
@@ -699,8 +741,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/audit/clear-logs', [\App\Http\Controllers\Admin\AuditController::class, 'clearOldLogs'])->name('audit.clear-logs');
         Route::get('/audit/stats', [\App\Http\Controllers\Admin\AuditController::class, 'getStats'])->name('audit.stats');
         Route::get('/audit/chart-data', [\App\Http\Controllers\Admin\AuditController::class, 'getChartData'])->name('audit.chart-data');
-        
-        
+
+
         // Profil Utilisateur
         Route::get('/profile', [AdminDashboardController::class, 'profile'])->name('profile');
         Route::post('/profile/update', [AdminDashboardController::class, 'updateProfile'])->name('profile.update');
@@ -710,7 +752,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Communication
         Route::resource('communication', CommunicationController::class);
-        
+
         // Stocks
         Route::get('/stocks', [\App\Http\Controllers\Admin\StockController::class, 'index'])->name('stocks.index');
         Route::get('/stocks/create', [\App\Http\Controllers\Admin\StockController::class, 'create'])->name('stocks.create');
@@ -719,7 +761,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/stocks/{stock}/edit', [\App\Http\Controllers\Admin\StockController::class, 'edit'])->name('stocks.edit');
         Route::put('/stocks/{stock}', [\App\Http\Controllers\Admin\StockController::class, 'update'])->name('stocks.update');
         Route::delete('/stocks/{stock}', [\App\Http\Controllers\Admin\StockController::class, 'destroy'])->name('stocks.destroy');
-        
+
         // Warehouses
         Route::get('/warehouses', [\App\Http\Controllers\Admin\WarehouseController::class, 'index'])->name('warehouses.index');
         Route::get('/warehouses/create', [\App\Http\Controllers\Admin\WarehouseController::class, 'create'])->name('warehouses.create');
@@ -743,7 +785,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Route::resource('sim-reports', SimReportsController::class); // CONFLIT - déjà remplacé par routes manuelles ligne 468
         // Route::post('/sim-reports/generate', [SimReportsController::class, 'generate'])->name('sim-reports.generate'); // DÉJÀ DÉFINI ligne 470
         // Route::get('/sim-reports/{report}/download', [SimReportsController::class, 'download'])->name('sim-reports.download'); // DÉJÀ DÉFINI ligne 471
-        
+
         // Routes pour les notifications (centre de notifications)
         Route::get('notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'index'])->name('notifications.index');
         Route::get('notifications/{id}', [\App\Http\Controllers\Admin\NotificationsController::class, 'show'])->name('notifications.show');
@@ -752,7 +794,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('notifications/mark-all-read', [\App\Http\Controllers\Admin\NotificationsController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
         Route::post('notifications', [\App\Http\Controllers\Admin\NotificationsController::class, 'store'])->name('notifications.store');
         Route::delete('notifications/{id}', [\App\Http\Controllers\Admin\NotificationsController::class, 'destroy'])->name('notifications.destroy');
-        
+
         // Routes messages déjà définies plus haut dans le groupe admin (lignes 454-460)
         // Route::get('messages', [AdminMessageController::class, 'index'])->name('messages.index');
         // Route::get('messages/{id}', [AdminMessageController::class, 'show'])->name('messages.show');
@@ -1095,13 +1137,49 @@ Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access', 'enfor
     Route::get('/enquete-assurance',           [\App\Http\Controllers\Drh\HealthSurveyController::class, 'index'])->name('health-survey.index');
     Route::get('/enquete-assurance/export',    [\App\Http\Controllers\Drh\HealthSurveyController::class, 'exportCsv'])->name('health-survey.export');
     Route::get('/enquete-assurance/{id}',      [\App\Http\Controllers\Drh\HealthSurveyController::class, 'show'])->name('health-survey.show');
+
+    // � Formation, Recrutement, Relations sociales
+    Route::get('/formation',   [\App\Http\Controllers\Drh\RessourcesHumainesController::class, 'formation'])->name('formation');
+    Route::get('/recrutement', [\App\Http\Controllers\Drh\RessourcesHumainesController::class, 'recrutement'])->name('recrutement');
+    Route::get('/relations',   [\App\Http\Controllers\Drh\RessourcesHumainesController::class, 'relations'])->name('relations');
+
+    // �📝 Documents RH
+    Route::get('/documents',                    [\App\Http\Controllers\Drh\DocumentController::class, 'selection'])->name('documents');
+    Route::get('/documents/{type}/form',       [\App\Http\Controllers\Drh\DocumentController::class, 'showForm'])->name('documents.form');
+    Route::post('/documents/{type}/save',      [\App\Http\Controllers\Drh\DocumentController::class, 'saveDocument'])->name('documents.save');
+    Route::get('/documents/historique',        [\App\Http\Controllers\Drh\DocumentController::class, 'historique'])->name('documents.historique');
+    Route::get('/documents/{document}/export', [\App\Http\Controllers\Drh\DocumentController::class, 'exportDocument'])->name('documents.export');
+
+    // Génération PDF directe par type
+    Route::get('/documents/certificat-travail',         [\App\Http\Controllers\Drh\DocumentController::class, 'certificatTravail'])->name('documents.certificat-travail');
+    Route::get('/documents/note-service',                [\App\Http\Controllers\Drh\DocumentController::class, 'noteService'])->name('documents.note-service');
+    Route::get('/documents/decision-conge',             [\App\Http\Controllers\Drh\DocumentController::class, 'decisionConge'])->name('documents.decision-conge');
+    Route::get('/documents/domiciliation',               [\App\Http\Controllers\Drh\DocumentController::class, 'domiciliation'])->name('documents.domiciliation');
+    Route::get('/documents/ordre-mission',               [\App\Http\Controllers\Drh\DocumentController::class, 'ordreMission'])->name('documents.ordre-mission');
+    Route::get('/documents/autorisation-absence',        [\App\Http\Controllers\Drh\DocumentController::class, 'autorisationAbsence'])->name('documents.autorisation-absence');
+    Route::get('/documents/contrat-cdi',                 [\App\Http\Controllers\Drh\DocumentController::class, 'contratCdi'])->name('documents.contrat-cdi');
+    Route::get('/documents/contrat-cdd',                 [\App\Http\Controllers\Drh\DocumentController::class, 'contratCdd'])->name('documents.contrat-cdd');
+    Route::get('/documents/attestation-travail',         [\App\Http\Controllers\Drh\DocumentController::class, 'attestationTravail'])->name('documents.attestation-travail');
+    Route::get('/documents/attestation-travail-salaire', [\App\Http\Controllers\Drh\DocumentController::class, 'attestationTravailSalaire'])->name('documents.attestation-travail-salaire');
+    Route::get('/documents/abandon-poste',               [\App\Http\Controllers\Drh\DocumentController::class, 'abandonPoste'])->name('documents.abandon-poste');
+    Route::get('/documents/notification-absence',        [\App\Http\Controllers\Drh\DocumentController::class, 'notificationAbsence'])->name('documents.notification-absence');
+    Route::get('/documents/avertissement',              [\App\Http\Controllers\Drh\DocumentController::class, 'avertissement'])->name('documents.avertissement');
+    Route::get('/documents/contrat-pret',               [\App\Http\Controllers\Drh\DocumentController::class, 'contratPret'])->name('documents.contrat-pret');
+    Route::get('/documents/avance-salaire',             [\App\Http\Controllers\Drh\DocumentController::class, 'avanceSalaire'])->name('documents.avance-salaire');
+    Route::get('/documents/demande-recuperation',        [\App\Http\Controllers\Drh\DocumentController::class, 'demandeRecuperation'])->name('documents.demande-recuperation');
+    Route::get('/documents/bon-sortie',                 [\App\Http\Controllers\Drh\DocumentController::class, 'bonSortie'])->name('documents.bon-sortie');
+    Route::get('/documents/contrat-stagiaire',           [\App\Http\Controllers\Drh\DocumentController::class, 'contratStagiaire'])->name('documents.contrat-stagiaire');
 });
 
 // Formulaire public de l'enquête assurance maladie
 Route::prefix('enquete-assurance-maladie')->name('public.health-survey.')->group(function () {
-    Route::get('/',          [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'show'])->name('show');
-    Route::post('/',         [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'store'])->name('submit');
-    Route::get('/merci',     [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'thanks'])->name('thanks');
+    Route::get('/',                        [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'show'])->name('show');
+    Route::post('/',                       [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'store'])->name('submit');
+    Route::get('/brouillon/{survey}',      [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'pending'])->name('pending');
+    Route::post('/confirmer/{survey}',     [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'confirm'])->name('confirm');
+    Route::get('/modifier/{survey}',      [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'editDraft'])->name('edit');
+    Route::post('/modifier/{survey}',     [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'updateDraft'])->name('update');
+    Route::get('/merci',                   [\App\Http\Controllers\Public\HealthInsuranceSurveyController::class, 'thanks'])->name('thanks');
 });
 
 // Redirect admin/sim/suivi et /collecteurs vers l'interface superviseur
@@ -1128,7 +1206,7 @@ Route::prefix('superviseur')->name('supervisor.')->group(function () {
 Route::middleware(['auth'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Notifications
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
@@ -1140,20 +1218,79 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/preferences', [\App\Http\Controllers\NotificationController::class, 'updatePreferences'])->name('update-preferences');
         Route::get('/unread', [\App\Http\Controllers\NotificationController::class, 'getUnread'])->name('unread');
     });
-    
+
     // Recherche
     Route::prefix('search')->name('search.')->group(function () {
         Route::get('/', [\App\Http\Controllers\SearchController::class, 'global'])->name('global');
         Route::get('/quick', [\App\Http\Controllers\SearchController::class, 'quickSearch'])->name('quick');
         Route::get('/suggestions', [\App\Http\Controllers\SearchController::class, 'suggestions'])->name('suggestions');
     });
-    
+
     // Export
     Route::prefix('export')->name('export.')->group(function () {
         Route::get('/stocks', [\App\Http\Controllers\ExportController::class, 'exportStocks'])->name('stocks');
         Route::get('/reports', [\App\Http\Controllers\ExportController::class, 'exportReports'])->name('reports');
         Route::get('/template/{type}', [\App\Http\Controllers\ExportController::class, 'downloadTemplate'])->name('template');
     });
+});
+
+// === ARCHIVES PAR DIRECTION ===
+Route::middleware(['auth'])->group(function () {
+    // CPM
+    Route::prefix('archives/cpm')->name('archives.cpm.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Cpm\ArchiveController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Cpm\ArchiveController::class, 'store'])->name('store');
+        Route::get('/{archive}', [App\Http\Controllers\Cpm\ArchiveController::class, 'show'])->name('show');
+        Route::get('/{archive}/download', [App\Http\Controllers\Cpm\ArchiveController::class, 'download'])->name('download');
+        Route::get('/{archive}/print', [App\Http\Controllers\Cpm\ArchiveController::class, 'print'])->name('print');
+    });
+
+    // DFC
+    Route::prefix('archives/dfc')->name('archives.dfc.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Dfc\ArchiveController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Dfc\ArchiveController::class, 'store'])->name('store');
+        Route::get('/{archive}', [App\Http\Controllers\Dfc\ArchiveController::class, 'show'])->name('show');
+        Route::get('/{archive}/download', [App\Http\Controllers\Dfc\ArchiveController::class, 'download'])->name('download');
+        Route::get('/{archive}/print', [App\Http\Controllers\Dfc\ArchiveController::class, 'print'])->name('print');
+    });
+
+    // DPSE
+    Route::prefix('archives/dpse')->name('archives.dpse.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Dpse\ArchiveController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Dpse\ArchiveController::class, 'store'])->name('store');
+        Route::get('/{archive}', [App\Http\Controllers\Dpse\ArchiveController::class, 'show'])->name('show');
+        Route::get('/{archive}/download', [App\Http\Controllers\Dpse\ArchiveController::class, 'download'])->name('download');
+        Route::get('/{archive}/print', [App\Http\Controllers\Dpse\ArchiveController::class, 'print'])->name('print');
+    });
+
+    // DRH
+    Route::prefix('archives/drh')->name('archives.drh.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Drh\ArchiveController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Drh\ArchiveController::class, 'store'])->name('store');
+        Route::get('/{archive}', [App\Http\Controllers\Drh\ArchiveController::class, 'show'])->name('show');
+        Route::get('/{archive}/download', [App\Http\Controllers\Drh\ArchiveController::class, 'download'])->name('download');
+        Route::get('/{archive}/print', [App\Http\Controllers\Drh\ArchiveController::class, 'print'])->name('print');
+    });
+
+    // DTL
+    Route::prefix('archives/dtl')->name('archives.dtl.')->group(function () {
+        Route::get('/', [App\Http\Controllers\Dtl\ArchiveController::class, 'index'])->name('index');
+        Route::post('/', [App\Http\Controllers\Dtl\ArchiveController::class, 'store'])->name('store');
+        Route::get('/{archive}', [App\Http\Controllers\Dtl\ArchiveController::class, 'show'])->name('show');
+        Route::get('/{archive}/download', [App\Http\Controllers\Dtl\ArchiveController::class, 'download'])->name('download');
+        Route::get('/{archive}/print', [App\Http\Controllers\Dtl\ArchiveController::class, 'print'])->name('print');
+    });
+
+    // Gestion des dossiers
+    Route::post('/archive-folders', [App\Http\Controllers\ArchiveFolderController::class, 'store'])->name('folders.store');
+});
+
+// === ADMIN : CONTRÔLE TOTAL ===
+Route::middleware(['auth'])->prefix('admin/archives')->name('admin.archives.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Admin\ArchiveController::class, 'index'])->name('index');
+    Route::delete('/{archive}', [App\Http\Controllers\Admin\ArchiveController::class, 'destroy'])->name('destroy');
+    Route::post('/{archive}/restore', [App\Http\Controllers\Admin\ArchiveController::class, 'restore'])->name('restore');
+    Route::get('/logs', [App\Http\Controllers\Admin\ArchiveController::class, 'logs'])->name('logs');
 });
 
 // LinkedIn OAuth routes

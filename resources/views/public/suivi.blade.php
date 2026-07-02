@@ -95,14 +95,14 @@
                         </p>
                     </div>
                     <div>
-                        @if($request->status === 'rejetée')
+                        @if($request->workflow_status === 'rejetee')
                             <span class="status-badge status-rejected"><i class="fas fa-times-circle"></i> Rejetée</span>
-                        @elseif($request->status === 'approuvée')
-                            <span class="status-badge status-approved"><i class="fas fa-check-circle"></i> Approuvée</span>
-                        @elseif($request->status === 'traitée')
-                            <span class="status-badge status-processing"><i class="fas fa-spinner"></i> Traitée</span>
+                        @elseif(in_array($request->workflow_status, ['validee_dg', 'approuvee', 'cloturee']))
+                            <span class="status-badge status-approved"><i class="fas fa-check-circle"></i> {{ $request->workflow_status_label }}</span>
+                        @elseif($request->workflow_status === 'en_revue')
+                            <span class="status-badge status-processing"><i class="fas fa-spinner"></i> En revue</span>
                         @else
-                            <span class="status-badge status-pending"><i class="fas fa-clock"></i> En attente</span>
+                            <span class="status-badge status-pending"><i class="fas fa-clock"></i> {{ $request->workflow_status_label }}</span>
                         @endif
                     </div>
                 </div>
@@ -133,27 +133,48 @@
                         {{ $request->description }}
                     </div>
                 </div>
-                <!-- Timeline (à adapter selon ton modèle) -->
+                <!-- Timeline Workflow publique (simplifiée) -->
                 <div style="margin-bottom: 0;">
-                    <h4 style="font-size: 1.1rem; font-weight: 700; color: #0d9488; margin-bottom: 10px;">Historique de traitement</h4>
+                    <h4 style="font-size: 1.1rem; font-weight: 700; color: #0d9488; margin-bottom: 10px;">Avancement de votre demande</h4>
+                    @php
+                        $wf = $request->workflow_status ?? 'soumise';
+                        $rejected = $wf === 'rejetee';
+                        $approved = in_array($wf, ['validee_dg', 'approuvee', 'cloturee']);
+                        $inProgress = !$rejected && !$approved;
+
+                        $publicSteps = [
+                            ['key' => 'soumise', 'label' => 'Demande reçue', 'icon' => 'fa-paper-plane', 'desc' => 'Votre demande a bien été enregistrée'],
+                            ['key' => 'etude',   'label' => 'En cours d\'étude', 'icon' => 'fa-search', 'desc' => 'Votre demande est en cours d\'examen par nos équipes'],
+                            ['key' => 'fin',     'label' => $rejected ? 'Demande rejetée' : 'Demande approuvée', 'icon' => $rejected ? 'fa-times-circle' : 'fa-check-circle', 'desc' => $rejected ? ($request->admin_comment ?? 'Votre demande n\'a pas pu être approuvée') : 'Votre demande a été validée'],
+                        ];
+                    @endphp
                     <div class="timeline">
-                        @foreach($request->history as $step)
-                            <div class="timeline-item {{ $step['status'] }}">
+                        @foreach($publicSteps as $i => $step)
+                            @php
+                                if ($step['key'] === 'soumise') {
+                                    $isCompleted = true;
+                                    $isCurrent = false;
+                                } elseif ($step['key'] === 'etude') {
+                                    $isCompleted = $approved || $rejected;
+                                    $isCurrent = $inProgress;
+                                } else {
+                                    $isCompleted = $approved || $rejected;
+                                    $isCurrent = $approved || $rejected;
+                                }
+                            @endphp
+                            <div class="timeline-item {{ $isCompleted ? 'completed' : ($isCurrent ? 'current' : '') }} {{ $rejected && $step['key'] === 'fin' ? 'rejected' : '' }}">
                                 <div class="timeline-icon">
-                                    @if($step['status'] === 'completed')
+                                    @if($isCompleted)
                                         <i class="fas fa-check"></i>
-                                    @elseif($step['status'] === 'current')
-                                        <i class="fas fa-spinner"></i>
-                                    @elseif($step['status'] === 'rejected')
-                                        <i class="fas fa-times"></i>
+                                    @elseif($isCurrent)
+                                        <i class="fas {{ $step['icon'] }}"></i>
+                                    @else
+                                        <i class="fas fa-circle" style="font-size: 0.7rem;"></i>
                                     @endif
                                 </div>
                                 <div class="timeline-content">
-                                    <h5>{{ $step['title'] }}</h5>
-                                    <p>{{ $step['date'] }}</p>
-                                    @if(isset($step['comment']))
-                                    <div style="color:#991b1b;font-size:0.95em;">{{ $step['comment'] }}</div>
-                                    @endif
+                                    <h5>{{ $step['label'] }}</h5>
+                                    <p>{{ $step['desc'] }}</p>
                                 </div>
                             </div>
                         @endforeach
@@ -168,7 +189,47 @@
 
 @push('styles')
 <style>
-/* ... (styles identiques à track.blade.php, voir fichier source) ... */
+/* Status badges */
+.status-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.95rem;
+}
+.status-pending { background: #fef3c7; color: #92400e; border: 1px solid #fbbf24; }
+.status-approved { background: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+.status-rejected { background: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+.status-processing { background: #e0f2fe; color: #075985; border: 1px solid #38bdf8; }
+
+/* Timeline */
+.timeline { position: relative; padding-left: 40px; }
+.timeline::before {
+    content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(180deg, #22c55e 0%, #16a34a 100%); border-radius: 2px;
+}
+.timeline-item { position: relative; margin-bottom: 40px; }
+.timeline-icon {
+    position: absolute; left: -30px; top: 0; width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 16px; color: white;
+    background: #d1d5db; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+.timeline-item.completed .timeline-icon { background: linear-gradient(135deg, #22c55e, #16a34a); }
+.timeline-item.current .timeline-icon { background: linear-gradient(135deg, #f59e0b, #d97706); animation: pulse 2s infinite; }
+.timeline-item.rejected .timeline-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.timeline-content { margin-left: 30px; background: #f9fafb; padding: 20px; border-radius: 12px; border: 1px solid #e5e7eb; }
+.timeline-content h5 { margin: 0 0 8px 0; color: #1f2937; font-weight: 700; font-size: 1.1rem; }
+.timeline-content p { margin: 0; color: #6b7280; font-size: 0.95rem; line-height: 1.5; }
+
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+input:focus { outline: none; border-color: #22c55e !important; box-shadow: 0 0 0 3px rgba(34,197,94,0.1) !important; transform: translateY(-2px); }
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(34,197,94,0.4) !important; }
+.track-card:hover, .result-card:hover { transform: translateY(-5px); box-shadow: 0 25px 50px rgba(0,0,0,0.15) !important; }
+
+@media (max-width: 768px) {
+    .main-title { font-size: 2.5rem !important; }
+    .timeline { padding-left: 30px; }
+    .timeline-icon { left: -20px; width: 32px; height: 32px; font-size: 14px; }
+    .timeline-content { margin-left: 20px; padding: 15px; }
+}
 </style>
 @endpush
 

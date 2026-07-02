@@ -245,7 +245,7 @@
 <body>
 
 @php
-    $currentRoute = request()->route()?->getName() ?? '';
+$currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
 @endphp
 
 {{-- Sidebar --}}
@@ -284,6 +284,11 @@
         <a href="{{ route('admin.drh.health-survey.index') }}" class="menu-link {{ str_contains($currentRoute, 'drh.health-survey') ? 'active' : '' }}">
             <i class="fas fa-heartbeat"></i>
             <span class="menu-text">Enquête Assurance Maladie</span>
+        </a>
+
+        <a href="{{ route('admin.drh.documents') }}" class="menu-link {{ str_contains($currentRoute, 'drh.documents') ? 'active' : '' }}">
+            <i class="fas fa-file-alt"></i>
+            <span class="menu-text">Documents RH</span>
         </a>
 
         <a href="{{ url('/') }}" target="_blank" class="menu-link">

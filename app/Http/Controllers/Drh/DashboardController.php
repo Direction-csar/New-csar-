@@ -23,15 +23,43 @@ class DashboardController extends Controller
                 ->avg(fn($p) => Carbon::parse($p->date_naissance)->age) ?? 0
         );
 
+        // Masse salariale (bulletins du mois en cours)
+        $now = now();
+        $masseSalariale = \App\Models\SalarySlip::whereYear('periode_debut', $now->year)
+            ->whereMonth('periode_debut', $now->month)
+            ->sum('salaire_brut') ?? 0;
+
+        // Contrats par type (mapping : Fonctionnaire→CDI, Contractuel→CDD, Stagiaire→INTÉRIM)
+        $contratCDI  = Personnel::where('statut', 'Fonctionnaire')->count();
+        $contratCDD  = Personnel::where('statut', 'Contractuel')->count();
+        $contratInt  = Personnel::where('statut', 'Stagiaire')->count();
+
+        // Retraités à venir (âge >= 58)
+        $retraites = Personnel::whereNotNull('date_naissance')
+            ->whereRaw("TIMESTAMPDIFF(YEAR, date_naissance, CURDATE()) >= 58")
+            ->count();
+
+        // Fins de contrat dans les 90 jours (si date_fin existe)
+        $finsContrats = Personnel::whereNotNull('date_fin_contrat')
+            ->where('date_fin_contrat', '<=', now()->addDays(90))
+            ->where('date_fin_contrat', '>=', now())
+            ->count();
+
         // Statistiques
         $stats = [
-            'effectif'    => $total,
-            'demissions'  => $demissions,
-            'hommes'      => $hommes,
-            'femmes'      => $femmes,
-            'pct_hommes'  => $total > 0 ? round($hommes / $total * 100) : 0,
-            'pct_femmes'  => $total > 0 ? round($femmes / $total * 100) : 0,
-            'age_moyen'   => $ageMoyen,
+            'effectif'        => $total,
+            'demissions'      => $demissions,
+            'hommes'          => $hommes,
+            'femmes'          => $femmes,
+            'pct_hommes'      => $total > 0 ? round($hommes / $total * 100) : 0,
+            'pct_femmes'      => $total > 0 ? round($femmes / $total * 100) : 0,
+            'age_moyen'       => $ageMoyen,
+            'masse_salariale' => $masseSalariale,
+            'cdi'             => $contratCDI,
+            'cdd'             => $contratCDD,
+            'interim'         => $contratInt,
+            'retraites'       => $retraites,
+            'fins_contrats'   => $finsContrats,
         ];
 
         // Tranche d'âge
@@ -106,10 +134,37 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        // Types de documents pour la grille
+        $documentTypes = [
+            ['label' => 'Contrat CDI',               'slug' => 'contrat-cdi',            'icon' => 'fa-file-contract'],
+            ['label' => 'Contrat CDD',               'slug' => 'contrat-cdd',            'icon' => 'fa-file-contract'],
+            ['label' => 'Contrat stagiaire',         'slug' => 'contrat-stagiaire',      'icon' => 'fa-file-contract'],
+            ['label' => 'Certificat de travail',     'slug' => 'certificat-travail',     'icon' => 'fa-file-check'],
+            ['label' => 'Attestation de travail',    'slug' => 'attestation-travail',    'icon' => 'fa-file-lines'],
+            ['label' => 'Attestation travail & salaire','slug' => 'attestation-travail-salaire','icon' => 'fa-file-invoice-dollar'],
+            ['label' => 'Abandon de poste',         'slug' => 'abandon-poste',          'icon' => 'fa-door-open'],
+            ['label' => 'Notification absence',     'slug' => 'notification-absence', 'icon' => 'fa-bell'],
+            ['label' => 'Avertissement',             'slug' => 'avertissement',          'icon' => 'fa-triangle-exclamation'],
+            ['label' => 'Contrat de prêt',           'slug' => 'contrat-pret',           'icon' => 'fa-hand-holding-dollar'],
+            ['label' => 'Avance sur salaire',        'slug' => 'avance-salaire',         'icon' => 'fa-money-bill-wave'],
+            ['label' => 'Demande de congé',         'slug' => 'decision-conge',         'icon' => 'fa-file-contract'],
+            ['label' => 'Récupération',             'slug' => 'demande-recuperation',   'icon' => 'fa-rotate-left'],
+            ['label' => 'Domiciliation',           'slug' => 'domiciliation',          'icon' => 'fa-building-columns'],
+            ['label' => 'Autorisation absence',     'slug' => 'autorisation-absence',   'icon' => 'fa-user-clock'],
+            ['label' => 'Bon de sortie',             'slug' => 'bon-sortie',             'icon' => 'fa-door-open'],
+        ];
+
+        // Départements et services pour filtres
+        $departments = Personnel::whereNotNull('direction_service')
+            ->distinct()->pluck('direction_service')->filter()->values();
+        $services = Personnel::whereNotNull('poste_actuel')
+            ->distinct()->pluck('poste_actuel')->filter()->values();
+
         return view('admin.drh.dashboard.index', compact(
             'stats', 'tranchesAge', 'anciennete', 'parDirection',
             'parPoste', 'parRegion', 'parStatut',
-            'evolutionRecrutements', 'plusAnciens', 'plusRecents'
+            'evolutionRecrutements', 'plusAnciens', 'plusRecents',
+            'documentTypes', 'departments', 'services'
         ));
     }
 }

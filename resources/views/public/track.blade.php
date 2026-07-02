@@ -202,67 +202,71 @@
                     </div>
                 </div>
                 
-                <!-- Processing Timeline -->
+                <!-- Processing Timeline publique (simplifiée) -->
                 <div style="margin-bottom: 40px;">
                     <h4 style="color: #1f2937; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; font-size: 1.3rem; font-weight: 700;">
-                        <i class="fas fa-history" style="color: #8b5cf6; margin-right: 10px;"></i> Historique de traitement
+                        <i class="fas fa-history" style="color: #8b5cf6; margin-right: 10px;"></i> Avancement de votre demande
                     </h4>
-                    
+
+                    @php
+                        $wf = $request->workflow_status ?? 'soumise';
+                        $rejected = $wf === 'rejetee';
+                        $approved = in_array($wf, ['validee_dg', 'approuvee', 'cloturee']);
+                        $inProgress = !$rejected && !$approved;
+
+                        $publicSteps = [
+                            ['key' => 'soumise', 'label' => 'Demande reçue', 'icon' => 'fa-paper-plane', 'desc' => 'Votre demande a bien été enregistrée'],
+                            ['key' => 'etude',   'label' => 'En cours d\'étude', 'icon' => 'fa-search', 'desc' => 'Votre demande est en cours d\'examen par nos équipes'],
+                            ['key' => 'fin',     'label' => $rejected ? 'Demande rejetée' : 'Demande approuvée', 'icon' => $rejected ? 'fa-times-circle' : 'fa-check-circle', 'desc' => $rejected ? ($request->admin_comment ?? 'Votre demande n\'a pas pu être approuvée') : 'Votre demande a été validée'],
+                        ];
+                    @endphp
+
                     <div class="timeline">
-                        <div class="timeline-item completed">
-                            <div class="timeline-icon">
-                                <i class="fas fa-check"></i>
+                        @foreach($publicSteps as $step)
+                            @php
+                                if ($step['key'] === 'soumise') {
+                                    $isCompleted = true; $isCurrent = false;
+                                } elseif ($step['key'] === 'etude') {
+                                    $isCompleted = $approved || $rejected; $isCurrent = $inProgress;
+                                } else {
+                                    $isCompleted = $approved || $rejected; $isCurrent = $approved || $rejected;
+                                }
+                            @endphp
+                            <div class="timeline-item {{ $isCompleted ? 'completed' : ($isCurrent ? 'current' : '') }} {{ $rejected && $step['key'] === 'fin' ? 'rejected' : '' }}">
+                                <div class="timeline-icon">
+                                    @if($isCompleted)
+                                        <i class="fas fa-check"></i>
+                                    @elseif($isCurrent)
+                                        <i class="fas {{ $step['icon'] }}"></i>
+                                    @else
+                                        <i class="fas fa-circle" style="font-size: 0.7rem;"></i>
+                                    @endif
+                                </div>
+                                <div class="timeline-content">
+                                    <h5>{{ $step['label'] }}</h5>
+                                    <p>{{ $step['desc'] }}</p>
+                                </div>
                             </div>
-                            <div class="timeline-content">
-                                <h5>Demande soumise</h5>
-                                <p>{{ $request->created_at->format('d/m/Y à H:i') }}</p>
-                            </div>
-                        </div>
-                        
-                        @if($request->status !== 'pending')
-                        <div class="timeline-item completed">
-                            <div class="timeline-icon">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h5>Demande traitée</h5>
-                                <p>{{ $request->updated_at->format('d/m/Y à H:i') }}</p>
-                            </div>
-                        </div>
-                        @else
-                        <div class="timeline-item current">
-                            <div class="timeline-icon">
-                                <i class="fas fa-clock"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h5>En cours de traitement</h5>
-                                <p>Votre demande est en cours d'examen par nos équipes</p>
-                            </div>
-                        </div>
-                        @endif
-                        
-                        @if($request->status === 'approved')
-                        <div class="timeline-item completed">
-                            <div class="timeline-icon">
-                                <i class="fas fa-check"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h5>Demande approuvée</h5>
-                                <p>Votre demande a été approuvée et sera traitée dans les plus brefs délais</p>
-                            </div>
-                        </div>
-                        @elseif($request->status === 'rejected')
-                        <div class="timeline-item rejected">
-                            <div class="timeline-icon">
-                                <i class="fas fa-times"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <h5>Demande rejetée</h5>
-                                <p>Votre demande n'a pas pu être approuvée</p>
-                            </div>
-                        </div>
-                        @endif
+                        @endforeach
                     </div>
+
+                    @if($request->dg_signature_file || $request->scan_file)
+                    <div class="mt-4">
+                        <h6 style="color: #1f2937; font-weight: 700; margin-bottom: 12px;"><i class="fas fa-paperclip me-2 text-success"></i>Documents associés</h6>
+                        <div class="d-flex gap-2">
+                            @if($request->dg_signature_file)
+                            <a href="{{ asset('storage/' . $request->dg_signature_file) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-signature me-1"></i>Document signé
+                            </a>
+                            @endif
+                            @if($request->scan_file)
+                            <a href="{{ asset('storage/' . $request->scan_file) }}" target="_blank" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-file-pdf me-1"></i>Scan
+                            </a>
+                            @endif
+                        </div>
+                    </div>
+                    @endif
                 </div>
                 
                 <!-- Admin Comments -->

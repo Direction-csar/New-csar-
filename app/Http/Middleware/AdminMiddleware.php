@@ -36,9 +36,10 @@ class AdminMiddleware
 
         $user = Auth::guard('admin')->user();
 
-        // Vérifier si l'utilisateur a le rôle admin
-        if ($user->role !== 'admin') {
-            Log::warning('Tentative d\'accès Admin avec un rôle non autorisé', [
+        // Vérifier si l'utilisateur a un rôle autorisé (admin ou rôle workflow)
+        $allowedRoles = ['admin', 'super_admin', 'signataire', 'scanneur', 'dg', 'directeur_general'];
+        if (!in_array($user->role, $allowedRoles)) {
+            Log::warning('Tentative d\'accès interface admin/DSAR avec un rôle non autorisé', [
                 'user_id' => $user->id,
                 'user_email' => $user->email,
                 'user_role' => $user->role,

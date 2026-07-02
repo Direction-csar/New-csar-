@@ -24,9 +24,10 @@ class UserController extends Controller
             'responsable' => 3,
             'agent' => 4,
             'drh' => 5,
-            'entrepot' => 3 // Alias pour responsable
+            'entrepot' => 3, // Alias pour responsable
+            'magasinier' => 3 // Magasinier rattaché à un magasin
         ];
-        
+
         return $roleMap[$roleName] ?? 4; // Par défaut: agent
     }
 
@@ -90,7 +91,13 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('admin.users.create');
+        $warehouses = \App\Models\Warehouse::where('is_active', 1)
+            ->orderBy('region')
+            ->orderBy('name')
+            ->get(['id', 'name', 'region', 'city'])
+            ->groupBy('region');
+
+        return view('admin.users.create', compact('warehouses'));
     }
 
     /**
@@ -102,8 +109,10 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email|max:255',
             'phone' => 'required|string|max:20',
-            'role' => 'required|string|in:admin,dg,drh,entrepot,agent',
-            'is_active' => 'required|boolean'
+            'role' => 'required|string|in:admin,dg,drh,entrepot,agent,magasinier',
+            'status' => 'required|string|in:actif,inactif',
+            'password' => 'required|string|min:8|confirmed',
+            'warehouse_id' => 'required_if:role,magasinier|nullable|exists:warehouses,id',
         ]);
 
         try {
@@ -115,9 +124,16 @@ class UserController extends Controller
                 'phone' => $request->phone,
                 'role' => $request->role,
                 'role_id' => $this->getRoleIdFromRoleName($request->role),
-                'is_active' => $request->is_active,
-                'password' => Hash::make('password123') // Mot de passe par défaut
+                'is_active' => $request->status === 'actif' ? 1 : 0,
+                'warehouse_id' => $request->role === 'magasinier' ? $request->warehouse_id : null,
+                'password' => Hash::make($request->password),
             ]);
+
+            // Assigner le magasinier au magasin via la relation (warehouse_id)
+            if ($request->role === 'magasinier' && $request->warehouse_id) {
+                \App\Models\Warehouse::where('id', $request->warehouse_id)
+                    ->update(['updated_at' => now()]);
+            }
 
             // Créer une notification
             Notification::create([
@@ -263,7 +279,7 @@ class UserController extends Controller
             $user->save();
 
             $status = $user->is_active ? 'activé' : 'désactivé';
-            
+
             return response()->json([
                 'success' => true,
                 'message' => "Utilisateur {$status} avec succès.",

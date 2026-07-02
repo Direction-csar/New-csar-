@@ -14,11 +14,11 @@ class SimRealDataSeeder extends Seeder
 {
     public function run(): void
     {
-        // Vider les tables (ordre respectant les FK)
-        DB::table('sim_mobile_collections')->delete();
-        DB::table('sim_collector_assignments')->delete();
-        DB::table('sim_products')->delete();
-        DB::table('sim_product_categories')->delete();
+        // Vider les tables (ordre respectant les FK) si elles existent
+        if (\Schema::hasTable('sim_mobile_collections')) DB::table('sim_mobile_collections')->delete();
+        if (\Schema::hasTable('sim_collector_assignments')) DB::table('sim_collector_assignments')->delete();
+        if (\Schema::hasTable('sim_products')) DB::table('sim_products')->delete();
+        if (\Schema::hasTable('sim_product_categories')) DB::table('sim_product_categories')->delete();
         DB::table('sim_markets')->delete();
         DB::table('sim_departments')->delete();
         DB::table('sim_regions')->delete();

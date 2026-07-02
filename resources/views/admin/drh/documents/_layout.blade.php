@@ -80,7 +80,7 @@
     {{-- Pied de page obligatoire --}}
     <div class="page-footer">
         <strong>COMMISSARIAT À LA SÉCURITÉ ALIMENTAIRE ET À LA RÉSILIENCE (CSAR)</strong><br>
-        2 Rue Amadou Assane NDIAYE X Bretagne Ferrand, Dakar — SÉNÉGAL<br>
+        22 Rue Amadou Assane NDOYE X Bérenger Féraud, Dakar — SÉNÉGAL<br>
         Tél. : (+221) 33 832 01 70 — Email : contact@csar.sn — RCCM : SN DKR 2014 B 22224 — NINEA : 005047162 2G
     </div>
 

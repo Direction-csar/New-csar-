@@ -39,6 +39,11 @@ class MediaEvent extends Model
         return $this->hasMany(MediaFile::class)->where('type', 'video');
     }
 
+    public function documents(): HasMany
+    {
+        return $this->hasMany(MediaFile::class)->where('type', 'document');
+    }
+
     public function downloads(): HasMany
     {
         return $this->hasMany(MediaDownload::class);

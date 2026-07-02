@@ -1,0 +1,229 @@
+﻿================================================================================
+  PRÉSENTATION ASBDPN – RÉUNION DE COORDINATION CSAR
+  15 Juin 2026 | Durée : 15 minutes
+  Prise de fonction : 1er Janvier 2026 (6 mois d'activité)
+================================================================================
+
+
+I. INFORMATIONS GÉNÉRALES
+--------------------------------------------------------------------------------
+
+Nom du responsable :        Mohamed SOW
+Titre / Poste :             Administrateur des Systèmes, Bases de Données
+                            et Plateforme Numérique
+Structure / Service :       ASBDPN – CSAR
+Période couverte :          Janvier 2026 à Juin 2026 (6 mois)
+Date de rédaction :         15 Juin 2026
+Destinataire :              Conseil de Coordination du CSAR
+
+
+II. RÉSUMÉ EXÉCUTIF
+--------------------------------------------------------------------------------
+
+Synthèse des faits marquants et points clés du semestre :
+
+  • Construction complète du socle numérique du CSAR (zéro -> plateforme
+    opérationnelle en 6 mois)
+  • Site institutionnel csar.sn en ligne en 3 langues (FR / EN / AR)
+  • 6 interfaces métiers déployées et sécurisées (Admin, DG, DSAR, DRH, CTC,
+    Superviseur SIM)
+  • 3 applications mobiles livrées (SIM Collect, CSAR App, Admin Mobile)
+  • Digitalisation de la gestion des stocks des magasins (entrants, sortants,
+    inventaire) + gestion des magasiniers
+  • Application pour les magasiniers : en cours de création
+  • Module RH complet (fiches, documents, paie, présences) + assurance maladie
+    (suivi des agents affiliés) + Avancement Tabaski 2026 (lancé par le DRH
+    en mai 2026)
+  • Logiciel de paie Finpaie : révisions Janv–Avr 2026, cahier des charges
+    avec le DRH Darwich, formation prévue
+  • Numérisation des archives lancée (stagiaire archiviste en place, cahier
+    des charges en cours, portée : toutes les directions du CSAR)
+  • Matériel de collecte SIM financé par le FSRP (21 600 000 FCFA)
+  • Matériel CSAR reçu : ordinateur HP, serveur PowerEdge R760, onduleur,
+    écrans (omission UC pour écrans identifiée, en cours avec FSRP)
+  • Collaboration SONATEL en cours (fibre optique, API Orange Money,
+    cybersécurité)
+  • Audit sécurité 2026 réalisé et corrigé, conformité RGPD opérationnelle
+  • Notifications temps réel pour les demandes d'aide citoyennes (actuellement
+    actives)
+
+
+
+III. RÉALISATIONS DU SEMESTRE
+--------------------------------------------------------------------------------
+
+3.1  Maintenance du parc informatique et infrastructures
+--------------------------------------------------------------------------------
+
+  Élément                          Statut        Détail
+  -------------------------------  ------------  --------------------------------
+  Serveur dédié BDD                Opérationnel  PowerEdge R760
+  Base MySQL 8.0+                  Opérationnel  50+ tables, architecture
+                                                   normalisée
+  Site web csar.sn                 En ligne      Certificat SSL/TLS 1.3 actif
+  Emails professionnels            5 comptes     Créés et actifs
+  Backups automatiques             Quotidiens    Chiffrés, testés mensuellement
+  Cache et performance             Redis         Index optimisés
+
+  Matériel reçu (CSAR / FSRP) :
+    • 1 ordinateur HP (poste de travail)
+    • 1 serveur PowerEdge R760 (opérationnel)
+    • 1 onduleur
+    • Écrans reçus
+
+  Omission identifiée lors des spécifications :
+    -> Unités centrales pour les écrans manquantes (omission lors de la
+       rédaction des spécifications techniques)
+
+  Environnement du serveur :
+    -> Un environnement parfait est requis pour la sécurité et la pérennité
+       du serveur (climatisation, accès contrôlé, protection électrique)
+
+  Spécifications complémentaires :
+    -> Les spécifications complètes du matériel sont en cours de finalisation
+       avec notre partenaire FSRP
+
+Parole (30 secondes) :
+  "En six mois, nous sommes partis de zéro. Serveur dédié, plus de cinquante
+  tables relationnelles, site institutionnel en ligne, cinq emails
+  professionnels, backups quotidiens et chiffrés. J'ai reçu un ordinateur HP,
+  le serveur, un onduleur et des écrans. Une omission a été identifiée :
+  les unités centrales pour les écrans n'avaient pas été prévues dans les
+  spécifications initiales. Le serveur nécessite un environnement sécurisé
+  et adapté. Les spécifications complètes sont en cours avec le FSRP."
+
+
+
+3.2  Gestion du réseau et des infrastructures
+--------------------------------------------------------------------------------
+
+  • Architecture réseau interne configurée
+  • Interconnexion siège et inspections régionales planifiée (collaboration
+    SONATEL en cours)
+  • Fibre optique : offre en révision avec la SONATEL pour le siège et
+    14 inspections régionales
+  • Prérequis : coordonnées GPS des inspections régionales transmises à SONATEL
+  • Visite d'ingénieur SONATEL sur site prévue pour configuration réseau optimale
+  • Pour la SONATEL, la démarche est en cours depuis la réunion du 21 avril 2026
+
+Parole (30 secondes) :
+  "La collaboration avec la SONATEL est en cours pour la fibre optique siège
+  et inspections régionales, ainsi que l'intégration de l'API Orange Money
+  pour la digitalisation de la petite caisse et des dons."
+
+
+3.3  Assistance et support technique aux utilisateurs
+--------------------------------------------------------------------------------
+
+  • Support technique aux 6 directions utilisatrices des interfaces métiers
+  • Maintenance corrective et évolutive des applications
+  • Préparation des formations utilisateurs pour le second semestre :
+      - Inspecteurs SIM sur l'application SIM Collect
+      - Directions sur leurs interfaces internes respectives
+  • Accompagnement des équipes SIM pour le déploiement du matériel de collecte
+  • Notifications temps réel actuellement reçues pour les demandes d'aide
+    citoyennes
+
+
+3.4  Développement / Projets applicatifs
+--------------------------------------------------------------------------------
+
+A. Plateforme Publique csar.sn
+    ------------------------------
+
+    Site responsive (mobile, tablette, ordinateur)
+    3 langues : Français, Anglais, Arabe
+
+    Modules opérationnels :
+      • Accueil, Institution, Actualités, Rapports, Galerie, FAQ, Projets
+      • Formulaire demande d'aide (géolocalisé + code suivi unique)
+          -> Actuellement : notifications temps réel reçues pour chaque
+             nouvelle demande citoyenne
+      • Donations en ligne (PayPal actif)
+      • Carte interactive (entrepôts et missions)
+      • Newsletter (double opt-in)
+
+    Développements S2 identifiés :
+      • Intégration paiements mobiles (Wave, Orange Money)
+      • Prérequis : abonnements API complémentaires
+      • Budget en cours de validation avec la DFC
+
+    Impact : Temps de traitement des demandes citoyennes réduit de 60%
+
+    Parole (1 minute) :
+      "Le site public est opérationnel en trois langues avec PayPal. Le
+      formulaire de demande d'aide est actif : nous recevons actuellement des
+      notifications temps réel pour chaque nouvelle demande. Pour S2,
+      l'intégration des paiements mobiles Wave et Orange Money est
+      prioritaire, sous réserve de validation budgétaire DFC."
+
+
+
+B. 6 Interfaces Métiers – Déployées et en ligne
+    -------------------------------------------
+
+    ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+    │   ADMIN     │  │     DG      │  │    DSAR     │
+    │  (IT/ASBDPN)│  │  (Lecture)  │  │(Sécurité    │
+    │             │  │             │  │ Alimentaire)│
+    └─────────────┘  └─────────────┘  └─────────────┘
+
+    ┌─────────────┐  ┌─────────────┐  ┌─────────────┐
+    │    DRH      │  │     CTC     │  │ SUPERVISEUR │
+    │  (Personnel,│  │ (Communi-   │  │    SIM      │
+    │   paie,     │  │  cation)    │  │             │
+    │ magasiniers)│  │             │  │             │
+    └─────────────┘  └─────────────┘  └─────────────┘
+
+    • Contrôle d'accès par rôle
+    • Double authentification 2FA TOTP sur les accès sensibles
+
+    Parole (1 minute 30) :
+      "Six interfaces métiers en ligne, chacune adaptée à son utilisateur.
+      L'administrateur gère la configuration. Le DG accède en lecture aux
+      tableaux de bord. La DSAR visualise les données. Le DRH gère le
+      personnel et les magasiniers. La communication gère les publications.
+      Le superviseur SIM suit les collecteurs en temps réel. Toutes sont
+      protégées par double authentification."
+
+
+C. SIM – Système d'Information des Marchés
+    -----------------------------------------
+
+    Plateforme Web SIM :
+      • Consultation des prix par produit, région et période
+      • Carte des marchés géolocalisés
+      • Alertes prix configurables
+      • Rapports PDF et Excel auto-générés
+
+    Application Mobile SIM Collect :
+      • Saisie des prix hors connexion avec synchronisation automatique
+      • Localisation GPS des collectes
+      • Identification des marchés par QR Code
+      • Upload de photos des étals
+      • APK livré et fonctionnel (51 MB)
+
+    Matériel de collecte SIM (FSRP 2026) :
+
+      Équipement                         Quantité   Spécifications
+      ---------------------------------  ---------  -----------------------------
+      Tablettes Samsung Galaxy Tab A8    50         8 cœurs, 3Go RAM, 64Go,
+                                                   10.5"
+      PC Portables HP EliteBook 840 G11  7          14", 16Go, 500Go SSD
+      SSD SanDisk Extreme Portable       5          4To, 1050 Mo/s, IP55
+      Power Banks                        50         20000 mAh
+      Puces SIM 4G LTE                   50         Enquêteurs
+      Serveur PowerEdge R760             1          Data managers
+
+    Budget FSRP : 21 600 000 FCFA
+
+    Formation des inspecteurs SIM -> Prévue Juillet–Août S2
+    Formations des directions sur leurs interfaces -> Prévue Juillet–Août S2
+
+    Parole (1 minute 30) :
+      "Le SIM est opérationnel sur web et mobile. L'application fonctionne
+      hors connexion : les prix sont saisis sur le terrain et synchronisés
+      automatiquement. Le matériel de collecte est entièrement financé par
+      le FSRP. Les formations des inspecteurs SIM et des directions sur
+      leurs interfaces sont en préparation pour le second semestre."
+

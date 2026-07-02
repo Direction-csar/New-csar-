@@ -42,9 +42,29 @@ class DemandeController extends Controller
         }
 
         try {
+            // Vérifier les doublons (anti-duplication)
+            $duplicate = PublicRequest::checkDuplicate([
+                'full_name' => $request->nom . ' ' . $request->prenom,
+                'phone' => $request->telephone,
+                'subject' => $request->objet,
+            ], 24);
+
+            if ($duplicate) {
+                $msg = 'Une demande similaire a déjà été soumise récemment (code: ' . $duplicate->tracking_code . '). '
+                     . 'Veuillez patienter le traitement ou contactez-nous si nécessaire.';
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => $msg], 409);
+                }
+                return redirect()->back()->withErrors(['duplicate' => $msg])->withInput();
+            }
+
             // Générer un code de suivi unique
             $trackingCode = PublicRequest::generateTrackingCode();
-            
+            $requesterId = PublicRequest::generateRequesterId([
+                'full_name' => $request->nom . ' ' . $request->prenom,
+                'phone' => $request->telephone,
+            ]);
+
             // Préparer l'adresse (combiner région et adresse si fournie)
             $address = $request->adresse ?: $request->region;
             if ($request->adresse && $request->region) {
@@ -63,6 +83,8 @@ class DemandeController extends Controller
                 'description' => $request->description,
                 'tracking_code' => $trackingCode,
                 'status' => 'pending',
+                'workflow_status' => 'soumise',
+                'requester_id' => $requesterId,
                 'request_date' => now()->toDateString(),
                 'region' => $request->region,
                 'latitude' => $request->latitude,
@@ -74,6 +96,9 @@ class DemandeController extends Controller
                 'sms_sent' => false,
                 'is_viewed' => false,
             ]);
+
+            // Log initial du workflow
+            $publicRequest->logWorkflowAction('Demande créée', 'Soumission initiale par le demandeur');
 
             // Déclencher l'événement pour créer une notification
             try {

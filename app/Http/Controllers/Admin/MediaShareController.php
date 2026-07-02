@@ -63,7 +63,7 @@ class MediaShareController extends Controller
             'title'        => 'required|string|max:255',
             'description'  => 'nullable|string',
             'event_date'   => 'nullable|date',
-            'cover_image'  => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'cover_image'  => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
         ]);
 
         try {
@@ -118,7 +118,7 @@ class MediaShareController extends Controller
             'description' => 'nullable|string',
             'event_date'  => 'nullable|date',
             'status'      => 'required|in:active,inactive',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:4096',
+            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:20480',
         ]);
 
         try {
@@ -179,11 +179,21 @@ class MediaShareController extends Controller
     {
         $request->validate([
             'files'   => 'required|array',
-            'files.*' => 'file|mimes:jpeg,png,jpg,webp,gif,mp4,mov,avi,webm|max:153600', // 150 Mo max/fichier
+            'files.*' => [
+                'required',
+                'file',
+                'max:1024000', // 1 Go max/fichier
+                function ($attribute, $value, $fail) {
+                    $ext = strtolower($value->getClientOriginalExtension());
+                    $allowed = ['jpeg', 'jpg', 'png', 'webp', 'gif', 'mp4', 'mov', 'avi', 'webm', 'pdf', 'ppt', 'pptx'];
+                    if (!in_array($ext, $allowed)) {
+                        $fail('Format non autorisé. Extensions acceptées: jpg, png, webp, gif, mp4, mov, avi, webm, pdf, ppt, pptx.');
+                    }
+                },
+            ],
         ], [
             'files.required' => 'Veuillez sélectionner au moins un fichier.',
-            'files.*.mimes'  => 'Formats autorisés: images (jpg, png, webp, gif) et vidéos (mp4, mov, avi, webm).',
-            'files.*.max'    => 'Chaque fichier ne doit pas dépasser 150 Mo.',
+            'files.*.max'    => 'Chaque fichier ne doit pas dépasser 1 Go.',
         ]);
 
         try {
@@ -192,7 +202,13 @@ class MediaShareController extends Controller
 
             foreach ($request->file('files') as $file) {
                 $mime = $file->getMimeType();
-                $type = str_starts_with((string) $mime, 'video') ? 'video' : 'image';
+                if (str_starts_with((string) $mime, 'video')) {
+                    $type = 'video';
+                } elseif (in_array($file->getClientOriginalExtension(), ['pdf', 'ppt', 'pptx']) || str_contains((string) $mime, 'pdf') || str_contains((string) $mime, 'presentation') || str_contains((string) $mime, 'powerpoint')) {
+                    $type = 'document';
+                } else {
+                    $type = 'image';
+                }
                 $path = $file->store('media-share/' . $event->id . '/' . $type . 's', 'public');
 
                 MediaFile::create([

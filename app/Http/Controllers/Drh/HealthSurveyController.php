@@ -11,7 +11,7 @@ class HealthSurveyController extends Controller
 {
     public function index(Request $request)
     {
-        $query = HealthInsuranceSurvey::query()->latest('submitted_at');
+        $query = HealthInsuranceSurvey::confirmed()->latest('submitted_at');
 
         if ($request->filled('direction')) {
             $query->where('agent_direction', $request->direction);
@@ -34,7 +34,7 @@ class HealthSurveyController extends Controller
         $surveys = $query->paginate(25)->withQueryString();
         $stats   = $this->computeStats();
 
-        $directions = HealthInsuranceSurvey::query()
+        $directions = HealthInsuranceSurvey::confirmed()
             ->whereNotNull('agent_direction')
             ->distinct()->pluck('agent_direction')->filter()->values();
 
@@ -69,7 +69,7 @@ class HealthSurveyController extends Controller
                 'Note /5',
             ], ';');
 
-            HealthInsuranceSurvey::orderBy('submitted_at')->chunk(200, function ($rows) use ($out) {
+            HealthInsuranceSurvey::confirmed()->orderBy('submitted_at')->chunk(200, function ($rows) use ($out) {
                 foreach ($rows as $r) {
                     fputcsv($out, [
                         $r->submitted_at?->format('d/m/Y H:i'),
@@ -92,14 +92,14 @@ class HealthSurveyController extends Controller
 
     private function computeStats(): array
     {
-        $total  = HealthInsuranceSurvey::count();
-        $avgNote = $total > 0 ? round(HealthInsuranceSurvey::avg('q13_note'), 2) : 0;
+        $total  = HealthInsuranceSurvey::confirmed()->count();
+        $avgNote = $total > 0 ? round(HealthInsuranceSurvey::confirmed()->avg('q13_note'), 2) : 0;
 
-        $byNote = HealthInsuranceSurvey::selectRaw('q13_note, COUNT(*) as c')
+        $byNote = HealthInsuranceSurvey::confirmed()->selectRaw('q13_note, COUNT(*) as c')
             ->groupBy('q13_note')->pluck('c', 'q13_note')->toArray();
 
         $distribution = function (string $col) {
-            return HealthInsuranceSurvey::selectRaw("$col, COUNT(*) as c")
+            return HealthInsuranceSurvey::confirmed()->selectRaw("$col, COUNT(*) as c")
                 ->whereNotNull($col)->groupBy($col)
                 ->pluck('c', $col)->toArray();
         };

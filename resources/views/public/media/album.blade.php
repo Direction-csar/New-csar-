@@ -48,7 +48,7 @@
     @endif
 
     <div class="container py-5">
-        @if($event->images->isEmpty() && $event->videos->isEmpty())
+        @if($event->images->isEmpty() && $event->videos->isEmpty() && $event->documents->isEmpty())
             <div class="text-center py-5">
                 <i class="fas fa-folder-open fa-3x text-secondary mb-3"></i>
                 <p class="text-white-50">Aucun média disponible pour le moment.</p>
@@ -88,7 +88,7 @@
                     <i class="fas fa-file-archive me-2"></i>Tout télécharger (ZIP)
                 </a>
             </div>
-            <div class="row g-3">
+            <div class="row g-3 mb-5">
                 @foreach($event->videos as $vid)
                     <div class="col-md-6 col-lg-4">
                         <div class="media-card">
@@ -98,6 +98,30 @@
                                     <i class="fas fa-download me-1"></i>Télécharger ({{ $vid->human_size }})
                                 </a>
                             </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
+        {{-- Documents --}}
+        @if($event->documents->isNotEmpty())
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <h4 class="section-title mb-0"><i class="fas fa-file-alt me-2"></i>Documents ({{ $event->documents->count() }})</h4>
+                <a href="{{ route('public.media.zip', [$event->slug, 'documents']) }}" class="btn btn-info btn-zip">
+                    <i class="fas fa-file-archive me-2"></i>Tout télécharger (ZIP)
+                </a>
+            </div>
+            <div class="row g-3">
+                @foreach($event->documents as $doc)
+                    <div class="col-md-6 col-lg-4">
+                        <div class="media-card p-3 text-center">
+                            <i class="fas fa-file-{{ strtolower(pathinfo($doc->file_name, PATHINFO_EXTENSION)) === 'pdf' ? 'pdf' : 'powerpoint' }} fa-3x text-warning mb-3"></i>
+                            <h6 class="text-truncate" title="{{ $doc->file_name }}">{{ $doc->file_name }}</h6>
+                            <p class="text-muted small">{{ $doc->human_size }}</p>
+                            <a href="{{ route('public.media.download', [$event->slug, $doc->id]) }}" class="btn btn-sm btn-outline-info w-100">
+                                <i class="fas fa-download me-1"></i>Télécharger
+                            </a>
                         </div>
                     </div>
                 @endforeach
