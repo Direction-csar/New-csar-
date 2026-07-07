@@ -1235,7 +1235,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // === ARCHIVES PAR DIRECTION ===
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['admin'])->group(function () {
     // CPM
     Route::prefix('archives/cpm')->name('archives.cpm.')->group(function () {
         Route::get('/', [App\Http\Controllers\Cpm\ArchiveController::class, 'index'])->name('index');
@@ -1286,7 +1286,7 @@ Route::middleware(['auth'])->group(function () {
 });
 
 // === ADMIN : CONTRÔLE TOTAL ===
-Route::middleware(['auth'])->prefix('admin/archives')->name('admin.archives.')->group(function () {
+Route::middleware(['admin'])->prefix('admin/archives')->name('admin.archives.')->group(function () {
     Route::get('/', [App\Http\Controllers\Admin\ArchiveController::class, 'index'])->name('index');
     Route::delete('/{archive}', [App\Http\Controllers\Admin\ArchiveController::class, 'destroy'])->name('destroy');
     Route::post('/{archive}/restore', [App\Http\Controllers\Admin\ArchiveController::class, 'restore'])->name('restore');
