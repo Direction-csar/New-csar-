@@ -6,10 +6,11 @@ set -euo pipefail
 
 echo "=== DEPLOIEMENT CSAR.SN ==="
 
-# Configuration (à adapter si nécessaire)
-PROJECT_DIR="/var/www/csar.sn"
+# Configuration
 PHP_CMD="php"
 
+# Détecter le répertoire projet depuis l'emplacement du script
+PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$PROJECT_DIR"
 
 echo "[1/8] Git pull..."
