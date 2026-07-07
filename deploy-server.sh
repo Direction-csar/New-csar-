@@ -17,7 +17,19 @@ echo "[1/8] Git pull..."
 git pull origin main
 
 echo "[2/8] Composer install..."
-$PHP_CMD /usr/local/bin/composer install --no-dev --optimize-autoloader --no-interaction
+if command -v composer >/dev/null 2>&1; then
+    COMPOSER_CMD="composer"
+elif [ -f /usr/local/bin/composer ]; then
+    COMPOSER_CMD="$PHP_CMD /usr/local/bin/composer"
+elif [ -f /usr/bin/composer ]; then
+    COMPOSER_CMD="$PHP_CMD /usr/bin/composer"
+elif [ -f "$HOME/composer.phar" ]; then
+    COMPOSER_CMD="$PHP_CMD $HOME/composer.phar"
+else
+    echo "ERREUR: composer introuvable. Installez-le ou modifiez le script."
+    exit 1
+fi
+$COMPOSER_CMD install --no-dev --optimize-autoloader --no-interaction
 
 echo "[3/8] Migrations base de données..."
 $PHP_CMD artisan migrate --force
