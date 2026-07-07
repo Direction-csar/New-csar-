@@ -1240,6 +1240,8 @@ Route::middleware(['admin'])->group(function () {
         Route::get('/', [App\Http\Controllers\Dfc\ArchiveController::class, 'index'])->name('index');
         Route::post('/', [App\Http\Controllers\Dfc\ArchiveController::class, 'store'])->name('store');
         Route::get('/{archive}', [App\Http\Controllers\Dfc\ArchiveController::class, 'show'])->name('show');
+        Route::put('/{archive}', [App\Http\Controllers\Dfc\ArchiveController::class, 'update'])->name('update');
+        Route::delete('/{archive}', [App\Http\Controllers\Dfc\ArchiveController::class, 'destroy'])->name('destroy');
         Route::get('/{archive}/download', [App\Http\Controllers\Dfc\ArchiveController::class, 'download'])->name('download');
         Route::get('/{archive}/print', [App\Http\Controllers\Dfc\ArchiveController::class, 'print'])->name('print');
     });
@@ -1248,6 +1250,8 @@ Route::middleware(['admin'])->group(function () {
         Route::get('/', [App\Http\Controllers\Drh\ArchiveController::class, 'index'])->name('index');
         Route::post('/', [App\Http\Controllers\Drh\ArchiveController::class, 'store'])->name('store');
         Route::get('/{archive}', [App\Http\Controllers\Drh\ArchiveController::class, 'show'])->name('show');
+        Route::put('/{archive}', [App\Http\Controllers\Drh\ArchiveController::class, 'update'])->name('update');
+        Route::delete('/{archive}', [App\Http\Controllers\Drh\ArchiveController::class, 'destroy'])->name('destroy');
         Route::get('/{archive}/download', [App\Http\Controllers\Drh\ArchiveController::class, 'download'])->name('download');
         Route::get('/{archive}/print', [App\Http\Controllers\Drh\ArchiveController::class, 'print'])->name('print');
     });
@@ -1271,6 +1275,8 @@ foreach (['cpm', 'dpse', 'dtl'] as $directionSlug) {
             Route::get('/', [$controller, 'index'])->name('index');
             Route::post('/', [$controller, 'store'])->name('store');
             Route::get('/{archive}', [$controller, 'show'])->name('show');
+            Route::put('/{archive}', [$controller, 'update'])->name('update');
+            Route::delete('/{archive}', [$controller, 'destroy'])->name('destroy');
             Route::get('/{archive}/download', [$controller, 'download'])->name('download');
             Route::get('/{archive}/print', [$controller, 'print'])->name('print');
         });

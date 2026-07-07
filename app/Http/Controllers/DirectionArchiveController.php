@@ -104,6 +104,32 @@ abstract class DirectionArchiveController extends Controller
         return redirect()->back()->with('success', 'Document archivé : ' . $archive->reference);
     }
 
+    public function update(Request $request, Archive $archive)
+    {
+        Gate::authorize('update', $archive);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'annee' => 'required|integer|min:2000|max:' . (now()->year + 1),
+            'folder_id' => 'nullable|exists:archive_folders,id',
+            'description' => 'nullable|string',
+        ]);
+
+        $archive->update($request->only('title', 'annee', 'folder_id', 'description'));
+
+        return redirect()->back()->with('success', 'Document mis à jour : ' . $archive->reference);
+    }
+
+    public function destroy(Archive $archive)
+    {
+        Gate::authorize('delete', $archive);
+
+        $archive->update(['deleted_by' => Auth::id()]);
+        $archive->delete();
+
+        return redirect()->back()->with('success', 'Document supprimé : ' . $archive->reference);
+    }
+
     public function show(Archive $archive)
     {
         Gate::authorize('view', $archive);
