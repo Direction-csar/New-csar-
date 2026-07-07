@@ -1234,18 +1234,8 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
-// === ARCHIVES PAR DIRECTION ===
+// === ARCHIVES PAR DIRECTION (DFC, DRH : panel admin partage) ===
 Route::middleware(['admin'])->group(function () {
-    // CPM
-    Route::prefix('archives/cpm')->name('archives.cpm.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Cpm\ArchiveController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\Cpm\ArchiveController::class, 'store'])->name('store');
-        Route::get('/{archive}', [App\Http\Controllers\Cpm\ArchiveController::class, 'show'])->name('show');
-        Route::get('/{archive}/download', [App\Http\Controllers\Cpm\ArchiveController::class, 'download'])->name('download');
-        Route::get('/{archive}/print', [App\Http\Controllers\Cpm\ArchiveController::class, 'print'])->name('print');
-    });
-
-    // DFC
     Route::prefix('archives/dfc')->name('archives.dfc.')->group(function () {
         Route::get('/', [App\Http\Controllers\Dfc\ArchiveController::class, 'index'])->name('index');
         Route::post('/', [App\Http\Controllers\Dfc\ArchiveController::class, 'store'])->name('store');
@@ -1254,16 +1244,6 @@ Route::middleware(['admin'])->group(function () {
         Route::get('/{archive}/print', [App\Http\Controllers\Dfc\ArchiveController::class, 'print'])->name('print');
     });
 
-    // DPSE
-    Route::prefix('archives/dpse')->name('archives.dpse.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Dpse\ArchiveController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\Dpse\ArchiveController::class, 'store'])->name('store');
-        Route::get('/{archive}', [App\Http\Controllers\Dpse\ArchiveController::class, 'show'])->name('show');
-        Route::get('/{archive}/download', [App\Http\Controllers\Dpse\ArchiveController::class, 'download'])->name('download');
-        Route::get('/{archive}/print', [App\Http\Controllers\Dpse\ArchiveController::class, 'print'])->name('print');
-    });
-
-    // DRH
     Route::prefix('archives/drh')->name('archives.drh.')->group(function () {
         Route::get('/', [App\Http\Controllers\Drh\ArchiveController::class, 'index'])->name('index');
         Route::post('/', [App\Http\Controllers\Drh\ArchiveController::class, 'store'])->name('store');
@@ -1272,18 +1252,30 @@ Route::middleware(['admin'])->group(function () {
         Route::get('/{archive}/print', [App\Http\Controllers\Drh\ArchiveController::class, 'print'])->name('print');
     });
 
-    // DTL
-    Route::prefix('archives/dtl')->name('archives.dtl.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Dtl\ArchiveController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\Dtl\ArchiveController::class, 'store'])->name('store');
-        Route::get('/{archive}', [App\Http\Controllers\Dtl\ArchiveController::class, 'show'])->name('show');
-        Route::get('/{archive}/download', [App\Http\Controllers\Dtl\ArchiveController::class, 'download'])->name('download');
-        Route::get('/{archive}/print', [App\Http\Controllers\Dtl\ArchiveController::class, 'print'])->name('print');
-    });
-
-    // Gestion des dossiers
     Route::post('/archive-folders', [App\Http\Controllers\ArchiveFolderController::class, 'store'])->name('folders.store');
 });
+
+// === PORTAILS DEDIES CPM, DPSE, DTL ===
+foreach (['cpm', 'dpse', 'dtl'] as $directionSlug) {
+    Route::prefix($directionSlug)->name("{$directionSlug}.")->group(function () use ($directionSlug) {
+        Route::get('/login', fn () => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->showLoginForm($directionSlug))->name('login');
+        Route::post('/login', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->login($request, $directionSlug))->name('login.submit');
+        Route::post('/logout', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->logout($request, $directionSlug))->name('logout');
+    });
+
+    Route::middleware(["direction:{$directionSlug}"])->group(function () use ($directionSlug) {
+        Route::get("/admin/{$directionSlug}", fn () => app(\App\Http\Controllers\DirectionDashboardController::class)->index($directionSlug))->name("{$directionSlug}.dashboard");
+
+        Route::prefix("archives/{$directionSlug}")->name("archives.{$directionSlug}.")->group(function () use ($directionSlug) {
+            $controller = 'App\\Http\\Controllers\\' . ucfirst($directionSlug) . '\\ArchiveController';
+            Route::get('/', [$controller, 'index'])->name('index');
+            Route::post('/', [$controller, 'store'])->name('store');
+            Route::get('/{archive}', [$controller, 'show'])->name('show');
+            Route::get('/{archive}/download', [$controller, 'download'])->name('download');
+            Route::get('/{archive}/print', [$controller, 'print'])->name('print');
+        });
+    });
+}
 
 // === ADMIN : CONTRÔLE TOTAL ===
 Route::middleware(['admin'])->prefix('admin/archives')->name('admin.archives.')->group(function () {

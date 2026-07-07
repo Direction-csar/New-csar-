@@ -49,6 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'enforce.2fa' => \App\Http\Middleware\EnforceTwoFactor::class,
             'http-cache' => \App\Http\Middleware\HttpCache::class,
             'workflow.role' => \App\Http\Middleware\CheckWorkflowRole::class,
+            'direction' => \App\Http\Middleware\DirectionPortalMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

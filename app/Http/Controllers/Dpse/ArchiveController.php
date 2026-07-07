@@ -10,4 +10,9 @@ class ArchiveController extends DirectionArchiveController
     {
         return 'DPSE';
     }
+
+    protected function getLayout(): string
+    {
+        return 'layouts.direction-portal';
+    }
 }

@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends($layout ?? 'layouts.admin', ['direction' => $direction])
 
 @section('title', 'Archives ' . $direction)
 

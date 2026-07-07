@@ -18,6 +18,15 @@ abstract class DirectionArchiveController extends Controller
         return 'archives.' . strtolower($this->getDirection()) . '.';
     }
 
+    /**
+     * Retourne le nom du layout Blade a utiliser pour les vues archives.
+     * Surcharger dans les sous-classes ayant un portail dedie (ex: Cpm, Dpse, Dtl).
+     */
+    protected function getLayout(): string
+    {
+        return 'layouts.admin';
+    }
+
     public function index(Request $request)
     {
         $direction = $this->getDirection();
@@ -53,6 +62,7 @@ abstract class DirectionArchiveController extends Controller
             'annees' => $annees,
             'direction' => $direction,
             'request' => $request,
+            'layout' => $this->getLayout(),
         ]);
     }
 
@@ -107,6 +117,7 @@ abstract class DirectionArchiveController extends Controller
         return view('archives.show', [
             'archive' => $archive,
             'direction' => $this->getDirection(),
+            'layout' => $this->getLayout(),
         ]);
     }
 

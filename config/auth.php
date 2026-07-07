@@ -52,6 +52,18 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'cpm' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+        'dpse' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+        'dtl' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
         'supervisor' => [
             'driver' => 'session',
             'provider' => 'users',

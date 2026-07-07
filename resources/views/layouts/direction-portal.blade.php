@@ -4,18 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Espace DRH') - CSAR DRH</title>
+    <title>@yield('title', 'Espace ' . strtoupper($direction)) - CSAR</title>
 
     <link rel="icon" type="image/png" href="{{ asset('images/csar-logo.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
-            --primary-color: #0d9488;
-            --secondary-color: #065f46;
-            --gradient-primary: linear-gradient(135deg, #0d9488 0%, #065f46 100%);
+            --primary-color: #1e3a8a;
+            --secondary-color: #1d4ed8;
+            --gradient-primary: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
             --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
             --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.15);
         }
@@ -27,7 +26,6 @@
             margin: 0;
         }
 
-        /* ===== SIDEBAR ===== */
         .sidebar {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
             width: 280px;
@@ -152,7 +150,6 @@
         }
         .btn-logout:hover { background: rgba(255,255,255,0.25); }
 
-        /* ===== MAIN ===== */
         .main-content {
             margin-left: 280px;
             min-height: 100vh;
@@ -192,7 +189,7 @@
             cursor: pointer;
             transition: background 0.2s;
         }
-        .sidebar-toggle:hover { background: rgba(13,148,136,0.12); }
+        .sidebar-toggle:hover { background: rgba(30,58,138,0.12); }
 
         .navbar-right {
             display: flex;
@@ -210,7 +207,7 @@
             justify-content: center;
             font-weight: 700;
             font-size: 1rem;
-            box-shadow: 0 4px 12px rgba(13,148,136,0.45);
+            box-shadow: 0 4px 12px rgba(30,58,138,0.45);
             cursor: pointer;
         }
 
@@ -218,7 +215,6 @@
             padding: 1.5rem;
         }
 
-        /* Mobile */
         .sidebar-overlay {
             display: none;
             position: fixed;
@@ -246,6 +242,8 @@
 
 @php
 $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
+$portalLabel = $directionLabel ?? strtoupper($direction);
+$directionSlug = strtolower($direction);
 @endphp
 
 {{-- Sidebar --}}
@@ -255,45 +253,20 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
             <img src="{{ asset('images/csar-logo.png') }}" alt="CSAR" onerror="this.style.display='none'">
         </div>
         <div class="brand-text">
-            <strong>CSAR DRH</strong>
-            <small>Ressources Humaines</small>
+            <strong>CSAR {{ strtoupper($direction) }}</strong>
+            <small>{{ $portalLabel }}</small>
         </div>
     </div>
 
     <nav class="sidebar-menu">
-        <a href="{{ route('admin.drh.dashboard') }}" class="menu-link {{ str_contains($currentRoute, 'drh.dashboard') ? 'active' : '' }}">
+        <a href="{{ route($directionSlug . '.dashboard') }}" class="menu-link {{ str_contains($currentRoute, $directionSlug . '.dashboard') ? 'active' : '' }}">
             <i class="fas fa-tachometer-alt"></i>
             <span class="menu-text">Tableau de bord</span>
         </a>
 
-        <a href="{{ route('admin.drh.personnel.index') }}" class="menu-link {{ str_contains($currentRoute, 'drh.personnel') ? 'active' : '' }}">
-            <i class="fas fa-users"></i>
-            <span class="menu-text">Personnel</span>
-        </a>
-
-        <a href="{{ route('admin.drh.personnel.create') }}" class="menu-link {{ $currentRoute === 'admin.drh.personnel.create' ? 'active' : '' }}">
-            <i class="fas fa-user-plus"></i>
-            <span class="menu-text">Ajouter un agent</span>
-        </a>
-
-        <a href="{{ route('admin.drh.tabaski.index') }}" class="menu-link {{ str_contains($currentRoute, 'drh.tabaski') ? 'active' : '' }}">
-            <i class="fas fa-hand-holding-usd"></i>
-            <span class="menu-text">Avances Tabaski</span>
-        </a>
-
-        <a href="{{ route('admin.drh.health-survey.index') }}" class="menu-link {{ str_contains($currentRoute, 'drh.health-survey') ? 'active' : '' }}">
-            <i class="fas fa-heartbeat"></i>
-            <span class="menu-text">Enquête Assurance Maladie</span>
-        </a>
-
-        <a href="{{ route('admin.drh.documents') }}" class="menu-link {{ str_contains($currentRoute, 'drh.documents') ? 'active' : '' }}">
-            <i class="fas fa-file-alt"></i>
-            <span class="menu-text">Documents RH</span>
-        </a>
-
-        <a href="{{ route('archives.drh.index') }}" class="menu-link {{ str_contains($currentRoute, 'archives.drh') ? 'active' : '' }}">
+        <a href="{{ route('archives.' . $directionSlug . '.index') }}" class="menu-link {{ str_contains($currentRoute, 'archives.' . $directionSlug) ? 'active' : '' }}">
             <i class="fas fa-archive"></i>
-            <span class="menu-text">Archives DRH</span>
+            <span class="menu-text">Archives {{ strtoupper($direction) }}</span>
         </a>
 
         <a href="{{ url('/') }}" target="_blank" class="menu-link">
@@ -303,7 +276,7 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
     </nav>
 
     <div class="sidebar-footer">
-        <form method="POST" action="{{ route('drh.logout') }}">
+        <form method="POST" action="{{ route($directionSlug . '.logout') }}">
             @csrf
             <button type="submit" class="btn-logout">
                 <i class="fas fa-sign-out-alt"></i>
@@ -322,11 +295,11 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
             <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menu">
                 <i class="fas fa-bars"></i>
             </button>
-            <h4>@yield('page-title', 'Espace DRH')</h4>
+            <h4>@yield('page-title', 'Espace ' . strtoupper($direction))</h4>
         </div>
         <div class="navbar-right">
             <div class="user-avatar" title="{{ Auth::user()->name ?? 'Utilisateur' }}">
-                {{ strtoupper(substr(Auth::user()->name ?? 'D', 0, 1)) }}
+                {{ strtoupper(substr(Auth::user()->name ?? strtoupper($direction), 0, 1)) }}
             </div>
         </div>
     </div>
