@@ -5,21 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Administration') - CSAR Platform</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/csar-logo.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/csar-logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/csar-logo.png') }}">
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <!-- Custom CSS -->
     <style>
         :root {
@@ -40,7 +40,7 @@
             --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.15);
             --shadow-strong: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -163,23 +163,23 @@
             z-index: 10 !important;
             position: relative !important;
         }
-        
+
         .menu-link:hover {
             background-color: rgba(255, 255, 255, 0.1) !important;
         }
-        
+
         .menu-item {
             cursor: pointer !important;
             pointer-events: auto !important;
         }
-        
+
         /* Boutons cliquables */
         .btn {
             cursor: pointer !important;
             pointer-events: auto !important;
             z-index: 10 !important;
         }
-        
+
         /* Liens dans le contenu */
         a {
             cursor: pointer !important;
@@ -193,11 +193,11 @@
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
             }
-            
+
             .sidebar.show {
                 transform: translateX(0);
             }
-            
+
             .main-content {
                 margin-left: 0 !important;
             }
@@ -208,7 +208,7 @@
                 width: 50px;
                 height: 50px;
             }
-            
+
             .icon-3d i {
                 font-size: 20px;
             }
@@ -231,12 +231,12 @@
         .sidebar.collapsed {
             width: 80px;
         }
-        
+
         .sidebar-header {
             padding: 1.5rem;
             border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        
+
         .logo {
             color: white;
             font-size: 1.5rem;
@@ -245,7 +245,7 @@
             display: flex;
             align-items: center;
         }
-        
+
         .logo img {
             width: 40px;
             height: 40px;
@@ -323,7 +323,7 @@
         .main-content.expanded {
             margin-left: 80px;
         }
-        
+
         .content-wrapper {
             padding: 20px;
             min-height: calc(100vh - 80px);
@@ -351,7 +351,7 @@
         .stats-card {
             transition: transform 0.3s ease;
         }
-        
+
         .stats-card:hover {
             transform: translateY(-5px);
         }
@@ -489,7 +489,7 @@
             align-items: center;
             gap: 1rem;
         }
-        
+
         .user-avatar {
             width: 40px;
             height: 40px;
@@ -643,7 +643,7 @@
             border-radius: 20px;
             font-weight: 500;
         }
-        
+
         .badge-success {
             background: var(--success-color);
         }
@@ -705,26 +705,26 @@
                 transform: translateX(-100%);
                 width: 280px;
             }
-            
+
             .sidebar.show {
                 transform: translateX(0);
             }
-            
+
             .main-content {
                 margin-left: 0;
             width: 100%;
             }
-            
+
             .content-wrapper {
                 padding: 15px;
             }
         }
-        
+
         @media (max-width: 576px) {
             .content-wrapper {
                 padding: 10px;
             }
-            
+
             .container-fluid {
                 padding-left: 10px;
                 padding-right: 10px;
@@ -847,11 +847,11 @@
             background: var(--gradient-danger);
         }
     </style>
-    
+
     <!-- Système de notifications CSAR -->
     <link href="{{ asset('css/notifications.css') }}" rel="stylesheet">
     <link href="{{ asset('css/notifications-custom.css') }}" rel="stylesheet">
-    
+
     @stack('styles')
 </head>
 <body>
@@ -864,7 +864,7 @@
                 <span class="logo-text">{{ request()->routeIs('ctc.*') ? 'CTC CSAR' : 'CSAR Admin' }}</span>
             </a>
         </div>
-        
+
         <nav class="sidebar-menu">
             @if(request()->routeIs('ctc.*'))
             {{-- Menu CTC - Conseil Technique Communication --}}
@@ -925,7 +925,7 @@
                     <span>Tableau de bord</span>
                 </a>
             </div>
-            
+
             <!-- Gestion des demandes -->
             @php
                 $userRole = auth()->user()->role ?? 'admin';
@@ -995,7 +995,7 @@
                 </a>
             </div>
             @endif
-            
+
             <!-- Gestion des utilisateurs -->
             <div class="menu-item">
                 <a href="{{ route('admin.users.index') }}" class="menu-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
@@ -1003,7 +1003,7 @@
                     <span>Utilisateurs</span>
                 </a>
             </div>
-            
+
             <!-- Gestion des entrepôts -->
             <div class="menu-item">
                 <a href="{{ route('admin.entrepots.index') }}" class="menu-link {{ request()->routeIs('admin.entrepots.*') ? 'active' : '' }}">
@@ -1011,7 +1011,7 @@
                     <span>Entrepôts</span>
                 </a>
             </div>
-            
+
             <!-- Gestion des stocks -->
             <div class="menu-item">
                 <a href="{{ route('admin.stock.index') }}" class="menu-link {{ request()->routeIs('admin.stock.*') ? 'active' : '' }}">
@@ -1019,7 +1019,7 @@
                     <span>Gestion des Stocks</span>
                 </a>
             </div>
-            
+
             <!-- Gestion du personnel -->
             <div class="menu-item">
                 <a href="{{ route('admin.personnel.index') }}" class="menu-link {{ request()->routeIs('admin.personnel.*') ? 'active' : '' }}">
@@ -1027,7 +1027,7 @@
                     <span>Personnel</span>
                 </a>
             </div>
-            
+
             <!-- Gestion du contenu - SUPPRIMÉ (section non utilisée) -->
             {{-- <div class="menu-item">
                 <a href="{{ route('admin.contenu.index') }}" class="menu-link {{ request()->routeIs('admin.contenu.*') ? 'active' : '' }}">
@@ -1035,7 +1035,7 @@
                     <span>Gestion du contenu</span>
                 </a>
             </div> --}}
-            
+
             <!-- Statistiques -->
             <div class="menu-item">
                 <a href="{{ route('admin.statistics') }}" class="menu-link {{ request()->routeIs('admin.statistics*') ? 'active' : '' }}">
@@ -1043,7 +1043,7 @@
                     <span>Statistiques</span>
                 </a>
             </div>
-            
+
             <!-- Chiffres Clés -->
             <div class="menu-item">
                 <a href="{{ route('admin.chiffres-cles.index') }}" class="menu-link {{ request()->routeIs('admin.chiffres-cles*') ? 'active' : '' }}">
@@ -1059,7 +1059,7 @@
                     <span>Gestion des Dons</span>
                 </a>
             </div>
-            
+
             <!-- Communication & Publications (hub central : actualités, rapports, newsletter, galerie, messages) -->
             <div class="menu-item">
                 <a href="{{ route('admin.communications.index') }}" class="menu-link {{ request()->routeIs('admin.communications.*') || request()->routeIs('admin.communication.*') || request()->routeIs('admin.actualites.*') || request()->routeIs('admin.newsletter.*') || request()->routeIs('admin.sim-reports.*') || request()->routeIs('admin.galerie.*') || request()->routeIs('admin.messages.*') ? 'active' : '' }}">
@@ -1109,7 +1109,7 @@
                     <span class="badge bg-success ms-auto" style="font-size:0.65rem;padding:2px 6px;">Live</span>
                 </a>
             </div>
-            
+
             <!-- Audit & Sécurité -->
             <div class="menu-item">
                 <a href="{{ route('admin.audit.index') }}" class="menu-link {{ request()->routeIs('admin.audit.*') ? 'active' : '' }}">
@@ -1117,8 +1117,47 @@
                     <span>Audit & Sécurité</span>
                 </a>
             </div>
-            
-            
+
+            <!-- Archives DFC -->
+            <div class="menu-item">
+                <a href="{{ route('archives.dfc.index') }}" class="menu-link {{ request()->routeIs('archives.dfc.*') ? 'active' : '' }}">
+                    <i class="fas fa-archive"></i>
+                    <span>Archives DFC</span>
+                </a>
+            </div>
+
+            <!-- Archives CPM -->
+            <div class="menu-item">
+                <a href="{{ route('archives.cpm.index') }}" class="menu-link {{ request()->routeIs('archives.cpm.*') ? 'active' : '' }}">
+                    <i class="fas fa-archive"></i>
+                    <span>Archives CPM</span>
+                </a>
+            </div>
+
+            <!-- Archives DTL -->
+            <div class="menu-item">
+                <a href="{{ route('archives.dtl.index') }}" class="menu-link {{ request()->routeIs('archives.dtl.*') ? 'active' : '' }}">
+                    <i class="fas fa-archive"></i>
+                    <span>Archives DTL</span>
+                </a>
+            </div>
+
+            <!-- Archives DPSE -->
+            <div class="menu-item">
+                <a href="{{ route('archives.dpse.index') }}" class="menu-link {{ request()->routeIs('archives.dpse.*') ? 'active' : '' }}">
+                    <i class="fas fa-archive"></i>
+                    <span>Archives DPSE</span>
+                </a>
+            </div>
+
+            <!-- Archives DRH -->
+            <div class="menu-item">
+                <a href="{{ route('archives.drh.index') }}" class="menu-link {{ request()->routeIs('archives.drh.*') ? 'active' : '' }}">
+                    <i class="fas fa-archive"></i>
+                    <span>Archives DRH</span>
+                </a>
+            </div>
+
             <!-- Profil utilisateur -->
             <div class="menu-item">
                 <a href="{{ route('admin.profile') }}" class="menu-link">
@@ -1127,7 +1166,7 @@
                 </a>
             </div>
             @endif
-            
+
             <!-- Indicateur de défilement -->
             <div class="scroll-indicator">
                 <i class="fas fa-chevron-down"></i>
@@ -1135,7 +1174,7 @@
             </div>
         </nav>
     </div>
-    
+
     <!-- Main Content -->
     <div class="main-content" id="mainContent">
         <!-- Top Navbar -->
@@ -1146,7 +1185,7 @@
                 </button>
                 <h4 class="mb-0 ms-3">@yield('page-title', 'Administration')</h4>
             </div>
-            
+
             <div class="navbar-right">
                 <!-- Notifications unifiées -->
                 <div class="dropdown">
@@ -1202,7 +1241,7 @@
             </div>
             </div>
         </div>
-    
+
         <!-- Content Area -->
         <div class="content-area">
             @if(session('success'))
@@ -1212,7 +1251,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
-            
+
             @if(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
@@ -1220,7 +1259,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
-            
+
             @if(session('warning'))
                 <div class="alert alert-warning alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
@@ -1228,23 +1267,23 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
-            
+
             <div class="content-wrapper">
             @yield('content')
         </div>
         </div>
     </div>
-    
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Custom JS -->
     <script>
         // Sidebar toggle
         document.getElementById('sidebarToggle').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
-            
+
             sidebar.classList.toggle('collapsed');
             mainContent.classList.toggle('expanded');
         });
@@ -1287,16 +1326,16 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadNotifications();
             startNotificationPolling();
-            
+
             // Gérer l'ouverture/fermeture du dropdown
             const notificationBell = document.getElementById('notificationBell');
             const dropdown = notificationBell.nextElementSibling;
-            
+
             dropdown.addEventListener('show.bs.dropdown', function() {
                 isNotificationDropdownOpen = true;
                 loadNotifications();
             });
-            
+
             dropdown.addEventListener('hide.bs.dropdown', function() {
                 isNotificationDropdownOpen = false;
             });
@@ -1307,7 +1346,7 @@
         // Rendre les notifications dans le dropdown
         function renderNotifications(notifications) {
             const container = document.getElementById('notifications-container');
-            
+
             if (notifications.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-4">
@@ -1322,7 +1361,7 @@
             }
 
             const notificationsHtml = notifications.map(notification => `
-                <div class="notification-item ${notification.read ? 'read' : 'unread'} notification-type-${notification.type}" 
+                <div class="notification-item ${notification.read ? 'read' : 'unread'} notification-type-${notification.type}"
                      onclick="handleNotificationClick(${notification.id}, '${notification.url}')">
                     <div class="d-flex align-items-start">
                         <div class="notification-icon">
@@ -1358,7 +1397,7 @@
         function handleNotificationClick(notificationId, url) {
             // Marquer comme lu
             markNotificationAsRead(notificationId);
-            
+
             // Rediriger vers l'URL appropriée
             if (url && url !== '#') {
                 window.location.href = url;
@@ -1473,7 +1512,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
             document.body.appendChild(toast);
-            
+
             setTimeout(() => {
                 toast.remove();
             }, 5000);
@@ -1495,7 +1534,7 @@
                     console.log('Notification cliquée:', this.dataset.id);
                 });
             });
-            
+
             // S'assurer que tous les liens sont cliquables
             const allLinks = document.querySelectorAll('a');
             allLinks.forEach(function(link) {
@@ -1503,7 +1542,7 @@
                 link.style.pointerEvents = 'auto';
                 link.style.zIndex = '10';
             });
-            
+
             // S'assurer que tous les boutons sont cliquables
             const allButtons = document.querySelectorAll('button, .btn');
             allButtons.forEach(function(button) {
@@ -1511,7 +1550,7 @@
                 button.style.pointerEvents = 'auto';
                 button.style.zIndex = '10';
             });
-            
+
             // S'assurer que les éléments de menu sont cliquables
             const menuLinks = document.querySelectorAll('.menu-link');
             menuLinks.forEach(function(link) {
@@ -1523,7 +1562,7 @@
             // Améliorer l'expérience de défilement du sidebar
             const sidebarMenu = document.querySelector('.sidebar-menu');
             const scrollIndicator = document.querySelector('.scroll-indicator');
-            
+
             if (sidebarMenu && scrollIndicator) {
                 // Masquer l'indicateur si tout le contenu est visible
                 function checkScrollIndicator() {
@@ -1533,13 +1572,13 @@
                         scrollIndicator.style.display = 'block';
                     }
                 }
-                
+
                 // Vérifier au chargement
                 checkScrollIndicator();
-                
+
                 // Vérifier lors du redimensionnement
                 window.addEventListener('resize', checkScrollIndicator);
-                
+
                 // Masquer l'indicateur quand on fait défiler
                 sidebarMenu.addEventListener('scroll', function() {
                     if (sidebarMenu.scrollTop > 50) {
@@ -1551,10 +1590,10 @@
             }
         });
     </script>
-    
+
     <!-- Système de notifications CSAR -->
     <script src="{{ asset('js/notifications.js') }}"></script>
-    
+
     @stack('scripts')
 </body>
-</html> 
+</html>
