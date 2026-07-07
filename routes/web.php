@@ -174,11 +174,6 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     // FAQ
     Route::get('/faq', [\App\Http\Controllers\Public\FaqController::class, 'index'])->name('faq.index');
 
-    // Témoignages
-    Route::get('/temoignages', [\App\Http\Controllers\TestimonialController::class, 'index'])->name('testimonials.index');
-    Route::get('/temoignages/nouveau', [\App\Http\Controllers\TestimonialController::class, 'create'])->name('testimonials.create');
-    Route::post('/temoignages', [\App\Http\Controllers\TestimonialController::class, 'store'])->name('testimonials.store');
-
     // Recherche (outil de recherche plateforme)
     Route::get('/recherche', [\App\Http\Controllers\Public\SearchController::class, 'index'])->name('search.index');
 
