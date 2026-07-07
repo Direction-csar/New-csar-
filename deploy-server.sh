@@ -45,8 +45,13 @@ $PHP_CMD artisan optimize:clear
 $PHP_CMD artisan optimize
 
 echo "[7/8] Permissions..."
-chmod -R 775 storage bootstrap/cache
-chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache || true
+if chown -R www-data:www-data storage bootstrap/cache 2>/dev/null; then
+    echo "  Permissions appliquées."
+else
+    echo "  AVERTISSEMENT: chown impossible sans root. Exécutez manuellement si nécessaire :"
+    echo "  sudo chown -R www-data:www-data storage bootstrap/cache"
+fi
 
 echo "[8/8] Vérifications..."
 $PHP_CMD artisan route:list --name="archives" >/dev/null && echo "  Routes archives OK"
