@@ -10,4 +10,9 @@ class ArchiveController extends DirectionArchiveController
     {
         return 'DRH';
     }
+
+    protected function getLayout(): string
+    {
+        return 'layouts.drh-portal';
+    }
 }

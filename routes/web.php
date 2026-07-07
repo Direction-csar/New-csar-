@@ -1246,17 +1246,18 @@ Route::middleware(['admin'])->group(function () {
         Route::get('/{archive}/print', [App\Http\Controllers\Dfc\ArchiveController::class, 'print'])->name('print');
     });
 
-    Route::prefix('archives/drh')->name('archives.drh.')->group(function () {
-        Route::get('/', [App\Http\Controllers\Drh\ArchiveController::class, 'index'])->name('index');
-        Route::post('/', [App\Http\Controllers\Drh\ArchiveController::class, 'store'])->name('store');
-        Route::get('/{archive}', [App\Http\Controllers\Drh\ArchiveController::class, 'show'])->name('show');
-        Route::put('/{archive}', [App\Http\Controllers\Drh\ArchiveController::class, 'update'])->name('update');
-        Route::delete('/{archive}', [App\Http\Controllers\Drh\ArchiveController::class, 'destroy'])->name('destroy');
-        Route::get('/{archive}/download', [App\Http\Controllers\Drh\ArchiveController::class, 'download'])->name('download');
-        Route::get('/{archive}/print', [App\Http\Controllers\Drh\ArchiveController::class, 'print'])->name('print');
-    });
-
     Route::post('/archive-folders', [App\Http\Controllers\ArchiveFolderController::class, 'store'])->name('folders.store');
+});
+
+// === ARCHIVES DRH (accès via portail DRH dédié ou admin) ===
+Route::middleware(['direction:drh'])->prefix('archives/drh')->name('archives.drh.')->group(function () {
+    Route::get('/', [App\Http\Controllers\Drh\ArchiveController::class, 'index'])->name('index');
+    Route::post('/', [App\Http\Controllers\Drh\ArchiveController::class, 'store'])->name('store');
+    Route::get('/{archive}', [App\Http\Controllers\Drh\ArchiveController::class, 'show'])->name('show');
+    Route::put('/{archive}', [App\Http\Controllers\Drh\ArchiveController::class, 'update'])->name('update');
+    Route::delete('/{archive}', [App\Http\Controllers\Drh\ArchiveController::class, 'destroy'])->name('destroy');
+    Route::get('/{archive}/download', [App\Http\Controllers\Drh\ArchiveController::class, 'download'])->name('download');
+    Route::get('/{archive}/print', [App\Http\Controllers\Drh\ArchiveController::class, 'print'])->name('print');
 });
 
 // === PORTAILS DEDIES CPM, DPSE, DTL ===
