@@ -13,11 +13,34 @@ class PersonnelController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $personnel = Personnel::orderBy('created_at', 'desc')->paginate(20);
+        $query = Personnel::query();
 
-        $totalPersonnel = Personnel::count();
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('prenoms_nom', 'like', "%{$search}%")
+                  ->orWhere('matricule', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('direction')) {
+            $query->where('direction_service', $request->input('direction'));
+        }
+
+        if ($request->filled('poste')) {
+            $query->where('poste_actuel', $request->input('poste'));
+        }
+
+        if ($request->filled('statut_validation')) {
+            $query->where('statut_validation', $request->input('statut_validation'));
+        }
+
+        $personnel = $query->orderBy('created_at', 'desc')->paginate(20)->withQueryString();
+
+        $totalPersonnel = $query->count();
         $validatedCount = Personnel::where('statut_validation', 'Valide')->count();
         $pendingCount = Personnel::where('statut_validation', 'En attente')->count();
         $rejectedCount = Personnel::where('statut_validation', 'Rejete')->count();
@@ -25,7 +48,7 @@ class PersonnelController extends Controller
         // Récupérer les directions et postes uniques pour les filtres
         $directions = Personnel::distinct()->pluck('direction_service')->filter()->sort()->values();
         $postes = Personnel::distinct()->pluck('poste_actuel')->filter()->sort()->values();
-        
+
         // Compter le personnel par direction
         $directionCounts = Personnel::selectRaw('direction_service, COUNT(*) as count')
             ->groupBy('direction_service')
@@ -76,7 +99,7 @@ class PersonnelController extends Controller
             'email' => 'required|email|unique:personnel,email',
             'groupe_sanguin' => 'required|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
             'adresse_complete' => 'required|string',
-            
+
             // II. Situation administrative
             'matricule' => 'nullable|string|unique:personnel,matricule',
             'date_recrutement_csar' => 'required|date',
@@ -85,34 +108,34 @@ class PersonnelController extends Controller
             'poste_actuel' => 'required|string',
             'direction_service' => 'required|string',
             'localisation_region' => 'nullable|string',
-            
+
             // III. Parcours professionnel
             'dernier_poste_avant_csar' => 'required|string',
             'formations_professionnelles' => 'required|string',
             'diplome_academique' => 'required|string',
             'autres_diplomes_certifications' => 'nullable|string',
-            
+
             // IV. Compétences spécifiques
             'logiciels_maitrises' => 'required|array',
             'langues_parlees' => 'required|array',
             'autres_aptitudes' => 'nullable|string',
-            
+
             // V. Aspirations professionnelles
             'aspirations_professionnelles' => 'nullable|string',
             'details_aspirations' => 'nullable|string',
             'interet_nouvelles_responsabilites' => 'required|in:Oui,Non,Neutre',
-            
+
             // VI. Photo personnelle
             'photo_personnelle' => 'required|image|mimes:jpeg,png,jpg,gif|max:10240',
-            
+
             // VII. Taille vêtements
             'taille_vetements' => 'required|string',
-            
+
             // VIII. Notification d'urgence
             'contact_urgence_nom' => 'required|string|max:255',
             'contact_urgence_telephone' => 'required|string|max:20',
             'contact_urgence_lien_parente' => 'required|string|max:255',
-            
+
             // IX. Observations personnelles
             'observations_personnelles' => 'nullable|string',
         ]);
@@ -133,7 +156,7 @@ class PersonnelController extends Controller
         // Convertir les arrays en JSON
         $validatedData['logiciels_maitrises'] = json_encode($validatedData['logiciels_maitrises']);
         $validatedData['langues_parlees'] = json_encode($validatedData['langues_parlees']);
-        
+
         // Gérer les aspirations professionnelles (peut être un array de checkboxes)
         if (isset($validatedData['aspirations_professionnelles'])) {
             if (is_array($validatedData['aspirations_professionnelles'])) {
@@ -179,7 +202,7 @@ class PersonnelController extends Controller
     public function update(Request $request, $id)
     {
         $personnel = Personnel::findOrFail($id);
-        
+
         $validatedData = $request->validate([
             // Same validation rules as store
             'prenoms_nom' => 'required|string|max:255',
@@ -225,7 +248,7 @@ class PersonnelController extends Controller
             if ($personnel->photo_personnelle) {
                 Storage::delete('public/personnel/' . $personnel->photo_personnelle);
             }
-            
+
             $photo = $request->file('photo_personnelle');
             $photoName = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
             $photo->storeAs('public/personnel', $photoName);
@@ -235,7 +258,7 @@ class PersonnelController extends Controller
         // Convertir les arrays en JSON
         $validatedData['logiciels_maitrises'] = json_encode($validatedData['logiciels_maitrises']);
         $validatedData['langues_parlees'] = json_encode($validatedData['langues_parlees']);
-        
+
         // Gérer les aspirations professionnelles (peut être un array de checkboxes)
         if (isset($validatedData['aspirations_professionnelles'])) {
             if (is_array($validatedData['aspirations_professionnelles'])) {
@@ -255,7 +278,7 @@ class PersonnelController extends Controller
     public function destroy($id)
     {
         $personnel = Personnel::findOrFail($id);
-        
+
         // Supprimer la photo si elle existe
         if ($personnel->photo_personnelle) {
             Storage::delete('public/personnel/' . $personnel->photo_personnelle);
@@ -282,7 +305,7 @@ class PersonnelController extends Controller
     public function toggleStatus($id)
     {
         $personnel = Personnel::findOrFail($id);
-        
+
         if ($personnel->statut_validation === 'En attente') {
             $personnel->update([
                 'statut_validation' => 'Valide',
@@ -309,17 +332,17 @@ class PersonnelController extends Controller
     {
         try {
             $personnel = Personnel::findOrFail($id);
-            
+
             // Générer un nouveau mot de passe aléatoire
             $newPassword = 'Csar' . rand(1000, 9999);
-            
+
             // Si le personnel a un compte utilisateur associé, réinitialiser son mot de passe
             $user = \App\Models\User::where('email', $personnel->email)->first();
-            
+
             if ($user) {
                 $user->password = \Hash::make($newPassword);
                 $user->save();
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Mot de passe réinitialisé avec succès.',

@@ -14,6 +14,40 @@
         </div>
 
         <div class="card-body">
+            <form method="GET" action="{{ route('admin.drh.personnel.index') }}" class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control" placeholder="Rechercher nom, matricule, email...">
+                </div>
+                <div class="col-md-2">
+                    <select name="direction" class="form-select">
+                        <option value="">-- Direction --</option>
+                        @foreach($directions as $direction)
+                            <option value="{{ $direction }}" {{ request('direction') == $direction ? 'selected' : '' }}>{{ $direction }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="poste" class="form-select">
+                        <option value="">-- Poste --</option>
+                        @foreach($postes as $poste)
+                            <option value="{{ $poste }}" {{ request('poste') == $poste ? 'selected' : '' }}>{{ $poste }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select name="statut_validation" class="form-select">
+                        <option value="">-- Statut --</option>
+                        <option value="Valide" {{ request('statut_validation') == 'Valide' ? 'selected' : '' }}>Validé</option>
+                        <option value="En attente" {{ request('statut_validation') == 'En attente' ? 'selected' : '' }}>En attente</option>
+                        <option value="Rejete" {{ request('statut_validation') == 'Rejete' ? 'selected' : '' }}>Rejeté</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-filter me-1"></i>Filtrer</button>
+                    <a href="{{ route('admin.drh.personnel.index') }}" class="btn btn-outline-secondary"><i class="fas fa-undo me-1"></i>Réinitialiser</a>
+                </div>
+            </form>
+
             <div class="table-responsive">
                 <table class="table table-hover" id="personnelTable">
                     <thead class="table-light">
