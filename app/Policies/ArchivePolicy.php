@@ -32,7 +32,7 @@ class ArchivePolicy
 
     public function update(User $user, Archive $archive): bool
     {
-        return $user->department === $archive->direction;
+        return false;
     }
 
     public function delete(User $user, Archive $archive): bool
