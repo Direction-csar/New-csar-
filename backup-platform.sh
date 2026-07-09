@@ -87,6 +87,11 @@ Base de données : ${DB_DATABASE:-N/A}
 Projet : ${PROJECT_DIR}
 EOF
 
+# Garder uniquement les 15 dernières sauvegardes pour éviter de remplir le disque
+echo "[INFO] Nettoyage des anciennes sauvegardes (conservation des 15 dernières)..."
+cd "${BACKUP_DIR}" && ls -1t | tail -n +16 | xargs -r rm -rf
+echo "[OK] Nettoyage terminé"
+
 echo ""
 echo "=== Sauvegarde terminée ==="
 echo "Dossier : ${BACKUP_PATH}"

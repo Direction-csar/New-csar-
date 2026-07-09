@@ -39,14 +39,22 @@ scp -r msow@192.168.2.141:/var/www/csar/backups/csar_backup_YYYYMMDD_HHMMSS /che
 
 ## Automatiser la sauvegarde (recommandé)
 
-Ajouter une tâche cron sur le serveur pour lancer la sauvegarde chaque nuit :
+Un script d'installation automatique est disponible. Exécutez-le sur le serveur :
 
 ```bash
-# Éditer la crontab
-sudo crontab -e
+ssh msow@192.168.2.141
+cd /var/www/csar
+bash install-auto-backup.sh
+```
 
-# Ajouter cette ligne pour une sauvegarde à 2h du matin tous les jours
-0 2 * * * bash /var/www/csar/backup-platform.sh >> /var/log/csar-backup.log 2>&1
+Cela configure une tâche cron qui lance une sauvegarde complète **toutes les 5 heures**.
+
+Le script `backup-platform.sh` conserve automatiquement les **15 dernières sauvegardes** pour éviter de remplir le disque.
+
+Vérifier les logs :
+
+```bash
+tail -f /var/log/csar-backup.log
 ```
 
 **Astuce** : pour une vraie protection, copier automatiquement les sauvegardes vers un emplacement externe (cloud, autre serveur) avec `rsync` ou `rclone`.
