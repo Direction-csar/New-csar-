@@ -30,6 +30,17 @@ class Personnel extends Model
         'date_prise_service_csar',
         'statut',
         'poste_actuel',
+        'salaire_base',
+        'sursalaire',
+        'indemnite_transport',
+        'indemnite_fonction',
+        'salaire_brut',
+        'net_a_payer',
+        'categorie',
+        'filiation',
+        'date_delivrance_id',
+        'nombre_epouses',
+        'type_contrat',
         'direction_service',
         'localisation_region',
         'dernier_poste_avant_csar',
@@ -125,23 +136,23 @@ class Personnel extends Model
                 $fileName,
                 'public/personnel/' . $fileName
             ];
-            
+
             foreach ($possiblePaths as $path) {
                 if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
                     return asset('storage/' . $path);
                 }
             }
-            
+
             // Vérifier aussi directement dans public/storage
             $publicPath = public_path('storage/personnel/' . $fileName);
             if (file_exists($publicPath)) {
                 return asset('storage/personnel/' . $fileName);
             }
-            
+
             // Log pour debug
             \Log::warning("Photo du personnel non trouvée: {$fileName}");
         }
-        
+
         // Retourner une image par défaut stylisée
         return 'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200"><rect width="200" height="200" fill="#f0f0f0"/><circle cx="100" cy="70" r="35" fill="#ccc"/><path d="M 40 160 Q 40 120 100 120 Q 160 120 160 160" fill="#ccc"/><text x="100" y="190" font-size="12" text-anchor="middle" fill="#999">Photo non disponible</text></svg>');
     }

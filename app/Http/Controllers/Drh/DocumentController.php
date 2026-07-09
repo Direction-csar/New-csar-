@@ -49,6 +49,34 @@ class DocumentController extends Controller
         return null;
     }
 
+    private function contractDefaults(?Personnel $agent): array
+    {
+        if (!$agent) {
+            return [];
+        }
+
+        return [
+            'date_embauche'        => $agent->date_recrutement_csar?->format('Y-m-d'),
+            'date_debut'           => $agent->date_recrutement_csar?->format('Y-m-d'),
+            'date_fin'             => $agent->type_contrat === 'CDD' ? '2026-12-31' : null,
+            'salaire_base'         => $agent->salaire_base,
+            'sursalaire'           => $agent->sursalaire,
+            'indemnite_transport'  => $agent->indemnite_transport,
+            'indemnite_fonction'   => $agent->indemnite_fonction,
+            'salaire_brut'         => $agent->salaire_brut,
+            'poste'                => $agent->poste_actuel,
+            'direction'            => $agent->direction_service,
+            'categorie'            => $agent->categorie,
+            'diplome'              => $agent->formations_professionnelles ?? $agent->diplome_academique,
+            'filiation'            => $agent->filiation,
+            'numero_identification'=> $agent->numero_cni,
+            'date_delivrance_id'   => $agent->date_delivrance_id?->format('Y-m-d'),
+            'domicile_actuel'      => $agent->adresse_complete,
+            'situation_famille'    => $agent->situation_matrimoniale,
+            'nombre_epouses'       => $agent->nombre_epouses,
+        ];
+    }
+
     private function pdf(string $view, array $data, string $filename)
     {
         $pdf = Pdf::loadView($view, $data)->setPaper('a4', 'portrait');
@@ -69,8 +97,8 @@ class DocumentController extends Controller
         }
 
         $types = [
-            'contrat-cdi'              => ['label' => 'Contrat CDI', 'fields' => ['date_embauche', 'salaire_base', 'sursalaire', 'indemnite_transport', 'salaire_brut', 'poste', 'categorie', 'diplome', 'filiation', 'numero_identification', 'date_delivrance_id', 'domicile_actuel', 'situation_famille', 'nombre_epouses']],
-            'contrat-cdd'              => ['label' => 'Contrat CDD', 'fields' => ['date_debut', 'date_fin', 'salaire_base', 'sursalaire', 'indemnite_transport', 'salaire_brut', 'poste', 'direction', 'categorie', 'diplome', 'filiation', 'numero_identification', 'date_delivrance_id', 'domicile_actuel', 'situation_famille', 'nombre_epouses']],
+            'contrat-cdi'              => ['label' => 'Contrat CDI', 'fields' => ['date_embauche', 'salaire_base', 'sursalaire', 'indemnite_transport', 'indemnite_fonction', 'salaire_brut', 'poste', 'categorie', 'diplome', 'filiation', 'numero_identification', 'date_delivrance_id', 'domicile_actuel', 'situation_famille', 'nombre_epouses']],
+            'contrat-cdd'              => ['label' => 'Contrat CDD', 'fields' => ['date_debut', 'date_fin', 'salaire_base', 'sursalaire', 'indemnite_transport', 'indemnite_fonction', 'salaire_brut', 'poste', 'direction', 'categorie', 'diplome', 'filiation', 'numero_identification', 'date_delivrance_id', 'domicile_actuel', 'situation_famille', 'nombre_epouses']],
             'contrat-stagiaire'        => ['label' => 'Contrat stagiaire', 'fields' => ['date_debut', 'date_fin', 'poste', 'duree', 'gratification', 'tuteur', 'poste_tuteur', 'etablissement', 'niveau_etudes', 'domaine']],
             'certificat-travail'       => ['label' => 'Certificat de travail', 'fields' => []],
             'attestation-travail'      => ['label' => 'Attestation de travail', 'fields' => ['date_debut', 'objet']],
@@ -99,6 +127,7 @@ class DocumentController extends Controller
             'agent'     => $agent,
             'savedDocument' => $savedDocument,
             'savedData' => $savedData,
+            'defaults'  => $this->contractDefaults($agent),
         ]);
     }
 
@@ -141,13 +170,15 @@ class DocumentController extends Controller
     public function contratCdi(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.contrat_cdi', array_merge(['personnel' => $agent], $request->all()), 'contrat-cdi.pdf');
+        $data = array_merge($this->contractDefaults($agent), $request->all(), ['personnel' => $agent]);
+        return $this->pdf('admin.drh.documents.contrat_cdi', $data, 'contrat-cdi.pdf');
     }
 
     public function contratCdd(Request $request)
     {
         $agent = $this->getPersonnel($request);
-        return $this->pdf('admin.drh.documents.contrat_cdd', array_merge(['personnel' => $agent], $request->all()), 'contrat-cdd.pdf');
+        $data = array_merge($this->contractDefaults($agent), $request->all(), ['personnel' => $agent]);
+        return $this->pdf('admin.drh.documents.contrat_cdd', $data, 'contrat-cdd.pdf');
     }
 
     public function attestationTravail(Request $request)

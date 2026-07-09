@@ -31,6 +31,7 @@ class AgentsImportSeeder extends Seeder
         array_shift($lines);
 
         $inserted = 0;
+        $updated = 0;
         $skipped = 0;
 
         foreach ($lines as $line) {
@@ -53,18 +54,20 @@ class AgentsImportSeeder extends Seeder
                 continue;
             }
 
-            // Vérifier si le matricule existe déjà
-            if (Personnel::where('matricule', $data['matricule'])->exists()) {
-                $this->command->warn("Matricule existant, ignoré : {$data['matricule']}");
-                $skipped++;
-                continue;
-            }
+            $personnel = Personnel::updateOrCreate(
+                ['matricule' => $data['matricule']],
+                $data
+            );
 
-            Personnel::create($data);
-            $inserted++;
+            if ($personnel->wasRecentlyCreated) {
+                $inserted++;
+            } else {
+                $updated++;
+            }
         }
 
         $this->command->info("Agents insérés : $inserted");
+        $this->command->info("Agents mis à jour : $updated");
         $this->command->info("Agents ignorés : $skipped");
     }
 
@@ -89,6 +92,12 @@ class AgentsImportSeeder extends Seeder
         $dateEmbaucheRaw = trim($cols[13] ?? '');
         $situationFamille = trim($cols[14] ?? '');
         $nbEnfants = (int) ($cols[15] ?? 0);
+        $salaireBrut = $this->parseMoney($cols[16] ?? null);
+        $salaireBase = $this->parseMoney($cols[17] ?? null);
+        $sursalaire = $this->parseMoney($cols[18] ?? null);
+        $indemniteFonction = $this->parseMoney($cols[19] ?? null);
+        $indemniteTransport = $this->parseMoney($cols[20] ?? null);
+        $netAPayer = $this->parseMoney($cols[31] ?? null);
 
         if ($matricule === '' || $prenom === '' || $nom === '') {
             return null;
@@ -121,6 +130,17 @@ class AgentsImportSeeder extends Seeder
             'date_prise_service_csar' => $dateEmbauche,
             'statut' => 'Contractuel',
             'poste_actuel' => $poste ?: 'Non renseigné',
+            'salaire_base' => $salaireBase,
+            'sursalaire' => $sursalaire,
+            'indemnite_transport' => $indemniteTransport,
+            'indemnite_fonction' => $indemniteFonction,
+            'salaire_brut' => $salaireBrut,
+            'net_a_payer' => $netAPayer,
+            'categorie' => $categorie ?: null,
+            'filiation' => $filiation ?: null,
+            'date_delivrance_id' => null,
+            'nombre_epouses' => null,
+            'type_contrat' => ($prenom === 'Oumar Abdourahmane' && $nom === 'SALL') ? 'CDD' : 'CDI',
             'direction_service' => $this->mapDirection($directionRaw),
             'localisation_region' => $this->mapRegion($directionRaw, $adresse),
             'dernier_poste_avant_csar' => null,
@@ -164,6 +184,19 @@ class AgentsImportSeeder extends Seeder
             }
         }
         return null;
+    }
+
+    private function parseMoney(?string $raw): ?float
+    {
+        if ($raw === null || $raw === '' || $raw === '-') {
+            return null;
+        }
+        $cleaned = str_replace([' ', 'F', 'CFA'], '', $raw);
+        $cleaned = str_replace(',', '.', $cleaned);
+        if (!is_numeric($cleaned)) {
+            return null;
+        }
+        return (float) $cleaned;
     }
 
     private function mapDirection(string $raw): string

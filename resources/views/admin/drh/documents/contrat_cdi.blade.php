@@ -76,7 +76,7 @@
     <p style="text-align: justify;">
         {{ $civilite }} <strong>{{ $nomComplet }}</strong>, titulaire {{ !empty($diplome) ? 'd\'un(e) ' . $diplome : '……………………………' }}, est
         engagé pour servir en qualité de {{ $posteLibelle }} au Commissariat à
-        la Sécurité Alimentaire et à la Résilience pour une durée indéterminée.
+        la Sécurité Alimentaire et à la Résilience pour une durée indéterminée depuis le {{ $fmt($date_embauche ?? null) }}.
     </p>
     <p>Il sera classé à la catégorie {{ $categorie ?? '………' }} conformément à la grille salariale du CSAR</p>
 

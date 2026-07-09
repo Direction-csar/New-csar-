@@ -29,7 +29,7 @@
                         @php
                             $label = str_replace('_', ' ', $field);
                             $label = ucfirst($label);
-                            $value = $savedData[$field] ?? '';
+                            $value = $savedData[$field] ?? ($defaults[$field] ?? '');
                             $isDate = str_contains($field, 'date');
                             $isNumber = str_contains($field, 'salaire') || str_contains($field, 'montant') || str_contains($field, 'nombre') || str_contains($field, 'duree') || str_contains($field, 'taux');
                             $isTextarea = str_contains($field, 'motif') || str_contains($field, 'observations') || str_contains($field, 'biens') || str_contains($field, 'sanction');
