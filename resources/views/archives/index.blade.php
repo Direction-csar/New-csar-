@@ -35,6 +35,9 @@
                                     </a>
                                     @if(auth()->user() && in_array(auth()->user()->role, ['admin', 'super_admin'], true))
                                         <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-link text-success" title="Nouveau sous-dossier" data-bs-toggle="modal" data-bs-target="#createFolderModal" data-parent-id="{{ $folder->id }}" onclick="setCreateFolderParent({{ $folder->id }})">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
                                             <button type="button" class="btn btn-sm btn-link text-warning" title="Renommer" data-bs-toggle="modal" data-bs-target="#editFolderModal{{ $folder->id }}">
                                                 <i class="fas fa-edit"></i>
                                             </button>
@@ -57,6 +60,9 @@
                                                 </a>
                                                 @if(auth()->user() && in_array(auth()->user()->role, ['admin', 'super_admin'], true))
                                                     <div class="btn-group">
+                                                        <button type="button" class="btn btn-sm btn-link text-success" title="Nouveau sous-dossier" data-bs-toggle="modal" data-bs-target="#createFolderModal" data-parent-id="{{ $child->id }}" onclick="setCreateFolderParent({{ $child->id }})">
+                                                            <i class="fas fa-plus"></i>
+                                                        </button>
                                                         <button type="button" class="btn btn-sm btn-link text-warning" title="Renommer" data-bs-toggle="modal" data-bs-target="#editFolderModal{{ $child->id }}">
                                                             <i class="fas fa-edit"></i>
                                                         </button>
@@ -88,7 +94,7 @@
             {{-- Filtres --}}
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
-                    <form method="GET" class="row g-2">
+                    <form method="GET" id="archiveFilterForm" class="row g-2">
                         <div class="col-md-3">
                             <select name="annee" class="form-select" onchange="this.form.submit()">
                                 <option value="">Toutes les années</option>
@@ -105,6 +111,48 @@
                         </div>
                         <div class="col-md-3">
                             <a href="?" class="btn btn-outline-danger w-100"><i class="fas fa-times"></i> Réinitialiser</a>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="button" class="btn btn-link text-decoration-none" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+                                <i class="fas fa-sliders-h"></i> Mode filtre avancé
+                            </button>
+                        </div>
+                        <div class="collapse {{ request('date_from') || request('date_to') || request('mime_type') || request('created_by') || request('reference') ? 'show' : '' }}" id="advancedFilters">
+                            <div class="row g-2 mt-1 border-top pt-2">
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-1">Référence</label>
+                                    <input type="text" name="reference" class="form-control form-control-sm" value="{{ request('reference') }}" placeholder="Référence">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-1">Date début</label>
+                                    <input type="date" name="date_from" class="form-control form-control-sm" value="{{ request('date_from') }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-1">Date fin</label>
+                                    <input type="date" name="date_to" class="form-control form-control-sm" value="{{ request('date_to') }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-1">Type de fichier</label>
+                                    <select name="mime_type" class="form-select form-select-sm">
+                                        <option value="">Tous</option>
+                                        @foreach($mimeTypes as $mt)
+                                            <option value="{{ $mt }}" {{ request('mime_type') == $mt ? 'selected' : '' }}>{{ $mt }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label small mb-1">Ajouté par</label>
+                                    <select name="created_by" class="form-select form-select-sm">
+                                        <option value="">Tous</option>
+                                        @foreach($creators as $creator)
+                                            <option value="{{ $creator->id }}" {{ request('created_by') == $creator->id ? 'selected' : '' }}>{{ $creator->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100"><i class="fas fa-filter"></i> Appliquer les filtres</button>
+                                </div>
+                            </div>
                         </div>
                         @if(request('folder_id'))
                             <input type="hidden" name="folder_id" value="{{ request('folder_id') }}">
@@ -319,8 +367,17 @@
                         <label class="form-label">Dossier parent</label>
                         <select name="parent_id" class="form-select">
                             <option value="">-- Aucun (racine) --</option>
-                            @foreach($folders as $f)
-                                <option value="{{ $f->id }}">{{ $f->name }}</option>
+                            @foreach($allFolders as $f)
+                                @php
+                                    $prefix = '';
+                                    $current = $f;
+                                    while ($current->parent_id) {
+                                        $prefix .= '— ';
+                                        $current = $allFolders->firstWhere('id', $current->parent_id);
+                                        if (!$current) break;
+                                    }
+                                @endphp
+                                <option value="{{ $f->id }}">{{ $prefix }}{{ $f->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -333,4 +390,13 @@
         </div>
     </div>
 </div>
-@endsection
+@push('scripts')
+<script>
+function setCreateFolderParent(parentId) {
+    const select = document.querySelector('#createFolderModal select[name="parent_id"]');
+    if (select) {
+        select.value = parentId;
+    }
+}
+</script>
+@endpush

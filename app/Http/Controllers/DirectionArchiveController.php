@@ -35,6 +35,10 @@ abstract class DirectionArchiveController extends Controller
             ->with('children')
             ->get();
 
+        $allFolders = ArchiveFolder::where('direction', $direction)
+            ->orderBy('name')
+            ->get(['id', 'name', 'parent_id']);
+
         $query = Archive::where('direction', $direction)
             ->with('folder', 'creator')
             ->whereNull('deleted_at');
@@ -45,6 +49,9 @@ abstract class DirectionArchiveController extends Controller
         if ($request->filled('annee')) {
             $query->where('annee', $request->annee);
         }
+        if ($request->filled('reference')) {
+            $query->where('reference', 'like', '%' . $request->reference . '%');
+        }
         if ($request->filled('q')) {
             $query->where(function ($q) use ($request) {
                 $q->where('title', 'like', '%' . $request->q . '%')
@@ -52,14 +59,34 @@ abstract class DirectionArchiveController extends Controller
                   ->orWhere('description', 'like', '%' . $request->q . '%');
             });
         }
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+        if ($request->filled('mime_type')) {
+            $query->where('mime_type', $request->mime_type);
+        }
+        if ($request->filled('created_by')) {
+            $query->where('created_by', $request->created_by);
+        }
 
         $archives = $query->orderBy('annee', 'desc')->orderBy('created_at', 'desc')->paginate(20);
         $annees = Archive::where('direction', $direction)->distinct()->pluck('annee');
 
+        $mimeTypes = Archive::where('direction', $direction)->distinct()->pluck('mime_type');
+        $creators = \App\Models\User::whereIn('id', function ($q) use ($direction) {
+            $q->select('created_by')->from('archives')->where('direction', $direction);
+        })->get(['id', 'name']);
+
         return view('archives.index', [
             'archives' => $archives,
             'folders' => $folders,
+            'allFolders' => $allFolders,
             'annees' => $annees,
+            'mimeTypes' => $mimeTypes,
+            'creators' => $creators,
             'direction' => $direction,
             'request' => $request,
             'layout' => $this->getLayout(),
