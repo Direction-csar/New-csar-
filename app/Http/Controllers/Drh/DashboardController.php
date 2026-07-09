@@ -29,9 +29,9 @@ class DashboardController extends Controller
             ->whereMonth('periode_debut', $now->month)
             ->sum('salaire_brut') ?? 0;
 
-        // Contrats par type (mapping : Fonctionnaire→CDI, Contractuel→CDD, Stagiaire→INTÉRIM)
-        $contratCDI  = Personnel::where('statut', 'Fonctionnaire')->count();
-        $contratCDD  = Personnel::where('statut', 'Contractuel')->count();
+        // Contrats par type (basé sur le champ type_contrat)
+        $contratCDI  = Personnel::where('type_contrat', 'CDI')->count();
+        $contratCDD  = Personnel::where('type_contrat', 'CDD')->count();
         $contratInt  = Personnel::where('statut', 'Stagiaire')->count();
 
         // Retraités à venir (âge >= 58)
