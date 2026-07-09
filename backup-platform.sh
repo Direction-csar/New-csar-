@@ -48,7 +48,7 @@ if [ "$DB_CONNECTION" == "mysql" ] || [ "$DB_CONNECTION" == "mariadb" ]; then
 
     echo "[INFO] Sauvegarde de la base MySQL/MariaDB : ${DB_DATABASE}"
     mysqldump --host="$DB_HOST" --port="$DB_PORT" --user="$DB_USERNAME" \
-        --password="$DB_PASSWORD" --single-transaction --routines --triggers \
+        --password="$DB_PASSWORD" --single-transaction --no-tablespaces --routines --triggers \
         "$DB_DATABASE" > "${BACKUP_PATH}/database.sql"
     echo "[OK] Base de données exportée"
 
