@@ -1118,6 +1118,14 @@
                 </a>
             </div>
 
+            <!-- Gestion globale Archives -->
+            <div class="menu-item">
+                <a href="{{ route('admin.archives.index') }}" class="menu-link {{ request()->routeIs('admin.archives.*') ? 'active' : '' }}">
+                    <i class="fas fa-archive text-danger"></i>
+                    <span>Gestion Archives</span>
+                </a>
+            </div>
+
             <!-- Archives DFC -->
             <div class="menu-item">
                 <a href="{{ route('archives.dfc.index') }}" class="menu-link {{ request()->routeIs('archives.dfc.*') ? 'active' : '' }}">

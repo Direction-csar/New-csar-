@@ -149,7 +149,16 @@
                                         </button>
                                     </form>
                                 @else
-                                    <span class="text-muted small">—</span>
+                                    <a href="{{ route('archives.' . strtolower($doc->direction) . '.show', $doc) }}" class="btn btn-sm btn-info" title="Ouvrir">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <form method="POST" action="{{ route('archives.' . strtolower($doc->direction) . '.destroy', $doc) }}" class="d-inline" onsubmit="return confirm('Supprimer ce document ?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                 @endif
                             </td>
                         </tr>

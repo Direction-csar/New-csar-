@@ -28,20 +28,52 @@
                             <i class="fas fa-folder-open text-warning"></i> Tous les documents
                         </a>
                         @foreach($folders as $folder)
-                            <a href="?folder_id={{ $folder->id }}" class="list-group-item list-group-item-action {{ request('folder_id') == $folder->id ? 'active' : '' }}">
-                                <i class="fas fa-folder text-warning"></i> {{ $folder->name }}
+                            <li class="list-group-item list-group-item-action p-0 {{ request('folder_id') == $folder->id ? 'active' : '' }}">
+                                <div class="d-flex justify-content-between align-items-center px-3 py-2">
+                                    <a href="?folder_id={{ $folder->id }}" class="text-decoration-none {{ request('folder_id') == $folder->id ? 'text-white' : 'text-dark' }}">
+                                        <i class="fas fa-folder text-warning"></i> {{ $folder->name }}
+                                    </a>
+                                    @if(auth()->user() && in_array(auth()->user()->role, ['admin', 'super_admin'], true))
+                                        <div class="btn-group">
+                                            <button type="button" class="btn btn-sm btn-link text-warning" title="Renommer" data-bs-toggle="modal" data-bs-target="#editFolderModal{{ $folder->id }}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <form method="POST" action="{{ route('folders.destroy', $folder) }}" class="d-inline" onsubmit="return confirm('Supprimer ce dossier ?')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-link text-danger" title="Supprimer">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
+                                </div>
                                 @if($folder->children->count())
-                                    <ul class="list-unstyled ms-3 mt-1">
+                                    <ul class="list-unstyled ms-4 pb-2">
                                         @foreach($folder->children as $child)
-                                            <li>
+                                            <li class="d-flex justify-content-between align-items-center py-1">
                                                 <a href="?folder_id={{ $child->id }}" class="text-decoration-none {{ request('folder_id') == $child->id ? 'fw-bold text-primary' : 'text-muted' }}">
                                                     <i class="fas fa-folder text-warning small"></i> {{ $child->name }}
                                                 </a>
+                                                @if(auth()->user() && in_array(auth()->user()->role, ['admin', 'super_admin'], true))
+                                                    <div class="btn-group">
+                                                        <button type="button" class="btn btn-sm btn-link text-warning" title="Renommer" data-bs-toggle="modal" data-bs-target="#editFolderModal{{ $child->id }}">
+                                                            <i class="fas fa-edit"></i>
+                                                        </button>
+                                                        <form method="POST" action="{{ route('folders.destroy', $child) }}" class="d-inline" onsubmit="return confirm('Supprimer ce sous-dossier ?')">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-sm btn-link text-danger" title="Supprimer">
+                                                                <i class="fas fa-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                @endif
                                             </li>
                                         @endforeach
                                     </ul>
                                 @endif
-                            </a>
+                            </li>
                         @endforeach
                     </ul>
                     <button class="btn btn-outline-primary btn-sm w-100 mt-3" data-bs-toggle="modal" data-bs-target="#createFolderModal">
@@ -168,6 +200,10 @@
                             <input type="text" name="title" class="form-control" value="{{ $doc->title }}" required maxlength="255">
                         </div>
                         <div class="mb-3">
+                            <label class="form-label">Nom du fichier <span class="text-danger">*</span></label>
+                            <input type="text" name="file_name" class="form-control" value="{{ $doc->file_name }}" required maxlength="255">
+                        </div>
+                        <div class="mb-3">
                             <label class="form-label">Description</label>
                             <textarea name="description" class="form-control" rows="2">{{ $doc->description }}</textarea>
                         </div>
@@ -200,6 +236,16 @@
     </div>
     @endcan
 @endforeach
+
+{{-- Modals Modification Dossiers --}}
+@if(auth()->user() && in_array(auth()->user()->role, ['admin', 'super_admin'], true))
+    @foreach($folders as $folder)
+        @include('archives.partials.edit-folder-modal', ['folder' => $folder])
+        @foreach($folder->children as $child)
+            @include('archives.partials.edit-folder-modal', ['folder' => $child])
+        @endforeach
+    @endforeach
+@endif
 
 {{-- Modal Upload --}}
 <div class="modal fade" id="uploadModal" tabindex="-1">

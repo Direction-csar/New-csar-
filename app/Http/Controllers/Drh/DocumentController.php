@@ -36,6 +36,7 @@ class DocumentController extends Controller
             ['label' => 'Ordre de mission',          'slug' => 'ordre-mission',          'icon' => 'fa-plane', 'color' => '#7c3aed'],
             ['label' => "Autorisation d'absence",   'slug' => 'autorisation-absence',   'icon' => 'fa-user-clock', 'color' => '#ec4899'],
             ['label' => 'Bon de sortie',             'slug' => 'bon-sortie',             'icon' => 'fa-door-open', 'color' => '#6b7280'],
+            ['label' => 'Déclaration de mouvement du travailleur', 'slug' => 'declaration-mouvement-travailleur', 'icon' => 'fa-file-signature', 'color' => '#1e40af'],
         ];
         return view('admin.drh.documents.selection', compact('agents', 'types'));
     }
@@ -114,10 +115,22 @@ class DocumentController extends Controller
             'ordre-mission'            => ['label' => 'Ordre de mission', 'fields' => ['prenoms', 'nom', 'grade', 'direction', 'situation', 'destination', 'motif', 'date_depart', 'date_retour', 'transport', 'imputation']],
             'autorisation-absence'     => ['label' => 'Autorisation d\'absence', 'fields' => ['date_absence', 'duree', 'duree_lettres', 'motif', 'consequence', 'cumul_ant', 'cumul_jour', 'observations']],
             'bon-sortie'               => ['label' => 'Bon de sortie', 'fields' => ['date_sortie', 'heure_sortie', 'motif', 'autorise_par']],
+            'declaration-mouvement-travailleur' => ['label' => 'Déclaration de mouvement du travailleur', 'fields' => []],
         ];
 
         if (!isset($types[$type])) {
             abort(404);
+        }
+
+        if ($type === 'declaration-mouvement-travailleur') {
+            return view('admin.drh.documents.declaration_mouvement.form', [
+                'type'      => $type,
+                'docInfo'   => $types[$type],
+                'agent'     => $agent,
+                'savedDocument' => $savedDocument,
+                'savedData' => $savedData,
+                'defaults'  => $this->contractDefaults($agent),
+            ]);
         }
 
         return view('admin.drh.documents.form', [
@@ -264,6 +277,7 @@ class DocumentController extends Controller
             'autorisation-absence'     => 'Autorisation d\'absence',
             'bon-sortie'               => 'Bon de sortie',
             'note-service'             => 'Note de service',
+            'declaration-mouvement-travailleur' => 'Déclaration de mouvement du travailleur',
         ];
 
         if (!isset($types[$type])) {
@@ -323,6 +337,7 @@ class DocumentController extends Controller
             'autorisation-absence' => 'Autorisation d\'absence',
             'bon-sortie' => 'Bon de sortie',
             'note-service' => 'Note de service',
+            'declaration-mouvement-travailleur' => 'Déclaration de mouvement du travailleur',
         ];
 
         return view('admin.drh.documents.historique', compact('documents', 'types'));
@@ -368,6 +383,7 @@ class DocumentController extends Controller
             'autorisation-absence' => 'admin.drh.documents.autorisation_absence',
             'bon-sortie' => 'admin.drh.documents.bon_sortie',
             'note-service' => 'admin.drh.documents.note_service',
+            'declaration-mouvement-travailleur' => 'admin.drh.documents.declaration_mouvement.pdf',
         ];
 
         $view = $viewMap[$document->type] ?? abort(404);

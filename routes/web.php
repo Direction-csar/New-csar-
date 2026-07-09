@@ -1244,6 +1244,8 @@ Route::middleware(['admin'])->group(function () {
     });
 
     Route::post('/archive-folders', [App\Http\Controllers\ArchiveFolderController::class, 'store'])->name('folders.store');
+    Route::put('/archive-folders/{folder}', [App\Http\Controllers\ArchiveFolderController::class, 'update'])->name('folders.update');
+    Route::delete('/archive-folders/{folder}', [App\Http\Controllers\ArchiveFolderController::class, 'destroy'])->name('folders.destroy');
 });
 
 // === ARCHIVES DRH (accès via portail DRH dédié ou admin) ===
