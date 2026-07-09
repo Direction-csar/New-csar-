@@ -1143,6 +1143,8 @@ Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access', 'enfor
     Route::get('/documents/{type}/form',       [\App\Http\Controllers\Drh\DocumentController::class, 'showForm'])->name('documents.form');
     Route::post('/documents/{type}/save',      [\App\Http\Controllers\Drh\DocumentController::class, 'saveDocument'])->name('documents.save');
     Route::get('/documents/historique',        [\App\Http\Controllers\Drh\DocumentController::class, 'historique'])->name('documents.historique');
+    Route::delete('/documents/historique/{document}', [\App\Http\Controllers\Drh\DocumentController::class, 'destroyDocument'])->name('documents.destroy');
+    Route::delete('/documents/historique', [\App\Http\Controllers\Drh\DocumentController::class, 'destroyAllDocuments'])->name('documents.destroyAll');
     Route::get('/documents/{document}/export', [\App\Http\Controllers\Drh\DocumentController::class, 'exportDocument'])->name('documents.export');
 
     // Génération PDF directe par type

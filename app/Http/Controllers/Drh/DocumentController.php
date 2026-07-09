@@ -328,6 +328,22 @@ class DocumentController extends Controller
         return view('admin.drh.documents.historique', compact('documents', 'types'));
     }
 
+    public function destroyDocument(RhDocument $document)
+    {
+        $document->delete();
+
+        return redirect()->route('admin.drh.documents.historique')
+            ->with('success', 'Document supprimé avec succès.');
+    }
+
+    public function destroyAllDocuments()
+    {
+        RhDocument::query()->delete();
+
+        return redirect()->route('admin.drh.documents.historique')
+            ->with('success', 'Tout l\'historique des documents RH a été supprimé.');
+    }
+
     public function exportDocument(RhDocument $document)
     {
         $agent = $document->personnel;
