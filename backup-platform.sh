@@ -11,7 +11,7 @@
 set -e
 
 PROJECT_DIR="/var/www/csar"
-BACKUP_DIR="/var/backups/csar"
+BACKUP_DIR="${PROJECT_DIR}/backups"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 BACKUP_NAME="csar_backup_${TIMESTAMP}"
 BACKUP_PATH="${BACKUP_DIR}/${BACKUP_NAME}"

@@ -22,7 +22,7 @@ cd /var/www/csar
 bash backup-platform.sh
 ```
 
-3. Le script crée un dossier `/var/backups/csar/csar_backup_YYYYMMDD_HHMMSS/` contenant :
+3. Le script crée un dossier `/var/www/csar/backups/csar_backup_YYYYMMDD_HHMMSS/` contenant :
    - `database.sql` : export de la base MySQL/MariaDB.
    - `storage_app.tar.gz` : tous les fichiers uploadés.
    - `env_backup` : copie du fichier `.env`.
@@ -34,7 +34,7 @@ bash backup-platform.sh
    - Exemple avec `scp` :
 
 ```bash
-scp -r msow@192.168.2.141:/var/backups/csar/csar_backup_YYYYMMDD_HHMMSS /chemin/local/
+scp -r msow@192.168.2.141:/var/www/csar/backups/csar_backup_YYYYMMDD_HHMMSS /chemin/local/
 ```
 
 ## Automatiser la sauvegarde (recommandé)
