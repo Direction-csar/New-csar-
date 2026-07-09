@@ -23,11 +23,8 @@ class DashboardController extends Controller
                 ->avg(fn($p) => Carbon::parse($p->date_naissance)->age) ?? 0
         );
 
-        // Masse salariale (bulletins du mois en cours)
-        $now = now();
-        $masseSalariale = \App\Models\SalarySlip::whereYear('periode_debut', $now->year)
-            ->whereMonth('periode_debut', $now->month)
-            ->sum('salaire_brut') ?? 0;
+        // Masse salariale brute estimée (somme des salaires bruts des agents)
+        $masseSalariale = (float) Personnel::sum('salaire_brut') ?? 0;
 
         // Contrats par type (basé sur le champ type_contrat)
         $contratCDI  = Personnel::where('type_contrat', 'CDI')->count();
