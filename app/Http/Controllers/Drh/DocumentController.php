@@ -435,6 +435,6 @@ class DocumentController extends Controller
             'exported_at' => now(),
         ]);
 
-        return $this->pdf($view, $data, $filename);
+        return $this->pdf($view, ['data' => $data] + $data, $filename);
     }
 }
