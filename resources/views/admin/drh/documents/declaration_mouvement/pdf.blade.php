@@ -27,7 +27,7 @@
         .checkbox { display: inline-block; width: 9px; height: 9px; border: 1px solid #000; margin-right: 3px; position: relative; top: 1px; }
         .checked { background: #000; }
         .section-title { font-weight: bold; text-transform: uppercase; font-size: 8.5pt; margin-top: 8px; margin-bottom: 3px; }
-        .field { border-bottom: 1px solid #000; min-height: 12px; display: inline-block; }
+        .field { min-height: 12px; display: inline-block; font-weight: bold; font-size: 9.5pt; }
         .mt-1 { margin-top: 3px; }
         .mt-2 { margin-top: 6px; }
         .mb-1 { margin-bottom: 3px; }
@@ -229,14 +229,13 @@ $formatDate = fn($d) => $d ? \Carbon\Carbon::parse($d)->format('d/m/Y') : '';
     </table>
 
     <div class="mt-2">
-        <div class="small">1) - Le salaire du travailleur sera celui fixé pour la même catégorie de la Convention Collective Du Commerce 9<sup>ème</sup> A en fonction d'un horaire de travail hebdomadaire de :</div>
-        <table class="mt-1" style="width:60%;">
-            <tr>
-                @foreach(['40','42','44','48','60'] as $h)
-                <td class="p-1"><span class="checkbox {{ $is('horaire_hebdomadaire', $h) ? 'checked' : '' }}"></span> {{ $h }} Heures</td>
-                @endforeach
-            </tr>
-        </table>
+        <div>1) - Le salaire du travailleur sera celui fixé pour la même catégorie de la Convention Collective Du Commerce 9<sup>ème</sup> A<br>
+        en fonction d'un horaire de travail hebdomadaire de :</div>
+        <div class="mt-1">
+            @foreach(['40' => '40 Heures', '42' => '42 heures', '44' => '44 heures', '48' => '48 heures', '60' => '60 heures'] as $h => $label)
+            <div class="p-1">{{ $label }} {!! $is('horaire_hebdomadaire', $h) ? '<strong>x</strong>' : '' !!}</div>
+            @endforeach
+        </div>
     </div>
 
     <table class="mt-2">
@@ -257,7 +256,7 @@ $formatDate = fn($d) => $d ? \Carbon\Carbon::parse($d)->format('d/m/Y') : '';
             <td class="p-1 text-right">= <span class="field">{{ $val('indemnite_fonction') }}</span></td>
         </tr>
         <tr>
-            <td class="p-1">4) Salaire brut global</td>
+            <td class="p-1">5) Salaire brut global</td>
             <td class="p-1 text-right">= <span class="field">{{ $val('salaire_brut_global') }}</span></td>
         </tr>
     </table>

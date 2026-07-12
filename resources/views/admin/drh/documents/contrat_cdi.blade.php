@@ -20,8 +20,8 @@
     <title>Contrat de travail à durée indéterminée</title>
     <style>
         @page { margin: 60px 55px; }
-        body { font-family: 'DejaVu Serif', serif; font-size: 11px; color: #000; line-height: 1.45; }
-        .title { text-align: center; font-weight: bold; font-size: 15px; margin-bottom: 30px; }
+        body { font-family: 'DejaVu Serif', serif; font-size: 10px; color: #000; line-height: 1.4; }
+        .title { text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 25px; }
         .article-title { background: #d9d9d9; font-weight: bold; padding: 2px 5px; margin: 16px 0 4px 0; }
         .right { text-align: right; font-weight: bold; }
         .travailleur p { margin: 1px 0; }
