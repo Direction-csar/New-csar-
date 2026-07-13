@@ -19,10 +19,10 @@
     <meta charset="UTF-8">
     <title>Contrat de travail à durée indéterminée</title>
     <style>
-        @page { margin: 60px 55px; }
-        body { font-family: 'DejaVu Serif', serif; font-size: 10px; color: #000; line-height: 1.4; }
-        .title { text-align: center; font-weight: bold; font-size: 13px; margin-bottom: 25px; }
-        .article-title { background: #d9d9d9; font-weight: bold; padding: 2px 5px; margin: 16px 0 4px 0; }
+        @page { margin: 45px 50px; }
+        body { font-family: 'DejaVu Serif', serif; font-size: 12px; color: #000; line-height: 1.35; }
+        .title { text-align: center; font-weight: bold; font-size: 16px; margin-bottom: 18px; }
+        .article-title { background: #d9d9d9; font-weight: bold; padding: 2px 5px; margin: 10px 0 3px 0; }
         .right { text-align: right; font-weight: bold; }
         .travailleur p { margin: 1px 0; }
         table.remu { border-collapse: collapse; }
@@ -30,8 +30,8 @@
         table.remu td.val { padding-left: 90px; }
         ul { margin: 4px 0 4px 25px; padding: 0; }
         .page-break { page-break-before: always; }
-        .signatures { margin-top: 45px; width: 100%; }
-        .visa { margin-top: 90px; text-align: center; font-weight: bold; }
+        .signatures { margin-top: 30px; width: 100%; }
+        .visa { margin-top: 60px; text-align: center; font-weight: bold; }
     </style>
 </head>
 <body>

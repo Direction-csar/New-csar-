@@ -390,6 +390,8 @@
         </div>
     </div>
 </div>
+@endsection
+
 @push('scripts')
 <script>
 function setCreateFolderParent(parentId) {
