@@ -202,84 +202,84 @@ $formatDate = fn($d) => $d ? \Carbon\Carbon::parse($d)->format('d/m/Y') : '';
     </table>
 </div>
 
-<div class="page">
-    <div class="title">Statut militaire</div>
-    <div class="small text-center">(Rayer les mentions inutiles)</div>
-    <table class="mt-2">
+<div class="page" style="font-size: 10.5pt; line-height: 1.5;">
+    <div class="title" style="font-size: 13pt; margin-top: 10px;">Statut militaire</div>
+    <div class="text-center" style="font-size: 9pt; margin-bottom: 20px;">(Rayer les mentions inutiles)</div>
+    <table>
         <tr>
-            <td class="p-1">- Classe de recrutement : <span class="field">{{ $val('classe_recruement') }}</span></td>
+            <td style="padding: 6px 4px;">- Classe de recrutement : <span class="field">{{ $val('classe_recruement') }}</span></td>
         </tr>
         <tr>
-            <td class="p-1">- L'intéressé a-t-il effectué son service militaire ? <span class="field">{{ $val('service_militaire') }}</span></td>
+            <td style="padding: 6px 4px;">- L'intéressé a-t-il effectué son service militaire ? <span class="field">{{ $val('service_militaire') }}</span></td>
         </tr>
         <tr>
-            <td class="p-1">- Armée d'appartenance : terre - mer - air : <span class="field">{{ $val('arme_appartenance') }}</span></td>
+            <td style="padding: 6px 4px;">- Armée d'appartenance : terre - mer - air : <span class="field">{{ $val('arme_appartenance') }}</span></td>
         </tr>
         <tr>
-            <td class="p-1">- Grade dans la réserve : Officier - Sous-officier - Troupe : <span class="field">{{ $val('grade_reserve') }}</span></td>
-        </tr>
-    </table>
-
-    <div class="section-title">Dispositions particulières concernant l'engagement :</div>
-    <div class="small">(Auxquelles les parties ont expressément souscrit)</div>
-    <table class="border mt-1">
-        <tr>
-            <td class="border p-1" style="height:80px;">{{ $val('dispositions_particulieres') }}</td>
+            <td style="padding: 6px 4px;">- Grade dans la réserve : Officier - Sous-officier - Troupe : <span class="field">{{ $val('grade_reserve') }}</span></td>
         </tr>
     </table>
 
-    <div class="mt-2">
+    <div class="section-title" style="font-size: 10.5pt; margin-top: 22px;">Dispositions particulières concernant l'engagement :</div>
+    <div style="font-size: 9pt;">(Auxquelles les parties ont expressément souscrit)</div>
+    <table class="border" style="margin-top: 8px;">
+        <tr>
+            <td class="border" style="height: 110px; padding: 6px;">{{ $val('dispositions_particulieres') }}</td>
+        </tr>
+    </table>
+
+    <div style="margin-top: 22px;">
         <div>1) - Le salaire du travailleur sera celui fixé pour la même catégorie de la Convention Collective Du Commerce 9<sup>ème</sup> A<br>
         en fonction d'un horaire de travail hebdomadaire de :</div>
-        <div class="mt-1">
+        <div style="margin-top: 8px;">
             @foreach(['40' => '40 Heures', '42' => '42 heures', '44' => '44 heures', '48' => '48 heures', '60' => '60 heures'] as $h => $label)
-            <div class="p-1">{{ $label }} {!! $is('horaire_hebdomadaire', $h) ? '<strong>x</strong>' : '' !!}</div>
+            <div style="padding: 3px 6px;">{{ $label }} {!! $is('horaire_hebdomadaire', $h) ? '<strong>x</strong>' : '' !!}</div>
             @endforeach
         </div>
     </div>
 
-    <table class="mt-2">
+    <table style="margin-top: 18px;">
         <tr>
-            <td class="p-1" style="width:50%;">Soit : Salaire de base,</td>
-            <td class="p-1 text-right">= <span class="field">{{ $val('salaire_base') }}</span></td>
+            <td style="width:50%; padding: 6px 4px;">Soit : Salaire de base,</td>
+            <td class="text-right" style="padding: 6px 4px;">= <span class="field">{{ $val('salaire_base') }}</span></td>
         </tr>
         <tr>
-            <td class="p-1">2) Sursalaire</td>
-            <td class="p-1 text-right">= <span class="field">{{ $val('sursalaire') }}</span></td>
+            <td style="padding: 6px 4px;">2) Sursalaire</td>
+            <td class="text-right" style="padding: 6px 4px;">= <span class="field">{{ $val('sursalaire') }}</span></td>
         </tr>
         <tr>
-            <td class="p-1">3) Indemnité de transport</td>
-            <td class="p-1 text-right">= <span class="field">{{ $val('indemnite_transport') }}</span></td>
+            <td style="padding: 6px 4px;">3) Indemnité de transport</td>
+            <td class="text-right" style="padding: 6px 4px;">= <span class="field">{{ $val('indemnite_transport') }}</span></td>
         </tr>
         <tr>
-            <td class="p-1">4) Indemnité de fonction</td>
-            <td class="p-1 text-right">= <span class="field">{{ $val('indemnite_fonction') }}</span></td>
+            <td style="padding: 6px 4px;">4) Indemnité de fonction</td>
+            <td class="text-right" style="padding: 6px 4px;">= <span class="field">{{ $val('indemnite_fonction') }}</span></td>
         </tr>
         <tr>
-            <td class="p-1">5) Salaire brut global</td>
-            <td class="p-1 text-right">= <span class="field">{{ $val('salaire_brut_global') }}</span></td>
+            <td style="padding: 6px 4px;">5) Salaire brut global</td>
+            <td class="text-right" style="padding: 6px 4px;">= <span class="field">{{ $val('salaire_brut_global') }}</span></td>
         </tr>
     </table>
 
-    <div class="mt-2">
+    <div style="margin-top: 28px;">
         <table>
             <tr>
-                <td class="border p-2" style="width:50%;">
-                    <div class="small">Signature du travailleur :</div>
-                    <div class="small mt-1">(Précédée de la mention manuscrite : pour accord)</div>
-                    <div class="signature mt-1"></div>
-                    <div class="small mt-1">{{ $val('signature_travailleur') }}</div>
+                <td class="border" style="width:50%; padding: 10px;">
+                    <div style="font-size: 9.5pt;">Signature du travailleur :</div>
+                    <div style="font-size: 8.5pt; margin-top: 4px;">(Précédée de la mention manuscrite : pour accord)</div>
+                    <div style="height: 60px; border-bottom: 1px solid #000; margin-top: 6px;"></div>
+                    <div style="font-size: 9pt; margin-top: 4px;">{{ $val('signature_travailleur') }}</div>
                 </td>
-                <td class="border p-2" style="vertical-align: bottom;">
-                    <div class="small">Signature de l'employeur :</div>
-                    <div class="signature mt-1"></div>
-                    <div class="small mt-1">{{ $val('signature_employeur') }}</div>
+                <td class="border" style="padding: 10px; vertical-align: bottom;">
+                    <div style="font-size: 9.5pt;">Signature de l'employeur :</div>
+                    <div style="height: 60px; border-bottom: 1px solid #000; margin-top: 6px;"></div>
+                    <div style="font-size: 9pt; margin-top: 4px;">{{ $val('signature_employeur') }}</div>
                 </td>
             </tr>
         </table>
     </div>
 
-    <div class="small mt-2">
+    <div style="font-size: 8.5pt; margin-top: 30px; line-height: 1.5; border-top: 1px solid #000; padding-top: 8px;">
         P.S. - N.B. : 1) La déclaration de mouvement de travailleur est à établir en trois exemplaires dûment signés par l'employeur et le travailleur.<br>
         Un exemplaire est remis au travailleur. Le second est conservé par l'employeur. Le troisième est déposé :<br>
         dans l'intérieur : à la Section locale du Service de la Main-d'œuvre, à l'Inspection régionale du Travail et de la Sécurité sociale du ressort ;<br>
