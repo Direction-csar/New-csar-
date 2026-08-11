@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Donation;
+use App\Services\BictorysService;
 use App\Services\PayDunyaService;
 use App\Services\PayPalService;
 use Illuminate\Http\Request;
@@ -16,11 +17,13 @@ class DonationController extends Controller
 {
     protected $paydunyaService;
     protected $paypalService;
+    protected $bictorysService;
 
-    public function __construct(PayDunyaService $paydunyaService, PayPalService $paypalService)
+    public function __construct(PayDunyaService $paydunyaService, PayPalService $paypalService, BictorysService $bictorysService)
     {
         $this->paydunyaService = $paydunyaService;
         $this->paypalService = $paypalService;
+        $this->bictorysService = $bictorysService;
     }
 
     /**
@@ -30,12 +33,16 @@ class DonationController extends Controller
     {
         $paymentMethods = $this->paydunyaService->getPaymentMethods();
         $suggestedAmounts = $this->paydunyaService->getSuggestedAmounts();
-        
+
         // PayPal methods
         $paypalMethods = $this->paypalService->getPaymentMethods();
         $paypalAmounts = $this->paypalService->getSuggestedAmounts();
-        
-        return view('public.donations.index', compact('paymentMethods', 'suggestedAmounts', 'paypalMethods', 'paypalAmounts'));
+
+        // Bictorys methods
+        $bictorysMethods = $this->bictorysService->getPaymentMethods();
+        $bictorysAmounts = $this->bictorysService->getSuggestedAmounts();
+
+        return view('public.donations.index', compact('paymentMethods', 'suggestedAmounts', 'paypalMethods', 'paypalAmounts', 'bictorysMethods', 'bictorysAmounts'));
     }
 
     /**
@@ -49,8 +56,8 @@ class DonationController extends Controller
             'phone_country' => 'nullable|string|max:5',
             'phone' => 'nullable|string|max:20',
             'amount' => 'required|numeric|min:500|max:10000000',
-            'payment_method' => 'required|in:wave,orange_money,credit_card,paypal_balance,paypal_card',
-            'payment_provider' => 'required|in:paydunya,paypal',
+            'payment_method' => 'required|in:wave,orange_money,credit_card,paypal_balance,paypal_card,bictorys_wave,bictorys_orange_money,bictorys_credit_card',
+            'payment_provider' => 'required|in:paydunya,paypal,bictorys',
             'donation_type' => 'required|in:single,monthly',
             'frequency' => 'nullable|required_if:donation_type,monthly|in:monthly,quarterly,yearly',
             'message' => 'nullable|string|max:1000',
@@ -72,11 +79,14 @@ class DonationController extends Controller
         if ($provider === 'paypal') {
             $amountValidation = $this->paypalService->validateAmount($request->amount);
             $currency = 'USD';
+        } elseif ($provider === 'bictorys') {
+            $amountValidation = $this->bictorysService->validateAmount($request->amount);
+            $currency = config('services.bictorys.currency', 'XOF');
         } else {
             $amountValidation = $this->paydunyaService->validateAmount($request->amount);
             $currency = 'XOF';
         }
-        
+
         if (!$amountValidation['valid']) {
             return response()->json([
                 'success' => false,
@@ -107,9 +117,42 @@ class DonationController extends Controller
             ]);
 
             // Create payment based on provider
+            if ($provider === 'bictorys') {
+                $paymentType = match ($request->payment_method) {
+                    'bictorys_orange_money' => 'orange_money',
+                    'bictorys_wave' => 'wave',
+                    'bictorys_credit_card' => 'credit_card',
+                    default => 'orange_money',
+                };
+
+                $paymentResult = $this->bictorysService->createDonationPayment($donation, $paymentType);
+
+                if (!$paymentResult['success']) {
+                    $donation->update([
+                        'payment_status' => 'failed',
+                        'failed_at' => now(),
+                        'failure_reason' => $paymentResult['error']
+                    ]);
+
+                    return response()->json([
+                        'success' => false,
+                        'message' => __('donations.errors.payment_creation_failed'),
+                        'details' => $paymentResult['details'] ?? null
+                    ], 500);
+                }
+
+                return response()->json([
+                    'success' => true,
+                    'donation_id' => $donation->id,
+                    'payment_provider' => 'bictorys',
+                    'payment_url' => $paymentResult['payment_url'] ?? null,
+                    'message' => __('donations.success.payment_initiated')
+                ]);
+            }
+
             if ($provider === 'paypal') {
                 $paymentResult = $this->paypalService->createOrder($donation);
-                
+
                 if (!$paymentResult['success']) {
                     $donation->update([
                         'payment_status' => 'failed',
@@ -181,7 +224,7 @@ class DonationController extends Controller
         // Verify payment status
         if ($donation->transaction_id) {
             $verification = $this->paydunyaService->verifyPayment($donation->transaction_id);
-            
+
             if ($verification['success']) {
                 $status = $verification['data']['status'] ?? 'unknown';
                 $paymentStatus = match($status) {
@@ -358,7 +401,7 @@ class DonationController extends Controller
     {
         try {
             $token = $request->get('token'); // PayPal order ID
-            
+
             if (!$token) {
                 return redirect()->route('donations.cancel')
                     ->with('error', 'Invalid PayPal response');
@@ -408,6 +451,64 @@ class DonationController extends Controller
     {
         return view('public.donations.cancel')
             ->with('info', 'Vous avez annulé le paiement PayPal.');
+    }
+
+    /**
+     * Handle Bictorys callback
+     */
+    public function bictorysCallback(Request $request, Donation $donation)
+    {
+        try {
+            Log::info('Bictorys callback received', [
+                'donation_id' => $donation->id,
+                'data' => $request->all(),
+            ]);
+
+            $result = $this->bictorysService->processCallback($donation, $request->all());
+
+            if (!$result['success']) {
+                Log::error('Bictorys callback processing failed', [
+                    'donation_id' => $donation->id,
+                    'error' => $result['error'] ?? 'Unknown error',
+                ]);
+
+                return redirect()->route('donations.cancel')
+                    ->with('error', 'Le paiement Bictorys n\'a pas pu être confirmé.');
+            }
+
+            $cbDonation = $result['donation'];
+
+            if ($cbDonation->payment_status === 'success') {
+                try {
+                    Mail::to($cbDonation->email)->send(new DonationConfirmation($cbDonation->fresh()));
+                } catch (\Exception $e) {
+                    Log::warning('Donation confirmation email failed (Bictorys callback)', [
+                        'id' => $cbDonation->id,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                return redirect()->route('donations.success', ['donation' => $cbDonation->id]);
+            }
+
+            if ($cbDonation->payment_status === 'failed') {
+                return redirect()->route('donations.cancel')
+                    ->with('error', 'Le paiement a échoué.');
+            }
+
+            return redirect()->route('donations.success', ['donation' => $cbDonation->id]);
+
+        } catch (\Exception $e) {
+            Log::error('Bictorys callback error', [
+                'donation_id' => $donation->id,
+                'data' => $request->all(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->route('donations.cancel')
+                ->with('error', 'Une erreur est survenue lors du traitement du paiement.');
+        }
     }
 
     /**

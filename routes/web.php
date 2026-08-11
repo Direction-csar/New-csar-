@@ -183,6 +183,7 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     Route::get('/faire-un-don/success/{donation}', [DonationController::class, 'success'])->name('donations.success');
     Route::get('/faire-un-don/cancel', [DonationController::class, 'cancel'])->name('donations.cancel');
     Route::post('/faire-un-don/callback', [DonationController::class, 'callback'])->name('donations.callback');
+    Route::match(['get', 'post'], '/faire-un-don/bictorys/callback/{donation}', [DonationController::class, 'bictorysCallback'])->name('donations.bictorys.callback');
     Route::get('/faire-un-don/track', [DonationController::class, 'track'])->name('donations.track');
 
     // PayPal specific routes

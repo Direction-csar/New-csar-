@@ -181,6 +181,13 @@
                                         <i class="fab fa-paypal me-1"></i> PayPal / Carte internationale
                                     </button>
                                 </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="bictorys-tab" data-bs-toggle="pill"
+                                            data-bs-target="#bictorys-methods" type="button" role="tab"
+                                            onclick="selectProvider('bictorys')">
+                                        <i class="fas fa-bolt me-1"></i> Bictorys
+                                    </button>
+                                </li>
                             </ul>
 
                             <input type="hidden" id="payment_provider" name="payment_provider" value="paydunya">
@@ -227,6 +234,30 @@
                                     <div class="alert alert-info mt-3">
                                         <i class="fas fa-info-circle me-2"></i>
                                         Le montant sera converti en USD (~<span id="usdAmount">0</span> $) pour le traitement PayPal.
+                                    </div>
+                                </div>
+
+                                {{-- Bictorys Methods --}}
+                                <div class="tab-pane fade" id="bictorys-methods" role="tabpanel">
+                                    <div class="row g-3">
+                                        @foreach($bictorysMethods as $key => $method)
+                                            <div class="col-md-4">
+                                                <div class="payment-method-card form-check card h-100">
+                                                    <input class="form-check-input" type="radio"
+                                                           name="payment_method" id="method_{{ $key }}"
+                                                           value="{{ $key }}" {{ $loop->first ? 'checked' : '' }}>
+                                                    <label class="form-check-label card-body text-center" for="method_{{ $key }}">
+                                                        <i class="{{ $method['icon'] }} fa-2x mb-2" style="color: {{ $method['color'] }}"></i>
+                                                        <div class="fw-bold">{{ $method['name'] }}</div>
+                                                        <small class="text-muted d-block">{{ $method['description'] }}</small>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    <div class="alert alert-info mt-3">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Paiement mobile direct via Bictorys (Orange Money, Wave, carte).
                                     </div>
                                 </div>
                             </div>
@@ -489,15 +520,15 @@ function selectProvider(provider) {
     document.getElementById('payment_provider').value = provider;
 
     // Update payment methods based on provider
+    document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+        input.checked = false;
+    });
+
     if (provider === 'paydunya') {
-        document.querySelectorAll('input[name="payment_method"]').forEach(input => {
-            input.checked = false;
-        });
         document.getElementById('method_wave').checked = true;
+    } else if (provider === 'bictorys') {
+        document.getElementById('method_bictorys_orange_money').checked = true;
     } else {
-        document.querySelectorAll('input[name="payment_method"]').forEach(input => {
-            input.checked = false;
-        });
         document.getElementById('paypal_paypal_balance').checked = true;
     }
 }

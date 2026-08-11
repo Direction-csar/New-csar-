@@ -110,6 +110,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Bictorys Payment Gateway
+    |--------------------------------------------------------------------------
+    | Configuration pour l'intégration Bictorys (Direct API).
+    | https://bictorys.com
+    |
+    | Mode: 'test' pour sandbox, 'live' pour production
+    | Clé API publique fournie par Bictorys.
+    */
+    'bictorys' => [
+        'mode' => env('BICTORYS_MODE', 'test'),
+        'api_key' => env('BICTORYS_API_KEY'),
+
+        'base_url_test' => env('BICTORYS_BASE_URL_TEST', 'https://api.test.bictorys.com'),
+        'base_url_live' => env('BICTORYS_BASE_URL_LIVE', 'https://api.bictorys.com'),
+
+        'country' => env('BICTORYS_COUNTRY', 'SN'),
+        'currency' => env('BICTORYS_CURRENCY', 'XOF'),
+
+        'min_amount' => env('BICTORYS_MIN_AMOUNT', 500),
+        'max_amount' => env('BICTORYS_MAX_AMOUNT', 10000000),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | PayPal Payment Gateway
     |--------------------------------------------------------------------------
     | Configuration pour l'intégration PayPal (paiement international)
@@ -121,19 +145,19 @@ return [
         'mode' => env('PAYPAL_MODE', 'sandbox'),
         'client_id' => env('PAYPAL_CLIENT_ID'),
         'client_secret' => env('PAYPAL_CLIENT_SECRET'),
-        
+
         // URLs de callback
         'return_url' => env('PAYPAL_RETURN_URL'),
         'cancel_url' => env('PAYPAL_CANCEL_URL'),
-        
+
         // Webhook
         'webhook_id' => env('PAYPAL_WEBHOOK_ID'),
-        
+
         // Configuration des montants (en USD)
         'min_amount' => env('PAYPAL_MIN_AMOUNT', 1),
         'max_amount' => env('PAYPAL_MAX_AMOUNT', 10000),
         'currency' => env('PAYPAL_CURRENCY', 'USD'),
-        
+
         // URLs API PayPal
         'base_url_sandbox' => 'https://api-m.sandbox.paypal.com',
         'base_url_live' => 'https://api-m.paypal.com',
