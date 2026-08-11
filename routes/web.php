@@ -81,7 +81,6 @@ use App\Http\Controllers\Public\GalerieController as PublicGalerieController;
 use App\Http\Controllers\Auth\PasswordResetController;
 
 // Routes de connexion simplifiées
-require_once __DIR__ . '/simple-login.php';
 require_once __DIR__ . '/simple-auth.php';
 
 // Endpoint pour collecter les violations CSP (utilisé par report-uri)
