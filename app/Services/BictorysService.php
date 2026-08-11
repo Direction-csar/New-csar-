@@ -87,7 +87,8 @@ class BictorysService
                     ?? $body['transaction_id']
                     ?? $body['id']
                     ?? null;
-                $paymentUrl = $body['confirmationLink']
+                $paymentUrl = $body['link']
+                    ?? $body['confirmationLink']
                     ?? $body['confirmation_link']
                     ?? $body['checkoutLink']
                     ?? $body['checkout_link']
