@@ -92,7 +92,7 @@ class Demande extends Model
             'rejetee' => 'Rejetée',
             'terminee' => 'Terminée'
         ];
-        
+
         return $statuts[$this->statut] ?? $this->statut;
     }
 
@@ -109,7 +109,7 @@ class Demande extends Model
             'demande_audience' => 'Demande d\'audience',
             'autre' => 'Autre'
         ];
-        
+
         return $types[$this->type_demande] ?? $this->type_demande;
     }
 
@@ -124,7 +124,7 @@ class Demande extends Model
             'haute' => 'Haute',
             'urgente' => 'Urgente'
         ];
-        
+
         return $priorites[$this->priorite] ?? $this->priorite;
     }
 
@@ -186,9 +186,9 @@ class Demande extends Model
     public static function generateCodeSuivi()
     {
         do {
-            $code = 'CSAR-' . strtoupper(substr(md5(uniqid()), 0, 8));
+            $code = 'CSAR-' . strtoupper(bin2hex(random_bytes(4)));
         } while (self::where('code_suivi', $code)->exists());
-        
+
         return $code;
     }
 }

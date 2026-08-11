@@ -277,8 +277,20 @@ class PayPalService
         try {
             $eventType = $payload['event_type'] ?? null;
             $resource = $payload['resource'] ?? [];
+            $eventId = $payload['id'] ?? null;
 
-            Log::info('PayPal webhook received', ['event' => $eventType]);
+            Log::info('PayPal webhook received', ['event' => $eventType, 'event_id' => $eventId]);
+
+            if (!$eventId) {
+                Log::warning('PayPal webhook missing event id');
+                return ['success' => false, 'error' => 'Missing event id'];
+            }
+
+            $cacheKey = 'paypal_webhook_processed_' . $eventId;
+            if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+                Log::info('PayPal webhook already processed', ['event_id' => $eventId]);
+                return ['success' => true, 'message' => 'Already processed'];
+            }
 
             switch ($eventType) {
                 case 'CHECKOUT.ORDER.APPROVED':
@@ -286,19 +298,34 @@ class PayPalService
                     $orderId = $resource['id'] ?? null;
                     $donation = Donation::where('transaction_id', $orderId)->first();
 
-                    if ($donation) {
-                        // Capturer le paiement
-                        $capture = $this->captureOrder($orderId);
+                    if (!$donation) {
+                        Log::warning('PayPal webhook donation not found', ['order_id' => $orderId]);
+                        return ['success' => false, 'error' => 'Donation not found'];
+                    }
 
-                        if ($capture['success']) {
-                            $donation->update([
-                                'payment_status' => 'success',
-                                'processed_at' => now(),
-                                'metadata' => array_merge($donation->metadata ?? [], [
-                                    'paypal_capture' => $capture['data']
-                                ])
-                            ]);
-                        }
+                    $expectedCurrency = $donation->currency ?? 'USD';
+                    $amount = $resource['purchase_units'][0]['amount']['value'] ?? null;
+                    $currency = $resource['purchase_units'][0]['amount']['currency_code'] ?? null;
+
+                    if (!$this->validateWebhookAmount($donation, $amount, $currency)) {
+                        Log::warning('PayPal webhook amount/currency mismatch', [
+                            'donation_id' => $donation->id,
+                            'expected' => $donation->amount . ' ' . $expectedCurrency,
+                            'received' => $amount . ' ' . $currency,
+                        ]);
+                        return ['success' => false, 'error' => 'Amount or currency mismatch'];
+                    }
+
+                    $capture = $this->captureOrder($orderId);
+
+                    if ($capture['success']) {
+                        $donation->update([
+                            'payment_status' => 'success',
+                            'processed_at' => now(),
+                            'metadata' => array_merge($donation->metadata ?? [], [
+                                'paypal_capture' => $capture['data']
+                            ])
+                        ]);
                     }
                     break;
 
@@ -307,6 +334,16 @@ class PayPalService
                     if ($customId) {
                         $donation = Donation::find($customId);
                         if ($donation) {
+                            $amount = $resource['amount']['value'] ?? null;
+                            $currency = $resource['amount']['currency_code'] ?? null;
+
+                            if (!$this->validateWebhookAmount($donation, $amount, $currency)) {
+                                Log::warning('PayPal webhook capture amount/currency mismatch', [
+                                    'donation_id' => $donation->id,
+                                ]);
+                                return ['success' => false, 'error' => 'Amount or currency mismatch'];
+                            }
+
                             $donation->update([
                                 'payment_status' => 'success',
                                 'processed_at' => now()
@@ -327,6 +364,8 @@ class PayPalService
                     break;
             }
 
+            \Illuminate\Support\Facades\Cache::put($cacheKey, true, now()->addHours(48));
+
             return ['success' => true];
 
         } catch (\Exception $e) {
@@ -337,6 +376,26 @@ class PayPalService
 
             return ['success' => false, 'error' => $e->getMessage()];
         }
+    }
+
+    /**
+     * Validate webhook amount and currency against donation
+     */
+    private function validateWebhookAmount(Donation $donation, $amount, $currency): bool
+    {
+        if (!is_numeric($amount) || !$currency) {
+            return false;
+        }
+
+        $expectedCurrency = $donation->currency ?? 'USD';
+        $expectedAmount = (float) $donation->amount;
+
+        if (strtoupper($currency) !== strtoupper($expectedCurrency)) {
+            return false;
+        }
+
+        $tolerance = 0.01;
+        return abs((float) $amount - $expectedAmount) <= $tolerance;
     }
 
     /**

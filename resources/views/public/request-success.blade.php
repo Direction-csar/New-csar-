@@ -408,24 +408,24 @@
         .main-title {
             font-size: 2rem;
         }
-        
+
         .subtitle {
             font-size: 1rem;
         }
-        
+
         .success-card {
             padding: 2rem 1rem;
             margin: 1rem;
         }
-        
+
         .action-buttons {
             grid-template-columns: 1fr;
         }
-        
+
         .assistance-cards {
             grid-template-columns: 1fr;
         }
-        
+
         .summary-row {
             flex-direction: column;
             gap: 0.5rem;
@@ -493,7 +493,7 @@
 
             <!-- Titre principal -->
             <h1 class="main-title">Demande soumise avec succès !</h1>
-            
+
             <!-- Sous-titre -->
             <p class="subtitle">
                 Votre demande a été enregistrée et sera traitée dans les plus brefs délais.
@@ -504,7 +504,7 @@
                 <div class="summary-row">
                     <span class="summary-label">Code de suivi :</span>
                     <span class="summary-value">
-                        <span class="tracking-code">{{ session('tracking_code', 'CSAR-' . strtoupper(substr(md5(uniqid()), 0, 8))) }}</span>
+                        <span class="tracking-code">{{ session('tracking_code', 'CSAR-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8))) }}</span>
                     </span>
                 </div>
                 <div class="summary-row">
@@ -533,14 +533,14 @@
                     </svg>
                     Suivre ma demande
                 </a>
-                
+
                 <a href="{{ route('demande.create') }}" class="action-btn btn-secondary">
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
                     Nouvelle demande
                 </a>
-                
+
                 <button onclick="downloadReceipt()" class="action-btn btn-tertiary">
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -553,7 +553,7 @@
         <!-- Section assistance -->
         <div class="assistance-section">
             <h2 class="assistance-title">Besoin d'aide ? Nous sommes là pour vous accompagner</h2>
-            
+
             <div class="assistance-cards">
                 <div class="assistance-card">
                     <div class="assistance-icon">
@@ -608,25 +608,25 @@
     // Fonction pour télécharger le reçu
     function downloadReceipt() {
         // Créer un reçu PDF simple
-        const trackingCode = '{{ session("tracking_code", "CSAR-" . strtoupper(substr(md5(uniqid()), 0, 8))) }}';
+        const trackingCode = '{{ session("tracking_code", "CSAR-" . strtoupper(substr(bin2hex(random_bytes(4)), 0, 8))) }}';
         const currentDate = new Date().toLocaleDateString('fr-FR');
-        
+
         // Contenu du reçu
         const receiptContent = `
             RECU DE DEMANDE CSAR
             ===================
-            
+
             Code de suivi: ${trackingCode}
             Date de soumission: ${currentDate}
             Statut: En attente de traitement
-            
+
             Votre demande a été enregistrée avec succès.
             Conservez ce reçu pour le suivi de votre demande.
-            
+
             Contact: contact@csar.sn
             Téléphone: +221 33 123 45 67
         `;
-        
+
         // Créer et télécharger le fichier
         const blob = new Blob([receiptContent], { type: 'text/plain' });
         const url = window.URL.createObjectURL(blob);
@@ -637,7 +637,7 @@
         a.click();
         document.body.removeChild(a);
         window.URL.revokeObjectURL(url);
-        
+
         // Animation de confirmation
         const button = event.target.closest('.action-btn');
         button.style.transform = 'scale(0.95)';
@@ -676,7 +676,7 @@
     window.addEventListener('scroll', function() {
         const scrolled = window.pageYOffset;
         const particles = document.querySelectorAll('.particle');
-        
+
         particles.forEach((particle, index) => {
             const speed = 0.5 + (index * 0.1);
             particle.style.transform = `translateY(${scrolled * speed}px)`;

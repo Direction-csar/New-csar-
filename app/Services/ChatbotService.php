@@ -28,6 +28,15 @@ class ChatbotService
             return $this->fallbackResponse($question);
         }
 
+        if ($this->isPromptInjection($question)) {
+            Log::warning('Chatbot prompt injection attempt blocked', ['question' => $question]);
+            return [
+                'success' => false,
+                'message' => 'Cette question ne semble pas appropriée. Veuillez poser une question liée au CSAR.',
+                'source' => 'filter',
+            ];
+        }
+
         try {
             $systemPrompt = $this->getSystemPrompt();
             $response = match ($this->provider) {
@@ -49,6 +58,44 @@ class ChatbotService
 
             return $this->fallbackResponse($question);
         }
+    }
+
+    /**
+     * Detect common prompt injection patterns
+     */
+    private function isPromptInjection(string $question): bool
+    {
+        $lower = mb_strtolower($question);
+
+        $blockedPatterns = [
+            'ignore previous',
+            'ignore all',
+            'oublie',
+            'oublier',
+            'system prompt',
+            'prompt injection',
+            'tu es maintenant',
+            'you are now',
+            'override',
+            'contourner',
+            'révèle',
+            'reveal',
+            'mot de passe',
+            'api key',
+            'clé api',
+            'secret',
+            'private key',
+            'credentials',
+            '.env',
+        ];
+
+        foreach ($blockedPatterns as $pattern) {
+            if (str_contains($lower, $pattern)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

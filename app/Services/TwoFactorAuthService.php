@@ -31,7 +31,7 @@ class TwoFactorAuthService
     {
         $companyName = 'CSAR Platform';
         $companyEmail = $user->email;
-        
+
         return $this->google2fa->getQRCodeUrl(
             $companyName,
             $companyEmail,
@@ -153,7 +153,7 @@ class TwoFactorAuthService
     {
         try {
             $user = User::findOrFail($userId);
-            
+
             if (!$user->two_factor_enabled) {
                 return [
                     'success' => false,
@@ -162,7 +162,7 @@ class TwoFactorAuthService
             }
 
             $secretKey = decrypt($user->two_factor_secret);
-            
+
             if (!$this->verifyCode($secretKey, $verificationCode)) {
                 return [
                     'success' => false,
@@ -215,7 +215,7 @@ class TwoFactorAuthService
     {
         $codes = [];
         for ($i = 0; $i < 10; $i++) {
-            $codes[] = strtoupper(substr(md5(uniqid()), 0, 8));
+            $codes[] = strtoupper(bin2hex(random_bytes(4)));
         }
 
         // Stocker les codes chiffrés
@@ -234,13 +234,13 @@ class TwoFactorAuthService
     {
         try {
             $user = User::findOrFail($userId);
-            
+
             if (!$user->two_factor_recovery_codes) {
                 return false;
             }
 
             $recoveryCodes = json_decode(decrypt($user->two_factor_recovery_codes), true);
-            
+
             if (in_array(strtoupper($code), $recoveryCodes)) {
                 // Supprimer le code utilisé
                 $recoveryCodes = array_diff($recoveryCodes, [strtoupper($code)]);

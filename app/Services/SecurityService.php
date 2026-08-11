@@ -19,11 +19,11 @@ class SecurityService
     {
         try {
             $hash = self::generateDuplicateHash($email, $type, $description);
-            
+
             $recentRequest = PublicRequest::where('duplicate_hash', $hash)
                 ->where('created_at', '>=', Carbon::now()->subHours($hours))
                 ->first();
-                
+
             if ($recentRequest) {
                 // Log de la tentative de doublon
                 self::logAudit('duplicate_request_attempt', 'PublicRequest', $recentRequest->id, [
@@ -33,7 +33,7 @@ class SecurityService
                     'original_request_id' => $recentRequest->id
                 ]);
             }
-                
+
             return $recentRequest !== null;
         } catch (\Exception $e) {
             Log::error('Erreur lors de la vérification des doublons de demande', [
@@ -52,11 +52,11 @@ class SecurityService
     {
         try {
             $hash = self::generateDuplicateHash($email, $subject, $message);
-            
+
             $recentContact = ContactMessage::where('duplicate_hash', $hash)
                 ->where('created_at', '>=', Carbon::now()->subHours($hours))
                 ->first();
-                
+
             if ($recentContact) {
                 // Log de la tentative de doublon
                 self::logAudit('duplicate_contact_attempt', 'ContactMessage', $recentContact->id, [
@@ -66,7 +66,7 @@ class SecurityService
                     'original_contact_id' => $recentContact->id
                 ]);
             }
-                
+
             return $recentContact !== null;
         } catch (\Exception $e) {
             Log::error('Erreur lors de la vérification des doublons de contact', [
@@ -86,7 +86,7 @@ class SecurityService
             $recentSubscription = NewsletterSubscriber::where('email', $email)
                 ->where('created_at', '>=', Carbon::now()->subHours($hours))
                 ->first();
-                
+
             if ($recentSubscription) {
                 // Log de la tentative de doublon
                 self::logAudit('duplicate_newsletter_attempt', 'NewsletterSubscriber', $recentSubscription->id, [
@@ -95,7 +95,7 @@ class SecurityService
                     'original_subscriber_id' => $recentSubscription->id
                 ]);
             }
-                
+
             return $recentSubscription !== null;
         } catch (\Exception $e) {
             Log::error('Erreur lors de la vérification des doublons newsletter', [
@@ -146,27 +146,27 @@ class SecurityService
     public static function validatePasswordStrength($password)
     {
         $errors = [];
-        
+
         if (strlen($password) < 8) {
             $errors[] = 'Le mot de passe doit contenir au moins 8 caractères';
         }
-        
+
         if (!preg_match('/[A-Z]/', $password)) {
             $errors[] = 'Le mot de passe doit contenir au moins une majuscule';
         }
-        
+
         if (!preg_match('/[a-z]/', $password)) {
             $errors[] = 'Le mot de passe doit contenir au moins une minuscule';
         }
-        
+
         if (!preg_match('/[0-9]/', $password)) {
             $errors[] = 'Le mot de passe doit contenir au moins un chiffre';
         }
-        
+
         if (!preg_match('/[^A-Za-z0-9]/', $password)) {
             $errors[] = 'Le mot de passe doit contenir au moins un caractère spécial';
         }
-        
+
         return $errors;
     }
 
@@ -176,7 +176,7 @@ class SecurityService
     public static function generateTrackingCode($prefix = 'CSAR')
     {
         $timestamp = now()->format('YmdHis');
-        $random = strtoupper(substr(md5(uniqid()), 0, 6));
+        $random = strtoupper(bin2hex(random_bytes(4)));
         return $prefix . '-' . $timestamp . '-' . $random;
     }
 
@@ -187,20 +187,20 @@ class SecurityService
     {
         // Nettoyer le numéro
         $cleanPhone = preg_replace('/[^0-9+]/', '', $phone);
-        
+
         // Formats acceptés : +221XXXXXXXXX, 221XXXXXXXXX, 0XXXXXXXXX
         $patterns = [
             '/^\+221[0-9]{9}$/',  // +221XXXXXXXXX
             '/^221[0-9]{9}$/',    // 221XXXXXXXXX
             '/^0[0-9]{9}$/'       // 0XXXXXXXXX
         ];
-        
+
         foreach ($patterns as $pattern) {
             if (preg_match($pattern, $cleanPhone)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -210,20 +210,20 @@ class SecurityService
     public static function cleanPhoneNumber($phone)
     {
         $cleanPhone = preg_replace('/[^0-9+]/', '', $phone);
-        
+
         // Convertir en format international
         if (preg_match('/^0([0-9]{9})$/', $cleanPhone, $matches)) {
             return '+221' . $matches[1];
         }
-        
+
         if (preg_match('/^221([0-9]{9})$/', $cleanPhone, $matches)) {
             return '+221' . $matches[1];
         }
-        
+
         if (preg_match('/^\+221([0-9]{9})$/', $cleanPhone, $matches)) {
             return '+221' . $matches[1];
         }
-        
+
         return null;
     }
 
@@ -234,21 +234,21 @@ class SecurityService
     {
         $key = 'rate_limit_' . md5($identifier);
         $requests = cache()->get($key, []);
-        
+
         // Nettoyer les anciennes requêtes
         $cutoff = now()->subMinutes($windowMinutes);
         $requests = array_filter($requests, function($timestamp) use ($cutoff) {
             return $timestamp > $cutoff;
         });
-        
+
         if (count($requests) >= $maxRequests) {
             return false;
         }
-        
+
         // Ajouter la nouvelle requête
         $requests[] = now();
         cache()->put($key, $requests, $windowMinutes * 60);
-        
+
         return true;
     }
 
@@ -260,18 +260,18 @@ class SecurityService
         if (is_array($input)) {
             return array_map([self::class, 'sanitizeInput'], $input);
         }
-        
+
         if (is_string($input)) {
             // Supprimer les balises HTML dangereuses
             $input = strip_tags($input, '<p><br><strong><em><ul><ol><li>');
-            
+
             // Échapper les caractères spéciaux
             $input = htmlspecialchars($input, ENT_QUOTES, 'UTF-8');
-            
+
             // Nettoyer les espaces multiples
             $input = preg_replace('/\s+/', ' ', trim($input));
         }
-        
+
         return $input;
     }
 
@@ -282,7 +282,7 @@ class SecurityService
     {
         $key = 'failed_attempts_' . md5($ip . ($email ?? ''));
         $attempts = cache()->get($key, 0);
-        
+
         return $attempts >= 5; // Bloquer après 5 tentatives
     }
 

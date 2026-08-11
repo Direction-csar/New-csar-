@@ -143,7 +143,7 @@ class PersonnelController extends Controller
         // Gérer l'upload de la photo
         if ($request->hasFile('photo_personnelle')) {
             $photo = $request->file('photo_personnelle');
-            $photoName = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
+            $photoName = time() . '_' . bin2hex(random_bytes(8)) . '.' . $photo->getClientOriginalExtension();
             $photo->storeAs('public/personnel', $photoName);
             $validatedData['photo_personnelle'] = $photoName;
         }
@@ -250,7 +250,7 @@ class PersonnelController extends Controller
             }
 
             $photo = $request->file('photo_personnelle');
-            $photoName = time() . '_' . uniqid() . '.' . $photo->getClientOriginalExtension();
+            $photoName = time() . '_' . bin2hex(random_bytes(8)) . '.' . $photo->getClientOriginalExtension();
             $photo->storeAs('public/personnel', $photoName);
             $validatedData['photo_personnelle'] = $photoName;
         }
