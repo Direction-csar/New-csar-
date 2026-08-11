@@ -46,31 +46,21 @@ class BictorysService
                 ];
             }
 
+            $callbackUrl = route('donations.bictorys.callback', ['donation' => $donation->id]);
+
             $payload = [
-                'merchantReference' => (string) $donation->id,
-                'redirectUrl' => route('donations.bictorys.callback', ['donation' => $donation->id]),
-                'amount' => (float) $donation->amount,
+                'amount' => (int) round($donation->amount),
                 'currency' => $donation->currency ?? 'XOF',
                 'country' => config('services.bictorys.country', 'SN'),
-                'orderDetails' => [
-                    [
-                        'name' => 'Don CSAR',
-                        'price' => (float) $donation->amount,
-                        'quantity' => 1,
-                        'taxRate' => 0,
-                    ],
-                ],
                 'paymentReference' => 'CSAR-DON-' . $donation->id,
-                'customer' => [
+                'successRedirectUrl' => $callbackUrl,
+                'ErrorRedirectUrl' => $callbackUrl,
+                'customerObject' => [
                     'name' => $donation->full_name,
                     'phone' => $this->formatPhone($donation->phone),
                     'email' => $donation->email,
-                    'city' => 'Dakar',
-                    'postal_code' => '',
                     'country' => config('services.bictorys.country', 'SN'),
-                    'locale' => 'fr-FR',
                 ],
-                'allowUpdateCustomer' => false,
             ];
 
             $url = $this->baseUrl . '/pay/v1/charges?payment_type=' . urlencode($paymentType);
@@ -92,9 +82,23 @@ class BictorysService
                 'body' => $body,
             ]);
 
-            if ($response->successful() && ($body['status'] ?? '') === 'success') {
+            if ($response->successful() && in_array($response->status(), [201, 202])) {
+                $transactionId = $body['transactionId']
+                    ?? $body['transaction_id']
+                    ?? $body['id']
+                    ?? null;
+                $paymentUrl = $body['confirmationLink']
+                    ?? $body['confirmation_link']
+                    ?? $body['checkoutLink']
+                    ?? $body['checkout_link']
+                    ?? $body['paymentUrl']
+                    ?? $body['payment_url']
+                    ?? $body['redirectUrl']
+                    ?? $body['redirect_url']
+                    ?? null;
+
                 $donation->update([
-                    'transaction_id' => $body['transactionId'] ?? $body['transaction_id'] ?? null,
+                    'transaction_id' => $transactionId,
                     'metadata' => array_merge($donation->metadata ?? [], [
                         'bictorys_response' => $body,
                         'bictorys_payment_type' => $paymentType,
@@ -103,8 +107,8 @@ class BictorysService
 
                 return [
                     'success' => true,
-                    'transaction_id' => $body['transactionId'] ?? $body['transaction_id'] ?? null,
-                    'payment_url' => $body['paymentUrl'] ?? $body['payment_url'] ?? $body['redirectUrl'] ?? $body['redirect_url'] ?? null,
+                    'transaction_id' => $transactionId,
+                    'payment_url' => $paymentUrl,
                     'data' => $body,
                 ];
             }
@@ -149,7 +153,7 @@ class BictorysService
                 ];
             }
 
-            $url = $this->baseUrl . '/pay/v1/transactions/' . urlencode($transactionId);
+            $url = $this->baseUrl . '/pay/v1/charges/' . urlencode($transactionId);
 
             $response = Http::withHeaders($this->getHeaders())->get($url);
             $body = $response->json() ?? [];
@@ -203,9 +207,9 @@ class BictorysService
             }
 
             $paymentStatus = match (strtolower($status)) {
-                'success', 'completed', 'successful' => 'success',
-                'pending', 'processing' => 'pending',
-                'cancelled', 'failed', 'canceled' => 'failed',
+                'success', 'completed', 'successful', 'succeeded' => 'success',
+                'pending', 'processing', 'initiated' => 'pending',
+                'cancelled', 'failed', 'canceled', 'error' => 'failed',
                 default => 'pending',
             };
 
@@ -277,14 +281,14 @@ class BictorysService
                 'description' => 'Paiement via Wave (Bictorys)',
                 'icon' => 'fas fa-mobile-alt',
                 'color' => '#00D4AA',
-                'api_type' => 'wave',
+                'api_type' => 'wave_money',
             ],
             'bictorys_credit_card' => [
                 'name' => 'Carte bancaire',
                 'description' => 'Visa / Mastercard (Bictorys)',
                 'icon' => 'fas fa-credit-card',
                 'color' => '#4A90E2',
-                'api_type' => 'credit_card',
+                'api_type' => 'card',
             ],
         ];
     }

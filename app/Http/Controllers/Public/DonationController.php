@@ -120,8 +120,8 @@ class DonationController extends Controller
             if ($provider === 'bictorys') {
                 $paymentType = match ($request->payment_method) {
                     'bictorys_orange_money' => 'orange_money',
-                    'bictorys_wave' => 'wave',
-                    'bictorys_credit_card' => 'credit_card',
+                    'bictorys_wave' => 'wave_money',
+                    'bictorys_credit_card' => 'card',
                     default => 'orange_money',
                 };
 
