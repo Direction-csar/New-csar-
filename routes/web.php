@@ -18,7 +18,7 @@ Route::post('/demande', [\App\Http\Controllers\Public\DemandeController::class, 
 // Route directe pour /suivi et PDF (sans préfixe de locale)
 Route::get('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'index'])->name('suivi.direct');
 Route::post('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'track'])->name('suivi.track.direct');
-Route::get('/telecharger-pdf/{code}', [\App\Http\Controllers\Public\TrackController::class, 'download'])->where('code', '[A-Za-z0-9\-]+')->name('track.download.direct');
+Route::get('/telecharger-pdf/{code}', [\App\Http\Controllers\Public\TrackController::class, 'download'])->where('code', '[A-Za-z0-9\-]+')->name('track.download.direct')->middleware('throttle:10,1');
 Route::get('/missions', [\App\Http\Controllers\Public\GalleryController::class, 'missions'])->name('missions_static');
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\AboutController;
@@ -151,9 +151,9 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
 
     // Track routes
     Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
-    Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
-    Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
-    Route::get('/verifier/{code}', [TrackController::class, 'verify'])->name('track.verify');
+    Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request')->middleware('throttle:10,1');
+    Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download')->middleware('throttle:10,1');
+    Route::get('/verifier/{code}', [TrackController::class, 'verify'])->name('track.verify')->middleware('throttle:10,1');
 
     // Gallery routes
     Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');

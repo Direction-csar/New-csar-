@@ -517,6 +517,17 @@ class DonationController extends Controller
     public function paypalWebhook(Request $request)
     {
         try {
+            $rawBody = $request->getContent();
+            $headers = $request->headers->all();
+
+            // Vérifier la signature du webhook PayPal
+            if (!$this->paypalService->verifyWebhookSignature($headers, $rawBody)) {
+                Log::warning('PayPal webhook signature verification failed', [
+                    'ip' => $request->ip(),
+                ]);
+                return response()->json(['status' => 'error', 'message' => 'Invalid signature'], 403);
+            }
+
             $payload = $request->all();
 
             Log::info('PayPal webhook received', ['event' => $payload['event_type'] ?? 'unknown']);

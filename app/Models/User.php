@@ -6,11 +6,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * The attributes that are mass assignable.
@@ -22,8 +23,6 @@ class User extends Authenticatable
         'email',
         'password',
         'google_id',
-        'role',
-        'role_id',
         'status',
         'is_active',
         'phone',
@@ -92,7 +91,7 @@ class User extends Authenticatable
             if (isset($user->role_id)) {
                 $expectedRole = $user->getRoleNameFromRoleId($user->role_id);
                 $currentRole = isset($user->attributes['role']) ? $user->attributes['role'] : null;
-                
+
                 if ($currentRole !== $expectedRole) {
                     \DB::table('users')
                         ->where('id', $user->id)
@@ -138,13 +137,13 @@ class User extends Authenticatable
         if (!empty($this->attributes['role'])) {
             return $this->attributes['role'];
         }
-        
+
         // Sinon, utiliser la table roles pour obtenir le nom réel (évite les maps hardcodées)
         if (isset($this->attributes['role_id'])) {
             $role = \App\Models\Role::find($this->attributes['role_id']);
             return $role ? $role->name : 'agent';
         }
-        
+
         return 'agent';
     }
 

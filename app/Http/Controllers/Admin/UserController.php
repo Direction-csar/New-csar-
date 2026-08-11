@@ -122,12 +122,13 @@ class UserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'role' => $request->role,
-                'role_id' => $this->getRoleIdFromRoleName($request->role),
                 'is_active' => $request->status === 'actif' ? 1 : 0,
                 'warehouse_id' => $request->role === 'magasinier' ? $request->warehouse_id : null,
                 'password' => Hash::make($request->password),
             ]);
+            $user->role = $request->role;
+            $user->role_id = $this->getRoleIdFromRoleName($request->role);
+            $user->save();
 
             // Assigner le magasinier au magasin via la relation (warehouse_id)
             if ($request->role === 'magasinier' && $request->warehouse_id) {
@@ -208,10 +209,11 @@ class UserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'role' => $request->role,
-                'role_id' => $this->getRoleIdFromRoleName($request->role),
                 'is_active' => $request->is_active
             ]);
+            $user->role = $request->role;
+            $user->role_id = $this->getRoleIdFromRoleName($request->role);
+            $user->save();
 
             // Créer une notification
             Notification::create([

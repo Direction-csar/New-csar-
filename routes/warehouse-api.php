@@ -5,8 +5,9 @@ use App\Http\Controllers\Api\Mobile\WarehouseKeeperController;
 
 Route::prefix('v1')->name('warehouse.api.v1.')->group(function () {
 
-    // Authentification (pas de middleware)
-    Route::post('/login', [WarehouseKeeperController::class, 'login'])->name('login');
+    // Authentification (pas de middleware, mais rate-limited)
+    Route::post('/login', [WarehouseKeeperController::class, 'login'])->name('login')
+        ->middleware('throttle:5,1');
 
     // Routes protégées (token Sanctum)
     Route::middleware('auth:sanctum')->group(function () {

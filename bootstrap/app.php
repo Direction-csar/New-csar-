@@ -60,4 +60,36 @@ return Application::configure(basePath: dirname(__DIR__))
                 \Sentry\Laravel\Integration::captureUnhandledException($e);
             });
         }
+
+        // Notification email des erreurs critiques en production (sans Sentry)
+        if (app()->environment('production') && !app()->bound('sentry')) {
+            $exceptions->reportable(function (\Throwable $e) {
+                if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException
+                    || $e instanceof \Illuminate\Validation\ValidationException
+                    || $e instanceof \Illuminate\Auth\AuthenticationException) {
+                    return;
+                }
+
+                try {
+                    $adminEmail = config('mail.admin_email', 'admin@csar.sn');
+                    \Illuminate\Support\Facades\Mail::raw(
+                        "Erreur critique sur " . config('app.name') . "\n\n"
+                        . "Type: " . get_class($e) . "\n"
+                        . "Message: " . $e->getMessage() . "\n"
+                        . "Fichier: " . $e->getFile() . ":" . $e->getLine() . "\n"
+                        . "URL: " . request()->fullUrl() . "\n"
+                        . "IP: " . request()->ip() . "\n"
+                        . "Timestamp: " . now()->toISOString(),
+                        function ($message) use ($adminEmail) {
+                            $message->to($adminEmail)
+                                ->subject('[CSAR] Erreur critique - ' . now()->format('d/m/Y H:i'));
+                        }
+                    );
+                } catch (\Throwable $mailError) {
+                    \Illuminate\Support\Facades\Log::error('Failed to send critical error email', [
+                        'error' => $mailError->getMessage(),
+                    ]);
+                }
+            });
+        }
     })->create();

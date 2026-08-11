@@ -39,22 +39,31 @@ class TrackController extends Controller
         return view($view, ['request' => $publicRequest]);
     }
 
-    public function verify($code)
+    public function verify(Request $request, $code)
     {
         $publicRequest = PublicRequest::where('tracking_code', $code)->first();
         $view = 'public.track';
         if (!$publicRequest) {
             return view($view, ['notFound' => true]);
         }
+
+        if (!$request->has('phone') || $publicRequest->phone !== $request->input('phone')) {
+            return view($view, ['notFound' => true]);
+        }
+
         return view($view, ['request' => $publicRequest]);
     }
 
-    public function download($code)
+    public function download(Request $request, $code)
     {
         $publicRequest = PublicRequest::where('tracking_code', $code)->first();
 
         if (!$publicRequest) {
             abort(404);
+        }
+
+        if (!$request->has('phone') || $publicRequest->phone !== $request->input('phone')) {
+            return back()->with('error', 'Veuillez fournir le numéro de téléphone associé à la demande pour télécharger le PDF.');
         }
 
         $pdf = Pdf::loadView('public.pdf.request', ['request' => $publicRequest]);

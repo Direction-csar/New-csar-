@@ -222,6 +222,54 @@ class PayPalService
     }
 
     /**
+     * Vérifier la signature d'un webhook PayPal
+     */
+    public function verifyWebhookSignature(array $headers, string $rawBody): bool
+    {
+        $webhookId = config('services.paypal.webhook_id');
+        if (!$webhookId) {
+            Log::warning('PayPal webhook ID not configured, skipping signature verification');
+            return false;
+        }
+
+        try {
+            $token = $this->getAccessToken();
+
+            $verificationData = [
+                'auth_algo'         => $headers['paypal-auth-algo'] ?? $headers['PAYPAL-AUTH-ALGO'] ?? '',
+                'cert_url'          => $headers['paypal-cert-url'] ?? $headers['PAYPAL-CERT-URL'] ?? '',
+                'transmission_id'   => $headers['paypal-transmission-id'] ?? $headers['PAYPAL-TRANSMISSION-ID'] ?? '',
+                'transmission_sig'  => $headers['paypal-transmission-sig'] ?? $headers['PAYPAL-TRANSMISSION-SIG'] ?? '',
+                'transmission_time' => $headers['paypal-transmission-time'] ?? $headers['PAYPAL-TRANSMISSION-TIME'] ?? '',
+                'webhook_id'        => $webhookId,
+                'webhook_event'     => json_decode($rawBody, true),
+            ];
+
+            $response = Http::withToken($token)
+                ->withHeader('Content-Type', 'application/json')
+                ->post($this->baseUrl . '/v1/notifications/verify-webhook-signature', $verificationData);
+
+            if ($response->successful()) {
+                $verificationStatus = $response->json('verification_status');
+                if ($verificationStatus === 'SUCCESS') {
+                    return true;
+                }
+            }
+
+            Log::error('PayPal webhook signature verification failed', [
+                'status' => $verificationStatus ?? 'unknown',
+                'response' => $response->json(),
+            ]);
+            return false;
+        } catch (\Exception $e) {
+            Log::error('PayPal webhook signature verification error', [
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
      * Traiter un webhook PayPal
      */
     public function processWebhook($payload)

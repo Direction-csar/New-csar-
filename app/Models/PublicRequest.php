@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class PublicRequest extends Model
 {
@@ -115,7 +116,7 @@ class PublicRequest extends Model
     public static function generateTrackingCode()
     {
         do {
-            $code = 'CSAR-' . strtoupper(substr(md5(uniqid()), 0, 8));
+            $code = 'CSAR-' . strtoupper(Str::random(12));
         } while (self::where('tracking_code', $code)->exists());
 
         return $code;
@@ -235,4 +236,4 @@ class PublicRequest extends Model
     {
         return in_array($this->workflow_status, ['validee_dg', 'approuvee', 'cloturee']);
     }
-} 
+}

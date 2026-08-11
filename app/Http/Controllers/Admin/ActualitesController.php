@@ -172,7 +172,7 @@ class ActualitesController extends Controller
             $actualite = \App\Models\News::findOrFail($id);
             $this->authorize('view', $actualite);
             $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
-            
+
             Log::info('Affichage actualité ' . strtoupper($prefix), ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id]);
             return view($prefix . '.actualites.show', compact('actualite'));
         } catch (\Exception $e) {
@@ -190,7 +190,7 @@ class ActualitesController extends Controller
             $actualite = \App\Models\News::findOrFail($id);
             $this->authorize('update', $actualite);
             $prefix = $request->routeIs('ctc.*') ? 'ctc' : 'admin';
-            
+
             Log::info('Accès au formulaire d\'édition d\'actualité ' . strtoupper($prefix), ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id]);
             return view($prefix . '.actualites.edit', compact('actualite'));
         } catch (\Exception $e) {
@@ -213,6 +213,7 @@ class ActualitesController extends Controller
             'cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'youtube_url' => 'nullable|url',
             'document_file' => 'nullable|file|mimes:pdf,doc,docx,ppt,pptx|max:10240',
+            'document_cover_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         try {
@@ -273,7 +274,7 @@ class ActualitesController extends Controller
         try {
             $actualite = \App\Models\News::findOrFail($id);
             $this->authorize('delete', $actualite);
-            
+
             // Supprimer les fichiers associés
             if ($actualite->featured_image && \Storage::disk('public')->exists($actualite->featured_image)) {
                 \Storage::disk('public')->delete($actualite->featured_image);
@@ -281,7 +282,7 @@ class ActualitesController extends Controller
             if ($actualite->document_file && \Storage::disk('public')->exists($actualite->document_file)) {
                 \Storage::disk('public')->delete($actualite->document_file);
             }
-            
+
             $actualite->delete();
 
             Log::info('Actualité supprimée par Admin', ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id]);
@@ -300,7 +301,7 @@ class ActualitesController extends Controller
     {
         try {
             $actualite = \App\Models\News::findOrFail($id);
-            
+
             if (!$actualite->document_file || !\Storage::disk('public')->exists($actualite->document_file)) {
                 return redirect()->back()->with('error', 'Document non trouvé.');
             }
@@ -328,9 +329,9 @@ class ActualitesController extends Controller
     {
         try {
             $actualite = \App\Models\News::findOrFail($id);
-            
+
             Log::info('Prévisualisation actualité Admin', ['user_id' => $this->getCurrentUserId(), 'actualite_id' => $id]);
-            
+
             return view('admin.actualites.preview', compact('actualite'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de la prévisualisation de l\'actualité', ['error' => $e->getMessage()]);

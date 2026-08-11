@@ -75,11 +75,12 @@ class GoogleAuthController extends Controller
                 'google_id' => $googleUser->getId(),
                 'avatar' => $googleUser->getAvatar(),
                 'password' => bcrypt(Str::random(32)),
-                'role' => 'admin',
                 'status' => 'actif',
                 'is_active' => true,
                 'last_login_at' => Carbon::now(),
             ]);
+            $user->role = 'admin';
+            $user->save();
         }
 
         // Vérifier que l'utilisateur a le rôle admin
