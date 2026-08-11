@@ -18,8 +18,8 @@ class PayPalService
         $this->mode = config('services.paypal.mode', 'sandbox');
         $this->clientId = config('services.paypal.client_id');
         $this->clientSecret = config('services.paypal.client_secret');
-        $this->baseUrl = $this->mode === 'live' 
-            ? 'https://api-m.paypal.com' 
+        $this->baseUrl = $this->mode === 'live'
+            ? 'https://api-m.paypal.com'
             : 'https://api-m.sandbox.paypal.com';
     }
 
@@ -30,7 +30,7 @@ class PayPalService
     {
         $cacheKey = 'paypal_access_token_' . $this->mode;
         $cached = \Illuminate\Support\Facades\Cache::get($cacheKey);
-        
+
         if ($cached) {
             return $cached;
         }
@@ -61,7 +61,7 @@ class PayPalService
     {
         try {
             $token = $this->getAccessToken();
-            
+
             $returnUrl = $returnUrl ?? route('donations.paypal.success', ['donation' => $donation->id]);
             $cancelUrl = $cancelUrl ?? route('donations.paypal.cancel');
 
@@ -161,7 +161,7 @@ class PayPalService
 
             if ($response->successful()) {
                 $data = $response->json();
-                
+
                 return [
                     'success' => true,
                     'status' => $data['status'],
@@ -237,11 +237,11 @@ class PayPalService
                 case 'CHECKOUT.ORDER.COMPLETED':
                     $orderId = $resource['id'] ?? null;
                     $donation = Donation::where('transaction_id', $orderId)->first();
-                    
+
                     if ($donation) {
                         // Capturer le paiement
                         $capture = $this->captureOrder($orderId);
-                        
+
                         if ($capture['success']) {
                             $donation->update([
                                 'payment_status' => 'success',
@@ -302,12 +302,6 @@ class PayPalService
                 'description' => 'Payer avec votre solde PayPal',
                 'icon' => 'fab fa-paypal',
                 'color' => '#003087'
-            ],
-            'paypal_card' => [
-                'name' => 'Carte bancaire',
-                'description' => 'Visa, Mastercard, American Express',
-                'icon' => 'fas fa-credit-card',
-                'color' => '#CC0000'
             ]
         ];
     }
@@ -319,10 +313,10 @@ class PayPalService
     {
         $minAmount = config('services.paypal.min_amount', 1); // 1 USD min
         $maxAmount = config('services.paypal.max_amount', 10000); // 10000 USD max
-        
+
         // Conversion approximative FCFA -> USD pour validation
         $amountUsd = $amount / 600;
-        
+
         if (!is_numeric($amountUsd) || $amountUsd < $minAmount || $amountUsd > $maxAmount) {
             return [
                 'valid' => false,
