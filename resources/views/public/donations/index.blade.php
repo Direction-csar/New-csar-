@@ -168,10 +168,10 @@
                             {{-- Provider Tabs --}}
                             <ul class="nav nav-pills mb-3" id="paymentProviderTabs" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link active" id="paydunya-tab" data-bs-toggle="pill"
-                                            data-bs-target="#paydunya-methods" type="button" role="tab"
-                                            onclick="selectProvider('paydunya')">
-                                        <i class="fas fa-mobile-alt me-1"></i> Mobile Money (Afrique)
+                                    <button class="nav-link active" id="bictorys-tab" data-bs-toggle="pill"
+                                            data-bs-target="#bictorys-methods" type="button" role="tab"
+                                            onclick="selectProvider('bictorys')">
+                                        <i class="fas fa-bolt me-1"></i> Bictorys
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
@@ -181,22 +181,15 @@
                                         <i class="fab fa-paypal me-1"></i> PayPal / Carte internationale
                                     </button>
                                 </li>
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="bictorys-tab" data-bs-toggle="pill"
-                                            data-bs-target="#bictorys-methods" type="button" role="tab"
-                                            onclick="selectProvider('bictorys')">
-                                        <i class="fas fa-bolt me-1"></i> Bictorys
-                                    </button>
-                                </li>
                             </ul>
 
-                            <input type="hidden" id="payment_provider" name="payment_provider" value="paydunya">
+                            <input type="hidden" id="payment_provider" name="payment_provider" value="bictorys">
 
                             <div class="tab-content" id="paymentProviderContent">
-                                {{-- PayDunya Methods --}}
-                                <div class="tab-pane fade show active" id="paydunya-methods" role="tabpanel">
+                                {{-- Bictorys Methods --}}
+                                <div class="tab-pane fade show active" id="bictorys-methods" role="tabpanel">
                                     <div class="row g-3">
-                                        @foreach($paymentMethods as $key => $method)
+                                        @foreach($bictorysMethods as $key => $method)
                                             <div class="col-md-4">
                                                 <div class="payment-method-card form-check card h-100">
                                                     <input class="form-check-input" type="radio"
@@ -210,6 +203,10 @@
                                                 </div>
                                             </div>
                                         @endforeach
+                                    </div>
+                                    <div class="alert alert-info mt-3">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        Paiement mobile direct via Bictorys (Orange Money, Wave, carte).
                                     </div>
                                 </div>
 
@@ -234,30 +231,6 @@
                                     <div class="alert alert-info mt-3">
                                         <i class="fas fa-info-circle me-2"></i>
                                         Le montant sera converti en USD (~<span id="usdAmount">0</span> $) pour le traitement PayPal.
-                                    </div>
-                                </div>
-
-                                {{-- Bictorys Methods --}}
-                                <div class="tab-pane fade" id="bictorys-methods" role="tabpanel">
-                                    <div class="row g-3">
-                                        @foreach($bictorysMethods as $key => $method)
-                                            <div class="col-md-4">
-                                                <div class="payment-method-card form-check card h-100">
-                                                    <input class="form-check-input" type="radio"
-                                                           name="payment_method" id="method_{{ $key }}"
-                                                           value="{{ $key }}" {{ $loop->first ? 'checked' : '' }}>
-                                                    <label class="form-check-label card-body text-center" for="method_{{ $key }}">
-                                                        <i class="{{ $method['icon'] }} fa-2x mb-2" style="color: {{ $method['color'] }}"></i>
-                                                        <div class="fw-bold">{{ $method['name'] }}</div>
-                                                        <small class="text-muted d-block">{{ $method['description'] }}</small>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                    <div class="alert alert-info mt-3">
-                                        <i class="fas fa-info-circle me-2"></i>
-                                        Paiement mobile direct via Bictorys (Orange Money, Wave, carte).
                                     </div>
                                 </div>
                             </div>
@@ -524,9 +497,7 @@ function selectProvider(provider) {
         input.checked = false;
     });
 
-    if (provider === 'paydunya') {
-        document.getElementById('method_wave').checked = true;
-    } else if (provider === 'bictorys') {
+    if (provider === 'bictorys') {
         document.getElementById('method_bictorys_orange_money').checked = true;
     } else {
         document.getElementById('paypal_paypal_balance').checked = true;
