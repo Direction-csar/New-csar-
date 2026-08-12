@@ -11,7 +11,7 @@
         <div class="floating-circle" style="position: absolute; top: 20%; right: 15%; width: 60px; height: 60px; background: #fff; border-radius: 50%; animation: float 8s ease-in-out infinite reverse;"></div>
         <div class="floating-circle" style="position: absolute; bottom: 30%; left: 20%; width: 100px; height: 100px; background: #fff; border-radius: 50%; animation: float 7s ease-in-out infinite;"></div>
     </div>
-    
+
     <div class="container" style="max-width: 1200px; margin: 0 auto; text-align: center; position: relative; z-index: 2;">
         <h1 class="main-title animated-title" style="font-size: 3.2rem; font-weight: 800; color: #fff; margin-bottom: 20px; letter-spacing: -1px; line-height: 1.2; text-shadow: 0 4px 8px rgba(0,0,0,0.3);">
             <span class="title-word title-word-1">Suivre</span>
@@ -33,19 +33,19 @@
                 Entrez votre code de suivi pour consulter l'état de votre demande en temps réel
             </p>
         </div>
-        
+
         <div style="max-width: 700px; margin: 0 auto;">
             <div class="track-card zoom-hover" style="background: #fff; border-radius: 20px; padding: 50px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid #f3f4f6;">
                 <form action="{{ route('track.request') }}" method="POST" id="trackForm">
                     @csrf
-                    
+
                     <div style="margin-bottom: 35px;">
                         <label for="tracking_code" style="display: block; margin-bottom: 12px; font-weight: 600; font-size: 1.1rem; color: #1f2937;">
                             <i class="fas fa-barcode" style="color: #22c55e; margin-right: 8px;"></i> Code de suivi *
                         </label>
                         <div style="position: relative;">
-                            <input type="text" id="tracking_code" name="tracking_code" required 
-                                   placeholder="Ex: CSAR000001" 
+                            <input type="text" id="tracking_code" name="tracking_code" required
+                                   placeholder="Ex: CSAR000001"
                                    style="width: 100%; padding: 18px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 1.1rem; text-align: center; letter-spacing: 3px; font-weight: 600; background: #f9fafb; transition: all 0.3s ease;">
                             <div style="position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #9ca3af;">
                                 <i class="fas fa-search"></i>
@@ -56,20 +56,20 @@
                             Le code de suivi vous a été envoyé par SMS lors de la soumission de votre demande
                         </small>
                     </div>
-                    
+
                     <div style="margin-bottom: 40px;">
                         <label for="phone" style="display: block; margin-bottom: 12px; font-weight: 600; font-size: 1.1rem; color: #1f2937;">
                             <i class="fas fa-phone" style="color: #3b82f6; margin-right: 8px;"></i> Numéro de téléphone (facultatif)
                         </label>
-                        <input type="tel" id="phone" name="phone" 
-                               placeholder="+221 77 123 45 67" 
+                        <input type="tel" id="phone" name="phone"
+                               placeholder="+221 77 123 45 67"
                                style="width: 100%; padding: 18px 20px; border: 2px solid #e5e7eb; border-radius: 12px; font-size: 1.1rem; background: #f9fafb; transition: all 0.3s ease;">
                         <small style="color: #6b7280; margin-top: 8px; display: block; font-size: 0.95rem;">
                             <i class="fas fa-shield-alt" style="margin-right: 5px;"></i>
                             Pour une vérification supplémentaire de votre identité
                         </small>
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary zoom-hover" style="width: 100%; padding: 18px; font-size: 1.2rem; font-weight: 600; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(34, 197, 94, 0.3);">
                         <i class="fas fa-search" style="margin-right: 10px;"></i>
                         Suivre ma demande
@@ -90,7 +90,7 @@
                 Voici les détails de votre demande et son état d'avancement
             </p>
         </div>
-        
+
         <div style="max-width: 1000px; margin: 0 auto;">
             <div class="result-card zoom-hover" style="background: #fff; border-radius: 20px; padding: 50px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid #f3f4f6;">
                 <!-- Request Header -->
@@ -123,7 +123,7 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <!-- Request Details -->
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
                     <div class="info-card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 15px; padding: 30px; border: 1px solid #bbf7d0;">
@@ -131,23 +131,23 @@
                             <i class="fas fa-user" style="color: #22c55e; margin-right: 10px;"></i> Informations du demandeur
                         </h4>
                         <div style="margin-bottom: 15px;">
-                            <strong style="color: #374151;">Nom :</strong> 
+                            <strong style="color: #374151;">Nom :</strong>
                             <span style="color: #1f2937; font-weight: 600;">{{ $request->full_name }}</span>
                         </div>
                         <div style="margin-bottom: 15px;">
-                            <strong style="color: #374151;">Téléphone :</strong> 
+                            <strong style="color: #374151;">Téléphone :</strong>
                             <span style="color: #1f2937; font-weight: 600;">{{ $request->phone }}</span>
                         </div>
                         <div style="margin-bottom: 15px;">
-                            <strong style="color: #374151;">Email :</strong> 
+                            <strong style="color: #374151;">Email :</strong>
                             <span style="color: #1f2937; font-weight: 600;">{{ $request->email }}</span>
                         </div>
                         <div style="margin-bottom: 15px;">
-                            <strong style="color: #374151;">Région :</strong> 
+                            <strong style="color: #374151;">Région :</strong>
                             <span style="color: #1f2937; font-weight: 600;">{{ $request->region }}</span>
                         </div>
                         <div style="margin-bottom: 15px;">
-                            <strong style="color: #374151;">Type :</strong> 
+                            <strong style="color: #374151;">Type :</strong>
                             <span class="type-badge type-{{ $request->type_demande }}">
                                 @php
                                     $typeLabels = [
@@ -161,18 +161,18 @@
                             </span>
                         </div>
                     </div>
-                    
+
                     <div class="info-card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 15px; padding: 30px; border: 1px solid #bfdbfe;">
                         <h4 style="color: #1f2937; margin-bottom: 20px; border-bottom: 2px solid #bfdbfe; padding-bottom: 12px; font-size: 1.3rem; font-weight: 700;">
                             <i class="fas fa-map-marker-alt" style="color: #3b82f6; margin-right: 10px;"></i> Localisation
                         </h4>
                         <div style="margin-bottom: 15px;">
-                            <strong style="color: #374151;">Adresse :</strong> 
+                            <strong style="color: #374151;">Adresse :</strong>
                             <span style="color: #1f2937; font-weight: 600;">{{ $request->address }}</span>
                         </div>
                         @if($request->latitude && $request->longitude)
                         <div style="margin-bottom: 15px;">
-                            <strong style="color: #374151;">Coordonnées :</strong> 
+                            <strong style="color: #374151;">Coordonnées :</strong>
                             <span style="color: #1f2937; font-weight: 600;">{{ $request->latitude }}, {{ $request->longitude }}</span>
                         </div>
                         <div id="map" style="height: 200px; border-radius: 12px; margin-top: 15px; background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); display: flex; align-items: center; justify-content: center; color: #6b7280; border: 2px solid #d1d5db;">
@@ -189,7 +189,7 @@
                         @endif
                     </div>
                 </div>
-                
+
                 <!-- Request Description -->
                 <div style="margin-bottom: 40px;">
                     <h4 style="color: #1f2937; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; font-size: 1.3rem; font-weight: 700;">
@@ -201,7 +201,7 @@
                         </p>
                     </div>
                 </div>
-                
+
                 <!-- Processing Timeline publique (simplifiée) -->
                 <div style="margin-bottom: 40px;">
                     <h4 style="color: #1f2937; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; font-size: 1.3rem; font-weight: 700;">
@@ -268,7 +268,7 @@
                     </div>
                     @endif
                 </div>
-                
+
                 <!-- Admin Comments -->
                 @if($request->admin_comment)
                 <div style="margin-bottom: 40px;">
@@ -282,14 +282,14 @@
                     </div>
                 </div>
                 @endif
-                
+
                 <!-- Actions -->
                 <div style="text-align: center; padding-top: 30px; border-top: 2px solid #e5e7eb;">
-                    <a href="{{ route('track.download', ['locale' => app()->getLocale(), 'code' => $request->tracking_code]) }}" class="btn btn-secondary zoom-hover" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 30px; background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: #fff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3); margin-right: 20px;">
+                    <a href="{{ route('track.download.direct', ['code' => $request->tracking_code, 'phone' => $request->phone]) }}" class="btn btn-secondary zoom-hover" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 30px; background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); color: #fff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3); margin-right: 20px;">
                         <i class="fas fa-download"></i>
                         Télécharger le PDF
                     </a>
-                    
+
                     <a href="{{ route('action') }}" class="btn btn-primary zoom-hover" style="display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 15px 30px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff; text-decoration: none; border-radius: 12px; font-weight: 600; font-size: 1.1rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);">
                         <i class="fas fa-plus"></i>
                         Nouvelle demande
@@ -364,11 +364,11 @@
 <style>
 /* Animations pour les cercles flottants */
 @keyframes float {
-    0%, 100% { 
-        transform: translateY(0px) rotate(0deg); 
+    0%, 100% {
+        transform: translateY(0px) rotate(0deg);
     }
-    50% { 
-        transform: translateY(-20px) rotate(180deg); 
+    50% {
+        transform: translateY(-20px) rotate(180deg);
     }
 }
 
@@ -664,36 +664,36 @@ input:focus {
     .main-title {
         font-size: 2.5rem !important;
     }
-    
+
     .title-word {
         font-size: 2.2rem !important;
     }
-    
+
     .main-subtitle {
         font-size: 1.1rem !important;
     }
-    
+
     .animated-title {
         flex-direction: column;
         gap: 4px;
     }
-    
+
     .timeline {
         padding-left: 30px;
     }
-    
+
     .timeline-icon {
         left: -20px;
         width: 32px;
         height: 32px;
         font-size: 14px;
     }
-    
+
     .timeline-content {
         margin-left: 20px;
         padding: 15px;
     }
-    
+
     .info-card {
         margin-bottom: 20px;
     }
@@ -703,11 +703,11 @@ input:focus {
     .title-word {
         font-size: 1.8rem !important;
     }
-    
+
     .main-subtitle {
         font-size: 1rem !important;
     }
-    
+
     .track-card,
     .result-card,
     .not-found-card {
@@ -760,7 +760,7 @@ document.addEventListener('DOMContentLoaded', function() {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Recherche en cours...';
     });
-    
+
     // Simple map placeholder (you can integrate with Google Maps or Leaflet)
     const mapElement = document.getElementById('map');
     if (mapElement) {
@@ -768,4 +768,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-@endpush 
+@endpush
