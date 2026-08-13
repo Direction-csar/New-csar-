@@ -61,6 +61,8 @@ use App\Http\Controllers\Admin\Distribution\BonMatiereController;
 use App\Http\Controllers\Admin\Distribution\TicketController;
 use App\Http\Controllers\Admin\Distribution\DoublonController;
 use App\Http\Controllers\Admin\Distribution\DashboardController as DistributionDashboardController;
+use App\Http\Controllers\Admin\Distribution\ExportController;
+use App\Http\Controllers\Admin\Distribution\ReportController;
 
 // Contrôleurs DG
 use App\Http\Controllers\DG\DashboardController as DGDashboardController;
@@ -520,6 +522,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/tickets/{ticket}/reissue', [TicketController::class, 'reissue'])->name('tickets.reissue');
 
             Route::resource('doublons', DoublonController::class)->only(['index', 'update']);
+
+            Route::get('/exports', [ExportController::class, 'index'])->name('exports.index');
+            Route::get('/exports/campaigns', [ExportController::class, 'campaignsCsv'])->name('exports.campaigns');
+            Route::get('/exports/plannings', [ExportController::class, 'planningsCsv'])->name('exports.plannings');
+            Route::get('/exports/beneficiaires', [ExportController::class, 'beneficiairesCsv'])->name('exports.beneficiaires');
+            Route::get('/exports/bon-matieres', [ExportController::class, 'bonMatieresCsv'])->name('exports.bon-matieres');
+            Route::get('/exports/tickets', [ExportController::class, 'ticketsCsv'])->name('exports.tickets');
+
+            Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         });
 
         // Gestion des entrepôts
