@@ -33,5 +33,13 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
 
         // Stats du collecteur
         Route::get('/stats', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getCollectorStats'])->name('stats');
+
+        // Distribution (aide alimentaire / bons-matière)
+        Route::prefix('distribution')->group(function () {
+            Route::get('/sync', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'sync']);
+            Route::post('/beneficiaires', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'storeBeneficiaire']);
+            Route::post('/scan', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scan']);
+            Route::get('/tickets/{code}', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'ticket']);
+        });
     });
 });
