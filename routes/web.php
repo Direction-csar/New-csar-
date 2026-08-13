@@ -56,6 +56,7 @@ use App\Http\Controllers\Admin\NotificationController as AdminNotificationContro
 use App\Http\Controllers\Admin\AdminMessageController;
 use App\Http\Controllers\Admin\Distribution\CampaignController;
 use App\Http\Controllers\Admin\Distribution\PlanningController;
+use App\Http\Controllers\Admin\Distribution\BeneficiaireController;
 
 // Contrôleurs DG
 use App\Http\Controllers\DG\DashboardController as DGDashboardController;
@@ -503,6 +504,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::prefix('distribution')->name('distribution.')->group(function () {
             Route::resource('campaigns', CampaignController::class);
             Route::resource('plannings', PlanningController::class);
+            Route::resource('beneficiaires', BeneficiaireController::class);
         });
 
         // Gestion des entrepôts
