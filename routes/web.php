@@ -57,6 +57,8 @@ use App\Http\Controllers\Admin\AdminMessageController;
 use App\Http\Controllers\Admin\Distribution\CampaignController;
 use App\Http\Controllers\Admin\Distribution\PlanningController;
 use App\Http\Controllers\Admin\Distribution\BeneficiaireController;
+use App\Http\Controllers\Admin\Distribution\BonMatiereController;
+use App\Http\Controllers\Admin\Distribution\TicketController;
 
 // Contrôleurs DG
 use App\Http\Controllers\DG\DashboardController as DGDashboardController;
@@ -505,6 +507,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::resource('campaigns', CampaignController::class);
             Route::resource('plannings', PlanningController::class);
             Route::resource('beneficiaires', BeneficiaireController::class);
+
+            Route::resource('bon-matieres', BonMatiereController::class)->except(['create', 'store', 'edit', 'update']);
+            Route::post('/bon-matieres/{bon_matiere}/cancel', [BonMatiereController::class, 'cancel'])->name('bon-matieres.cancel');
+
+            Route::get('/tickets/scan', [TicketController::class, 'scan'])->name('tickets.scan');
+            Route::post('/tickets/scan', [TicketController::class, 'processScan'])->name('tickets.scan.process');
+            Route::resource('tickets', TicketController::class)->only(['index']);
+            Route::post('/tickets/{ticket}/reissue', [TicketController::class, 'reissue'])->name('tickets.reissue');
         });
 
         // Gestion des entrepôts
