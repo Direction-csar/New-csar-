@@ -54,6 +54,8 @@ use App\Http\Controllers\Admin\SimReportsController;
 use App\Http\Controllers\Admin\AdminNotificationController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationControllerNew;
 use App\Http\Controllers\Admin\AdminMessageController;
+use App\Http\Controllers\Admin\Distribution\CampaignController;
+use App\Http\Controllers\Admin\Distribution\PlanningController;
 
 // Contrôleurs DG
 use App\Http\Controllers\DG\DashboardController as DGDashboardController;
@@ -496,6 +498,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/demandes/bulk-workflow', [DemandesController::class, 'bulkWorkflow'])->name('demandes.bulk-workflow');
         Route::get('/dg-dashboard', [DemandesController::class, 'dgDashboard'])->name('demandes.dg-dashboard');
         Route::get('/workflow-history', [DemandesController::class, 'workflowHistory'])->name('demandes.workflow-history');
+
+        // Distribution (campagnes et plannings)
+        Route::prefix('distribution')->name('distribution.')->group(function () {
+            Route::resource('campaigns', CampaignController::class);
+            Route::resource('plannings', PlanningController::class);
+        });
 
         // Gestion des entrepôts
         Route::resource('entrepots', EntrepotsController::class);
