@@ -4,15 +4,14 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\Beneficiaire;
-use App\Models\BonMatiere;
 use App\Models\Planning;
 use App\Models\Ticket;
-use App\Services\AlerteService;
-use App\Services\DoublonService;
+use App\Services\BeneficiaireDistributionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class DistributionController extends Controller
 {
@@ -46,59 +45,13 @@ class DistributionController extends Controller
             'quantite_kg' => 'required|numeric|min:0.01',
         ]);
 
-        $validated['created_by'] = Auth::id();
-        $validated['vulnerable'] = $request->boolean('vulnerable');
-        $validated['religious'] = $request->boolean('religious');
-        $validated['spontaneous'] = $request->boolean('spontaneous');
-        $validated['status'] = 'active';
+        if (!Planning::where('id', $validated['planning_id'])->whereHas('agents', function ($q) {
+            $q->where('users.id', Auth::id());
+        })->exists()) {
+            return response()->json(['success' => false, 'message' => 'Planning non autorisé.'], 403);
+        }
 
-        $beneficiaire = null;
-        $planning = null;
-
-        DB::transaction(function () use ($validated, $request, &$beneficiaire, &$planning) {
-            $planning = Planning::findOrFail($validated['planning_id']);
-
-            $beneficiaire = Beneficiaire::create($validated);
-
-            do {
-                $numeroBon = 'BM-' . $planning->id . '-' . strtoupper(bin2hex(random_bytes(4)));
-            } while (BonMatiere::where('numero_bon', $numeroBon)->exists());
-
-            $bon = BonMatiere::create([
-                'planning_id' => $planning->id,
-                'beneficiaire_id' => $beneficiaire->id,
-                'numero_bon' => $numeroBon,
-                'quantite_kg' => $validated['quantite_kg'],
-                'categorie' => $planning->category,
-                'statut' => 'attribue',
-                'attributed_at' => now(),
-                'attributed_by' => Auth::id(),
-            ]);
-
-            $planning->increment('executed_quota_kg', $validated['quantite_kg']);
-            $planning->campaign->increment('executed_stock_kg', $validated['quantite_kg']);
-
-            do {
-                $code = 'TKT-' . strtoupper(bin2hex(random_bytes(4)));
-            } while (Ticket::where('code', $code)->exists());
-
-            Ticket::create([
-                'bon_matiere_id' => $bon->id,
-                'code' => $code,
-                'qr_data' => json_encode([
-                    'bon_id' => $bon->id,
-                    'numero_bon' => $numeroBon,
-                    'code' => $code,
-                    'beneficiaire' => $beneficiaire->name,
-                ]),
-            ]);
-        });
-
-        assert($beneficiaire !== null && $planning !== null);
-
-        DoublonService::detecter($beneficiaire);
-        AlerteService::verifierPlanning($planning);
-        AlerteService::verifierCampaign($planning->campaign);
+        $beneficiaire = BeneficiaireDistributionService::create($validated, Auth::id());
 
         return response()->json([
             'success' => true,
@@ -106,6 +59,77 @@ class DistributionController extends Controller
             'data' => [
                 'beneficiaire' => $beneficiaire->load('bonMatieres.ticket'),
             ],
+        ]);
+    }
+
+    public function batch(Request $request): JsonResponse
+    {
+        $request->validate(['beneficiaires' => 'required|array|max:100']);
+
+        $created = [];
+        $conflicts = [];
+        $errors = [];
+
+        foreach ($request->input('beneficiaires') as $i => $item) {
+            $validator = Validator::make($item, [
+                'planning_id' => 'required|exists:plannings,id',
+                'name' => 'required|string|max:255',
+                'phone' => 'nullable|string|max:20',
+                'cni' => 'nullable|string|max:100',
+                'address' => 'nullable|string',
+                'category' => 'required|string|max:100',
+                'vulnerable' => 'boolean',
+                'religious' => 'boolean',
+                'spontaneous' => 'boolean',
+                'quantite_kg' => 'required|numeric|min:0.01',
+            ]);
+
+            if ($validator->fails()) {
+                $errors[] = ['index' => $i, 'errors' => $validator->errors()->toArray()];
+                continue;
+            }
+
+            $data = $validator->validated();
+
+            if (!Planning::where('id', $data['planning_id'])->whereHas('agents', function ($q) {
+                $q->where('users.id', Auth::id());
+            })->exists()) {
+                $errors[] = ['index' => $i, 'message' => 'Planning non autorisé.'];
+                continue;
+            }
+
+            $existing = Beneficiaire::where('planning_id', $data['planning_id'])
+                ->where(function ($q) use ($data) {
+                    if (!empty($data['phone'])) {
+                        $q->orWhere('phone', $data['phone']);
+                    }
+                    if (!empty($data['cni'])) {
+                        $q->orWhere('cni', $data['cni']);
+                    }
+                })
+                ->first();
+
+            if ($existing) {
+                $conflicts[] = ['index' => $i, 'beneficiaire' => $existing, 'message' => 'Téléphone ou CNI déjà inscrit.'];
+                continue;
+            }
+
+            try {
+                $beneficiaire = BeneficiaireDistributionService::create($data, Auth::id());
+                $created[] = $beneficiaire->load('bonMatieres.ticket');
+            } catch (\Throwable $e) {
+                $errors[] = ['index' => $i, 'message' => $e->getMessage()];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'created_count' => count($created),
+            'conflicts_count' => count($conflicts),
+            'errors_count' => count($errors),
+            'created' => $created,
+            'conflicts' => $conflicts,
+            'errors' => $errors,
         ]);
     }
 

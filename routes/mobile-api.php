@@ -38,6 +38,7 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
         Route::prefix('distribution')->group(function () {
             Route::get('/sync', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'sync']);
             Route::post('/beneficiaires', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'storeBeneficiaire']);
+            Route::post('/beneficiaires/batch', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'batch']);
             Route::post('/scan', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scan']);
             Route::get('/tickets/{code}', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'ticket']);
         });

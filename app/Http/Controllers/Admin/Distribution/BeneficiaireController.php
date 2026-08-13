@@ -4,14 +4,11 @@ namespace App\Http\Controllers\Admin\Distribution;
 
 use App\Http\Controllers\Controller;
 use App\Models\Beneficiaire;
-use App\Models\BonMatiere;
 use App\Models\Planning;
-use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Services\AlerteService;
-use App\Services\DoublonService;
+use App\Services\BeneficiaireDistributionService;
 
 class BeneficiaireController extends Controller
 {
@@ -53,53 +50,7 @@ class BeneficiaireController extends Controller
         $validated['religious'] = $request->boolean('religious');
         $validated['spontaneous'] = $request->boolean('spontaneous');
 
-        $beneficiaire = null;
-        $planning = null;
-
-        DB::transaction(function () use ($validated, $request, &$beneficiaire, &$planning) {
-            $planning = Planning::findOrFail($validated['planning_id']);
-
-            $beneficiaire = Beneficiaire::create($validated);
-
-            do {
-                $numeroBon = 'BM-' . $planning->id . '-' . strtoupper(bin2hex(random_bytes(4)));
-            } while (BonMatiere::where('numero_bon', $numeroBon)->exists());
-
-            $bon = BonMatiere::create([
-                'planning_id' => $planning->id,
-                'beneficiaire_id' => $beneficiaire->id,
-                'numero_bon' => $numeroBon,
-                'quantite_kg' => $validated['quantite_kg'],
-                'categorie' => $planning->category,
-                'statut' => 'attribue',
-                'attributed_at' => now(),
-                'attributed_by' => Auth::id(),
-            ]);
-
-            $planning->increment('executed_quota_kg', $validated['quantite_kg']);
-            $planning->campaign->increment('executed_stock_kg', $validated['quantite_kg']);
-
-            do {
-                $code = 'TKT-' . strtoupper(bin2hex(random_bytes(4)));
-            } while (Ticket::where('code', $code)->exists());
-
-            Ticket::create([
-                'bon_matiere_id' => $bon->id,
-                'code' => $code,
-                'qr_data' => json_encode([
-                    'bon_id' => $bon->id,
-                    'numero_bon' => $numeroBon,
-                    'code' => $code,
-                    'beneficiaire' => $beneficiaire->name,
-                ]),
-            ]);
-        });
-
-        assert($beneficiaire !== null && $planning !== null);
-
-        DoublonService::detecter($beneficiaire);
-        AlerteService::verifierPlanning($planning);
-        AlerteService::verifierCampaign($planning->campaign);
+        BeneficiaireDistributionService::create($validated, Auth::id());
 
         return redirect()->route('admin.distribution.beneficiaires.index')
             ->with('success', 'Bénéficiaire, bon et ticket créés avec succès.');

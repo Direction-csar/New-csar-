@@ -32,7 +32,7 @@ class DoublonService
                 $types[] = 'cni';
             }
 
-            DoublonDetecte::firstOrCreate(
+            $doublon = DoublonDetecte::firstOrCreate(
                 [
                     'entity_1_id' => min($beneficiaire->id, $dup->id),
                     'entity_2_id' => max($beneficiaire->id, $dup->id),
@@ -44,6 +44,16 @@ class DoublonService
                     'status' => 'a_verifier',
                 ]
             );
+
+            if ($doublon->wasRecentlyCreated) {
+                NotificationService::notifyAdminAndDG(
+                    'Doublon détecté',
+                    "Un possible doublon de type {$doublon->type} a été détecté pour {$beneficiaire->name}.",
+                    'warning',
+                    ['doublon_id' => $doublon->id, 'beneficiaire_id' => $beneficiaire->id],
+                    route('admin.distribution.doublons.index')
+                );
+            }
         }
     }
 }

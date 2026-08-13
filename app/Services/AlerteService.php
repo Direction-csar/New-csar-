@@ -11,7 +11,7 @@ class AlerteService
     public static function verifierPlanning(Planning $planning): void
     {
         if ($planning->executed_quota_kg >= $planning->planned_quota_kg) {
-            Alerte::firstOrCreate(
+            $alerte = Alerte::firstOrCreate(
                 [
                     'type' => 'quota',
                     'planning_id' => $planning->id,
@@ -23,10 +23,20 @@ class AlerteService
                     'status' => 'active',
                 ]
             );
+
+            if ($alerte->wasRecentlyCreated) {
+                NotificationService::notifyAdminAndDG(
+                    'Alerte quota atteint',
+                    "Le planning {$planning->name} a atteint son quota de {$planning->planned_quota_kg} kg.",
+                    'warning',
+                    ['planning_id' => $planning->id, 'alerte_id' => $alerte->id],
+                    route('admin.distribution.dashboard')
+                );
+            }
         }
 
         if ($planning->executed_quota_kg >= $planning->alert_threshold_kg && $planning->executed_quota_kg < $planning->planned_quota_kg) {
-            Alerte::firstOrCreate(
+            $alerte = Alerte::firstOrCreate(
                 [
                     'type' => 'quota',
                     'planning_id' => $planning->id,
@@ -38,13 +48,23 @@ class AlerteService
                     'status' => 'active',
                 ]
             );
+
+            if ($alerte->wasRecentlyCreated) {
+                NotificationService::notifyAdminAndDG(
+                    'Alerte seuil de quota',
+                    "Le planning {$planning->name} a atteint le seuil d'alerte de {$planning->alert_threshold_kg} kg.",
+                    'warning',
+                    ['planning_id' => $planning->id, 'alerte_id' => $alerte->id],
+                    route('admin.distribution.dashboard')
+                );
+            }
         }
     }
 
     public static function verifierCampaign(Campaign $campaign): void
     {
         if ($campaign->executed_stock_kg >= $campaign->initial_stock_kg) {
-            Alerte::firstOrCreate(
+            $alerte = Alerte::firstOrCreate(
                 [
                     'type' => 'stock',
                     'campaign_id' => $campaign->id,
@@ -56,6 +76,16 @@ class AlerteService
                     'status' => 'active',
                 ]
             );
+
+            if ($alerte->wasRecentlyCreated) {
+                NotificationService::notifyAdminAndDG(
+                    'Alerte stock épuisé',
+                    "La campagne {$campaign->name} a épuisé son stock initial de {$campaign->initial_stock_kg} kg.",
+                    'error',
+                    ['campaign_id' => $campaign->id, 'alerte_id' => $alerte->id],
+                    route('admin.distribution.dashboard')
+                );
+            }
         }
     }
 }
