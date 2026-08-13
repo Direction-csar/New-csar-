@@ -996,6 +996,14 @@
             </div>
             @endif
 
+            <!-- Distribution (campagnes, plannings, bénéficiaires) -->
+            <div class="menu-item">
+                <a href="{{ url('/admin/distribution') }}" class="menu-link {{ request()->is('admin/distribution*') ? 'active' : '' }}">
+                    <i class="fas fa-hands-helping"></i>
+                    <span>Distribution</span>
+                </a>
+            </div>
+
             <!-- Gestion des utilisateurs -->
             <div class="menu-item">
                 <a href="{{ route('admin.users.index') }}" class="menu-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
