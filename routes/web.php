@@ -59,6 +59,8 @@ use App\Http\Controllers\Admin\Distribution\PlanningController;
 use App\Http\Controllers\Admin\Distribution\BeneficiaireController;
 use App\Http\Controllers\Admin\Distribution\BonMatiereController;
 use App\Http\Controllers\Admin\Distribution\TicketController;
+use App\Http\Controllers\Admin\Distribution\DoublonController;
+use App\Http\Controllers\Admin\Distribution\DashboardController as DistributionDashboardController;
 
 // Contrôleurs DG
 use App\Http\Controllers\DG\DashboardController as DGDashboardController;
@@ -504,6 +506,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // Distribution (campagnes et plannings)
         Route::prefix('distribution')->name('distribution.')->group(function () {
+            Route::get('/', [DistributionDashboardController::class, 'index'])->name('distribution.dashboard');
             Route::resource('campaigns', CampaignController::class);
             Route::resource('plannings', PlanningController::class);
             Route::resource('beneficiaires', BeneficiaireController::class);
@@ -515,6 +518,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/tickets/scan', [TicketController::class, 'processScan'])->name('tickets.scan.process');
             Route::resource('tickets', TicketController::class)->only(['index']);
             Route::post('/tickets/{ticket}/reissue', [TicketController::class, 'reissue'])->name('tickets.reissue');
+
+            Route::resource('doublons', DoublonController::class)->only(['index', 'update']);
         });
 
         // Gestion des entrepôts

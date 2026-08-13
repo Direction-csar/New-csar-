@@ -10,6 +10,8 @@ use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Services\AlerteService;
+use App\Services\DoublonService;
 
 class BeneficiaireController extends Controller
 {
@@ -51,7 +53,10 @@ class BeneficiaireController extends Controller
         $validated['religious'] = $request->boolean('religious');
         $validated['spontaneous'] = $request->boolean('spontaneous');
 
-        DB::transaction(function () use ($validated, $request) {
+        $beneficiaire = null;
+        $planning = null;
+
+        DB::transaction(function () use ($validated, $request, &$beneficiaire, &$planning) {
             $planning = Planning::findOrFail($validated['planning_id']);
 
             $beneficiaire = Beneficiaire::create($validated);
@@ -89,6 +94,12 @@ class BeneficiaireController extends Controller
                 ]),
             ]);
         });
+
+        assert($beneficiaire !== null && $planning !== null);
+
+        DoublonService::detecter($beneficiaire);
+        AlerteService::verifierPlanning($planning);
+        AlerteService::verifierCampaign($planning->campaign);
 
         return redirect()->route('admin.distribution.beneficiaires.index')
             ->with('success', 'Bénéficiaire, bon et ticket créés avec succès.');
