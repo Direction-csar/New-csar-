@@ -47,3 +47,8 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Scripts SSH locaux (contiennent des identifiants sensibles)
+ssh_cmd.ps1
+ssh_cmd2.ps1
+ssh_pass.bat

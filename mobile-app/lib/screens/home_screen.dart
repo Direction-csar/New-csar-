@@ -1,12 +1,116 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/auth_service.dart';
+import '../services/api_service.dart';
+import '../services/local_db_service.dart';
+import '../services/sync_service.dart';
 import 'markets_screen.dart';
 import 'collection_screen.dart';
 import 'history_screen.dart';
+import 'stats_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int _pendingCount = 0;
+  bool _syncing = false;
+  StreamSubscription<ConnectivityResult>? _connectivitySub;
+  Timer? _locationTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshPendingCount();
+    _connectivitySub = Connectivity().onConnectivityChanged.listen((result) {
+      if (result != ConnectivityResult.none) {
+        _sync(silent: true);
+      }
+    });
+    _startLocationTracking();
+  }
+
+  @override
+  void dispose() {
+    _connectivitySub?.cancel();
+    _locationTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _refreshPendingCount() async {
+    final count = await LocalDbService.countPending();
+    if (mounted) setState(() => _pendingCount = count);
+  }
+
+  Future<void> _sync({bool silent = false}) async {
+    if (_syncing) return;
+    final token = context.read<AuthService>().token;
+    if (token == null) return;
+
+    final connectivity = await Connectivity().checkConnectivity();
+    if (connectivity == ConnectivityResult.none) {
+      if (!silent && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Aucune connexion réseau'), backgroundColor: Colors.orange),
+        );
+      }
+      return;
+    }
+
+    setState(() => _syncing = true);
+    final result = await SyncService.syncPendingCollections(token);
+    setState(() {
+      _syncing = false;
+      _pendingCount = result.remaining;
+    });
+
+    if (!mounted) return;
+    if (result.synced > 0 || !silent) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            result.synced > 0
+                ? '${result.synced} collecte(s) synchronisée(s)${result.remaining > 0 ? ', ${result.remaining} restante(s)' : ''}'
+                : (result.remaining > 0 ? '${result.remaining} collecte(s) en attente' : 'Aucune collecte à synchroniser'),
+          ),
+          backgroundColor: result.synced > 0 ? Colors.green : Colors.blueGrey,
+        ),
+      );
+    }
+  }
+
+  void _startLocationTracking() {
+    _sendLocationOnce();
+    _locationTimer = Timer.periodic(const Duration(minutes: 5), (_) => _sendLocationOnce());
+  }
+
+  Future<void> _sendLocationOnce() async {
+    final token = context.read<AuthService>().token;
+    if (token == null) return;
+    try {
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.deniedForever || perm == LocationPermission.denied) {
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 15),
+      );
+      await ApiService.updateLocation(token, pos.latitude, pos.longitude);
+    } catch (_) {
+      // Échec silencieux : suivi temps réel best-effort
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +191,10 @@ class HomeScreen extends StatelessWidget {
                   icon: Icons.add_circle_outline,
                   label: 'Nouvelle Collecte',
                   color: const Color(0xFF1B5E20),
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CollectionScreen())),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const CollectionScreen()),
+                  ).then((_) => _refreshPendingCount()),
                 ),
                 _ActionCard(
                   icon: Icons.store_outlined,
@@ -102,12 +209,18 @@ class HomeScreen extends StatelessWidget {
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
                 ),
                 _ActionCard(
+                  icon: Icons.bar_chart,
+                  label: 'Statistiques',
+                  color: const Color(0xFF0097A7),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StatsScreen())),
+                ),
+                _ActionCard(
                   icon: Icons.sync,
-                  label: 'Synchroniser',
-                  color: const Color(0xFF7B1FA2),
-                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Synchronisation en cours...')),
-                  ),
+                  label: _syncing
+                      ? 'Synchronisation...'
+                      : (_pendingCount > 0 ? 'Synchroniser ($_pendingCount)' : 'Synchroniser'),
+                  color: _pendingCount > 0 ? Colors.red.shade700 : const Color(0xFF7B1FA2),
+                  onTap: _syncing ? () {} : () => _sync(),
                 ),
               ],
             ),

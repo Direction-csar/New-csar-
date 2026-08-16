@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../services/local_db_service.dart';
 
 class CollectionScreen extends StatefulWidget {
   final Map<String, dynamic>? preselectedMarket;
@@ -117,19 +119,27 @@ class _CollectionScreenState extends State<CollectionScreen> {
     }
     setState(() => _submitting = true);
     final token = context.read<AuthService>().token!;
+    final payload = {
+      'market_id':          _selectedMarket!['id'],
+      'product_id':         _selectedProduct!['id'],
+      'provenance':         _provenanceCtrl.text.isNotEmpty ? _provenanceCtrl.text : null,
+      'quantity_collected': _quantityCtrl.text.isNotEmpty ? double.tryParse(_quantityCtrl.text) : null,
+      'price':              _prixProdCtrl.text.isNotEmpty ? double.parse(_prixProdCtrl.text) : 0,
+      'retail_price':       _prixDetailCtrl.text.isNotEmpty ? double.parse(_prixDetailCtrl.text) : null,
+      'wholesale_price':    _prixGrosCtrl.text.isNotEmpty ? double.parse(_prixGrosCtrl.text) : null,
+      'collection_date':    DateFormat('yyyy-MM-dd').format(_collectedAt),
+      'latitude':           _latitude,
+      'longitude':          _longitude,
+    };
+
+    final connectivity = await Connectivity().checkConnectivity();
+    if (connectivity == ConnectivityResult.none) {
+      await _saveOffline(payload);
+      return;
+    }
+
     try {
-      final res = await ApiService.submitCollection(token, {
-        'market_id':          _selectedMarket!['id'],
-        'product_id':         _selectedProduct!['id'],
-        'provenance':         _provenanceCtrl.text.isNotEmpty ? _provenanceCtrl.text : null,
-        'quantity_collected': _quantityCtrl.text.isNotEmpty ? double.tryParse(_quantityCtrl.text) : null,
-        'price':              _prixProdCtrl.text.isNotEmpty ? double.parse(_prixProdCtrl.text) : 0,
-        'retail_price':       _prixDetailCtrl.text.isNotEmpty ? double.parse(_prixDetailCtrl.text) : null,
-        'wholesale_price':    _prixGrosCtrl.text.isNotEmpty ? double.parse(_prixGrosCtrl.text) : null,
-        'collection_date':    DateFormat('yyyy-MM-dd').format(_collectedAt),
-        'latitude':           _latitude,
-        'longitude':          _longitude,
-      });
+      final res = await ApiService.submitCollection(token, payload);
       setState(() => _submitting = false);
       if (!mounted) return;
       if (res['success'] == true) {
@@ -143,11 +153,22 @@ class _CollectionScreenState extends State<CollectionScreen> {
         );
       }
     } catch (_) {
-      setState(() => _submitting = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Erreur réseau'), backgroundColor: Colors.red),
-      );
+      // Réseau indisponible ou serveur injoignable : on sauvegarde localement
+      await _saveOffline(payload);
     }
+  }
+
+  Future<void> _saveOffline(Map<String, dynamic> payload) async {
+    await LocalDbService.savePendingCollection(payload);
+    setState(() => _submitting = false);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Aucune connexion : collecte enregistrée hors-ligne. Elle sera synchronisée automatiquement.'),
+        backgroundColor: Colors.orange,
+      ),
+    );
+    Navigator.pop(context);
   }
 
   @override

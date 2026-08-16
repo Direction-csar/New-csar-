@@ -12,12 +12,19 @@ class CollectorLocationController extends Controller
 {
     public function updateLocation(Request $request)
     {
+        $collector = $request->user() instanceof SimCollector
+            ? $request->user()
+            : SimCollector::find($request->input('collector_id'));
+
+        if (!$collector) {
+            return response()->json(['success' => false, 'message' => 'Collecteur non identifié'], 401);
+        }
+
         $validator = Validator::make($request->all(), [
-            'collector_id' => 'required|exists:sim_collectors,id',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
             'accuracy' => 'nullable|numeric',
-            'status' => 'required|in:active,collecting,paused,offline',
+            'status' => 'nullable|in:active,collecting,paused,offline',
             'current_market' => 'nullable|string',
             'collections_today' => 'nullable|integer',
         ]);
@@ -30,12 +37,12 @@ class CollectorLocationController extends Controller
         }
 
         $location = CollectorLocation::updateOrCreate(
-            ['collector_id' => $request->collector_id],
+            ['collector_id' => $collector->id],
             [
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
                 'accuracy' => $request->accuracy,
-                'status' => $request->status,
+                'status' => $request->status ?? 'active',
                 'current_market' => $request->current_market,
                 'collections_today' => $request->collections_today ?? 0,
                 'last_activity_at' => now(),

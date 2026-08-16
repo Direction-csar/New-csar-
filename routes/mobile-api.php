@@ -15,6 +15,7 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
         // Données de référence (marchés, produits)
         Route::get('/markets', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getMarkets'])->name('markets');
         Route::get('/products', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getProducts'])->name('products');
+        Route::get('/product-categories', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getProductCategories'])->name('product-categories');
 
         // Profil collecteur
         Route::get('/profile', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getProfile'])->name('profile');

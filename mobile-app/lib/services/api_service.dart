@@ -62,6 +62,32 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  static Future<Map<String, dynamic>> getStats(String token) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/stats'),
+      headers: _headers(token),
+    );
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> updateLocation(
+    String token,
+    double latitude,
+    double longitude, {
+    String status = 'active',
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/location'),
+      headers: _headers(token),
+      body: jsonEncode({
+        'latitude': latitude,
+        'longitude': longitude,
+        'status': status,
+      }),
+    );
+    return jsonDecode(response.body);
+  }
+
   static Future<void> logout(String token) async {
     await http.post(
       Uri.parse('$baseUrl/logout'),

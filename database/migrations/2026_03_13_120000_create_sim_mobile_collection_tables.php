@@ -19,7 +19,7 @@ return new class extends Migration
             $table->timestamp('last_sync')->nullable();
             $table->integer('total_collections')->default(0);
             $table->timestamps();
-            
+
             $table->index(['status', 'last_sync']);
         });
 
@@ -39,15 +39,19 @@ return new class extends Migration
             $table->enum('sync_status', ['pending', 'synced', 'failed'])->default('pending');
             $table->timestamp('synced_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['collector_id', 'collection_date']);
             $table->index(['sync_status', 'collection_date']);
         });
 
         // Ajouter les foreign keys après la création des tables
         Schema::table('sim_mobile_collections', function (Blueprint $table) {
-            $table->foreign('market_id')->references('id')->on('markets')->onDelete('set null');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('set null');
+            if (Schema::hasTable('sim_markets')) {
+                $table->foreign('market_id')->references('id')->on('sim_markets')->onDelete('set null');
+            }
+            if (Schema::hasTable('products')) {
+                $table->foreign('product_id')->references('id')->on('products')->onDelete('set null');
+            }
         });
 
         Schema::create('sim_sync_logs', function (Blueprint $table) {
@@ -61,7 +65,7 @@ return new class extends Migration
             $table->timestamp('sync_started_at');
             $table->timestamp('sync_completed_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['collector_id', 'sync_started_at']);
             $table->index(['status', 'sync_started_at']);
         });

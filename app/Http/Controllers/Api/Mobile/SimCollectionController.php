@@ -121,6 +121,19 @@ class SimCollectionController extends Controller
         ]);
     }
 
+    public function getProductCategories(): JsonResponse
+    {
+        $categories = \App\Models\SimProductCategory::where('is_active', true)
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get(['id', 'name', 'description', 'display_order']);
+
+        return response()->json([
+            'success' => true,
+            'data' => $categories
+        ]);
+    }
+
     public function submitCollection(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
