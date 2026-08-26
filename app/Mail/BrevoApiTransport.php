@@ -24,7 +24,7 @@ class BrevoApiTransport implements TransportInterface
         $this->senderName = config('services.brevo.sender_name', 'CSAR');
     }
 
-    public function send(RawMessage $message, Envelope $envelope = null): ?SentMessage
+    public function send(RawMessage $message, ?Envelope $envelope = null): ?SentMessage
     {
         if (!$message instanceof Email) {
             return new SentMessage($message, $envelope ?? Envelope::create($message));
