@@ -8,7 +8,7 @@ use App\Models\SmsNotification;
 
 /**
  * Service d'envoi SMS
- * Supporte : Orange (Sénégal), Twilio, Vonage (Nexmo), InfoBip, AfricasTalking
+ * Supporte : Orange (Sénégal), Twilio, Vonage (Nexmo), InfoBip, AfricasTalking, Brevo
  */
 class SmsService
 {
@@ -42,6 +42,7 @@ class SmsService
                 'vonage' => $this->sendViaVonage($to, $message),
                 'infobip' => $this->sendViaInfoBip($to, $message),
                 'africastalking' => $this->sendViaAfricasTalking($to, $message),
+                'brevo' => $this->sendViaBrevo($to, $message),
                 default => throw new \Exception('Provider SMS non configuré')
             };
 
@@ -85,7 +86,7 @@ class SmsService
     public function sendAlert($to, $title, $message)
     {
         $fullMessage = "🚨 ALERTE CSAR 🚨\n\n{$title}\n\n{$message}\n\nEnvoyé: " . now()->format('d/m/Y H:i');
-        
+
         return $this->send($to, $fullMessage, 'high');
     }
 
@@ -95,7 +96,7 @@ class SmsService
     public function sendOTP($to, $code, $expiresIn = 10)
     {
         $message = "Code de vérification CSAR: {$code}\n\nValable {$expiresIn} minutes.\nNe partagez pas ce code.";
-        
+
         return $this->send($to, $message, 'high');
     }
 
@@ -242,7 +243,7 @@ class SmsService
 
         if ($response->successful()) {
             $data = $response->json();
-            
+
             return [
                 'success' => true,
                 'provider' => 'twilio',
@@ -366,6 +367,43 @@ class SmsService
         throw new \Exception('Africa\'s Talking error');
     }
 
+    // ==================== BREVO (SENDINBLUE) ====================
+
+    private function sendViaBrevo($to, $message)
+    {
+        $apiKey = $this->config['api_key'] ?? null;
+        $from = $this->config['from'] ?? 'CSAR';
+
+        if (!$apiKey) {
+            throw new \Exception('Brevo SMS: API key requise dans .env (BREVO_API_KEY)');
+        }
+
+        $response = Http::withHeaders([
+            'api-key' => $apiKey,
+            'Content-Type' => 'application/json',
+            'accept' => 'application/json',
+        ])->post('https://api.brevo.com/v3/transactionalSMS/sms', [
+            'sender' => $from,
+            'recipient' => $to,
+            'content' => $message,
+            'type' => 'transactional',
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            return [
+                'success' => true,
+                'provider' => 'brevo',
+                'message_id' => $data['messageId'] ?? $data['messageIds'][0] ?? null,
+                'status' => 'sent',
+            ];
+        }
+
+        $errorBody = $response->json();
+        throw new \Exception('Brevo SMS: ' . ($errorBody['message'] ?? $response->body()));
+    }
+
     // ==================== HELPERS ====================
 
     /**
@@ -397,7 +435,7 @@ class SmsService
     {
         // Vérifier le quota mensuel
         $maxPerMonth = config('services.sms.max_per_month', 1000);
-        
+
         $sentThisMonth = SmsNotification::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->count();

@@ -26,6 +26,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Brevo (ex-Sendinblue) Configuration
+    |--------------------------------------------------------------------------
+    | Clés API depuis https://app.brevo.com/settings/keys/api
+    | SMTP : https://app.brevo.com/settings/smtp
+    | Sender : https://app.brevo.com/senders
+    */
+    'brevo' => [
+        'api_key' => env('BREVO_API_KEY'),
+        'base_url' => env('BREVO_BASE_URL', 'https://api.brevo.com/v3'),
+        'sender_email' => env('BREVO_SENDER_EMAIL', 'noreply@csar.sn'),
+        'sender_name' => env('BREVO_SENDER_NAME', 'CSAR'),
+        'sms_sender' => env('BREVO_SMS_SENDER', 'CSAR'),
+        'default_list_id' => env('BREVO_DEFAULT_LIST_ID'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Newsletter Service Configuration
     |--------------------------------------------------------------------------
     | Providers: mailchimp, sendgrid, brevo (sendinblue)
@@ -80,6 +97,11 @@ return [
             'username' => env('AFRICASTALKING_USERNAME'),
             'api_key' => env('AFRICASTALKING_API_KEY'),
             'from' => env('AFRICASTALKING_FROM', 'CSAR'),
+        ],
+
+        'brevo' => [
+            'api_key' => env('BREVO_API_KEY'),
+            'from' => env('BREVO_SMS_SENDER', 'CSAR'),
         ],
     ],
 
