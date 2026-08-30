@@ -115,6 +115,17 @@ Route::get('/telecharger-app/apk', function () {
     ]);
 })->name('app.download.apk');
 
+// Téléchargement de l'application Distribution
+Route::get('/telecharger-distribution/apk', function () {
+    $file = public_path('downloads/csar-distribution.apk');
+    if (!file_exists($file)) {
+        abort(404, 'Fichier APK non disponible');
+    }
+    return response()->download($file, 'CSAR-Distribution.apk', [
+        'Content-Type' => 'application/vnd.android.package-archive',
+    ]);
+})->name('app.distribution.download.apk');
+
 // Redirect root to French by default
 Route::get('/', function () {
     return redirect('/fr');
