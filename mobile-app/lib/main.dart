@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
-import 'screens/login_screen.dart';
+import 'services/distribution_auth_service.dart';
 import 'screens/home_screen.dart';
+import 'screens/mode_select_screen.dart';
+import 'screens/distribution/distribution_home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,6 +12,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => DistributionAuthService()),
       ],
       child: const CsarApp(),
     ),
@@ -22,7 +25,7 @@ class CsarApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CSAR Collecte',
+      title: 'CSAR Mobile',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -61,16 +64,22 @@ class _AuthWrapperState extends State<AuthWrapper> {
   void initState() {
     super.initState();
     context.read<AuthService>().loadToken();
+    context.read<DistributionAuthService>().loadToken();
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
-    if (auth.isLoading) {
+    final distAuth = context.watch<DistributionAuthService>();
+
+    if (auth.isLoading || distAuth.isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    return auth.isAuthenticated ? const HomeScreen() : const LoginScreen();
+
+    if (auth.isAuthenticated) return const HomeScreen();
+    if (distAuth.isAuthenticated) return const DistributionHomeScreen();
+    return const ModeSelectScreen();
   }
 }

@@ -1,5 +1,5 @@
 name: csar_mobile
-description: Application mobile CSAR - Collecte de données SIM
+description: Application mobile CSAR - Collecte SIM et Distribution d'aide alimentaire
 
 publish_to: 'none'
 
@@ -21,6 +21,7 @@ dependencies:
   geolocator: ^11.0.0
   sqflite: ^2.3.0
   path: ^1.9.0
+  mobile_scanner: ^5.2.3
 
 dev_dependencies:
   flutter_test:
