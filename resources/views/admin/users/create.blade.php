@@ -76,6 +76,7 @@
                                     <option value="responsable" {{ old('role') == 'responsable' ? 'selected' : '' }}>Responsable</option>
                                     <option value="magasinier" {{ old('role') == 'magasinier' ? 'selected' : '' }}>Magasinier</option>
                                     <option value="agent" {{ old('role') == 'agent' ? 'selected' : '' }}>Agent</option>
+                                    <option value="distributeur" {{ old('role') == 'distributeur' ? 'selected' : '' }}>Distributeur d'aide</option>
                                 </select>
                             </div>
 

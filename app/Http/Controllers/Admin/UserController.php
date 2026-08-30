@@ -25,7 +25,8 @@ class UserController extends Controller
             'agent' => 4,
             'drh' => 5,
             'entrepot' => 3, // Alias pour responsable
-            'magasinier' => 3 // Magasinier rattaché à un magasin
+            'magasinier' => 3, // Magasinier rattaché à un magasin
+            'distributeur' => 4 // Distributeur d'aide (app mobile)
         ];
 
         return $roleMap[$roleName] ?? 4; // Par défaut: agent
@@ -109,7 +110,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email|max:255',
             'phone' => 'required|string|max:20',
-            'role' => 'required|string|in:admin,dg,drh,entrepot,agent,magasinier',
+            'role' => 'required|string|in:admin,dg,drh,entrepot,agent,magasinier,distributeur',
             'status' => 'required|string|in:actif,inactif',
             'password' => 'required|string|min:8|confirmed',
             'warehouse_id' => 'required_if:role,magasinier|nullable|exists:warehouses,id',
@@ -197,7 +198,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $id,
             'phone' => 'required|string|max:20',
-            'role' => 'required|string|in:admin,dg,drh,entrepot,agent',
+            'role' => 'required|string|in:admin,dg,drh,entrepot,agent,distributeur',
             'is_active' => 'required|boolean'
         ]);
 
