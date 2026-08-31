@@ -42,6 +42,16 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
             Route::post('/beneficiaires/batch', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'batch']);
             Route::post('/scan', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scan']);
             Route::get('/tickets/{code}', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'ticket']);
+
+            // Nouvelles routes pour le système complet
+            Route::get('/events', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'events']);
+            Route::get('/events/{id}/plannings', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'eventPlannings']);
+            Route::get('/plannings', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'myPlannings']);
+            Route::get('/plannings/{id}/beneficiaries', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'planningBeneficiaries']);
+            Route::post('/beneficiaries/{id}/validate', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'validateBeneficiary']);
+            Route::post('/beneficiaries/{id}/ticket', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'generateTicket']);
+            Route::post('/tickets/{qrToken}/collect', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'collectKit']);
+            Route::get('/check-duplicate', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'checkDuplicate']);
         });
     });
 });

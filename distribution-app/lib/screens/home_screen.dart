@@ -8,6 +8,7 @@ import '../services/sync_service.dart';
 import '../services/local_db_service.dart';
 import 'beneficiaire_form_screen.dart';
 import 'ticket_scan_screen.dart';
+import 'planning_beneficiaries_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -51,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final token = context.read<AuthService>().token;
     if (token == null) return;
     try {
-      final res = await ApiService.sync(token);
+      final res = await ApiService.getMyPlannings(token);
       if (res['success'] == true) {
         setState(() => _plannings = res['data'] ?? []);
       }
@@ -98,8 +99,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   int _beneficiaireCount(dynamic planning) {
-    final list = planning['beneficiaires'] as List<dynamic>? ?? [];
-    return list.length;
+    return planning['beneficiaries_count'] as int? ?? (planning['beneficiaires'] as List<dynamic>?)?.length ?? 0;
+  }
+
+  int _validatedCount(dynamic planning) {
+    return planning['validated_count'] as int? ?? 0;
+  }
+
+  int _ticketsCount(dynamic planning) {
+    return planning['tickets_count'] as int? ?? 0;
+  }
+
+  int _collectedCount(dynamic planning) {
+    return planning['collected_count'] as int? ?? 0;
   }
 
   @override
@@ -200,6 +212,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     ..._plannings.map((p) => _PlanningCard(
                           planning: p,
                           beneficiaireCount: _beneficiaireCount(p),
+                          validatedCount: _validatedCount(p),
+                          ticketsCount: _ticketsCount(p),
+                          collectedCount: _collectedCount(p),
                           onRegister: () => Navigator.push(
                             context,
                             MaterialPageRoute(builder: (_) => BeneficiaireFormScreen(planning: p)),
@@ -207,6 +222,10 @@ class _HomeScreenState extends State<HomeScreen> {
                             _refreshPendingCount();
                             _loadPlannings();
                           }),
+                          onViewBeneficiaries: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => PlanningBeneficiariesScreen(planning: p)),
+                          ).then((_) => _loadPlannings()),
                         )),
                   const SizedBox(height: 80),
                 ],
@@ -219,14 +238,40 @@ class _HomeScreenState extends State<HomeScreen> {
 class _PlanningCard extends StatelessWidget {
   final dynamic planning;
   final int beneficiaireCount;
+  final int validatedCount;
+  final int ticketsCount;
+  final int collectedCount;
   final VoidCallback onRegister;
+  final VoidCallback onViewBeneficiaries;
 
-  const _PlanningCard({required this.planning, required this.beneficiaireCount, required this.onRegister});
+  const _PlanningCard({
+    required this.planning,
+    required this.beneficiaireCount,
+    required this.validatedCount,
+    required this.ticketsCount,
+    required this.collectedCount,
+    required this.onRegister,
+    required this.onViewBeneficiaries,
+  });
+
+  Widget _statChip(IconData icon, String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(label, style: TextStyle(fontSize: 11, color: color, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final campaign = planning['campaign'];
-    final warehouse = planning['warehouse'];
+    final event = planning['event'];
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -241,33 +286,51 @@ class _PlanningCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            campaign?['name'] ?? planning['name'] ?? 'Planning #${planning['id']}',
+            event?['name'] ?? planning['name'] ?? 'Planning #${planning['id']}',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
           ),
-          if (warehouse != null) ...[
+          if (planning['location'] != null) ...[
             const SizedBox(height: 4),
-            Text('Entrepot : ${warehouse['name'] ?? ''}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            Text('Lieu : ${planning['location']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
           ],
-          const SizedBox(height: 8),
-          Row(
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
             children: [
-              Icon(Icons.people_outline, size: 16, color: Colors.grey.shade600),
-              const SizedBox(width: 4),
-              Text('$beneficiaireCount beneficiaire(s)', style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
+              _statChip(Icons.people_outline, '$beneficiaireCount benef.', Colors.blue),
+              _statChip(Icons.verified, '$validatedCount valides', Colors.green),
+              _statChip(Icons.qr_code, '$ticketsCount tickets', Colors.orange),
+              _statChip(Icons.check_circle, '$collectedCount recuperes', Colors.teal),
             ],
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFD84315),
-                side: const BorderSide(color: Color(0xFFD84315)),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFD84315),
+                    side: const BorderSide(color: Color(0xFFD84315)),
+                  ),
+                  icon: const Icon(Icons.person_add_alt_1),
+                  label: const Text('Beneficiaire'),
+                  onPressed: onRegister,
+                ),
               ),
-              icon: const Icon(Icons.person_add_alt_1),
-              label: const Text('Nouveau beneficiaire'),
-              onPressed: onRegister,
-            ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blue.shade700,
+                    side: BorderSide(color: Colors.blue.shade700),
+                  ),
+                  icon: const Icon(Icons.list_alt),
+                  label: const Text('Liste'),
+                  onPressed: onViewBeneficiaries,
+                ),
+              ),
+            ],
           ),
         ],
       ),

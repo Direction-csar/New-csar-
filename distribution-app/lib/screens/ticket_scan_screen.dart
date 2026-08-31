@@ -44,14 +44,15 @@ class _TicketScanScreenState extends State<TicketScanScreen> {
     }
 
     try {
-      final res = await ApiService.scan(token, code);
+      final res = await ApiService.collectKit(token, code);
       if (!mounted) return;
       if (res['success'] == true) {
         _showResultDialog(
           success: true,
-          title: 'Retrait valide',
-          beneficiaire: res['data']?['beneficiaire'],
-          quantite: res['data']?['quantite_kg'],
+          title: 'Kit recupere!',
+          beneficiaire: res['data']?['beneficiaire']?['full_name'] ?? res['data']?['beneficiaire'],
+          quantite: res['data']?['beneficiaire']?['quantity_kg'] ?? res['data']?['quantite_kg'],
+          ticketCode: res['data']?['ticket_code'] ?? code,
         );
       } else {
         _showResultDialog(success: false, title: res['message'] ?? 'Ticket invalide');
@@ -63,7 +64,7 @@ class _TicketScanScreenState extends State<TicketScanScreen> {
     setState(() => _processing = false);
   }
 
-  void _showResultDialog({required bool success, required String title, String? beneficiaire, dynamic quantite}) {
+  void _showResultDialog({required bool success, required String title, String? beneficiaire, dynamic quantite, String? ticketCode}) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -77,6 +78,10 @@ class _TicketScanScreenState extends State<TicketScanScreen> {
             ? Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (ticketCode != null) ...[
+                    Text('Ticket: $ticketCode', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                    const SizedBox(height: 8),
+                  ],
                   Text('Beneficiaire : $beneficiaire'),
                   if (quantite != null) Text('Quantite : $quantite kg'),
                 ],

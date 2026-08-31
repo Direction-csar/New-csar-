@@ -24,10 +24,12 @@ class _BeneficiaireFormScreenState extends State<BeneficiaireFormScreen> {
 
   static const _categories = ['Vulnerable', 'Religieux', 'Instruction', 'OAL', 'Spontane'];
   String _category = _categories.first;
-  bool _vulnerable = false;
-  bool _religious = false;
-  bool _spontaneous = false;
+  bool _isVulnerable = false;
+  bool _isPregnant = false;
+  bool _isElderly = false;
+  bool _isDisabled = false;
   bool _saving = false;
+  bool _checkingDup = false;
 
   @override
   void dispose() {
@@ -43,23 +45,43 @@ class _BeneficiaireFormScreenState extends State<BeneficiaireFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
 
+    final fullName = _nameCtrl.text.trim();
+    final phone = _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim();
+    final cni = _cniCtrl.text.trim().isEmpty ? null : _cniCtrl.text.trim();
+
     final data = {
       'planning_id': widget.planning['id'],
-      'name': _nameCtrl.text.trim(),
-      'phone': _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
-      'cni': _cniCtrl.text.trim().isEmpty ? null : _cniCtrl.text.trim(),
+      'full_name': fullName,
+      'phone': phone,
+      'cni': cni,
       'address': _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
       'category': _category,
-      'vulnerable': _vulnerable,
-      'religious': _religious,
-      'spontaneous': _spontaneous,
-      'quantite_kg': double.tryParse(_quantiteCtrl.text.replaceAll(',', '.')) ?? 0,
+      'is_vulnerable': _isVulnerable,
+      'is_pregnant': _isPregnant,
+      'is_elderly': _isElderly,
+      'is_disabled': _isDisabled,
+      'quantity_kg': double.tryParse(_quantiteCtrl.text.replaceAll(',', '.')) ?? 0,
     };
 
     final token = context.read<AuthService>().token;
     final connectivity = await Connectivity().checkConnectivity();
 
     if (token != null && connectivity != ConnectivityResult.none) {
+      try {
+        setState(() => _checkingDup = true);
+        final dupRes = await ApiService.checkDuplicate(token, widget.planning['id'], phone, cni, fullName);
+        setState(() => _checkingDup = false);
+        if (dupRes['success'] == true && dupRes['data'] != null) {
+          final dup = dupRes['data'];
+          setState(() => _saving = false);
+          if (!mounted) return;
+          _showDuplicateDialog(dup);
+          return;
+        }
+      } catch (_) {
+        setState(() => _checkingDup = false);
+      }
+
       try {
         final res = await ApiService.storeBeneficiaire(token, data);
         setState(() => _saving = false);
@@ -83,6 +105,42 @@ class _BeneficiaireFormScreenState extends State<BeneficiaireFormScreen> {
       if (!mounted) return;
       _showSuccessAndClose('Enregistre hors-ligne. Sera synchronise automatiquement.');
     }
+  }
+
+  void _showDuplicateDialog(Map<String, dynamic> dup) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        icon: const Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 48),
+        title: const Text('Doublon detecte', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Cette personne existe deja dans ce planning:', textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
+            const SizedBox(height: 12),
+            Text(dup['full_name'] ?? 'N/A', style: const TextStyle(fontWeight: FontWeight.bold)),
+            if (dup['phone'] != null) Text('Tel: ${dup['phone']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            if (dup['cni'] != null) Text('CNI: ${dup['cni']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            const SizedBox(height: 8),
+            Text('Statut: ${dup['status'] ?? 'N/A'}', style: const TextStyle(fontSize: 12)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context);
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSuccessAndClose(String message) {
@@ -157,23 +215,30 @@ class _BeneficiaireFormScreenState extends State<BeneficiaireFormScreen> {
               ),
               const SizedBox(height: 18),
               CheckboxListTile(
-                value: _vulnerable,
-                onChanged: (v) => setState(() => _vulnerable = v ?? false),
+                value: _isVulnerable,
+                onChanged: (v) => setState(() => _isVulnerable = v ?? false),
                 title: const Text('Vulnerable'),
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
               ),
               CheckboxListTile(
-                value: _religious,
-                onChanged: (v) => setState(() => _religious = v ?? false),
-                title: const Text('Religieux'),
+                value: _isPregnant,
+                onChanged: (v) => setState(() => _isPregnant = v ?? false),
+                title: const Text('Enceinte'),
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
               ),
               CheckboxListTile(
-                value: _spontaneous,
-                onChanged: (v) => setState(() => _spontaneous = v ?? false),
-                title: const Text('Spontane'),
+                value: _isElderly,
+                onChanged: (v) => setState(() => _isElderly = v ?? false),
+                title: const Text('Personne agee'),
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+              ),
+              CheckboxListTile(
+                value: _isDisabled,
+                onChanged: (v) => setState(() => _isDisabled = v ?? false),
+                title: const Text('Handicap'),
                 controlAffinity: ListTileControlAffinity.leading,
                 contentPadding: EdgeInsets.zero,
               ),
@@ -190,7 +255,13 @@ class _BeneficiaireFormScreenState extends State<BeneficiaireFormScreen> {
                   onPressed: _saving ? null : _submit,
                   child: _saving
                       ? const SizedBox(height: 22, width: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                      : const Text('ENREGISTRER', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      : _checkingDup
+                          ? const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                              SizedBox(height: 18, width: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)),
+                              SizedBox(width: 10),
+                              Text('Verification...', style: TextStyle(fontSize: 14)),
+                            ])
+                          : const Text('ENREGISTRER', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

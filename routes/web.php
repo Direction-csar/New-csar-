@@ -874,6 +874,40 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/collecteurs/{id}', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collectorDetails'])->name('collector');
             Route::get('/collectes', [\App\Http\Controllers\Supervisor\SupervisorDashboardController::class, 'collections'])->name('collectes');
         });
+
+        // Distribution d'aide alimentaire
+        Route::prefix('distribution')->name('distribution.')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\DistributionController::class, 'dashboard'])->name('dashboard');
+            Route::get('/events', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsIndex'])->name('events.index');
+            Route::get('/events/create', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsCreate'])->name('events.create');
+            Route::post('/events', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsStore'])->name('events.store');
+            Route::get('/events/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsShow'])->name('events.show');
+            Route::get('/events/{id}/edit', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsEdit'])->name('events.edit');
+            Route::put('/events/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsUpdate'])->name('events.update');
+            Route::post('/events/{id}/status', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsUpdateStatus'])->name('events.status');
+
+            Route::get('/plannings', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsIndex'])->name('plannings.index');
+            Route::get('/plannings/create', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsCreate'])->name('plannings.create');
+            Route::post('/plannings', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsStore'])->name('plannings.store');
+            Route::get('/plannings/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsShow'])->name('plannings.show');
+            Route::get('/plannings/{id}/edit', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsEdit'])->name('plannings.edit');
+            Route::put('/plannings/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsUpdate'])->name('plannings.update');
+
+            Route::get('/beneficiaries', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesIndex'])->name('beneficiaries.index');
+            Route::get('/beneficiaries/create', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesCreate'])->name('beneficiaries.create');
+            Route::post('/beneficiaries', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesStore'])->name('beneficiaries.store');
+            Route::get('/beneficiaries/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesShow'])->name('beneficiaries.show');
+            Route::get('/beneficiaries/{id}/edit', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesEdit'])->name('beneficiaries.edit');
+            Route::put('/beneficiaries/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesUpdate'])->name('beneficiaries.update');
+            Route::delete('/beneficiaries/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesDestroy'])->name('beneficiaries.destroy');
+
+            Route::get('/tickets', [\App\Http\Controllers\Admin\DistributionController::class, 'ticketsIndex'])->name('tickets.index');
+            Route::get('/tickets/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'ticketsShow'])->name('tickets.show');
+
+            Route::get('/reports', [\App\Http\Controllers\Admin\DistributionController::class, 'reports'])->name('reports');
+            Route::get('/reports/export', [\App\Http\Controllers\Admin\DistributionController::class, 'exportReport'])->name('reports.export');
+            Route::get('/alerts', [\App\Http\Controllers\Admin\DistributionController::class, 'alerts'])->name('alerts');
+        });
     });
 });
 

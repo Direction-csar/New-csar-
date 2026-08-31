@@ -22,6 +22,69 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  static Future<Map<String, dynamic>> getEvents(String token) async {
+    final response = await http.get(
+      Uri.parse('$distBaseUrl/events'),
+      headers: _headers(token),
+    );
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> getMyPlannings(String token) async {
+    final response = await http.get(
+      Uri.parse('$distBaseUrl/my-plannings'),
+      headers: _headers(token),
+    );
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> getPlanningBeneficiaries(String token, int planningId) async {
+    final response = await http.get(
+      Uri.parse('$distBaseUrl/plannings/$planningId/beneficiaries'),
+      headers: _headers(token),
+    );
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> checkDuplicate(String token, int planningId, String? phone, String? cni, String fullName) async {
+    final response = await http.post(
+      Uri.parse('$distBaseUrl/check-duplicate'),
+      headers: _headers(token),
+      body: jsonEncode({
+        'planning_id': planningId,
+        'phone': phone,
+        'cni': cni,
+        'full_name': fullName,
+      }),
+    );
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> validateBeneficiary(String token, int beneficiaryId) async {
+    final response = await http.post(
+      Uri.parse('$distBaseUrl/beneficiaries/$beneficiaryId/validate'),
+      headers: _headers(token),
+    );
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> generateTicket(String token, int beneficiaryId) async {
+    final response = await http.post(
+      Uri.parse('$distBaseUrl/beneficiaries/$beneficiaryId/generate-ticket'),
+      headers: _headers(token),
+    );
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> collectKit(String token, String ticketCode, {String? scanLocation}) async {
+    final response = await http.post(
+      Uri.parse('$distBaseUrl/tickets/$ticketCode/collect'),
+      headers: _headers(token),
+      body: jsonEncode({'scan_location': scanLocation}),
+    );
+    return jsonDecode(response.body);
+  }
+
   static Future<Map<String, dynamic>> storeBeneficiaire(String token, Map<String, dynamic> data) async {
     final response = await http.post(
       Uri.parse('$distBaseUrl/beneficiaires'),
@@ -45,6 +108,14 @@ class ApiService {
       Uri.parse('$distBaseUrl/scan'),
       headers: _headers(token),
       body: jsonEncode({'code': code}),
+    );
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> getTicketByCode(String token, String code) async {
+    final response = await http.get(
+      Uri.parse('$distBaseUrl/tickets/$code'),
+      headers: _headers(token),
     );
     return jsonDecode(response.body);
   }

@@ -16,10 +16,8 @@ class SyncService {
 
     for (final item in pending) {
       try {
-        final res = await ApiService.storeBeneficiaire(
-          token,
-          item['payload'] as Map<String, dynamic>,
-        );
+        final payload = Map<String, dynamic>.from(item['payload'] as Map<String, dynamic>);
+        final res = await ApiService.storeBeneficiaire(token, payload);
         if (res['success'] == true) {
           await LocalDbService.deletePendingBeneficiaire(item['id'] as int);
           synced++;
