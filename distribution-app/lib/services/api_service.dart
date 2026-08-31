@@ -87,7 +87,7 @@ class ApiService {
 
   static Future<Map<String, dynamic>> storeBeneficiaire(String token, Map<String, dynamic> data) async {
     final response = await http.post(
-      Uri.parse('$distBaseUrl/beneficiaires'),
+      Uri.parse('$distBaseUrl/beneficiaries'),
       headers: _headers(token),
       body: jsonEncode(data),
     );

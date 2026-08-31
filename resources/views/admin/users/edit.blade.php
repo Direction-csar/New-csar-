@@ -82,6 +82,7 @@
                                     <option value="responsable" {{ ($user->role ?? '') === 'responsable' ? 'selected' : '' }}>Responsable</option>
                                     <option value="agent" {{ ($user->role ?? '') === 'agent' ? 'selected' : '' }}>Agent</option>
                                     <option value="distributeur" {{ ($user->role ?? '') === 'distributeur' ? 'selected' : '' }}>Distributeur d'aide</option>
+                                    <option value="scanner" {{ ($user->role ?? '') === 'scanner' ? 'selected' : '' }}>Scanner de tickets</option>
                                 </select>
                             </div>
 

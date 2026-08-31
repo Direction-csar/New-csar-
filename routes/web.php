@@ -126,6 +126,17 @@ Route::get('/telecharger-distribution/apk', function () {
     ]);
 })->name('app.distribution.download.apk');
 
+// Téléchargement de l'application Scanner
+Route::get('/telecharger-scanner/apk', function () {
+    $file = public_path('downloads/csar-scanner.apk');
+    if (!file_exists($file)) {
+        abort(404, 'Fichier APK non disponible');
+    }
+    return response()->download($file, 'CSAR-Scanner.apk', [
+        'Content-Type' => 'application/vnd.android.package-archive',
+    ]);
+})->name('app.scanner.download.apk');
+
 // Redirect root to French by default
 Route::get('/', function () {
     return redirect('/fr');

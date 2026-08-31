@@ -200,6 +200,51 @@ class DistributionController extends Controller
     // Nouvelles méthodes
     // =====================
 
+    public function storeBeneficiaryV2(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'planning_id' => 'required|exists:distribution_plannings,id',
+            'full_name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'cni' => 'nullable|string|max:100',
+            'address' => 'nullable|string',
+            'category' => 'nullable|string|max:100',
+            'is_vulnerable' => 'boolean',
+            'is_pregnant' => 'boolean',
+            'is_elderly' => 'boolean',
+            'is_disabled' => 'boolean',
+            'quantity_kg' => 'required|numeric|min:0.01',
+        ]);
+
+        $planning = DistributionPlanning::where('id', $validated['planning_id'])
+            ->where(function ($q) {
+                $q->where('assigned_to', Auth::id())->orWhereNull('assigned_to');
+            })
+            ->firstOrFail();
+
+        $beneficiary = DistributionBeneficiary::create([
+            'planning_id' => $validated['planning_id'],
+            'full_name' => $validated['full_name'],
+            'phone' => $validated['phone'] ?? null,
+            'cni' => $validated['cni'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'category' => $validated['category'] ?? 'general',
+            'is_vulnerable' => $validated['is_vulnerable'] ?? false,
+            'is_pregnant' => $validated['is_pregnant'] ?? false,
+            'is_elderly' => $validated['is_elderly'] ?? false,
+            'is_disabled' => $validated['is_disabled'] ?? false,
+            'quantity_kg' => $validated['quantity_kg'],
+            'status' => DistributionBeneficiary::STATUS_PENDING,
+            'registered_by' => Auth::id(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bénéficiaire enregistré avec succès.',
+            'data' => $beneficiary,
+        ]);
+    }
+
     public function events(): JsonResponse
     {
         $events = DistributionEvent::where('status', 'active')
@@ -242,6 +287,14 @@ class DistributionController extends Controller
             ->withCount(['beneficiaries', 'tickets'])
             ->orderBy('distribution_date', 'asc')
             ->get();
+
+        $plannings->each(function ($p) {
+            $p->validated_count = $p->beneficiaries()->where('status', 'validated')->count() +
+                $p->beneficiaries()->where('status', 'ticket_issued')->count() +
+                $p->beneficiaries()->where('status', 'kit_collected')->count();
+            $p->collected_count = $p->beneficiaries()->where('status', 'kit_collected')->count();
+            $p->tickets_count = $p->tickets()->whereIn('status', ['issued', 'scanned', 'collected'])->count();
+        });
 
         return response()->json([
             'success' => true,
@@ -356,6 +409,7 @@ class DistributionController extends Controller
     public function collectKit(string $qrToken, Request $request): JsonResponse
     {
         $ticket = DistributionTicket::where('qr_token', $qrToken)
+            ->orWhere('ticket_code', $qrToken)
             ->with('beneficiary', 'planning')
             ->first();
 
@@ -410,9 +464,13 @@ class DistributionController extends Controller
             'message' => 'Récupération du kit enregistrée avec succès.',
             'data' => [
                 'ticket_code' => $ticket->ticket_code,
-                'beneficiary_name' => $ticket->beneficiary->full_name,
-                'quantity_kg' => $ticket->beneficiary->quantity_kg,
-                'planning_name' => $ticket->planning->name,
+                'beneficiaire' => [
+                    'full_name' => $ticket->beneficiary->full_name,
+                    'quantity_kg' => $ticket->beneficiary->quantity_kg,
+                    'phone' => $ticket->beneficiary->phone,
+                ],
+                'beneficiary' => $ticket->beneficiary,
+                'planning' => $ticket->planning,
                 'collected_at' => now()->toIso8601String(),
             ],
         ]);
@@ -464,9 +522,12 @@ class DistributionController extends Controller
             }
         }
 
+        $firstDup = count($duplicates) > 0 ? $duplicates[0]['existing_beneficiary'] : null;
+
         return response()->json([
             'success' => true,
             'has_duplicate' => count($duplicates) > 0,
+            'data' => $firstDup,
             'duplicates' => $duplicates,
         ]);
     }

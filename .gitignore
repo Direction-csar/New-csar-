@@ -52,3 +52,12 @@ Thumbs.db
 ssh_cmd.ps1
 ssh_cmd2.ps1
 ssh_pass.bat
+
+# APK files (trop volumineux pour Git)
+/public/downloads/*.apk
+
+# Flutter build artifacts
+distribution-app/build/
+scanner-app/build/
+scanner-app/.dart_tool/
+distribution-app/.dart_tool/
