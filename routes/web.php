@@ -528,11 +528,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/dg-dashboard', [DemandesController::class, 'dgDashboard'])->name('demandes.dg-dashboard');
         Route::get('/workflow-history', [DemandesController::class, 'workflowHistory'])->name('demandes.workflow-history');
 
-        // Distribution (campagnes et plannings)
+        // Distribution (ancien système : campagnes, bons-matière, doublons, exports)
         Route::prefix('distribution')->name('distribution.')->group(function () {
-            Route::get('/', [DistributionDashboardController::class, 'index'])->name('distribution.dashboard');
             Route::resource('campaigns', CampaignController::class);
-            Route::resource('plannings', PlanningController::class);
             Route::resource('beneficiaires', BeneficiaireController::class);
 
             Route::resource('bon-matieres', BonMatiereController::class)->except(['create', 'store', 'edit', 'update']);
@@ -540,7 +538,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::get('/tickets/scan', [TicketController::class, 'scan'])->name('tickets.scan');
             Route::post('/tickets/scan', [TicketController::class, 'processScan'])->name('tickets.scan.process');
-            Route::resource('tickets', TicketController::class)->only(['index']);
             Route::post('/tickets/{ticket}/reissue', [TicketController::class, 'reissue'])->name('tickets.reissue');
 
             Route::resource('doublons', DoublonController::class)->only(['index', 'update']);
