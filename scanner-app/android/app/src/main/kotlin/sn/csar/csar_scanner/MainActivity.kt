@@ -1,4 +1,4 @@
-package sn.csar.csar_distribution
+package sn.csar.csar_scanner
 
 import io.flutter.embedding.android.FlutterActivity
 
