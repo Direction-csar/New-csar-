@@ -56,12 +56,19 @@
         </div>
     </div>
 
-    @if($activeEvent)
+    @if($activeEvent && $report)
     <div class="row mb-3">
         <div class="col-12">
             <div class="card-modern p-3">
-                <h5 class="fw-bold mb-3">📊 Évolution du stock — {{ $activeEvent->name }}</h5>
-                <canvas id="stockChart" height="80"></canvas>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">📊 Analyse consolidée — {{ $activeEvent->name }}</h5>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('admin.distribution.events.show', $activeEvent->id) }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-eye me-1"></i>Détails</a>
+                        <a href="{{ route('admin.distribution.reports.print', ['event_id' => $activeEvent->id]) }}" target="_blank" class="btn btn-danger btn-sm"><i class="fas fa-file-pdf me-1"></i>Compte rendu PDF</a>
+                    </div>
+                </div>
+                <p class="small text-muted" style="text-align:justify">{{ $report['text']['summary'] }}</p>
+                @include('admin.distribution._report_widgets', ['report' => $report, 'event' => $activeEvent, 'print' => false])
             </div>
         </div>
     </div>
@@ -116,41 +123,7 @@
 @endsection
 
 @push('scripts')
-@if($activeEvent)
+@if($activeEvent && $report)
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-<script>
-    @php
-        $evolution = [];
-        $remaining = (float) $activeEvent->initial_stock_kg;
-        $evolution[] = ['label' => 'Stock initial', 'value' => $remaining];
-        foreach ($activeEvent->plannings as $p) {
-            $remaining -= (float) $p->executed_kg;
-            $evolution[] = ['label' => $p->name, 'value' => $remaining];
-        }
-        $evolution[] = ['label' => 'Projection', 'value' => $remaining - ($activeEvent->total_planned_kg - $activeEvent->total_executed_kg)];
-    @endphp
-    const ctx = document.getElementById('stockChart').getContext('2d');
-    const labels = @json(array_map(fn($e) => $e['label'], $evolution));
-    const values = @json(array_map(fn($e) => (float) $e['value'], $evolution));
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Stock restant (kg)',
-                data: values,
-                borderColor: '#fd7e14',
-                backgroundColor: 'rgba(253, 126, 20, 0.1)',
-                fill: true,
-                tension: 0.3,
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { beginAtZero: true } }
-        }
-    });
-</script>
 @endif
 @endpush

@@ -914,6 +914,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::get('/reports', [\App\Http\Controllers\Admin\DistributionController::class, 'reports'])->name('reports');
             Route::get('/reports/export', [\App\Http\Controllers\Admin\DistributionController::class, 'exportReport'])->name('reports.export');
+            Route::get('/reports/print', [\App\Http\Controllers\Admin\DistributionController::class, 'printReport'])->name('reports.print');
             Route::get('/alerts', [\App\Http\Controllers\Admin\DistributionController::class, 'alerts'])->name('alerts');
         });
     });

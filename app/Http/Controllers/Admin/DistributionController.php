@@ -25,10 +25,11 @@ class DistributionController extends Controller
         $totalCollected = DistributionTicket::where('status', 'collected')->count();
 
         $alerts = $this->getAlerts();
+        $report = $activeEvent ? $this->buildReport($activeEvent) : null;
 
         return view('admin.distribution.dashboard', compact(
             'events', 'activeEvent', 'totalPlanned', 'totalExecuted',
-            'totalBeneficiaries', 'totalTickets', 'totalCollected', 'alerts'
+            'totalBeneficiaries', 'totalTickets', 'totalCollected', 'alerts', 'report'
         ));
     }
 
@@ -344,14 +345,198 @@ class DistributionController extends Controller
             $stockEvolution = $this->getStockEvolution($event);
             $duplicates = $this->getDuplicates($event);
             $alerts = $this->getAlertsForEvent($event);
+            $report = $this->buildReport($event);
         } else {
             $plannings = collect();
             $stockEvolution = [];
             $duplicates = [];
             $alerts = [];
+            $report = null;
         }
 
-        return view('admin.distribution.reports', compact('events', 'event', 'plannings', 'stockEvolution', 'duplicates', 'alerts'));
+        return view('admin.distribution.reports', compact('events', 'event', 'plannings', 'stockEvolution', 'duplicates', 'alerts', 'report'));
+    }
+
+    public function printReport(Request $request)
+    {
+        $event = DistributionEvent::with('plannings')->findOrFail($request->get('event_id'));
+        $report = $this->buildReport($event);
+        return view('admin.distribution.reports_print', compact('event', 'report'));
+    }
+
+    private function buildReport(DistributionEvent $event): array
+    {
+        $plannings = $event->plannings()->withCount(['beneficiaries', 'tickets'])->orderBy('id')->get();
+        $planningIds = $plannings->pluck('id');
+
+        $initial = (float) $event->initial_stock_kg;
+        $planned = (float) $plannings->sum('planned_quota_kg');
+        $executed = (float) $plannings->sum('executed_kg');
+        $inProgress = max(0, $planned - $executed);
+        $remaining = $initial - $executed;
+        $overrun = $planned - $initial;
+        $projected = $initial - $planned;
+        $executionRate = $planned > 0 ? round($executed / $planned * 100, 1) : 0;
+        $consumptionRate = $initial > 0 ? round($executed / $initial * 100, 1) : 0;
+        $marginPct = $initial > 0 ? round(($initial - $planned) / $initial * 100, 1) : 0;
+
+        $stockStatus = $projected < 0 ? 'CRITIQUE' : ($consumptionRate >= 80 ? 'A SURVEILLER' : 'OK');
+
+        $rows = [];
+        $lateCount = 0;
+        foreach ($plannings as $p) {
+            $rate = (float) $p->execution_rate;
+            if ($rate >= 100) {
+                $alert = 'OK';
+            } elseif ($rate >= 80) {
+                $alert = 'A SURVEILLER';
+            } else {
+                $alert = 'RETARD';
+                $lateCount++;
+            }
+            $ticketsActive = $p->tickets()->whereIn('status', ['issued', 'scanned', 'collected'])->count();
+            $rows[] = [
+                'id' => $p->id,
+                'name' => $p->name,
+                'planned' => (float) $p->planned_quota_kg,
+                'executed' => (float) $p->executed_kg,
+                'in_progress' => max(0, (float) $p->planned_quota_kg - (float) $p->executed_kg),
+                'beneficiaries' => $p->beneficiaries_count,
+                'tickets' => $ticketsActive,
+                'collected' => $p->tickets()->where('status', 'collected')->count(),
+                'rate' => $rate,
+                'alert' => $alert,
+            ];
+        }
+
+        $totalBeneficiaries = DistributionBeneficiary::whereIn('planning_id', $planningIds)->count();
+        $totalTickets = DistributionTicket::whereIn('planning_id', $planningIds)->whereIn('status', ['issued', 'scanned', 'collected'])->count();
+        $totalCollected = DistributionTicket::whereIn('planning_id', $planningIds)->where('status', 'collected')->count();
+        $withoutTicket = DistributionBeneficiary::whereIn('planning_id', $planningIds)->whereIn('status', ['pending', 'validated'])->count();
+        $ticketNotCollected = $totalTickets - $totalCollected;
+
+        $phoneDups = DistributionBeneficiary::whereIn('planning_id', $planningIds)->whereNotNull('phone')->where('phone', '!=', '')
+            ->select('phone', DB::raw('count(*) as cnt'))->groupBy('phone')->having('cnt', '>', 1)->get();
+        $cniDups = DistributionBeneficiary::whereIn('planning_id', $planningIds)->whereNotNull('cni')->where('cni', '!=', '')
+            ->select('cni', DB::raw('count(*) as cnt'))->groupBy('cni')->having('cnt', '>', 1)->get();
+        $nameDups = DistributionBeneficiary::whereIn('planning_id', $planningIds)
+            ->select(DB::raw('LOWER(full_name) as fn'), DB::raw('count(*) as cnt'))->groupBy('fn')->having('cnt', '>', 1)->get();
+
+        $dupPhoneCount = (int) $phoneDups->sum(fn ($d) => $d->cnt - 1);
+        $dupCniCount = (int) $cniDups->sum(fn ($d) => $d->cnt - 1);
+        $dupNameCount = (int) $nameDups->sum(fn ($d) => $d->cnt - 1);
+
+        $fmt = fn ($v) => number_format($v, 0, ',', ' ');
+
+        $controls = [
+            ['label' => 'Couverture du stock par le planifie', 'value' => ($projected < 0 ? '-' : '+') . $fmt(abs($projected)) . ' kg', 'status' => $projected < 0 ? 'ALERTE' : 'OK'],
+            ['label' => 'Niveau de consommation du stock', 'value' => str_replace('.', ',', (string) $consumptionRate) . ' %', 'status' => $consumptionRate >= 90 ? 'ALERTE' : ($consumptionRate >= 80 ? 'EN COURS' : 'OK')],
+            ['label' => 'Beneficiaires sans ticket', 'value' => $fmt($withoutTicket), 'status' => $withoutTicket > 0 ? 'ALERTE' : 'OK'],
+            ['label' => 'Tickets emis non recuperes (don non servi)', 'value' => $fmt($ticketNotCollected), 'status' => $ticketNotCollected > 0 ? 'EN COURS' : 'OK'],
+            ['label' => "Plannings en retard d'execution (<80 %)", 'value' => $lateCount, 'status' => $lateCount > 0 ? 'ALERTE' : 'OK'],
+            ['label' => 'Volume global en cours (non servi)', 'value' => $fmt($inProgress) . ' kg', 'status' => $inProgress > 0 ? 'EN COURS' : 'OK'],
+            ['label' => 'Marge de stock non planifiee', 'value' => str_replace('.', ',', (string) $marginPct) . ' %', 'status' => $marginPct < 0 ? 'ALERTE' : ($marginPct < 5 ? 'EN COURS' : 'OK')],
+            ['label' => 'Doublons de numero de telephone', 'value' => $dupPhoneCount, 'status' => $dupPhoneCount > 0 ? 'ALERTE' : 'OK'],
+            ['label' => 'Doublons de CNI', 'value' => $dupCniCount, 'status' => $dupCniCount > 0 ? 'ALERTE' : 'OK'],
+            ['label' => "Autres doublons d'identite (nom complet)", 'value' => $dupNameCount, 'status' => $dupNameCount > 0 ? 'ALERTE' : 'OK'],
+        ];
+
+        $alertCount = count(array_filter($controls, fn ($c) => $c['status'] === 'ALERTE'));
+        $inProgressCount = count(array_filter($controls, fn ($c) => $c['status'] === 'EN COURS'));
+
+        $stockEvolution = [['label' => 'Stock initial', 'value' => $initial]];
+        $r = $initial;
+        foreach ($rows as $row) {
+            $r -= $row['executed'];
+            $stockEvolution[] = ['label' => $row['name'], 'value' => $r];
+        }
+        $stockEvolution[] = ['label' => 'Projection apres reste a servir', 'value' => $projected];
+
+        $completed = array_values(array_filter($rows, fn ($x) => $x['alert'] === 'OK'));
+        $late = array_values(array_filter($rows, fn ($x) => $x['alert'] === 'RETARD'));
+        $watch = array_values(array_filter($rows, fn ($x) => $x['alert'] === 'A SURVEILLER'));
+
+        $listNames = fn (array $items) => implode(', ', array_map(fn ($x) => $x['name'] . ($x['alert'] !== 'OK' ? ' (' . str_replace('.', ',', (string) $x['rate']) . ' %)' : ''), $items));
+
+        $summary = "Le present compte rendu presente la situation consolidee des operations de distribution « {$event->name} »"
+            . ($event->location ? " ({$event->location})" : '')
+            . " du Commissariat a la Securite Alimentaire et a la Resilience (CSAR), arretee au " . now()->format('d/m/Y') . ". "
+            . "Sur un stock initial disponible de " . $fmt($initial) . " kg (" . str_replace('.', ',', (string) round($initial / 1000, 1)) . " tonnes), le quota total planifie sur l'ensemble des " . count($rows) . " planning(s) atteint " . $fmt($planned) . " kg"
+            . ($overrun > 0
+                ? ", soit un depassement de " . $fmt($overrun) . " kg (" . str_replace('.', ',', (string) $marginPct) . " %) par rapport a la dotation disponible. "
+                : ", soit une marge non planifiee de " . $fmt(-$overrun) . " kg (" . str_replace('.', ',', (string) $marginPct) . " %). ")
+            . $fmt($executed) . " kg ont deja ete executes / servis (taux d'execution global de " . str_replace('.', ',', (string) $executionRate) . " %), et " . $fmt($inProgress) . " kg restent en cours de distribution. "
+            . "Le stock physique restant s'etablit a " . $fmt($remaining) . " kg, pour un taux de consommation du stock de " . str_replace('.', ',', (string) $consumptionRate) . " %. "
+            . "Le statut du stock est declare {$stockStatus}"
+            . ($projected < 0 ? " : si les " . $fmt($inProgress) . " kg encore en cours sont integralement distribues, le deficit projete atteindra " . $fmt($projected) . " kg." : ".");
+
+        $planningNarrative = count($rows) . " planning(s) composent le consolide. "
+            . $fmt($totalBeneficiaries) . " beneficiaires sont recenses au total pour " . $fmt($totalTickets) . " ticket(s) delivre(s), soit " . $fmt($withoutTicket) . " beneficiaire(s) en attente de ticket ; "
+            . $fmt($totalCollected) . " don(s) ont ete effectivement recuperes et " . $fmt($ticketNotCollected) . " ticket(s) restent non recuperes. "
+            . ($lateCount > 0
+                ? $lateCount . " planning(s) affichent un taux d'execution inferieur au seuil de vigilance de 80 % : " . $listNames($late) . "."
+                : "Aucun planning n'est sous le seuil de vigilance de 80 %.");
+
+        $totalDups = $dupPhoneCount + $dupCniCount + $dupNameCount;
+        $alertsNarrative = "Les controles automatiques du tableau de bord font apparaitre {$alertCount} alerte(s) active(s) et {$inProgressCount} signal(aux) « en cours ». "
+            . ($totalDups > 0
+                ? "Le controle qualite des donnees revele {$dupPhoneCount} doublon(s) de numero de telephone, {$dupCniCount} doublon(s) de CNI et {$dupNameCount} autre(s) doublon(s) d'identite. Ces anomalies doivent etre purgees avant toute cloture definitive du consolide" . ($overrun > 0 ? " : elles peuvent expliquer une partie du depassement apparent de " . $fmt($overrun) . " kg si des quotas ont ete comptabilises en double." : '.')
+                : "Aucun doublon d'identification n'a ete detecte.");
+
+        $stockNarrative = "Les sorties cumulees depuis le debut des operations atteignent " . $fmt($executed) . " kg, laissant un stock physique disponible de " . $fmt($remaining) . " kg. "
+            . ($projected < 0
+                ? "Si l'integralite des " . $fmt($inProgress) . " kg restant a servir est distribuee sans ajustement du plan, le stock deviendra negatif (" . $fmt($projected) . " kg, soit " . str_replace('.', ',', (string) round($projected / 1000, 2)) . " tonnes), confirmant l'alerte de depassement et le statut CRITIQUE du stock."
+                : "Apres distribution integrale du reste a servir (" . $fmt($inProgress) . " kg), le stock residuel projete s'etablira a " . $fmt($projected) . " kg.");
+
+        $conclusion = "Les operations de distribution enregistrent un taux global d'execution de " . str_replace('.', ',', (string) $executionRate) . " %. "
+            . ($projected < 0
+                ? "La situation du stock est critique : le quota planifie depasse la dotation initiale de " . $fmt($initial) . " kg, avec un deficit projete de " . $fmt(abs($projected)) . " kg si le reste a servir est integralement distribue. "
+                : "La dotation initiale couvre l'integralite du quota planifie. ")
+            . (count($completed) > 0 ? "Les plannings " . $listNames($completed) . " sont entierement executes. " : '')
+            . (count($late) > 0 ? "Une attention prioritaire doit etre portee aux plannings " . $listNames($late) . ". " : '')
+            . (count($watch) > 0 ? "Les plannings " . $listNames($watch) . " sont a surveiller. " : '')
+            . ($withoutTicket > 0 ? "Le traitement des " . $fmt($withoutTicket) . " beneficiaire(s) sans ticket" . ($totalDups > 0 ? " et des doublons detectes" : '') . " doit etre finalise avant toute cloture. " : '')
+            . ($ticketNotCollected > 0 ? $fmt($ticketNotCollected) . " beneficiaire(s) ont retire leur ticket sans recuperer leur don." : '');
+
+        return [
+            'generated_at' => now(),
+            'initial' => $initial,
+            'planned' => $planned,
+            'executed' => $executed,
+            'in_progress' => $inProgress,
+            'remaining' => $remaining,
+            'overrun' => $overrun,
+            'projected' => $projected,
+            'execution_rate' => $executionRate,
+            'consumption_rate' => $consumptionRate,
+            'margin_pct' => $marginPct,
+            'stock_status' => $stockStatus,
+            'rows' => $rows,
+            'total_beneficiaries' => $totalBeneficiaries,
+            'total_tickets' => $totalTickets,
+            'total_collected' => $totalCollected,
+            'without_ticket' => $withoutTicket,
+            'ticket_not_collected' => $ticketNotCollected,
+            'late_count' => $lateCount,
+            'controls' => $controls,
+            'alert_count' => $alertCount,
+            'dup_phone' => $dupPhoneCount,
+            'dup_cni' => $dupCniCount,
+            'dup_name' => $dupNameCount,
+            'stock_evolution' => $stockEvolution,
+            'donut' => [
+                'executed' => $executed,
+                'covered' => max(0, min($remaining, $inProgress)),
+                'overrun' => max(0, $overrun),
+            ],
+            'text' => [
+                'summary' => $summary,
+                'plannings' => $planningNarrative,
+                'alerts' => $alertsNarrative,
+                'stock' => $stockNarrative,
+                'conclusion' => $conclusion,
+            ],
+        ];
     }
 
     public function exportReport(Request $request)
