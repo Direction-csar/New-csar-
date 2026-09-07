@@ -15,12 +15,22 @@ class PlanningBeneficiariesScreen extends StatefulWidget {
 
 class _PlanningBeneficiariesScreenState extends State<PlanningBeneficiariesScreen> {
   List<dynamic> _beneficiaries = [];
+  Map<String, dynamic> _stats = {};
   bool _loading = true;
+  String _search = '';
+  String? _statusFilter;
+  final _searchCtrl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadBeneficiaries();
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _loadBeneficiaries() async {
@@ -30,10 +40,53 @@ class _PlanningBeneficiariesScreenState extends State<PlanningBeneficiariesScree
     try {
       final res = await ApiService.getPlanningBeneficiaries(token, widget.planning['id']);
       if (res['success'] == true) {
-        setState(() => _beneficiaries = res['data'] ?? []);
+        final raw = res['data'];
+        setState(() {
+          _beneficiaries = raw is List ? raw : (raw?['data'] ?? []);
+          _stats = Map<String, dynamic>.from(res['stats'] ?? {});
+        });
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
+  }
+
+  List<dynamic> get _filtered {
+    final q = _search.trim().toLowerCase();
+    return _beneficiaries.where((b) {
+      if (_statusFilter != null && b['status'] != _statusFilter) return false;
+      if (q.isEmpty) return true;
+      final name = (b['full_name'] ?? '').toString().toLowerCase();
+      final phone = (b['phone'] ?? '').toString().toLowerCase();
+      final cni = (b['cni'] ?? '').toString().toLowerCase();
+      final code = (b['ticket']?['ticket_code'] ?? '').toString().toLowerCase();
+      return name.contains(q) || phone.contains(q) || cni.contains(q) || code.contains(q);
+    }).toList();
+  }
+
+  int _count(String key) => (_stats[key] as int?) ?? _beneficiaries.where((b) => b['status'] == key).length;
+
+  String _fmtDate(dynamic iso) {
+    if (iso == null) return '';
+    final d = DateTime.tryParse(iso.toString())?.toLocal();
+    if (d == null) return '';
+    return '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+  }
+
+  Widget _filterChip(String label, String? value, Color color) {
+    final selected = _statusFilter == value;
+    final count = value == null ? _beneficiaries.length : _count(value);
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: FilterChip(
+        selected: selected,
+        label: Text('$label ($count)', style: TextStyle(fontSize: 11, color: selected ? Colors.white : color, fontWeight: FontWeight.w600)),
+        selectedColor: color,
+        backgroundColor: color.withOpacity(0.1),
+        checkmarkColor: Colors.white,
+        side: BorderSide(color: color.withOpacity(0.4)),
+        onSelected: (_) => setState(() => _statusFilter = selected ? null : value),
+      ),
+    );
   }
 
   Color _statusColor(String status) {
@@ -133,23 +186,82 @@ class _PlanningBeneficiariesScreenState extends State<PlanningBeneficiariesScree
         backgroundColor: const Color(0xFFD84315),
         title: Text(planningName, style: const TextStyle(fontSize: 16)),
       ),
-      body: RefreshIndicator(
+      body: Column(
+        children: [
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+            child: Column(
+              children: [
+                TextField(
+                  controller: _searchCtrl,
+                  onChanged: (v) => setState(() => _search = v),
+                  decoration: InputDecoration(
+                    hintText: 'Rechercher : nom, telephone, CNI, code ticket',
+                    hintStyle: const TextStyle(fontSize: 12),
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    suffixIcon: _search.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear, size: 18),
+                            onPressed: () {
+                              _searchCtrl.clear();
+                              setState(() => _search = '');
+                            },
+                          )
+                        : null,
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _filterChip('Tous', null, const Color(0xFFD84315)),
+                      _filterChip('En attente', 'pending', Colors.grey.shade700),
+                      _filterChip('Valides', 'validated', Colors.blue),
+                      _filterChip('Ticket emis', 'ticket_issued', Colors.orange),
+                      _filterChip('Don recupere', 'kit_collected', Colors.green),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            color: Colors.orange.shade50,
+            child: Text(
+              '${_count('ticket_issued')} ticket(s) retire(s) sans don recupere  |  ${_count('kit_collected')} don(s) recupere(s)',
+              style: TextStyle(fontSize: 11, color: Colors.orange.shade900, fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(
+            child: RefreshIndicator(
         onRefresh: _loadBeneficiaries,
         color: const Color(0xFFD84315),
         child: _loading
             ? const Center(child: CircularProgressIndicator(color: Color(0xFFD84315)))
-            : _beneficiaries.isEmpty
+            : _filtered.isEmpty
                 ? ListView(
-                    children: const [
-                      SizedBox(height: 100),
-                      Center(child: Text('Aucun beneficiaire', style: TextStyle(color: Colors.grey))),
+                    children: [
+                      const SizedBox(height: 100),
+                      Center(
+                        child: Text(
+                          _beneficiaries.isEmpty ? 'Aucun beneficiaire' : 'Aucun resultat pour cette recherche',
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                      ),
                     ],
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: _beneficiaries.length,
+                    itemCount: _filtered.length,
                     itemBuilder: (context, index) {
-                      final b = _beneficiaries[index];
+                      final b = _filtered[index];
                       final status = b['status'] as String? ?? 'pending';
                       final hasTicket = b['ticket'] != null;
 
@@ -192,8 +304,14 @@ class _PlanningBeneficiariesScreenState extends State<PlanningBeneficiariesScree
                                 style: const TextStyle(fontSize: 11, color: Colors.grey)),
                             if (hasTicket) ...[
                               const SizedBox(height: 4),
-                              Text('Ticket: ${b['ticket']['ticket_code']}',
+                              Text('Ticket: ${b['ticket']['ticket_code']}  (emis le ${_fmtDate(b['ticket']['issued_at'])})',
                                   style: const TextStyle(fontSize: 11, color: Colors.orange, fontWeight: FontWeight.w600)),
+                              if (status == 'kit_collected')
+                                Text('Don recupere le ${_fmtDate(b['ticket']['collected_at'])}',
+                                    style: const TextStyle(fontSize: 11, color: Colors.green, fontWeight: FontWeight.w600))
+                              else
+                                const Text('Don NON recupere (ticket non scanne)',
+                                    style: TextStyle(fontSize: 11, color: Colors.red, fontWeight: FontWeight.w600)),
                             ],
                             const SizedBox(height: 10),
                             Row(
@@ -255,6 +373,9 @@ class _PlanningBeneficiariesScreenState extends State<PlanningBeneficiariesScree
                       );
                     },
                   ),
+            ),
+          ),
+        ],
       ),
     );
   }

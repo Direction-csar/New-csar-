@@ -302,7 +302,7 @@ class DistributionController extends Controller
         ]);
     }
 
-    public function planningBeneficiaries(int $id): JsonResponse
+    public function planningBeneficiaries(int $id, Request $request): JsonResponse
     {
         $planning = DistributionPlanning::where('id', $id)
             ->where(function ($q) {
@@ -310,14 +310,42 @@ class DistributionController extends Controller
             })
             ->firstOrFail();
 
-        $beneficiaries = $planning->beneficiaries()
-            ->with('tickets')
-            ->orderBy('created_at', 'desc')
-            ->paginate(50);
+        $query = $planning->beneficiaries()
+            ->with(['tickets' => fn ($q) => $q->whereIn('status', ['issued', 'scanned', 'collected'])->latest()]);
+
+        if ($search = trim((string) $request->query('search', ''))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('full_name', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('cni', 'like', "%{$search}%")
+                    ->orWhereHas('tickets', fn ($t) => $t->where('ticket_code', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($status = $request->query('status')) {
+            $query->where('status', $status);
+        }
+
+        $beneficiaries = $query->orderBy('full_name')->get()->map(function ($b) {
+            $ticket = $b->tickets->first();
+            $data = $b->toArray();
+            unset($data['tickets']);
+            $data['ticket'] = $ticket;
+            return $data;
+        });
+
+        $stats = [
+            'total' => $planning->beneficiaries()->count(),
+            'pending' => $planning->beneficiaries()->where('status', 'pending')->count(),
+            'validated' => $planning->beneficiaries()->where('status', 'validated')->count(),
+            'ticket_issued' => $planning->beneficiaries()->where('status', 'ticket_issued')->count(),
+            'kit_collected' => $planning->beneficiaries()->where('status', 'kit_collected')->count(),
+        ];
 
         return response()->json([
             'success' => true,
             'planning' => $planning,
+            'stats' => $stats,
             'data' => $beneficiaries,
         ]);
     }

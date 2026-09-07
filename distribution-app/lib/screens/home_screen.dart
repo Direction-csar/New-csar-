@@ -7,7 +7,6 @@ import '../services/api_service.dart';
 import '../services/sync_service.dart';
 import '../services/local_db_service.dart';
 import 'beneficiaire_form_screen.dart';
-import 'ticket_scan_screen.dart';
 import 'planning_beneficiaries_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,7 +21,20 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   bool _syncing = false;
   int _pendingCount = 0;
+  String _search = '';
   StreamSubscription<ConnectivityResult>? _connectivitySub;
+
+  Map<String, List<dynamic>> get _groupedByEvent {
+    final q = _search.trim().toLowerCase();
+    final Map<String, List<dynamic>> groups = {};
+    for (final p in _plannings) {
+      final eventName = (p['event']?['name'] ?? 'Sans evenement').toString();
+      final haystack = '${eventName} ${p['name'] ?? ''} ${p['location'] ?? ''}'.toLowerCase();
+      if (q.isNotEmpty && !haystack.contains(q)) continue;
+      groups.putIfAbsent(eventName, () => []).add(p);
+    }
+    return groups;
+  }
 
   @override
   void initState() {
@@ -133,15 +145,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFFD84315),
-        icon: const Icon(Icons.qr_code_scanner),
-        label: const Text('Scanner un ticket'),
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const TicketScanScreen()),
-        ),
-      ),
       body: RefreshIndicator(
         onRefresh: _loadPlannings,
         child: _loading
@@ -197,37 +200,70 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Plannings de distribution',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFFD84315)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    onChanged: (v) => setState(() => _search = v),
+                    decoration: InputDecoration(
+                      hintText: 'Rechercher un don, un site, un lieu...',
+                      hintStyle: const TextStyle(fontSize: 12),
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      isDense: true,
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   if (_plannings.isEmpty)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40),
                       child: Center(child: Text('Aucun planning assigne', style: TextStyle(color: Colors.grey))),
                     )
+                  else if (_groupedByEvent.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 40),
+                      child: Center(child: Text('Aucun resultat', style: TextStyle(color: Colors.grey))),
+                    )
                   else
-                    ..._plannings.map((p) => _PlanningCard(
-                          planning: p,
-                          beneficiaireCount: _beneficiaireCount(p),
-                          validatedCount: _validatedCount(p),
-                          ticketsCount: _ticketsCount(p),
-                          collectedCount: _collectedCount(p),
-                          onRegister: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => BeneficiaireFormScreen(planning: p)),
-                          ).then((_) {
-                            _refreshPendingCount();
-                            _loadPlannings();
-                          }),
-                          onViewBeneficiaries: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => PlanningBeneficiariesScreen(planning: p)),
-                          ).then((_) => _loadPlannings()),
-                        )),
-                  const SizedBox(height: 80),
+                    ..._groupedByEvent.entries.expand((entry) => [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 10, top: 4),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.inventory_2_outlined, size: 18, color: Color(0xFFD84315)),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    entry.key,
+                                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFD84315)),
+                                  ),
+                                ),
+                                Text('${entry.value.length} site(s)', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                              ],
+                            ),
+                          ),
+                          ...entry.value.map((p) => _PlanningCard(
+                                planning: p,
+                                beneficiaireCount: _beneficiaireCount(p),
+                                validatedCount: _validatedCount(p),
+                                ticketsCount: _ticketsCount(p),
+                                collectedCount: _collectedCount(p),
+                                onRegister: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => BeneficiaireFormScreen(planning: p)),
+                                ).then((_) {
+                                  _refreshPendingCount();
+                                  _loadPlannings();
+                                }),
+                                onViewBeneficiaries: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => PlanningBeneficiariesScreen(planning: p)),
+                                ).then((_) => _loadPlannings()),
+                              )),
+                          const SizedBox(height: 10),
+                        ]),
+                  const SizedBox(height: 40),
                 ],
               ),
       ),
@@ -286,13 +322,31 @@ class _PlanningCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            event?['name'] ?? planning['name'] ?? 'Planning #${planning['id']}',
+            planning['name'] ?? event?['name'] ?? 'Planning #${planning['id']}',
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
           ),
           if (planning['location'] != null) ...[
             const SizedBox(height: 4),
             Text('Lieu : ${planning['location']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
           ],
+          if (planning['distribution_date'] != null)
+            Text('Date : ${planning['distribution_date'].toString().substring(0, 10)}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: ticketsCount == 0 ? 0 : (collectedCount / ticketsCount).clamp(0, 1),
+              minHeight: 6,
+              backgroundColor: Colors.orange.shade100,
+              color: Colors.green,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$collectedCount / $ticketsCount dons recuperes  (${ticketsCount - collectedCount} ticket(s) non retire(s))',
+            style: const TextStyle(fontSize: 11, color: Colors.black54),
+          ),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
