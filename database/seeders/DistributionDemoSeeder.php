@@ -81,7 +81,7 @@ class DistributionDemoSeeder extends Seeder
                     'planned_quota_kg' => $pd['planned_quota_kg'],
                     'executed_kg' => 0,
                     'expected_beneficiaries' => $pd['expected_beneficiaries'],
-                    'status' => 'in_progress',
+                    'status' => 'active',
                     'distribution_date' => now()->addDays($i),
                     'assigned_to' => $distributeur->id,
                 ]
