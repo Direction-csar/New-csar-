@@ -114,6 +114,21 @@ class DistributionController extends Controller
         return redirect()->back()->with('success', 'Statut mis à jour.');
     }
 
+    public function eventsDestroy($id)
+    {
+        $event = DistributionEvent::findOrFail($id);
+        $event->delete();
+        return redirect()->route('admin.distribution.events.index')->with('success', 'Événement supprimé (plannings, bénéficiaires et tickets associés inclus).');
+    }
+
+    public function planningsDestroy($id)
+    {
+        $planning = DistributionPlanning::findOrFail($id);
+        $eventId = $planning->event_id;
+        $planning->delete();
+        return redirect()->route('admin.distribution.events.show', $eventId)->with('success', 'Planning supprimé (bénéficiaires et tickets associés inclus).');
+    }
+
     public function planningsIndex()
     {
         $plannings = DistributionPlanning::with('event', 'assignee')
@@ -277,21 +292,12 @@ class DistributionController extends Controller
             'status' => 'required|in:pending,validated,ticket_issued,kit_collected',
         ]);
 
-        $oldQty = (float) $beneficiary->quantity_kg;
-        $newQty = (float) $request->quantity_kg;
-
         $beneficiary->update($request->only([
             'planning_id', 'full_name', 'phone', 'cni', 'address', 'category', 'quantity_kg',
             'is_vulnerable', 'is_pregnant', 'is_elderly', 'is_disabled', 'status',
         ]));
 
-        if ($oldQty !== $newQty) {
-            $planning = DistributionPlanning::find($beneficiary->planning_id);
-            if ($planning) {
-                $planning->decrement('executed_kg', $oldQty);
-                $planning->increment('executed_kg', $newQty);
-            }
-        }
+        $this->recomputeExecuted($beneficiary->planning_id);
 
         return redirect()->route('admin.distribution.beneficiaries.index')
             ->with('success', 'Bénéficiaire mis à jour.');
@@ -300,13 +306,10 @@ class DistributionController extends Controller
     public function beneficiariesDestroy($id)
     {
         $beneficiary = DistributionBeneficiary::findOrFail($id);
-        $oldQty = (float) $beneficiary->quantity_kg;
-        $planning = DistributionPlanning::find($beneficiary->planning_id);
-        if ($planning && $beneficiary->status !== 'pending') {
-            $planning->decrement('executed_kg', $oldQty);
-        }
+        $planningId = $beneficiary->planning_id;
         $beneficiary->tickets()->delete();
         $beneficiary->delete();
+        $this->recomputeExecuted($planningId);
 
         return redirect()->route('admin.distribution.beneficiaries.index')
             ->with('success', 'Bénéficiaire supprimé.');
@@ -332,6 +335,75 @@ class DistributionController extends Controller
     {
         $ticket = DistributionTicket::with('beneficiary.planning.event', 'scanner', 'scanLogs.user')->findOrFail($id);
         return view('admin.distribution.tickets.show', compact('ticket'));
+    }
+
+    public function ticketsUpdate(Request $request, $id)
+    {
+        $ticket = DistributionTicket::with('beneficiary')->findOrFail($id);
+        $request->validate([
+            'status' => 'required|in:issued,scanned,collected,cancelled',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $newStatus = $request->status;
+        $data = ['status' => $newStatus];
+
+        if ($newStatus === 'collected') {
+            $data['collected_at'] = $ticket->collected_at ?? now();
+            $data['scanned_at'] = $ticket->scanned_at ?? now();
+            $data['scanned_by'] = $ticket->scanned_by ?? auth()->id();
+        } elseif (in_array($newStatus, ['issued', 'cancelled'])) {
+            $data['collected_at'] = null;
+            $data['scanned_at'] = null;
+            $data['scanned_by'] = null;
+        }
+        $ticket->update($data);
+
+        if ($ticket->beneficiary) {
+            $ticket->beneficiary->update([
+                'status' => match ($newStatus) {
+                    'collected' => 'kit_collected',
+                    'cancelled' => 'validated',
+                    default => 'ticket_issued',
+                },
+            ]);
+        }
+
+        \App\Models\DistributionScanLog::create([
+            'ticket_id' => $ticket->id,
+            'user_id' => auth()->id(),
+            'action' => $newStatus === 'cancelled' ? 'cancel' : ($newStatus === 'collected' ? 'collect' : 'scan'),
+            'notes' => 'Modification manuelle (admin) : statut → ' . $newStatus . ($request->notes ? ' — ' . $request->notes : ''),
+            'device_info' => 'web-admin',
+        ]);
+
+        $this->recomputeExecuted($ticket->planning_id);
+
+        return redirect()->route('admin.distribution.tickets.show', $ticket->id)->with('success', 'Ticket mis à jour.');
+    }
+
+    public function ticketsDestroy($id)
+    {
+        $ticket = DistributionTicket::with('beneficiary')->findOrFail($id);
+        $planningId = $ticket->planning_id;
+        if ($ticket->beneficiary && in_array($ticket->beneficiary->status, ['ticket_issued', 'kit_collected'])) {
+            $ticket->beneficiary->update(['status' => 'validated']);
+        }
+        $ticket->delete();
+        $this->recomputeExecuted($planningId);
+
+        return redirect()->route('admin.distribution.tickets.index')->with('success', 'Ticket supprimé. Le bénéficiaire est repassé au statut « validé ».');
+    }
+
+    private function recomputeExecuted(?int $planningId): void
+    {
+        if (!$planningId) return;
+        $planning = DistributionPlanning::find($planningId);
+        if (!$planning) return;
+        $executed = (float) DistributionBeneficiary::where('planning_id', $planningId)
+            ->where('status', DistributionBeneficiary::STATUS_KIT_COLLECTED)
+            ->sum('quantity_kg');
+        $planning->update(['executed_kg' => $executed]);
     }
 
     public function reports(Request $request)

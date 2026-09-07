@@ -42,6 +42,8 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
             Route::post('/beneficiaries', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'storeBeneficiaryV2']);
             Route::post('/beneficiaires/batch', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'batch']);
             Route::post('/scan', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scan']);
+            Route::get('/tickets/history', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'ticketsHistory']);
+            Route::get('/scans/history', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scansHistory']);
             Route::get('/tickets/{code}', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'ticket']);
 
             // Nouvelles routes pour le système complet

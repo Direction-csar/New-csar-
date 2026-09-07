@@ -8,6 +8,7 @@ import '../services/sync_service.dart';
 import '../services/local_db_service.dart';
 import 'beneficiaire_form_screen.dart';
 import 'planning_beneficiaries_screen.dart';
+import 'tickets_history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -23,6 +24,48 @@ class _HomeScreenState extends State<HomeScreen> {
   int _pendingCount = 0;
   String _search = '';
   StreamSubscription<ConnectivityResult>? _connectivitySub;
+  Timer? _pollTimer;
+  String? _lastCheck;
+  int _newCollections = 0;
+
+  Future<void> _pollCollections() async {
+    final token = context.read<AuthService>().token;
+    if (token == null) return;
+    try {
+      final res = await ApiService.getTicketsHistory(token, collectedSince: _lastCheck);
+      if (res['success'] != true || !mounted) return;
+      final serverTime = res['server_time']?.toString();
+      if (_lastCheck != null) {
+        final List items = res['data'] ?? [];
+        if (items.isNotEmpty) {
+          setState(() => _newCollections += items.length);
+          final first = items.first;
+          final name = first['beneficiary']?['full_name'] ?? 'Un beneficiaire';
+          final more = items.length > 1 ? ' (+${items.length - 1} autre(s))' : '';
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Don recupere : $name$more'),
+              backgroundColor: Colors.green.shade700,
+              duration: const Duration(seconds: 5),
+              action: SnackBarAction(
+                label: 'Voir',
+                textColor: Colors.white,
+                onPressed: _openHistory,
+              ),
+            ),
+          );
+          _loadPlannings();
+        }
+      }
+      if (serverTime != null) _lastCheck = serverTime;
+    } catch (_) {}
+  }
+
+  void _openHistory() {
+    setState(() => _newCollections = 0);
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const TicketsHistoryScreen()))
+        .then((_) => _loadPlannings());
+  }
 
   Map<String, List<dynamic>> get _groupedByEvent {
     final q = _search.trim().toLowerCase();
@@ -46,11 +89,14 @@ class _HomeScreenState extends State<HomeScreen> {
         _sync(silent: true);
       }
     });
+    _pollCollections();
+    _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _pollCollections());
   }
 
   @override
   void dispose() {
     _connectivitySub?.cancel();
+    _pollTimer?.cancel();
     super.dispose();
   }
 
@@ -136,6 +182,26 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: const Color(0xFFD84315),
         title: const Text('Distribution CSAR'),
         actions: [
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.history),
+                tooltip: 'Historique des tickets',
+                onPressed: _openHistory,
+              ),
+              if (_newCollections > 0)
+                Positioned(
+                  right: 6,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                    decoration: BoxDecoration(color: Colors.green, borderRadius: BorderRadius.circular(10)),
+                    child: Text('$_newCollections', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+            ],
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
@@ -260,6 +326,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                   context,
                                   MaterialPageRoute(builder: (_) => PlanningBeneficiariesScreen(planning: p)),
                                 ).then((_) => _loadPlannings()),
+                                onViewTickets: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => TicketsHistoryScreen(planningId: p['id'], planningName: p['name'])),
+                                ).then((_) => _loadPlannings()),
                               )),
                           const SizedBox(height: 10),
                         ]),
@@ -279,6 +349,7 @@ class _PlanningCard extends StatelessWidget {
   final int collectedCount;
   final VoidCallback onRegister;
   final VoidCallback onViewBeneficiaries;
+  final VoidCallback onViewTickets;
 
   const _PlanningCard({
     required this.planning,
@@ -288,6 +359,7 @@ class _PlanningCard extends StatelessWidget {
     required this.collectedCount,
     required this.onRegister,
     required this.onViewBeneficiaries,
+    required this.onViewTickets,
   });
 
   Widget _statChip(IconData icon, String label, Color color) {
@@ -382,6 +454,18 @@ class _PlanningCard extends StatelessWidget {
                   icon: const Icon(Icons.list_alt),
                   label: const Text('Liste'),
                   onPressed: onViewBeneficiaries,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.teal.shade700,
+                    side: BorderSide(color: Colors.teal.shade700),
+                  ),
+                  icon: const Icon(Icons.confirmation_number_outlined),
+                  label: const Text('Tickets'),
+                  onPressed: onViewTickets,
                 ),
               ),
             ],

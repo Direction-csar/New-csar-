@@ -42,6 +42,10 @@
                             <td>
                                 <a href="{{ route('admin.distribution.events.show', $event->id) }}" class="btn btn-outline-info btn-sm py-0 px-2"><i class="fas fa-eye"></i></a>
                                 <a href="{{ route('admin.distribution.events.edit', $event->id) }}" class="btn btn-outline-warning btn-sm py-0 px-2"><i class="fas fa-edit"></i></a>
+                                <form action="{{ route('admin.distribution.events.destroy', $event->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Supprimer cet événement et TOUS ses plannings, bénéficiaires et tickets ?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-outline-danger btn-sm py-0 px-2"><i class="fas fa-trash"></i></button>
+                                </form>
                             </td>
                         </tr>
                         @endforeach

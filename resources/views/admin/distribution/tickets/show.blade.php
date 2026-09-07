@@ -10,7 +10,13 @@
             <div class="card-modern p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <h1 class="h4 mb-0 fw-bold">🎫 {{ $ticket->ticket_code }}</h1>
-                    <a href="{{ route('admin.distribution.tickets.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Retour</a>
+                    <div class="d-flex gap-2">
+                        <form method="POST" action="{{ route('admin.distribution.tickets.destroy', $ticket->id) }}" onsubmit="return confirm('Supprimer définitivement ce ticket ? Le bénéficiaire repassera au statut « validé ».');">
+                            @csrf @method('DELETE')
+                            <button class="btn btn-outline-danger btn-sm"><i class="fas fa-trash me-1"></i>Supprimer</button>
+                        </form>
+                        <a href="{{ route('admin.distribution.tickets.index') }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Retour</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -43,6 +49,26 @@
             </div>
         </div>
         <div class="col-md-6">
+            <div class="card-modern p-3 mb-3">
+                <h6 class="fw-bold mb-3">✏️ Modifier le statut (admin)</h6>
+                <form method="POST" action="{{ route('admin.distribution.tickets.update', $ticket->id) }}" class="row g-2">
+                    @csrf @method('PUT')
+                    <div class="col-md-5">
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="issued" {{ $ticket->status === 'issued' ? 'selected' : '' }}>Émis (don non récupéré)</option>
+                            <option value="collected" {{ $ticket->status === 'collected' ? 'selected' : '' }}>Récupéré (don servi)</option>
+                            <option value="cancelled" {{ $ticket->status === 'cancelled' ? 'selected' : '' }}>Annulé</option>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" name="notes" class="form-control form-control-sm" placeholder="Motif / note (optionnel)" maxlength="500">
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-primary btn-sm w-100"><i class="fas fa-save"></i></button>
+                    </div>
+                    <div class="col-12"><small class="text-muted">Chaque modification est tracée dans l'historique ci-dessous et recalcule les quantités exécutées du planning.</small></div>
+                </form>
+            </div>
             <div class="card-modern p-3">
                 <h6 class="fw-bold mb-3">📜 Historique des scans</h6>
                 <table class="table table-sm">

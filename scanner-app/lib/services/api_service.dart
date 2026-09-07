@@ -23,6 +23,15 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  static Future<Map<String, dynamic>> getScanHistory(String token, {String? search, String? date}) async {
+    final params = <String, String>{};
+    if (search != null && search.isNotEmpty) params['search'] = search;
+    if (date != null && date.isNotEmpty) params['date'] = date;
+    final uri = Uri.parse('$distBaseUrl/scans/history').replace(queryParameters: params.isEmpty ? null : params);
+    final response = await http.get(uri, headers: _headers(token));
+    return jsonDecode(response.body);
+  }
+
   static Future<Map<String, dynamic>> getTicketByCode(String token, String code) async {
     final response = await http.get(
       Uri.parse('$distBaseUrl/tickets/$code'),

@@ -120,6 +120,23 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  static Future<Map<String, dynamic>> getTicketsHistory(
+    String token, {
+    int? planningId,
+    String? status,
+    String? search,
+    String? collectedSince,
+  }) async {
+    final params = <String, String>{};
+    if (planningId != null) params['planning_id'] = '$planningId';
+    if (status != null && status.isNotEmpty) params['status'] = status;
+    if (search != null && search.isNotEmpty) params['search'] = search;
+    if (collectedSince != null && collectedSince.isNotEmpty) params['collected_since'] = collectedSince;
+    final uri = Uri.parse('$distBaseUrl/tickets/history').replace(queryParameters: params.isEmpty ? null : params);
+    final response = await http.get(uri, headers: _headers(token));
+    return jsonDecode(response.body);
+  }
+
   static Future<Map<String, dynamic>> getTicket(String token, String code) async {
     final response = await http.get(
       Uri.parse('$distBaseUrl/tickets/$code'),

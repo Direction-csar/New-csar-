@@ -373,8 +373,6 @@ class DistributionController extends Controller
             'validated_by' => Auth::id(),
         ]);
 
-        $planning->increment('executed_kg', (float) $beneficiary->quantity_kg);
-
         return response()->json([
             'success' => true,
             'message' => 'Bénéficiaire validé avec succès.',
@@ -434,6 +432,75 @@ class DistributionController extends Controller
         ]);
     }
 
+    public function ticketsHistory(Request $request): JsonResponse
+    {
+        $planningIds = DistributionPlanning::where('assigned_to', Auth::id())->pluck('id');
+
+        $query = DistributionTicket::whereIn('planning_id', $planningIds)
+            ->with(['beneficiary:id,full_name,phone,cni,quantity_kg,status', 'planning:id,name,location', 'scanner:id,name'])
+            ->whereIn('status', ['issued', 'scanned', 'collected']);
+
+        if ($request->filled('planning_id')) {
+            $query->where('planning_id', $request->planning_id);
+        }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($since = $request->query('collected_since')) {
+            $query->where('status', 'collected')->where('collected_at', '>', $since);
+        }
+        if ($search = trim((string) $request->query('search', ''))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('ticket_code', 'like', "%{$search}%")
+                    ->orWhereHas('beneficiary', fn ($b) => $b->where('full_name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%")
+                        ->orWhere('cni', 'like', "%{$search}%"));
+            });
+        }
+
+        $tickets = $query->orderByRaw('COALESCE(collected_at, issued_at) DESC')->limit(500)->get();
+
+        return response()->json([
+            'success' => true,
+            'server_time' => now()->toIso8601String(),
+            'stats' => [
+                'issued' => DistributionTicket::whereIn('planning_id', $planningIds)->whereIn('status', ['issued', 'scanned'])->count(),
+                'collected' => DistributionTicket::whereIn('planning_id', $planningIds)->where('status', 'collected')->count(),
+            ],
+            'data' => $tickets,
+        ]);
+    }
+
+    public function scansHistory(Request $request): JsonResponse
+    {
+        $query = DistributionTicket::where('scanned_by', Auth::id())
+            ->where('status', 'collected')
+            ->with(['beneficiary:id,full_name,phone,cni,quantity_kg', 'planning:id,name,location,event_id', 'planning.event:id,name']);
+
+        if ($search = trim((string) $request->query('search', ''))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('ticket_code', 'like', "%{$search}%")
+                    ->orWhereHas('beneficiary', fn ($b) => $b->where('full_name', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%"));
+            });
+        }
+        if ($request->filled('date')) {
+            $query->whereDate('collected_at', $request->date);
+        }
+
+        $tickets = $query->orderBy('collected_at', 'desc')->limit(500)->get();
+
+        return response()->json([
+            'success' => true,
+            'stats' => [
+                'today' => DistributionTicket::where('scanned_by', Auth::id())->where('status', 'collected')->whereDate('collected_at', today())->count(),
+                'total' => DistributionTicket::where('scanned_by', Auth::id())->where('status', 'collected')->count(),
+                'total_kg' => (float) DistributionBeneficiary::whereIn('id', DistributionTicket::where('scanned_by', Auth::id())->where('status', 'collected')->pluck('beneficiary_id'))->sum('quantity_kg'),
+            ],
+            'data' => $tickets,
+        ]);
+    }
+
     public function collectKit(string $qrToken, Request $request): JsonResponse
     {
         $ticket = DistributionTicket::where('qr_token', $qrToken)
@@ -477,6 +544,10 @@ class DistributionController extends Controller
             $ticket->beneficiary->update([
                 'status' => DistributionBeneficiary::STATUS_KIT_COLLECTED,
             ]);
+
+            if ($ticket->planning) {
+                $ticket->planning->increment('executed_kg', (float) $ticket->beneficiary->quantity_kg);
+            }
 
             DistributionScanLog::create([
                 'ticket_id' => $ticket->id,

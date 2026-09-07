@@ -893,6 +893,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/events/{id}/edit', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsEdit'])->name('events.edit');
             Route::put('/events/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsUpdate'])->name('events.update');
             Route::post('/events/{id}/status', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsUpdateStatus'])->name('events.status');
+            Route::delete('/events/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'eventsDestroy'])->name('events.destroy');
 
             Route::get('/plannings', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsIndex'])->name('plannings.index');
             Route::get('/plannings/create', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsCreate'])->name('plannings.create');
@@ -900,6 +901,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/plannings/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsShow'])->name('plannings.show');
             Route::get('/plannings/{id}/edit', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsEdit'])->name('plannings.edit');
             Route::put('/plannings/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsUpdate'])->name('plannings.update');
+            Route::delete('/plannings/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsDestroy'])->name('plannings.destroy');
 
             Route::get('/beneficiaries', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesIndex'])->name('beneficiaries.index');
             Route::get('/beneficiaries/create', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesCreate'])->name('beneficiaries.create');
@@ -911,6 +913,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
             Route::get('/tickets', [\App\Http\Controllers\Admin\DistributionController::class, 'ticketsIndex'])->name('tickets.index');
             Route::get('/tickets/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'ticketsShow'])->name('tickets.show');
+            Route::put('/tickets/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'ticketsUpdate'])->name('tickets.update');
+            Route::delete('/tickets/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'ticketsDestroy'])->name('tickets.destroy');
 
             Route::get('/reports', [\App\Http\Controllers\Admin\DistributionController::class, 'reports'])->name('reports');
             Route::get('/reports/export', [\App\Http\Controllers\Admin\DistributionController::class, 'exportReport'])->name('reports.export');

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import 'history_screen.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -141,6 +142,15 @@ class _ScanScreenState extends State<ScanScreen> {
         backgroundColor: const Color(0xFF1565C0),
         title: const Text('CSAR Scanner'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: 'Historique des dons recuperes',
+            onPressed: () {
+              setState(() => _scannerPaused = true);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen()))
+                  .then((_) => setState(() => _scannerPaused = false));
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.flash_on),
             onPressed: () => _scannerController.toggleTorch(),
