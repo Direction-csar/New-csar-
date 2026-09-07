@@ -47,7 +47,9 @@
 <div class="row mb-4">
     <div class="col-md-5 mx-auto">
         <div class="rep-chart-title">Répartition du quota planifié ({{ $fmt($report['planned']) }} kg)</div>
-        <canvas id="repDonut" height="{{ $print ? 260 : 220 }}"></canvas>
+        <div style="height:{{ $print ? 260 : 220 }}px;position:relative">
+            <canvas id="repDonut"></canvas>
+        </div>
         <div class="rep-caption">Répartition du quota planifié : exécuté, couvert par le stock restant, dépassement.</div>
     </div>
 </div>
@@ -92,14 +94,18 @@
 {{-- Barres planifié vs exécuté --}}
 <div class="mb-4">
     <div class="rep-chart-title">Quota planifié vs quantité exécutée par planning</div>
-    <canvas id="repBars" height="{{ max(160, 40 * count($report['rows']) + 60) }}"></canvas>
+    <div style="height:{{ max(160, 40 * count($report['rows']) + 60) }}px;max-height:400px;position:relative">
+        <canvas id="repBars"></canvas>
+    </div>
     <div class="rep-caption">Quota planifié comparé à la quantité déjà exécutée, par planning.</div>
 </div>
 
 {{-- Taux d'exécution --}}
 <div class="mb-4">
     <div class="rep-chart-title">Taux d'exécution par planning (seuil de vigilance à 80 %)</div>
-    <canvas id="repRates" height="{{ max(160, 32 * count($report['rows']) + 60) }}"></canvas>
+    <div style="height:{{ max(160, 32 * count($report['rows']) + 60) }}px;max-height:400px;position:relative">
+        <canvas id="repRates"></canvas>
+    </div>
 </div>
 
 {{-- Contrôles / alertes --}}
@@ -123,7 +129,9 @@
 <p class="small mb-2" style="text-align:justify">{{ $report['text']['stock'] }}</p>
 <div class="mb-2">
     <div class="rep-chart-title">Évolution du stock de {{ $pct(round($report['initial'] / 1000, 1)) }} tonnes au fil des plannings</div>
-    <canvas id="repStock" height="{{ $print ? 230 : 110 }}"></canvas>
+    <div style="height:{{ $print ? 230 : 110 }}px;position:relative">
+        <canvas id="repStock"></canvas>
+    </div>
     <div class="rep-caption">Courbe d'évolution du stock, planning après planning, jusqu'à la projection après reste à servir.</div>
 </div>
 
@@ -145,7 +153,7 @@
                 labels: ['Exécuté / servi (' + d.executed.toLocaleString('fr-FR') + ' kg)', 'Couvert par le stock restant (' + d.covered.toLocaleString('fr-FR') + ' kg)', 'Dépassement du stock (' + d.overrun.toLocaleString('fr-FR') + ' kg)'],
                 datasets: [{ data: [d.executed, d.covered, d.overrun], backgroundColor: [navy, orange, red], borderWidth: 2 }]
             },
-            options: { animation: anim, cutout: '58%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 11 } } },
+            options: { animation: anim, responsive: true, maintainAspectRatio: false, cutout: '58%', plugins: { legend: { position: 'bottom', labels: { boxWidth: 14, font: { size: 11 } } },
                 tooltip: { callbacks: { label: c => ' ' + (c.raw / total * 100).toFixed(1) + ' %' } } } }
         });
 
