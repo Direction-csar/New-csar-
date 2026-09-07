@@ -82,15 +82,17 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadPlannings();
-    _refreshPendingCount();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPlannings();
+      _refreshPendingCount();
+      _pollCollections();
+      _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _pollCollections());
+    });
     _connectivitySub = Connectivity().onConnectivityChanged.listen((result) {
       if (result != ConnectivityResult.none) {
         _sync(silent: true);
       }
     });
-    _pollCollections();
-    _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _pollCollections());
   }
 
   @override
@@ -108,7 +110,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadPlannings() async {
     setState(() => _loading = true);
     final token = context.read<AuthService>().token;
-    if (token == null) return;
+    if (token == null) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
     try {
       final res = await ApiService.getMyPlannings(token);
       if (res['success'] == true) {

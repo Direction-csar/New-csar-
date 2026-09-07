@@ -37,7 +37,7 @@ class _ScanScreenState extends State<ScanScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDashboard();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadDashboard());
   }
 
   Future<void> _loadDashboard() async {
