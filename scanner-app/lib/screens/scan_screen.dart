@@ -21,12 +21,55 @@ class _ScanScreenState extends State<ScanScreen> {
   int _successCount = 0;
   int _failCount = 0;
   List<String> _recentScans = [];
+  bool _dashLoading = true;
+  int _totalCollected = 0;
+  int _todayCollected = 0;
+  int _totalKg = 0;
+  String _todayDate = '';
 
   @override
   void dispose() {
     _codeCtrl.dispose();
     _scannerController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboard();
+  }
+
+  Future<void> _loadDashboard() async {
+    final token = context.read<AuthService>().token;
+    if (token == null) return;
+    try {
+      final res = await ApiService.getScanHistory(token);
+      if (res['success'] == true && mounted) {
+        final List items = res['data'] ?? [];
+        final today = DateTime.now();
+        final todayStr = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+        int collected = 0;
+        int todayCount = 0;
+        int kg = 0;
+        for (final item in items) {
+          collected++;
+          final scannedAt = item['scanned_at']?.toString() ?? '';
+          if (scannedAt.startsWith(todayStr)) todayCount++;
+          final qty = item['beneficiary']?['quantity_kg'] ?? item['quantity_kg'] ?? 0;
+          kg += (qty is int) ? qty : int.tryParse(qty.toString()) ?? 0;
+        }
+        setState(() {
+          _totalCollected = collected;
+          _todayCollected = todayCount;
+          _totalKg = kg;
+          _todayDate = todayStr;
+          _dashLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _dashLoading = false);
+    }
   }
 
   Future<void> _onDetect(BarcodeCapture capture) async {
@@ -63,6 +106,7 @@ class _ScanScreenState extends State<ScanScreen> {
           _recentScans.insert(0, '[$timeStr] OK - $beneficiary ($qty kg)');
           if (_recentScans.length > 10) _recentScans.removeLast();
         });
+        _loadDashboard();
         _showResultDialog(
           success: true,
           title: 'Kit recupere!',
@@ -178,6 +222,7 @@ class _ScanScreenState extends State<ScanScreen> {
               ],
             ),
           ),
+          _buildDashboard(),
           Expanded(
             child: Stack(
               alignment: Alignment.center,
@@ -281,6 +326,37 @@ class _ScanScreenState extends State<ScanScreen> {
       children: [
         Text('$count', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
         Text(label, style: TextStyle(fontSize: 10, color: color.withOpacity(0.7))),
+      ],
+    );
+  }
+
+  Widget _buildDashboard() {
+    return Container(
+      color: const Color(0xFF0D47A1),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: _dashLoading
+          ? const Center(child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)))
+          : Row(
+              children: [
+                Expanded(child: _dashCard('Total collectes', '$_totalCollected', Icons.inventory, Colors.white)),
+                const SizedBox(width: 8),
+                Expanded(child: _dashCard("Aujourd'hui", '$_todayCollected', Icons.today, Colors.greenAccent)),
+                const SizedBox(width: 8),
+                Expanded(child: _dashCard('Quantite (kg)', '$_totalKg', Icons.scale, Colors.orangeAccent)),
+              ],
+            ),
+    );
+  }
+
+  Widget _dashCard(String label, String value, IconData icon, Color color) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: color),
+        const SizedBox(height: 2),
+        Text(value, style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: color)),
+        const SizedBox(height: 1),
+        Text(label, style: const TextStyle(fontSize: 9, color: Colors.white70), textAlign: TextAlign.center),
       ],
     );
   }
