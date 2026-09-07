@@ -172,6 +172,101 @@ class _HomeScreenState extends State<HomeScreen> {
     return planning['collected_count'] as int? ?? 0;
   }
 
+  Widget _buildDashboard() {
+    int totalBenef = 0, totalValidated = 0, totalTickets = 0, totalCollected = 0;
+    int plannedKg = 0, executedKg = 0;
+    for (final p in _plannings) {
+      totalBenef += _beneficiaireCount(p);
+      totalValidated += _validatedCount(p);
+      totalTickets += _ticketsCount(p);
+      totalCollected += _collectedCount(p);
+      plannedKg += (p['planned_quota_kg'] as int?) ?? 0;
+      executedKg += (p['executed_kg'] as int?) ?? 0;
+    }
+    final collectRate = totalTickets > 0 ? (totalCollected / totalTickets * 100).round() : 0;
+    final execRate = plannedKg > 0 ? (executedKg / plannedKg * 100).round() : 0;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFD84315).withValues(alpha: 0.15)),
+        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.dashboard, size: 18, color: Color(0xFFD84315)),
+              const SizedBox(width: 6),
+              const Text('Tableau de bord', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFFD84315))),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _kpiCard('Benediciaires', '$totalBenef', Colors.blue, Icons.people)),
+              const SizedBox(width: 8),
+              Expanded(child: _kpiCard('Valides', '$totalValidated', Colors.green, Icons.verified)),
+              const SizedBox(width: 8),
+              Expanded(child: _kpiCard('Tickets', '$totalTickets', Colors.orange, Icons.qr_code)),
+              const SizedBox(width: 8),
+              Expanded(child: _kpiCard('Recuperes', '$totalCollected', Colors.teal, Icons.check_circle)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(child: _kpiCard('Planifie (kg)', '$plannedKg', Colors.indigo, Icons.scale)),
+              const SizedBox(width: 8),
+              Expanded(child: _kpiCard('Execute (kg)', '$executedKg', Colors.deepOrange, Icons.local_dining)),
+              const SizedBox(width: 8),
+              Expanded(child: _kpiCard('Taux collecte', '$collectRate%', Colors.green, Icons.percent)),
+              const SizedBox(width: 8),
+              Expanded(child: _kpiCard('Taux exec.', '$execRate%', Colors.purple, Icons.trending_up)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: totalTickets > 0 ? (totalCollected / totalTickets).clamp(0.0, 1.0) : 0,
+              minHeight: 8,
+              backgroundColor: Colors.orange.shade100,
+              color: Colors.green,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '$totalCollected / $totalTickets dons recuperes ($collectRate%)',
+            style: const TextStyle(fontSize: 11, color: Colors.black54),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _kpiCard(String label, String value, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 20, color: color),
+          const SizedBox(height: 4),
+          Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(height: 2),
+          Text(label, style: const TextStyle(fontSize: 9, color: Colors.black54), textAlign: TextAlign.center),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
@@ -266,6 +361,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 16),
+                  _buildDashboard(),
                   const SizedBox(height: 16),
                   TextField(
                     onChanged: (v) => setState(() => _search = v),
