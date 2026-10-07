@@ -25,7 +25,6 @@ class _ScanScreenState extends State<ScanScreen> {
   int _totalCollected = 0;
   int _todayCollected = 0;
   int _totalKg = 0;
-  String _todayDate = '';
 
   @override
   void dispose() {
@@ -63,7 +62,6 @@ class _ScanScreenState extends State<ScanScreen> {
           _totalCollected = collected;
           _todayCollected = todayCount;
           _totalKg = kg;
-          _todayDate = todayStr;
           _dashLoading = false;
         });
       }

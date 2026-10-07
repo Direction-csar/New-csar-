@@ -23,7 +23,21 @@
     </div>
 
     <div class="row mb-3">
-        <div class="col-md-6">
+        <div class="col-md-4">
+            <div class="card-modern p-3 text-center mb-3" id="qrCard">
+                <h6 class="fw-bold mb-3">📱 QR Code à scanner</h6>
+                <div id="ticketQr" class="d-inline-block p-2 bg-white border rounded"></div>
+                <div class="mt-2 fw-bold" style="font-size:1.1rem;color:#D84315">{{ $ticket->ticket_code }}</div>
+                <div class="text-muted small">{{ $ticket->beneficiary?->full_name }} — {{ number_format($ticket->beneficiary?->quantity_kg ?? 0, 1, ',', ' ') }} kg</div>
+                @if($ticket->status === 'issued')
+                <div class="text-success small mt-1"><i class="fas fa-check-circle me-1"></i>Prêt à être scanné avec l'APK Scanner</div>
+                @elseif($ticket->status === 'collected')
+                <div class="text-muted small mt-1"><i class="fas fa-info-circle me-1"></i>Déjà récupéré — le scan sera refusé</div>
+                @endif
+                <button type="button" class="btn btn-outline-primary btn-sm mt-3" onclick="window.print()"><i class="fas fa-print me-1"></i>Imprimer le ticket</button>
+            </div>
+        </div>
+        <div class="col-md-4">
             <div class="card-modern p-3">
                 <h6 class="fw-bold mb-3">📋 Informations</h6>
                 <table class="table table-sm">
@@ -48,7 +62,7 @@
                 </table>
             </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <div class="card-modern p-3 mb-3">
                 <h6 class="fw-bold mb-3">✏️ Modifier le statut (admin)</h6>
                 <form method="POST" action="{{ route('admin.distribution.tickets.update', $ticket->id) }}" class="row g-2">
@@ -89,3 +103,28 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+@media print {
+    body * { visibility: hidden; }
+    #qrCard, #qrCard * { visibility: visible; }
+    #qrCard { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none; }
+    #qrCard button { display: none; }
+}
+</style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+new QRCode(document.getElementById('ticketQr'), {
+    text: @json($ticket->qr_token),
+    width: 220,
+    height: 220,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+});
+</script>
+@endpush
