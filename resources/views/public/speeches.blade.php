@@ -9,7 +9,7 @@
     <div style="position: absolute; top: 10%; left: 10%; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; animation: float 6s ease-in-out infinite;"></div>
     <div style="position: absolute; top: 20%; right: 15%; width: 80px; height: 80px; background: rgba(255,255,255,0.08); border-radius: 50%; animation: float 8s ease-in-out infinite reverse;"></div>
     <div style="position: absolute; bottom: 15%; left: 20%; width: 120px; height: 120px; background: rgba(255,255,255,0.05); border-radius: 50%; animation: float 7s ease-in-out infinite;"></div>
-    
+
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 50px 20px; text-align: center; position: relative; z-index: 2;">
         <h1 class="main-title" style="font-size: 3.5rem; font-weight: 800; color: #fff; margin-bottom: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             Discours Officiels
@@ -48,7 +48,7 @@
                             <i class="fas fa-user-tie" style="color: #fff; font-size: 32px;"></i>
                         </div>
                         @endif
-                        
+
                         <div style="flex: 1;">
                             <h3 style="font-size: 1.3rem; font-weight: 700; color: #1f2937; margin-bottom: 5px;">
                                 {{ $speech->author }}
@@ -72,24 +72,24 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Speech Title -->
                     <h4 style="font-size: 1.2rem; font-weight: 700; color: #1f2937; margin-bottom: 15px; line-height: 1.4;">
                         {{ $speech->title }}
                     </h4>
-                    
+
                     <!-- Speech Excerpt -->
                     @if($speech->excerpt)
                     <blockquote style="font-style: italic; color: #374151; border-left: 4px solid #22c55e; padding-left: 20px; margin: 0 0 20px 0; font-size: 1rem; line-height: 1.6;">
                         "{{ $speech->excerpt }}"
                     </blockquote>
                     @endif
-                    
+
                     <!-- Speech Summary -->
                     <p style="color: #6b7280; line-height: 1.6; margin-bottom: 25px; font-size: 0.95rem;">
                         {{ Str::limit($speech->content, 200) }}
                     </p>
-                    
+
                     <!-- Speech Actions -->
                     <div style="display: flex; gap: 15px;">
                         <a href="{{ route('speech', $speech->id) }}" class="btn-primary" style="flex: 1; padding: 12px 20px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff; text-decoration: none; border-radius: 10px; font-weight: 600; text-align: center; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -133,23 +133,23 @@
                 Les voix du CSAR
             </p>
         </div>
-        
+
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px;">
             <!-- DG Card -->
             <div class="leader-card zoom-hover" style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #f3f4f6; transition: all 0.3s ease;">
-                <div style="height: 280px; overflow: hidden; position: relative;">
-                    <img src="{{ asset('images/dg.jpg') }}" alt="Madame Marieme Soda NDIAYE" style="width: 100%; height: 100%; object-fit: cover; object-position: center top; filter: brightness(1.05) contrast(1.1) saturate(1.1); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
-                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 30px 20px 20px;">
-                        <h3 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Madame Marieme Soda NDIAYE</h3>
-                        <p style="color: rgba(255,255,255,0.95); font-size: 1rem; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Directrice Générale du CSAR</p>
+                <div style="height: 320px; overflow: hidden; position: relative;">
+                    <img src="{{ asset('images/dg-mame-ndeye-sene.jpg') }}" alt="Madame Mame Ndeye SENE" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; object-position: center 15%; transition: transform .6s ease;">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85)); padding: 40px 20px 20px;">
+                        <h3 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Madame Mame Ndeye SENE</h3>
+                        <p style="color: rgba(255,255,255,0.95); font-size: 1rem; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Directrice générale du CSAR</p>
                     </div>
                 </div>
-                
+
                 <div style="padding: 30px;">
                     <p style="color: #6b7280; line-height: 1.6; margin-bottom: 25px; font-size: 0.95rem;">
-                        Directrice Générale du CSAR, Madame NDIAYE assure la coordination générale des activités de sécurité alimentaire et de résilience au Sénégal. Elle s'engage à diriger cette institution avec transparence et efficacité.
+                        Directrice générale du CSAR, Madame SENE assure la coordination générale des activités de sécurité alimentaire et de résilience au Sénégal, dans la continuité des missions de l'institution et au service des populations.
                     </p>
-                    
+
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
                         <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 10px;">
                             <div style="font-size: 1.5rem; font-weight: 800; color: #22c55e; margin-bottom: 5px;">135</div>
@@ -166,22 +166,22 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Ministre Card -->
             <div class="leader-card zoom-hover" style="background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #f3f4f6; transition: all 0.3s ease;">
-                <div style="height: 250px; overflow: hidden; position: relative;">
-                    <img src="{{ asset('images/ministre.JPG') }}" alt="Madame Maimouna DIEYE" style="width: 100%; height: 100%; object-fit: cover; filter: brightness(1.05) contrast(1.1) saturate(1.1); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.2);">
-                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 30px 20px 20px;">
-                        <h3 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 5px;">Madame Maimouna DIEYE</h3>
-                        <p style="color: rgba(255,255,255,0.9); font-size: 1rem; font-weight: 500;">Ministre de la Famille et des Solidarités</p>
+                <div style="height: 320px; overflow: hidden; position: relative;">
+                    <img src="{{ asset('images/ministre-marie-angelique-diouf.jpg') }}" alt="Madame Marie Angélique Mame Selbé DIOUF" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; object-position: center 20%; transition: transform .6s ease;">
+                    <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85)); padding: 40px 20px 20px;">
+                        <h3 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Madame Marie Angélique Mame Selbé DIOUF</h3>
+                        <p style="color: rgba(255,255,255,0.95); font-size: 1rem; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Ministre de la Famille et des Solidarités</p>
                     </div>
                 </div>
-                
+
                 <div style="padding: 30px;">
                     <p style="color: #6b7280; line-height: 1.6; margin-bottom: 25px; font-size: 0.95rem;">
-                        Ministre de tutelle, Madame DIEYE supervise les politiques de solidarité et de sécurité alimentaire au niveau national. Elle préside aux destinées du CSAR avec engagement et détermination.
+                        Ministre de tutelle, Madame DIOUF supervise les politiques de solidarité nationale et de sécurité alimentaire. Elle accompagne le CSAR dans l'accomplissement de ses missions au service des populations vulnérables.
                     </p>
-                    
+
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
                         <div style="text-align: center; padding: 15px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-radius: 10px;">
                             <div style="font-size: 1.5rem; font-weight: 800; color: #22c55e; margin-bottom: 5px;">50</div>
@@ -214,7 +214,7 @@
             <p style="font-size: 1.2rem; color: rgba(255,255,255,0.8); margin-bottom: 40px; line-height: 1.6;">
                 Pour toute question concernant les discours officiels ou pour demander des informations supplémentaires, n'hésitez pas à nous contacter.
             </p>
-            
+
             <a href="{{ route('contact.simple') }}" class="btn-primary" style="display: inline-flex; align-items: center; gap: 10px; padding: 15px 30px; background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: #fff; text-decoration: none; border-radius: 10px; font-weight: 600; font-size: 1rem; transition: all 0.3s ease;">
                 <i class="fas fa-envelope"></i>
                 Nous contacter
@@ -263,22 +263,22 @@
     .main-title {
         font-size: 2.5rem !important;
     }
-    
+
     .section-title {
         font-size: 2rem !important;
     }
-    
+
     .speech-card {
         margin: 0 10px;
     }
-    
+
     .leader-card {
         margin: 0 10px;
     }
-    
+
     .overview-card {
         margin: 0 10px;
     }
 }
 </style>
-@endsection 
+@endsection

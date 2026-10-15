@@ -124,9 +124,9 @@
 
     {{-- Signature --}}
     <div class="sign-block">
-        <div class="role">@yield('signataire-role', 'Le Directeur Général')</div>
+        <div class="role">@yield('signataire-role', 'La Directrice générale')</div>
         <div class="space"></div>
-        <div class="name">@yield('signataire-nom', $directeur_general ?? '')</div>
+        <div class="name">@yield('signataire-nom', $directeur_general ?? 'Mame Ndeye SENE')</div>
     </div>
 </body>
 </html>

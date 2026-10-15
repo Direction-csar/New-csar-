@@ -544,16 +544,16 @@
 }
 
 @keyframes gradientShift {
-    0% { 
-        background-position: 0% 50%; 
+    0% {
+        background-position: 0% 50%;
         filter: hue-rotate(0deg);
     }
-    50% { 
-        background-position: 100% 50%; 
+    50% {
+        background-position: 100% 50%;
         filter: hue-rotate(10deg);
     }
-    100% { 
-        background-position: 0% 50%; 
+    100% {
+        background-position: 0% 50%;
         filter: hue-rotate(0deg);
     }
 }
@@ -656,7 +656,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: 
+    background:
         radial-gradient(circle at 20% 80%, rgba(255,255,255,0.1) 0%, transparent 50%),
         radial-gradient(circle at 80% 20%, rgba(255,255,255,0.1) 0%, transparent 50%),
         radial-gradient(circle at 40% 40%, rgba(255,255,255,0.05) 0%, transparent 50%);
@@ -990,27 +990,126 @@
     height: 100%;
 }
 
+.message-section {
+    position: relative;
+    overflow: hidden;
+}
+
+.message-section::before,
+.message-section::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(2px);
+}
+
+.message-section::before {
+    width: 420px;
+    height: 420px;
+    top: -160px;
+    right: -120px;
+    background: radial-gradient(circle, rgba(34,197,94,0.22) 0%, rgba(34,197,94,0) 70%);
+}
+
+.message-section::after {
+    width: 320px;
+    height: 320px;
+    bottom: -140px;
+    left: -100px;
+    background: radial-gradient(circle, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 70%);
+}
+
+.message-section .container {
+    position: relative;
+    z-index: 1;
+}
+
+.portrait-wrap {
+    position: relative;
+    display: inline-block;
+    padding: 6px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, var(--primary-green), #facc15 55%, var(--primary-green));
+    box-shadow: 0 20px 45px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.08);
+    transition: transform .4s ease, box-shadow .4s ease;
+}
+
+.portrait-wrap::before {
+    content: '';
+    position: absolute;
+    inset: -14px;
+    border-radius: 32px;
+    border: 1px solid rgba(255,255,255,0.18);
+    pointer-events: none;
+}
+
+.portrait-wrap:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.45), 0 0 40px rgba(34,197,94,0.35);
+}
+
 .message-image {
-    width: 200px;
-    height: 200px;
-    border-radius: 16px;
+    display: block;
+    width: 240px;
+    height: 300px;
+    border-radius: 18px;
     object-fit: cover;
-    border: 4px solid var(--primary-green);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    object-position: center top;
+    background: #0f172a;
+    transition: transform .6s ease;
+}
+
+.portrait-wrap:hover .message-image {
+    transform: scale(1.03);
+}
+
+.portrait-badge {
+    position: absolute;
+    left: 50%;
+    bottom: -16px;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: #ffffff;
+    color: var(--dark-green);
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
 }
 
 .message-name {
-    font-size: 1.2rem;
-    font-weight: 700;
+    font-size: 1.35rem;
+    font-weight: 800;
     color: #ffffff;
-    margin-top: 1rem;
+    margin-top: 2rem;
+    letter-spacing: .01em;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .message-title {
     font-size: 1rem;
-    color: rgba(255,255,255,0.9);
+    color: rgba(255,255,255,0.88);
     margin-bottom: 1.5rem;
+}
+
+.message-card {
+    position: relative;
+    border-left: 6px solid var(--primary-green);
+    transition: transform .4s ease, box-shadow .4s ease;
+}
+
+.message-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 30px 60px rgba(0,0,0,0.18);
+}
+
+.message-card p {
+    line-height: 1.8;
+    text-align: justify;
 }
 
 .message-quote {
@@ -1045,41 +1144,53 @@
     .hero-title {
         font-size: 2.5rem;
     }
-    
+
     .hero-subtitle {
         font-size: 1.1rem;
     }
-    
+
     .csar-card {
         padding: 2rem;
     }
-    
+
     .foundation-card,
     .objective-card,
     .stats-card {
         margin-bottom: 1.5rem;
     }
-    
+
     .timeline {
         padding-left: 20px;
     }
-    
+
     .timeline::before {
         left: 10px;
     }
-    
+
     .timeline-item::before {
         left: -27px;
     }
-    
+
     .message-image {
-        width: 150px;
-        height: 150px;
+        width: 190px;
+        height: 240px;
     }
-    
+
+    .message-name {
+        font-size: 1.15rem;
+    }
+
+    .message-section .col-lg-4 {
+        margin-bottom: 2.5rem;
+    }
+
     .message-card {
         padding: 2rem;
         margin-bottom: 2rem;
+    }
+
+    .message-card p {
+        text-align: left;
     }
 }
 
@@ -1087,11 +1198,11 @@
     .hero-title {
         font-size: 2rem;
     }
-    
+
     .stats-number {
         font-size: 2rem;
     }
-    
+
     .foundation-icon,
     .objective-icon,
     .stats-icon {
@@ -1534,7 +1645,7 @@
 
 /* Classe pour l'effet de néon */
 .neon-glow {
-    text-shadow: 
+    text-shadow:
         0 0 5px currentColor,
         0 0 10px currentColor,
         0 0 15px currentColor,
@@ -1588,14 +1699,14 @@
 
 /* Classe pour l'effet de cristal */
 .crystal-effect {
-    background: linear-gradient(45deg, 
-        rgba(34, 197, 94, 0.1), 
-        rgba(59, 130, 246, 0.1), 
+    background: linear-gradient(45deg,
+        rgba(34, 197, 94, 0.1),
+        rgba(59, 130, 246, 0.1),
         rgba(139, 92, 246, 0.1)
     );
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 
+    box-shadow:
         0 8px 32px rgba(0, 0, 0, 0.1),
         inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
@@ -1656,7 +1767,7 @@
         <p class="text-center mb-5 slide-up-fade animate-delay-1" style="color: var(--gray-600); font-size: 1.1rem;">
             {{ __('about.foundation_subtitle') }}
         </p>
-        
+
         <div class="row g-4">
             <div class="col-lg-4 col-md-6">
                 <div class="foundation-card slide-diagonal hover-lift card-flip animate-delay-2">
@@ -1667,7 +1778,7 @@
                     <p class="slide-up-fade">{{ __('about.foundation_mission_text') }}</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 col-md-6">
                 <div class="foundation-card zoom-in hover-lift card-flip animate-delay-3">
                     <div class="foundation-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--blue), #1e40af);">
@@ -1677,7 +1788,7 @@
                     <p class="slide-up-fade">{{ __('about.foundation_vision_text') }}</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 col-md-6">
                 <div class="foundation-card slide-diagonal hover-lift card-flip animate-delay-4">
                     <div class="foundation-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--purple), #7c3aed);">
@@ -1706,7 +1817,7 @@
         <p class="text-center mb-5 slide-up-fade animate-delay-1" style="color: var(--gray-600); font-size: 1.1rem;">
             {{ __('about.objectives_subtitle') }}
         </p>
-        
+
         <div class="row g-4">
             <div class="col-lg-4 col-md-6">
                 <div class="objective-card bounce-in hover-lift card-flip animate-delay-2">
@@ -1717,7 +1828,7 @@
                     <p class="slide-up-fade">{{ __('about.obj_storage_text') }}</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 col-md-6">
                 <div class="objective-card zoom-in hover-lift card-flip animate-delay-3">
                     <div class="objective-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--blue), #1e40af);">
@@ -1727,7 +1838,7 @@
                     <p class="slide-up-fade">{{ __('about.obj_innovation_text') }}</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 col-md-6">
                 <div class="objective-card slide-diagonal hover-lift card-flip animate-delay-4">
                     <div class="objective-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--orange), #ea580c);">
@@ -1737,7 +1848,7 @@
                     <p class="slide-up-fade">{{ __('about.obj_alert_text') }}</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 col-md-6">
                 <div class="objective-card zoom-in hover-lift card-flip animate-delay-5">
                     <div class="objective-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--purple), #7c3aed);">
@@ -1747,7 +1858,7 @@
                     <p class="slide-up-fade">{{ __('about.obj_community_text') }}</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-4 col-md-6">
                 <div class="objective-card slide-diagonal hover-lift card-flip animate-delay-6">
                     <div class="objective-icon glow-animation morphing-shape" style="background: linear-gradient(135deg, var(--cyan), #0891b2);">
@@ -1770,37 +1881,37 @@
         <p class="text-center mb-5 slide-up-fade animate-delay-1" style="color: var(--gray-600); font-size: 1.1rem;">
             {{ __('about.history_subtitle') }}
         </p>
-        
+
         <div class="row justify-content-center">
             <div class="col-lg-8">
                 <div class="timeline">
                     <!-- 2024 - CSAR -->
                     <div class="timeline-item timeline-slide timeline-glow timeline-float animate-delay-3">
-                        <div class="timeline-year year-pulse year-morph depth-zoom" 
+                        <div class="timeline-year year-pulse year-morph depth-zoom"
                              style="background: var(--blue);">2024</div>
                         <h4 class="timeline-title content-reveal animate-delay-4">{{ __('about.history_2024') }}</h4>
                         <p class="content-reveal animate-delay-5">{{ __('about.history_2024_text') }}</p>
                     </div>
-                    
+
                     <!-- 1984 - Commissariat à la Sécurité Alimentaire (CSA) -->
                     <div class="timeline-item timeline-slide timeline-glow animate-delay-4">
-                        <div class="timeline-year year-pulse year-morph sonar-pulse" 
+                        <div class="timeline-year year-pulse year-morph sonar-pulse"
                              style="background: var(--purple);">1984</div>
                         <h4 class="timeline-title content-reveal animate-delay-5">{{ __('about.history_1984') }}</h4>
                         <p class="content-reveal animate-delay-6">{{ __('about.history_1984_text') }}</p>
                     </div>
-                    
+
                     <!-- 1976 - Commissariat à l'Aide Alimentaire -->
                     <div class="timeline-item timeline-slide timeline-glow timeline-float animate-delay-5">
-                        <div class="timeline-year year-pulse year-morph rotate-3d" 
+                        <div class="timeline-year year-pulse year-morph rotate-3d"
                              style="background: var(--orange);">1976</div>
                         <h4 class="timeline-title content-reveal animate-delay-6">{{ __('about.history_1976') }}</h4>
                         <p class="content-reveal animate-delay-1">{{ __('about.history_1976_text') }}</p>
                     </div>
-                    
+
                     <!-- 1973-1974 - Commissariat aux Sinistrés de la Sécheresse -->
                     <div class="timeline-item timeline-slide timeline-glow animate-delay-6">
-                        <div class="timeline-year year-pulse year-morph" 
+                        <div class="timeline-year year-pulse year-morph"
                              style="background: var(--cyan);">1973-1974</div>
                         <h4 class="timeline-title content-reveal animate-delay-1">{{ __('about.history_1973') }}</h4>
                         <p class="content-reveal animate-delay-2">{{ __('about.history_1973_text') }}</p>
@@ -1820,23 +1931,26 @@
         <p class="text-center mb-5" style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
             {{ __('about.message_dg_subtitle') }}
         </p>
-        
+
         <div class="row align-items-center">
             <div class="col-lg-4 text-center">
-                <img src="{{ asset('images/dg.jpg') }}" alt="{{ __('about.dg_name') }}" class="message-image">
+                <div class="portrait-wrap">
+                    <img src="{{ asset('images/dg-mame-ndeye-sene.jpg') }}" alt="{{ __('about.dg_name') }}" class="message-image" loading="lazy">
+                    <span class="portrait-badge">{{ __('about.dg_title') }}</span>
+                </div>
                 <h4 class="message-name">{{ __('about.dg_name') }}</h4>
                 <p class="message-title">{{ __('about.dg_title') }}</p>
             </div>
             <div class="col-lg-8">
                 <div class="message-card slide-in-right">
                     <h5 style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1.5rem;">{{ __('about.dg_intro') }}</h5>
-                    
+
                     <p>{{ __('about.dg_para1') }}</p>
-                    
+
                     <p>{{ __('about.dg_para2') }}</p>
-                    
+
                     <p>{{ __('about.dg_para3') }}</p>
-                    
+
                     <div class="row mt-4">
                         <div class="col-md-6">
                             <div class="d-flex align-items-start mb-3">
@@ -1863,11 +1977,11 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="message-quote">
                         "{{ __('about.dg_quote') }}"
                     </div>
-                    
+
                     <div class="message-signature">
                         <div>{{ __('about.dg_signature') }}</div>
                         <div style="font-size: 0.9rem; color: var(--gray-600);">{{ __('about.dg_title') }}</div>
@@ -1887,30 +2001,33 @@
         <p class="text-center mb-5" style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
             {{ __('about.message_minister_subtitle') }}
         </p>
-        
+
         <div class="row align-items-center">
             <div class="col-lg-8">
                 <div class="message-card slide-in-left">
                     <h5 style="color: var(--gray-600); font-size: 0.9rem; margin-bottom: 1.5rem;">{{ __('about.dg_intro') }}</h5>
-                    
+
                     <p>{{ __('about.minister_para1') }}</p>
-                    
+
                     <p>{{ __('about.minister_para2') }}</p>
-                    
+
                     <p>{{ __('about.minister_para3') }}</p>
-                    
+
                     <div class="message-quote" style="background: linear-gradient(135deg, var(--gray-800), var(--gray-600));">
                         "{{ __('about.minister_quote') }}"
                     </div>
-                    
+
                     <div class="message-signature">
-                        <div>{{ __('about.minister_signature') }}</div>
-                        <div style="font-size: 0.9rem; color: var(--gray-600);">{{ __('about.minister_name_short') }}</div>
+                        <div>{{ __('about.minister_name_short') }}</div>
+                        <div style="font-size: 0.9rem; color: var(--gray-600);">{{ __('about.minister_title') }}</div>
                     </div>
                 </div>
             </div>
             <div class="col-lg-4 text-center">
-                <img src="{{ asset('images/ministre.JPG') }}" alt="{{ __('about.minister_name') }}" class="message-image">
+                <div class="portrait-wrap">
+                    <img src="{{ asset('images/ministre-marie-angelique-diouf.jpg') }}" alt="{{ __('about.minister_name') }}" class="message-image" loading="lazy">
+                    <span class="portrait-badge">{{ __('about.minister_title') }}</span>
+                </div>
                 <h4 class="message-name">{{ __('about.minister_name') }}</h4>
                 <p class="message-title">{{ __('about.minister_title') }}</p>
             </div>
@@ -1965,7 +2082,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (csarShouldReduceMotion()) return;
 
     const elements = document.querySelectorAll('.fade-in, .slide-in-left, .slide-in-right');
-    
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach((entry, index) => {
             if (entry.isIntersecting) {
@@ -1979,7 +2096,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, {
         threshold: 0.05 // Réduit de 0.1 à 0.05 pour déclencher plus tôt
     });
-    
+
     elements.forEach(el => {
         el.style.opacity = '0';
         el.style.transform = 'translateY(30px)';
@@ -1994,7 +2111,7 @@ function animateCounters() {
         const target = parseInt(counter.textContent.replace(/,/g, ''));
         const increment = target / 100;
         let current = 0;
-        
+
         const timer = setInterval(() => {
             current += increment;
             if (current >= target) {
@@ -2037,7 +2154,7 @@ document.querySelectorAll('.stats-card, .foundation-card, .objective-card').forE
         this.style.boxShadow = '0 25px 50px rgba(34, 197, 94, 0.2)';
         this.style.borderColor = 'var(--primary-green)';
     });
-    
+
     card.addEventListener('mouseleave', function() {
         this.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.1)';
         this.style.borderColor = 'var(--gray-200)';
@@ -2060,14 +2177,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const start = 0;
         const increment = target / (duration / 16); // 60 FPS
         let current = start;
-        
+
         const timer = setInterval(() => {
             current += increment;
             if (current >= target) {
                 current = target;
                 clearInterval(timer);
             }
-            
+
             // Formatage du nombre
             if (target >= 1000) {
                 element.textContent = Math.floor(current).toLocaleString();
@@ -2076,7 +2193,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }, 16);
     }
-    
+
     // Observer pour déclencher l'animation quand la section est visible
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
@@ -2085,24 +2202,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 counters.forEach((counter, index) => {
                     const target = parseInt(counter.getAttribute('data-target'));
                     const delay = parseInt(counter.closest('.stats-card').getAttribute('data-delay')) || 0;
-                    
+
                     setTimeout(() => {
                         animateCounter(counter, target, 2000);
                     }, delay);
                 });
-                
+
                 // Arrêter d'observer après la première animation
                 observer.unobserve(entry.target);
             }
         });
     }, { threshold: 0.5 });
-    
+
     // Observer la section des statistiques
     const statsSection = document.querySelector('.stats-section');
     if (statsSection) {
         observer.observe(statsSection);
     }
-    
+
     // Effet de pulsation continue pour les chiffres
     // PERF: avoid perpetual intervals; apply pulse once after counters animate
     setTimeout(() => {
@@ -2111,7 +2228,7 @@ document.addEventListener('DOMContentLoaded', function() {
             counter.style.animation = 'numberPulse 2s ease-in-out infinite';
         });
     }, 2200);
-    
+
     // Fallback rapide : s'assurer que tous les éléments sont visibles après 100ms (au cas où)
     setTimeout(() => {
         const hiddenElements = document.querySelectorAll('.counter-up, .slide-up-fade, .bounce-in, .text-reveal, .card-flip, .zoom-in, .slide-diagonal, .timeline-slide, .content-reveal');
@@ -2184,7 +2301,7 @@ function addGlitchEffect() {
         element.addEventListener('mouseenter', () => {
             element.style.animation = 'yearGlitch 0.5s ease-in-out infinite';
         });
-        
+
         element.addEventListener('mouseleave', () => {
             element.style.animation = 'yearGlitch 2s ease-in-out infinite';
         });
@@ -2200,7 +2317,7 @@ function addMorphingEffect() {
             element.style.background = 'linear-gradient(45deg, #22c55e, #3b82f6)';
             element.style.borderRadius = '20px';
         });
-        
+
         element.addEventListener('mouseleave', () => {
             element.style.transform = 'scale(1) rotateY(0deg)';
             element.style.background = '';
@@ -2216,7 +2333,7 @@ function addTeleportEffect() {
         element.addEventListener('click', () => {
             element.style.transform = 'scale(0.8) rotateY(360deg)';
             element.style.opacity = '0.5';
-            
+
             setTimeout(() => {
                 element.style.transform = 'scale(1) rotateY(0deg)';
                 element.style.opacity = '1';
@@ -2231,7 +2348,7 @@ function addDistortionEffect() {
     distortionElements.forEach(element => {
         element.addEventListener('click', () => {
             element.style.filter = 'contrast(2) brightness(1.5) hue-rotate(180deg)';
-            
+
             setTimeout(() => {
                 element.style.filter = 'contrast(1.2) brightness(1.1)';
             }, 1000);
@@ -2247,7 +2364,7 @@ function addCrystalEffect() {
             element.style.backdropFilter = 'blur(20px)';
             element.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.4)';
         });
-        
+
         element.addEventListener('mouseleave', () => {
             element.style.backdropFilter = 'blur(10px)';
             element.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)';
@@ -2261,7 +2378,7 @@ function addSonarEffect() {
     sonarElements.forEach(element => {
         element.addEventListener('click', () => {
             element.style.animation = 'sonarPulse 0.5s ease-in-out';
-            
+
             setTimeout(() => {
                 element.style.animation = 'sonarPulse 2s ease-in-out infinite';
             }, 500);
@@ -2276,7 +2393,7 @@ function add3DRotationEffect() {
         element.addEventListener('mouseenter', () => {
             element.style.animation = 'rotate3D 1s ease-in-out';
         });
-        
+
         element.addEventListener('mouseleave', () => {
             element.style.animation = 'rotate3D 6s ease-in-out infinite';
         });
@@ -2291,7 +2408,7 @@ function addDepthEffect() {
             element.style.transform = 'perspective(1000px) translateZ(100px) scale(1.1)';
             element.style.filter = 'blur(2px)';
         });
-        
+
         element.addEventListener('mouseleave', () => {
             element.style.transform = 'perspective(1000px) translateZ(0px) scale(1)';
             element.style.filter = 'blur(0px)';
@@ -2321,7 +2438,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.warn('CSAR effects init failed', e);
         }
     }, 2000);
-    
+
     console.log('🎉 Effets ultra-modernes 2025 initialisés !');
 });
 </script>
