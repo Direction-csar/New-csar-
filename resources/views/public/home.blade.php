@@ -365,11 +365,11 @@
     .hero-title {
         font-size: 2.5rem;
     }
-    
+
     .hero-subtitle {
         font-size: 1.1rem;
     }
-    
+
     .services-grid,
     .news-grid {
         grid-template-columns: 1fr;
@@ -410,7 +410,7 @@
     <div class="hero-background" data-bg="{{ asset('images/arriere plan/N3.jpg') }}"></div>
     <div class="hero-background" data-bg="{{ asset('images/arriere plan/N5.jpg') }}"></div>
     <div class="hero-background" data-bg="{{ asset('images/arriere plan/N8.jpg') }}"></div>
-    
+
     <div class="container" style="max-width: 100%; display: flex; justify-content: center; align-items: center; position: relative; z-index: 10;">
         <div class="hero-content" style="text-align: center; width: 100%; max-width: 1000px; margin: 0 auto;">
             <h1 class="hero-title" id="typewriter-title" style="min-height: 120px; text-align: center; display: block; width: 100%;"></h1>
@@ -486,22 +486,22 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
 (function() {
     'use strict';
-    
+
     function startTypewriter() {
         var titleElement = document.getElementById('typewriter-title');
         if (!titleElement) {
             console.error('typewriter-title element not found');
             return;
         }
-        
+
         var text = '{{ __('messages.home.hero.title') }}';
         var index = 0;
         var erasing = false;
-        
+
         titleElement.textContent = '';
         titleElement.style.visibility = 'visible';
         titleElement.style.opacity = '1';
-        
+
         function tick() {
             if (!erasing) {
                 if (index < text.length) {
@@ -509,9 +509,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     index++;
                     setTimeout(tick, 40);
                 } else {
-                    setTimeout(function() { 
-                        erasing = true; 
-                        tick(); 
+                    setTimeout(function() {
+                        erasing = true;
+                        tick();
                     }, 4000);
                 }
             } else {
@@ -525,10 +525,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-        
+
         tick();
     }
-    
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', startTypewriter);
     } else {
@@ -542,7 +542,7 @@ document.addEventListener('DOMContentLoaded', function() {
     <!-- Animated Background Shapes -->
     <div style="position: absolute; top: -50px; left: -50px; width: 300px; height: 300px; background: radial-gradient(circle, rgba(34, 197, 94, 0.08), transparent); border-radius: 50%; filter: blur(50px); animation: float-shape 12s ease-in-out infinite;"></div>
     <div style="position: absolute; bottom: -80px; right: -80px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59, 130, 246, 0.06), transparent); border-radius: 50%; filter: blur(60px); animation: float-shape 15s ease-in-out infinite reverse;"></div>
-    
+
     <div class="container" style="position: relative; z-index: 1;">
         <!-- Title with Animation -->
         <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-down">
@@ -557,16 +557,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 {{ __('messages.home.interventions.description') }}
             </h2>
         </div>
-        
+
         <div class="services-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem;">
             <!-- Service Card 1 -->
             <a href="{{ route('gallery') }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="100" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite;">
                 <!-- Animated Border -->
                 <div class="service-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #22c55e, #3b82f6, #22c55e); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-rotate 4s linear infinite;"></div>
-                
+
                 <!-- Glow Effect -->
                 <div class="service-glow" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(34, 197, 94, 0.3), transparent); opacity: 0; filter: blur(30px); transition: opacity 0.6s ease; z-index: 0;"></div>
-                
+
                 <div style="position: relative; z-index: 1;">
                     <div class="service-icon-ultra" style="width: 100px; height: 100px; background: linear-gradient(135deg, #22c55e, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem; color: white; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); position: relative; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);">
                         <i class="fas fa-truck" style="animation: bounce-icon 2s ease-in-out infinite;"></i>
@@ -580,12 +580,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </p>
             </div>
             </a>
-            
+
             <!-- Service Card 2 -->
             <a href="{{ route('map') }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="250" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite; animation-delay: 1s;">
                 <div class="service-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #3b82f6, #8b5cf6, #3b82f6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-rotate 4s linear infinite;"></div>
                 <div class="service-glow" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(59, 130, 246, 0.3), transparent); opacity: 0; filter: blur(30px); transition: opacity 0.6s ease; z-index: 0;"></div>
-                
+
                 <div style="position: relative; z-index: 1;">
                     <div class="service-icon-ultra" style="width: 100px; height: 100px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem; color: white; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); position: relative; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);">
                         <i class="fas fa-warehouse" style="animation: bounce-icon 2s ease-in-out infinite; animation-delay: 0.3s;"></i>
@@ -599,12 +599,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 </p>
             </div>
             </a>
-            
+
             <!-- Service Card 3 -->
             <a href="{{ route('track', ['locale' => app()->getLocale()]) }}" class="service-card-ultra" data-aos="flip-left" data-aos-delay="400" style="text-decoration: none; color: inherit; background: white; padding: 2.5rem; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: block; cursor: pointer; animation: float-service 4s ease-in-out infinite; animation-delay: 2s;">
                 <div class="service-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #8b5cf6, #ec4899, #8b5cf6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-rotate 4s linear infinite;"></div>
                 <div class="service-glow" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 200px; height: 200px; background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent); opacity: 0; filter: blur(30px); transition: opacity 0.6s ease; z-index: 0;"></div>
-                
+
                 <div style="position: relative; z-index: 1;">
                     <div class="service-icon-ultra" style="width: 100px; height: 100px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 2.5rem; color: white; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); position: relative; box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);">
                         <i class="fas fa-search" style="animation: pulse-search 2s ease-in-out infinite;"></i>
@@ -1927,6 +1927,38 @@ document.addEventListener('keydown', function(e) {
     color: #f59e0b;
     margin-right: 6px;
 }
+
+/* ===== Module météo géolocalisé ===== */
+.wx-controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.wx-search-wrap { position: relative; flex: 1 1 220px; }
+.wx-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.45); font-size: .85rem; pointer-events: none; }
+#wx-search { width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 10px 12px 10px 34px; color: #fff; font-size: .9rem; backdrop-filter: blur(8px); }
+#wx-search::placeholder { color: rgba(255,255,255,0.4); }
+#wx-search:focus { outline: none; border-color: #60a5fa; }
+.wx-btn { display: inline-flex; align-items: center; gap: 7px; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 10px 14px; font-size: .85rem; font-weight: 600; cursor: pointer; backdrop-filter: blur(8px); transition: background .15s; }
+.wx-btn:hover { background: rgba(255,255,255,0.16); }
+.wx-btn-sm { padding: 6px 12px; font-size: .78rem; }
+.wx-hint { font-size: .78rem; color: rgba(255,255,255,0.6); margin: -6px 0 12px; }
+.wx-spinner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(15,23,42,0.35); border-radius: 20px; z-index: 3; font-size: 1.6rem; color: #93c5fd; }
+.weather-main-card { position: relative; }
+.wx-icon { font-size: 2.1rem; color: #93c5fd; margin-bottom: 6px; }
+.wx-error { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.35); color: #fca5a5; border-radius: 12px; padding: 10px 14px; font-size: .85rem; margin-top: 14px; }
+.wx-error .wx-btn { border-color: rgba(239,68,68,0.4); }
+.wx-section-title { color: rgba(255,255,255,0.75); font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin: 1.4rem 0 .7rem; display: flex; align-items: center; gap: 8px; }
+.wx-section-title i { color: #60a5fa; }
+.wx-hourly { display: flex; gap: .7rem; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.wx-hour { flex: 0 0 84px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1); border-radius: 14px; padding: .9rem .5rem; text-align: center; }
+.wx-hour .h { font-size: .78rem; color: #93c5fd; font-weight: 700; }
+.wx-hour i { font-size: 1.3rem; color: #e0f2fe; margin: 6px 0; display: block; }
+.wx-hour .t { font-size: 1rem; font-weight: 800; color: #fff; }
+.wx-hour .r { font-size: .7rem; color: #93c5fd; margin-top: 3px; }
+.wx-risk { background: rgba(255,255,255,0.06); border-radius: 12px; padding: 12px 16px; font-size: .85rem; line-height: 1.55; margin-bottom: 8px; color: rgba(255,255,255,0.85); }
+.wx-risk.high { border-left: 4px solid #ef4444; }
+.wx-risk.medium { border-left: 4px solid #f59e0b; }
+.wx-risk .rt { font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+.wx-risk.high .rt { color: #fca5a5; } .wx-risk.medium .rt { color: #fbbf24; }
+.wx-risk .src { font-size: .7rem; color: rgba(255,255,255,0.45); font-style: italic; }
+.wx-foot { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 1.4rem; font-size: .72rem; color: rgba(255,255,255,0.45); }
 @media (max-width: 576px) {
     #weather-forecast {
         grid-template-columns: 1fr !important;
@@ -1972,7 +2004,7 @@ document.addEventListener('keydown', function(e) {
         <div style="position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(34, 197, 94, 0.3), transparent); border-radius: 50%; top: -200px; left: -100px; animation: float-orb 20s ease-in-out infinite; filter: blur(80px);"></div>
         <div style="position: absolute; width: 400px; height: 400px; background: radial-gradient(circle, rgba(59, 130, 246, 0.2), transparent); border-radius: 50%; bottom: -150px; right: -50px; animation: float-orb 25s ease-in-out infinite reverse; filter: blur(100px);"></div>
     </div>
-    
+
     <div class="container" style="position: relative; z-index: 1;">
         <!-- Section Header -->
         <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-up">
@@ -1982,39 +2014,39 @@ document.addEventListener('keydown', function(e) {
                     Publications & Données
                 </span>
             </div>
-            
+
             <h2 style="font-size: 2.8rem; font-weight: 800; margin-bottom: 1.2rem; color: white; text-shadow: 0 4px 20px rgba(34, 197, 94, 0.3); line-height: 1.2;">
                 Rapports et Bulletins SIM
             </h2>
-            
+
             <p style="color: rgba(255, 255, 255, 0.8); font-size: 1.15rem; max-width: 700px; margin: 0 auto; line-height: 1.7;">
                 Accédez à nos rapports d'activités et bulletins du Système d'Information des Marchés pour suivre l'évolution des prix et la sécurité alimentaire
             </p>
         </div>
-        
+
         <!-- Reports Grid -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 2.5rem; max-width: 1200px; margin: 0 auto;">
             <!-- Rapport Annuel Card -->
             <a href="{{ route('reports', ['locale' => app()->getLocale()]) }}" class="report-card" data-aos="fade-up" data-aos-delay="100" style="display:block; text-decoration:none; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(34, 197, 94, 0.2); border-radius: 24px; padding: 2.5rem; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
                 <!-- Glow Effect -->
                 <div class="report-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(34, 197, 94, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
+
                 <div style="position: relative; z-index: 2; text-align: center;">
                     <!-- Logo -->
                     <div style="width: 120px; height: 120px; border-radius: 20px; overflow: hidden; margin: 0 auto 1.5rem; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.4); border: 2px solid rgba(34, 197, 94, 0.3); background: rgba(255,255,255,0.95);">
                         <img src="{{ asset('images/PTA/rapport.jpeg') }}" alt="Rapports Annuels" class="home-image-contain home-logo-tile" style="padding: 8px;" loading="lazy" decoding="async">
                     </div>
-                    
+
                     <!-- Title -->
                     <h3 style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 1rem;">
                         Rapports Annuels
                     </h3>
-                    
+
                     <!-- Description -->
                     <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.7; margin-bottom: 1.5rem;">
                         Consultez nos rapports d'activités annuels détaillant nos interventions et résultats
                     </p>
-                    
+
                     <!-- Button -->
                     <span class="btn-report" style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; background: rgba(34, 197, 94, 0.2); color: #22c55e; font-weight: 600; border-radius: 12px; border: 1px solid rgba(34, 197, 94, 0.3); transition: all 0.3s; cursor: pointer;">
                         <i class="fas fa-eye"></i>
@@ -2022,48 +2054,48 @@ document.addEventListener('keydown', function(e) {
                     </span>
                 </div>
             </a>
-            
+
             <!-- Bulletin SIM Card -->
             <a href="{{ route('sim.index', ['locale' => app()->getLocale()]) }}" class="report-card" data-aos="fade-up" data-aos-delay="250" style="display:block; text-decoration:none; background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(59, 130, 246, 0.2); border-radius: 24px; padding: 2.5rem; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
                 <div class="report-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(59, 130, 246, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
+
                 <div style="position: relative; z-index: 2; text-align: center;">
                     <div style="width: 120px; height: 120px; border-radius: 20px; overflow: hidden; margin: 0 auto 1.5rem; box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4); border: 2px solid rgba(59, 130, 246, 0.3); background: rgba(255,255,255,0.95);">
                         <img src="{{ asset('images/PTA/SIM.jpeg') }}" alt="Bulletins SIM" class="home-image-contain home-logo-tile" style="padding: 8px;" loading="lazy" decoding="async">
                     </div>
-                    
+
                     <h3 style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 1rem;">
                         Bulletins SIM
                     </h3>
-                    
+
                     <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.7; margin-bottom: 1.5rem;">
                         Suivez l'évolution des prix des denrées alimentaires sur les marchés du Sénégal
                     </p>
-                    
+
                     <span class="btn-report" style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; background: rgba(59, 130, 246, 0.2); color: #3b82f6; font-weight: 600; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.3); transition: all 0.3s; cursor: pointer;">
                         <i class="fas fa-eye"></i>
                         Consulter
                     </span>
                 </div>
             </a>
-            
+
             <!-- Données Statistiques Card -->
             <a href="{{ route('sim.dashboard', ['locale' => app()->getLocale()]) }}" class="report-card" data-aos="fade-up" data-aos-delay="400" style="display:block; text-decoration:none; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(139, 92, 246, 0.2); border-radius: 24px; padding: 2.5rem; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
                 <div class="report-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(139, 92, 246, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
+
                 <div style="position: relative; z-index: 2; text-align: center;">
                     <div style="width: 120px; height: 120px; border-radius: 20px; overflow: hidden; margin: 0 auto 1.5rem; box-shadow: 0 10px 30px rgba(139, 92, 246, 0.4); border: 2px solid rgba(139, 92, 246, 0.3); background: rgba(255,255,255,0.95);">
                         <img src="{{ asset('images/PTA/zone itervention.jpeg') }}" alt="Données Statistiques" class="home-image-contain home-logo-tile" style="padding: 8px;" loading="lazy" decoding="async">
                     </div>
-                    
+
                     <h3 style="font-size: 1.5rem; font-weight: 700; color: white; margin-bottom: 1rem;">
                         Données Statistiques
                     </h3>
-                    
+
                     <p style="color: rgba(255, 255, 255, 0.7); line-height: 1.7; margin-bottom: 1.5rem;">
                         Accédez aux données détaillées sur la sécurité alimentaire et les interventions
                     </p>
-                    
+
                     <span class="btn-report" style="display: inline-flex; align-items: center; gap: 10px; padding: 12px 24px; background: rgba(139, 92, 246, 0.2); color: #8b5cf6; font-weight: 600; border-radius: 12px; border: 1px solid rgba(139, 92, 246, 0.3); transition: all 0.3s; cursor: pointer;">
                         <i class="fas fa-eye"></i>
                         Consulter
@@ -2202,11 +2234,11 @@ document.addEventListener('keydown', function(e) {
 }
 
 @keyframes slideIn {
-    from { 
+    from {
         opacity: 0;
         transform: translateX(20px);
     }
-    to { 
+    to {
         opacity: 1;
         transform: translateX(0);
     }
@@ -2225,22 +2257,22 @@ document.addEventListener('keydown', function(e) {
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        
+
         <div class="modal-body">
             <div class="slideshow-container" id="slideshowContainer">
                 <!-- Les slides seront injectées ici dynamiquement -->
             </div>
-            
+
             <div class="slide-navigation">
                 <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)">
                     <i class="fas fa-chevron-left"></i>
                     Précédent
                 </button>
-                
+
                 <div style="color: rgba(255, 255, 255, 0.7); font-weight: 600;">
                     <span id="currentSlide">1</span> / <span id="totalSlides">1</span>
                 </div>
-                
+
                 <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">
                     Suivant
                     <i class="fas fa-chevron-right"></i>
@@ -2349,16 +2381,16 @@ let currentCategory = '';
 function openReportModal(category) {
     currentCategory = category;
     currentSlideIndex = 0;
-    
+
     const modal = document.getElementById('reportModal');
     const data = reportsData[category];
-    
+
     document.getElementById('modalTitle').textContent = data.title;
     document.getElementById('modalSubtitle').textContent = data.subtitle;
-    
+
     renderSlides(data.slides);
     showSlide(0);
-    
+
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
@@ -2385,7 +2417,7 @@ function renderSlides(slides) {
                         ${slide.description}
                     </p>
                 </div>
-                
+
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-top: 2rem;">
                     ${slide.stats.map(stat => `
                         <div style="text-align: center; padding: 1.5rem; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1);">
@@ -2401,22 +2433,22 @@ function renderSlides(slides) {
             </div>
         </div>
     `).join('');
-    
+
     document.getElementById('totalSlides').textContent = slides.length;
 }
 
 function showSlide(index) {
     const slides = document.querySelectorAll('.slide');
     const data = reportsData[currentCategory];
-    
+
     if (index >= data.slides.length) currentSlideIndex = 0;
     if (index < 0) currentSlideIndex = data.slides.length - 1;
-    
+
     slides.forEach(slide => slide.classList.remove('active'));
     slides[currentSlideIndex].classList.add('active');
-    
+
     document.getElementById('currentSlide').textContent = currentSlideIndex + 1;
-    
+
     // Désactiver les boutons si nécessaire
     document.getElementById('prevBtn').disabled = currentSlideIndex === 0;
     document.getElementById('nextBtn').disabled = currentSlideIndex === data.slides.length - 1;
@@ -2461,7 +2493,7 @@ document.addEventListener('keydown', function(e) {
                     Données Météorologiques
                 </span>
             </div>
-            
+
             <p style="color: rgba(255, 255, 255, 0.8); font-size: 1.15rem; max-width: 700px; margin: 0 auto; line-height: 1.7;">
                 Conditions météorologiques actuelles et prévisions pour votre région
             </p>
@@ -2469,17 +2501,35 @@ document.addEventListener('keydown', function(e) {
 
         <div class="meteo-action-grid">
             <div data-aos="fade-right">
+                {{-- Contrôles : position + recherche de ville --}}
+                <div class="wx-controls">
+                    <div class="wx-search-wrap">
+                        <i class="fas fa-magnifying-glass wx-search-icon"></i>
+                        <input type="search" id="wx-search" list="wx-cities" placeholder="Ville ou localité du Sénégal…" autocomplete="off" aria-label="Rechercher une ville">
+                        <datalist id="wx-cities"></datalist>
+                    </div>
+                    <button type="button" id="wx-geolocate" class="wx-btn" title="Détecter ma position">
+                        <i class="fas fa-location-crosshairs"></i> <span>Ma position</span>
+                    </button>
+                    <button type="button" id="wx-refresh" class="wx-btn" title="Actualiser">
+                        <i class="fas fa-rotate"></i>
+                    </button>
+                </div>
+                <div id="wx-hint" class="wx-hint" hidden></div>
+
                 <div class="weather-main-card" id="weather-widget">
+                    <div class="wx-spinner" id="wx-spinner" hidden><i class="fas fa-circle-notch fa-spin"></i></div>
                     <div class="weather-left">
                         <div class="weather-location">
                             <i class="fas fa-map-marker-alt"></i>
-                            <span id="weather-city">Chargement...</span>
+                            <span id="weather-city">Chargement…</span>
                         </div>
                         <div class="weather-temp-wrap">
                             <div class="weather-temp" id="weather-temp">--°</div>
                             <div>
+                                <div class="wx-icon" id="weather-icon"><i class="fas fa-cloud"></i></div>
                                 <div style="font-size: 1.1rem; color: rgba(255,255,255,0.9); font-weight: 600; text-transform: capitalize;" id="weather-desc">--</div>
-                                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Ressenti: <span id="weather-feels">--°</span></div>
+                                <div style="font-size: 0.85rem; color: rgba(255,255,255,0.5);">Ressenti : <span id="weather-feels">--°</span></div>
                             </div>
                         </div>
                     </div>
@@ -2512,18 +2562,37 @@ document.addEventListener('keydown', function(e) {
                                 <span class="weather-detail-val" id="weather-visibility">-- km</span>
                             </div>
                         </div>
+                        <div class="weather-detail">
+                            <i class="fas fa-cloud-rain"></i>
+                            <div>
+                                <span class="weather-detail-label">Pluie (1 h)</span>
+                                <span class="weather-detail-val" id="weather-precip">-- mm</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div id="weather-forecast" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                <div id="wx-error" class="wx-error" hidden>
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <span id="wx-error-msg">Service météo temporairement indisponible.</span>
+                    <button type="button" id="wx-retry" class="wx-btn wx-btn-sm">Réessayer</button>
                 </div>
 
+                {{-- Prévisions horaires --}}
+                <div class="wx-section-title"><i class="fas fa-clock"></i> Prochaines heures</div>
+                <div id="weather-hourly" class="wx-hourly"></div>
+
+                {{-- Prévisions journalières --}}
+                <div class="wx-section-title"><i class="fas fa-calendar-week"></i> Prochains jours</div>
+                <div id="weather-forecast" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1rem;">
+                </div>
+
+                {{-- Risques indicatifs (modèle, non officiels) --}}
                 <div id="weather-alerts" style="margin-top: 1.5rem;"></div>
 
-                <!-- Elfsight Weather Widget -->
-                <div style="margin-top: 1.5rem;">
-                    <script src="https://elfsightcdn.com/platform.js" async></script>
-                    <div class="elfsight-app-094927c8-f98d-4e33-97ce-817260fe7652"></div>
+                <div id="wx-foot" class="wx-foot">
+                    <span id="weather-updated">Source : Open-Meteo</span>
+                    <span>Prévisions de modèle — ne remplacent pas les bulletins officiels de l'ANACIM.</span>
                 </div>
             </div>
 
@@ -2721,7 +2790,7 @@ document.addEventListener('keydown', function(e) {
     <!-- Animated Background Elements -->
     <div style="position: absolute; top: -100px; right: -100px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(34, 197, 94, 0.1), transparent); border-radius: 50%; filter: blur(60px); animation: float-orb 15s ease-in-out infinite;"></div>
     <div style="position: absolute; bottom: -150px; left: -150px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(59, 130, 246, 0.08), transparent); border-radius: 50%; filter: blur(80px); animation: float-orb 20s ease-in-out infinite reverse;"></div>
-    
+
     <div class="container" style="position: relative; z-index: 1;">
         <!-- Title Section -->
         <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-up">
@@ -2739,7 +2808,7 @@ document.addEventListener('keydown', function(e) {
                 Découvrez nos actions sur le terrain à travers ces moments capturés
             </p>
         </div>
-        
+
         @if(isset($galleryImages) && $galleryImages->count() > 0)
         <!-- SLIDER PROFESSIONNEL AVEC DIAPORAMA AUTOMATIQUE -->
         <div class="gallery-slider-container" style="position: relative; max-width: 1200px; margin: 0 auto; border-radius: 30px; overflow: hidden; box-shadow: 0 20px 80px rgba(0, 0, 0, 0.15);">
@@ -2748,17 +2817,17 @@ document.addEventListener('keydown', function(e) {
                 @foreach($galleryImages as $index => $image)
                 <!-- Slide {{ $index + 1 }} -->
                 <div class="slider-slide {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}" style="position: absolute; inset: 0; opacity: {{ $index === 0 ? '1' : '0' }}; transform: {{ $index === 0 ? 'scale(1)' : 'scale(1.1)' }}; transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);"
-                
+
                 <!-- Glow Effect Background -->
                 <div class="glow-bg" style="position: absolute; inset: -30px; background: radial-gradient(circle at center, rgba(34, 197, 94, 0.4), transparent 70%); opacity: 0; filter: blur(20px); transition: all 0.6s ease; z-index: -1;"></div>
-                
+
                 <!-- Sparkle Particles -->
                 <div class="sparkles" style="position: absolute; inset: 0; pointer-events: none; z-index: 10; opacity: 0; transition: opacity 0.5s ease;">
                     @for($i = 0; $i < 5; $i++)
                     <div class="sparkle" style="position: absolute; width: 4px; height: 4px; background: white; border-radius: 50%; top: {{ rand(10, 90) }}%; left: {{ rand(10, 90) }}%; animation: twinkle {{ 1 + rand(1, 3) }}s ease-in-out infinite; animation-delay: {{ $i * 0.2 }}s; box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);"></div>
                     @endfor
                 </div>
-                
+
                 <!-- Image Container -->
                 <div style="position: relative; width: 100%; height: 100%; overflow: hidden;">
                     <!-- Animated Corners -->
@@ -2766,26 +2835,26 @@ document.addEventListener('keydown', function(e) {
                     <div class="corner corner-tr" style="position: absolute; top: 15px; right: 15px; width: 30px; height: 30px; border-top: 3px solid #22c55e; border-right: 3px solid #22c55e; opacity: 0; transform: translate(10px, -10px); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 5;"></div>
                     <div class="corner corner-bl" style="position: absolute; bottom: 15px; left: 15px; width: 30px; height: 30px; border-bottom: 3px solid #22c55e; border-left: 3px solid #22c55e; opacity: 0; transform: translate(-10px, 10px); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 5;"></div>
                     <div class="corner corner-br" style="position: absolute; bottom: 15px; right: 15px; width: 30px; height: 30px; border-bottom: 3px solid #22c55e; border-right: 3px solid #22c55e; opacity: 0; transform: translate(10px, 10px); transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 5;"></div>
-                    
+
                     <!-- Image with Multiple Layers -->
                     <div style="position: relative; width: 100%; height: 100%;">
                         <!-- Main Image -->
-                        <img src="{{ asset('storage/' . $image->file_path) }}" 
-                             alt="{{ $image->alt_text ?? $image->title }}" 
+                        <img src="{{ asset('storage/' . $image->file_path) }}"
+                             alt="{{ $image->alt_text ?? $image->title }}"
                              style="width: 100%; height: 100%; object-fit: cover; transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1); filter: brightness(0.98) contrast(1.04);"
                              loading="lazy" decoding="async"
                              class="gallery-image-hover">
-                        
+
                         <!-- Color Overlay Effect -->
                         <div class="color-overlay" style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(59, 130, 246, 0.2)); mix-blend-mode: overlay; opacity: 0; transition: opacity 0.5s ease;"></div>
                     </div>
-                    
+
                     <!-- Gradient Overlay -->
                     <div class="gallery-overlay" style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.1) 50%, rgba(0, 0, 0, 0.8) 100%); opacity: 0.8; transition: all 0.5s ease;"></div>
-                    
+
                     <!-- Scan Line Effect -->
                     <div class="scan-line" style="position: absolute; top: -100%; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.8), transparent); opacity: 0; transition: all 0.5s ease;"></div>
-                    
+
                     <!-- Content Overlay -->
                     <div class="gallery-content" style="position: absolute; bottom: 0; left: 0; right: 0; padding: 1.5rem; transform: translateY(20px); opacity: 0; transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2;">
                         <h3 style="color: white; font-size: 1.3rem; font-weight: 700; margin-bottom: 0.5rem; text-shadow: 0 2px 8px rgba(0,0,0,0.3); transform: translateX(-20px); transition: all 0.5s ease 0.1s;">
@@ -2802,21 +2871,21 @@ document.addEventListener('keydown', function(e) {
                         </p>
                         @endif
                     </div>
-                    
+
                     <!-- Zoom Icon -->
                     <div class="zoom-icon-gallery" style="position: absolute; top: 20px; right: 20px; width: 50px; height: 50px; background: rgba(255, 255, 255, 0.95); border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0) rotate(-180deg); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2); z-index: 3;">
                         <i class="fas fa-search-plus" style="color: #22c55e; font-size: 1.2rem; animation: pulse-zoom 2s ease-in-out infinite;"></i>
                     </div>
-                    
+
                     <!-- Border Animation -->
                     <div class="border-animation" style="position: absolute; inset: -3px; border-radius: 24px; background: linear-gradient(135deg, #22c55e, #3b82f6, #8b5cf6, #ec4899, #22c55e); background-size: 400% 400%; opacity: 0; z-index: -1; animation: rotate-border-wave 6s ease-in-out infinite;"></div>
-                    
+
                     <!-- Ripple Effect -->
                     <div class="ripple-effect-gallery" style="position: absolute; inset: 0; opacity: 0; transition: all 0.8s ease;"></div>
                 </div>
             </div>
             @endforeach
-            
+
             <!-- Navigation Arrows -->
             <button class="slider-prev" onclick="gallerySliderPrev()" style="position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; z-index: 20; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #1f2937; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease;">
                 ←
@@ -2824,14 +2893,14 @@ document.addEventListener('keydown', function(e) {
             <button class="slider-next" onclick="gallerySliderNext()" style="position: absolute; right: 20px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.9); border: none; width: 50px; height: 50px; border-radius: 50%; cursor: pointer; z-index: 20; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #1f2937; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.3s ease;">
                 →
             </button>
-            
+
             <!-- Dots Navigation -->
             <div class="slider-dots" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 20;">
                 @foreach($galleryImages as $index => $image)
                 <button onclick="gallerySliderGoTo({{ $index }})" class="slider-dot {{ $index === 0 ? 'active' : '' }}" data-slide="{{ $index }}" style="width: 12px; height: 12px; border-radius: 50%; border: none; background: {{ $index === 0 ? '#22c55e' : 'rgba(255,255,255,0.5)' }}; cursor: pointer; transition: all 0.3s ease;"></button>
                 @endforeach
             </div>
-            
+
             <!-- Counter -->
             <div class="slider-counter" style="position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.6); color: #fff; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 0.9rem; z-index: 20;">
                 <span id="slider-current">1</span> / <span id="slider-total">{{ $galleryImages->count() }}</span>
@@ -2849,28 +2918,28 @@ document.addEventListener('keydown', function(e) {
 <!-- Lightbox Modal -->
 <div id="gallery-lightbox" class="gallery-lightbox" onclick="closeLightbox()" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px); animation: fadeIn 0.3s ease;">
     <span onclick="closeLightbox()" style="position: absolute; top: 30px; right: 50px; color: #fff; font-size: 50px; font-weight: 300; cursor: pointer; z-index: 10000; transition: all 0.3s ease; text-shadow: 0 0 10px rgba(0,0,0,0.5);" onmouseover="this.style.color='#22c55e'" onmouseout="this.style.color='#fff'">&times;</span>
-    
+
     <!-- Navigation Arrows -->
     <button onclick="changeImage(-1); event.stopPropagation();" style="position: absolute; left: 30px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); color: white; font-size: 2rem; padding: 1rem 1.5rem; cursor: pointer; border-radius: 50%; transition: all 0.3s ease; z-index: 10000; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(34, 197, 94, 0.9)'; this.style.borderColor='#22c55e'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.3)'">
         <i class="fas fa-chevron-left"></i>
     </button>
-    
+
     <button onclick="changeImage(1); event.stopPropagation();" style="position: absolute; right: 30px; top: 50%; transform: translateY(-50%); background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.3); color: white; font-size: 2rem; padding: 1rem 1.5rem; cursor: pointer; border-radius: 50%; transition: all 0.3s ease; z-index: 10000; backdrop-filter: blur(10px);" onmouseover="this.style.background='rgba(34, 197, 94, 0.9)'; this.style.borderColor='#22c55e'" onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.3)'">
         <i class="fas fa-chevron-right"></i>
     </button>
-    
+
     <!-- Image Container -->
     <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 80px 120px;">
         <img id="lightbox-img" src="" alt="" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); animation: zoomIn 0.3s ease;">
     </div>
-    
+
     <!-- Image Info -->
     <div id="lightbox-info" style="position: absolute; bottom: 0; left: 0; right: 0; padding: 2rem; background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent); color: white; text-align: center;">
         <h3 id="lightbox-title" style="font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem;"></h3>
         <p id="lightbox-category" style="font-size: 1rem; opacity: 0.9; margin-bottom: 0.5rem;"></p>
         <p id="lightbox-description" style="font-size: 1rem; opacity: 0.8; max-width: 800px; margin: 0 auto;"></p>
     </div>
-    
+
     <!-- Image Counter -->
     <div style="position: absolute; top: 30px; left: 50%; transform: translateX(-50%); background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 10px 25px; border-radius: 50px; color: white; font-weight: 600; border: 2px solid rgba(255, 255, 255, 0.2);">
         <span id="image-counter">1 / 1</span>
@@ -3108,24 +3177,24 @@ document.addEventListener('keydown', function(e) {
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
         gap: 1.5rem !important;
     }
-    
+
     .gallery-item-pro {
         animation: float-card 4s ease-in-out infinite !important;
     }
-    
+
     .gallery-item-pro:hover {
         transform: translateY(-10px) scale(1.02) !important;
     }
-    
+
     .gallery-lightbox button {
         padding: 0.5rem 1rem !important;
         font-size: 1.5rem !important;
     }
-    
+
     .gallery-lightbox > div:first-of-type {
         padding: 60px 20px !important;
     }
-    
+
     .corner {
         display: none !important;
     }
@@ -3135,7 +3204,7 @@ document.addEventListener('keydown', function(e) {
     .gallery-grid-pro {
         grid-template-columns: 1fr !important;
     }
-    
+
     .sparkles {
         display: none !important;
     }
@@ -3158,7 +3227,7 @@ document.addEventListener('keydown', function(e) {
     .border-animation {
         animation: none !important;
     }
-    
+
     .gallery-item-pro:hover {
         transform: none !important;
     }
@@ -3400,11 +3469,11 @@ document.addEventListener('keydown', function(e) {
     .services-section-ultra .services-grid {
         grid-template-columns: 1fr !important;
     }
-    
+
     .service-card-ultra {
         animation-duration: 6s !important;
     }
-    
+
     .news-section-ultra > div > div:last-child {
         grid-template-columns: 1fr !important;
     }
@@ -3414,7 +3483,7 @@ document.addEventListener('keydown', function(e) {
     .service-card-ultra:hover {
         transform: translateY(-10px) scale(1.02) !important;
     }
-    
+
     .news-card-ultra:hover {
         transform: translateY(-10px) scale(1.02) !important;
     }
@@ -3523,11 +3592,11 @@ document.addEventListener('keydown', function(e) {
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
         gap: 2rem !important;
     }
-    
+
     .stat-card-ultra {
         padding: 2rem 1.5rem !important;
     }
-    
+
     .counter {
         font-size: 3rem !important;
     }
@@ -3537,7 +3606,7 @@ document.addEventListener('keydown', function(e) {
     .stats-section-ultra > div > div:last-child {
         grid-template-columns: 1fr !important;
     }
-    
+
     .stat-card-ultra:hover {
         transform: translateY(-10px) scale(1.02) !important;
     }
@@ -3685,13 +3754,13 @@ function animateCounter(element, start, end, duration) {
     const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
         const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        
+
         // Easing function for smooth animation
         const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-        
+
         const current = Math.floor(easeOutQuart * (end - start) + start);
         element.textContent = current.toLocaleString('fr-FR');
-        
+
         // Add pulse class during counting
         if (progress < 1) {
             element.classList.add('counting');
@@ -3716,12 +3785,12 @@ const counterObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting && !hasAnimated) {
             hasAnimated = true;
-            
+
             // Query counters at animation time (DOM is ready at this point)
             const counters = document.querySelectorAll('.counter');
             counters.forEach((counter, index) => {
                 const target = parseInt(counter.getAttribute('data-target'));
-                
+
                 setTimeout(() => {
                     animateCounter(counter, 0, target, 2000); // 2 seconds animation
                 }, index * 200); // 200ms delay between each counter
@@ -3759,19 +3828,19 @@ function highlightStat(index) {
         card.querySelector('.stat-glow').style.opacity = '0';
         card.querySelector('.stat-border').style.opacity = '0';
     });
-    
+
     // Mettre en évidence la carte actuelle
     const currentCard = statCards[index];
     currentCard.style.transform = 'scale(1.08)';
     currentCard.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.2)';
     currentCard.querySelector('.stat-glow').style.opacity = '1';
     currentCard.querySelector('.stat-border').style.opacity = '1';
-    
+
     // Réanimer le compteur avec effet chrono (de 0 à la valeur cible)
     const counter = currentCard.querySelector('.counter');
     const target = parseInt(counter.getAttribute('data-target'));
     animateCounter(counter, 0, target, 1500); // Animation de 1.5 secondes
-    
+
     console.log(`📊 Statistique ${index + 1}/6 - Effet chrono activé`);
 }
 
@@ -3781,7 +3850,7 @@ setTimeout(() => {
         currentStatIndex = (currentStatIndex + 1) % statCards.length;
         highlightStat(currentStatIndex);
     }, 5000); // Toutes les 5 secondes
-    
+
     console.log('🔄 Rotation automatique des statistiques activée');
 }, 3000);
 </script>
@@ -3791,14 +3860,14 @@ setTimeout(() => {
     <!-- Animated Background Elements -->
     <div style="position: absolute; top: -100px; left: -100px; width: 500px; height: 500px; background: radial-gradient(circle, rgba(34, 197, 94, 0.15), transparent); border-radius: 50%; filter: blur(80px); animation: pulse-orb-stats 8s ease-in-out infinite;"></div>
     <div style="position: absolute; bottom: -150px; right: -150px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59, 130, 246, 0.12), transparent); border-radius: 50%; filter: blur(100px); animation: pulse-orb-stats 10s ease-in-out infinite reverse;"></div>
-    
+
     <!-- Particle Stars -->
     <div class="stars-container" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none;">
         @for($i = 0; $i < 30; $i++)
         <div class="star" style="position: absolute; width: {{ rand(2, 4) }}px; height: {{ rand(2, 4) }}px; background: white; border-radius: 50%; top: {{ rand(0, 100) }}%; left: {{ rand(0, 100) }}%; opacity: {{ rand(30, 80) / 100 }}; animation: twinkle-star {{ rand(2, 5) }}s ease-in-out infinite; animation-delay: {{ rand(0, 50) / 10 }}s;"></div>
         @endfor
     </div>
-    
+
     <div class="container" style="position: relative; z-index: 1;">
         <!-- Title Section -->
         <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-down">
@@ -3816,14 +3885,14 @@ setTimeout(() => {
                 Des résultats concrets au service de la sécurité alimentaire
             </p>
         </div>
-        
+
         <!-- Stats Grid -->
         <div id="statsGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; max-width: 1200px; margin: 0 auto;">
             <!-- Stat 1: Agents -->
             <div class="stat-card-ultra" data-stat="agents" data-aos="zoom-in" data-aos-delay="100" style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(16, 185, 129, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(34, 197, 94, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
                 <!-- Glow Effect -->
                 <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(34, 197, 94, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
+
                 <!-- Icon -->
                 <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
                     <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #22c55e, #10b981); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(34, 197, 94, 0.4); position: relative;">
@@ -3831,7 +3900,7 @@ setTimeout(() => {
                         <div style="position: absolute; inset: -10px; border: 3px dashed rgba(34, 197, 94, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
                     </div>
                 </div>
-                
+
                 <!-- Counter -->
                 <div style="position: relative; z-index: 2;">
                     <div class="counter-wrapper">
@@ -3841,22 +3910,22 @@ setTimeout(() => {
                         Agents recensés
                     </p>
                 </div>
-                
+
                 <!-- Animated Border -->
                 <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #22c55e, #10b981, #22c55e); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
             </div>
-            
+
             <!-- Stat 2: Magasins -->
             <div class="stat-card-ultra" data-stat="warehouses" data-aos="zoom-in" data-aos-delay="250" style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(59, 130, 246, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
                 <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(59, 130, 246, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
+
                 <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
                     <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #3b82f6, #2563eb); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(59, 130, 246, 0.4); position: relative;">
                         <i class="fas fa-warehouse" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 0.5s;"></i>
                         <div style="position: absolute; inset: -10px; border: 3px dashed rgba(59, 130, 246, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
                     </div>
                 </div>
-                
+
                 <div style="position: relative; z-index: 2;">
                     <div class="counter-wrapper">
                         <span class="counter" data-target="{{ $stats['warehouses'] }}" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 60px rgba(59, 130, 246, 0.3);">0</span>
@@ -3865,21 +3934,21 @@ setTimeout(() => {
                         Magasins de stockage
                     </p>
                 </div>
-                
+
                 <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #3b82f6, #2563eb, #3b82f6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
             </div>
-            
+
             <!-- Stat 3: Demandes traitées -->
             <div class="stat-card-ultra" data-stat="demandes" data-aos="zoom-in" data-aos-delay="400" style="background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(234, 88, 12, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(249, 115, 22, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
                 <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(249, 115, 22, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
+
                 <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
                     <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #f97316, #ea580c); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(249, 115, 22, 0.4); position: relative;">
                         <i class="fas fa-check-circle" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 1s;"></i>
                         <div style="position: absolute; inset: -10px; border: 3px dashed rgba(249, 115, 22, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
                     </div>
                 </div>
-                
+
                 <div style="position: relative; z-index: 2;">
                     <div class="counter-wrapper">
                         <span class="counter" data-target="{{ $stats['demandes_traitees'] ?? '0' }}" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(249, 115, 22, 0.6), 0 0 60px rgba(249, 115, 22, 0.3);">0</span>
@@ -3889,21 +3958,21 @@ setTimeout(() => {
                         Demandes traitées
                     </p>
                 </div>
-                
+
                 <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #f97316, #ea580c, #f97316); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
             </div>
-            
+
             <!-- Stat 4: Capacité -->
             <div class="stat-card-ultra" data-stat="capacity" data-aos="zoom-in" data-aos-delay="550" style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(124, 58, 237, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(139, 92, 246, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
                 <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(139, 92, 246, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
+
                 <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
                     <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4); position: relative;">
                         <i class="fas fa-boxes" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 1.5s;"></i>
                         <div style="position: absolute; inset: -10px; border: 3px dashed rgba(139, 92, 246, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
                     </div>
                 </div>
-                
+
                 <div style="position: relative; z-index: 2;">
                     <div class="counter-wrapper">
                         <span class="counter" data-target="{{ $stats['capacity'] }}" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(139, 92, 246, 0.3);">0</span>
@@ -3912,21 +3981,21 @@ setTimeout(() => {
                         000 tonnes de capacité
                     </p>
                 </div>
-                
+
                 <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #8b5cf6, #7c3aed, #8b5cf6); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
             </div>
-            
+
             <!-- Stat 5: Régions -->
             <div class="stat-card-ultra" data-stat="regions" data-aos="zoom-in" data-aos-delay="700" style="background: linear-gradient(135deg, rgba(236, 72, 153, 0.1), rgba(219, 39, 119, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(236, 72, 153, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
                 <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(236, 72, 153, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
+
                 <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
                     <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(236, 72, 153, 0.4); position: relative;">
                         <i class="fas fa-map-marked-alt" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 2s;"></i>
                         <div style="position: absolute; inset: -10px; border: 3px dashed rgba(236, 72, 153, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
                     </div>
                 </div>
-                
+
                 <div style="position: relative; z-index: 2;">
                     <div class="counter-wrapper">
                         <span class="counter" data-target="14" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(236, 72, 153, 0.6), 0 0 60px rgba(236, 72, 153, 0.3);">0</span>
@@ -3935,21 +4004,21 @@ setTimeout(() => {
                         Régions couvertes
                     </p>
                 </div>
-                
+
                 <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #ec4899, #db2777, #ec4899); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
             </div>
-            
+
             <!-- Stat 6: Taux de satisfaction -->
             <div class="stat-card-ultra" data-stat="satisfaction" data-aos="zoom-in" data-aos-delay="850" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05)); backdrop-filter: blur(10px); border: 2px solid rgba(16, 185, 129, 0.2); border-radius: 20px; padding: 2rem 1.5rem; text-align: center; position: relative; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer;">
                 <div class="stat-glow" style="position: absolute; inset: -50px; background: radial-gradient(circle at center, rgba(16, 185, 129, 0.3), transparent); opacity: 0; filter: blur(40px); transition: opacity 0.6s ease;"></div>
-                
+
                 <div style="position: relative; z-index: 2; margin-bottom: 1rem;">
                     <div style="width: 70px; height: 70px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; margin: 0 auto; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(16, 185, 129, 0.4); position: relative;">
                         <i class="fas fa-smile" style="font-size: 1.8rem; color: white; animation: float-icon 3s ease-in-out infinite; animation-delay: 2.5s;"></i>
                         <div style="position: absolute; inset: -10px; border: 3px dashed rgba(16, 185, 129, 0.5); border-radius: 50%; animation: rotate-dashed 15s linear infinite;"></div>
                     </div>
                 </div>
-                
+
                 <div style="position: relative; z-index: 2;">
                     <div class="counter-wrapper">
                         <span class="counter" data-target="{{ $stats['taux_satisfaction'] ?? '95' }}" style="font-size: 3.5rem; font-weight: 900; color: #ffffff; display: block; line-height: 1; text-shadow: 0 0 30px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.3);">0</span>
@@ -3959,7 +4028,7 @@ setTimeout(() => {
                         Taux de satisfaction
                     </p>
                 </div>
-                
+
                 <div class="stat-border" style="position: absolute; inset: -2px; border-radius: 24px; background: linear-gradient(135deg, #10b981, #059669, #10b981); background-size: 200% 200%; opacity: 0; z-index: -1; animation: border-flow 3s ease infinite;"></div>
             </div>
         </div>
@@ -3974,14 +4043,14 @@ setTimeout(() => {
         <div style="position: absolute; width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,160,220,0.5), transparent); border-radius: 50%; bottom: -200px; left: -100px; animation: float-orb 25s ease-in-out infinite reverse; filter: blur(80px);"></div>
         <div style="position: absolute; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.3), transparent); border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: pulse-orb-stats 10s ease-in-out infinite; filter: blur(100px);"></div>
     </div>
-    
+
     <!-- Particle Effects -->
     <div class="linkedin-particles" style="position: absolute; inset: 0; overflow: hidden; pointer-events: none;">
         @for($i = 0; $i < 15; $i++)
         <div style="position: absolute; width: {{ rand(3, 8) }}px; height: {{ rand(3, 8) }}px; background: rgba(255,255,255,{{ rand(30, 70) / 100 }}); border-radius: 50%; top: {{ rand(0, 100) }}%; left: {{ rand(0, 100) }}%; animation: float-particle {{ rand(15, 30) }}s ease-in-out infinite; animation-delay: {{ rand(0, 10) }}s;"></div>
         @endfor
     </div>
-    
+
     <div class="container" style="position: relative; z-index: 1;">
         <!-- Section Header -->
         <div style="text-align: center; margin-bottom: 4rem;" data-aos="fade-up">
@@ -4271,12 +4340,12 @@ setTimeout(() => {
         "></div>
         @endfor
     </div>
-    
+
     <!-- Animated Gradient Orbs -->
     <div class="gradient-orb orb-1"></div>
     <div class="gradient-orb orb-2"></div>
     <div class="gradient-orb orb-3"></div>
-    
+
     <div class="container" style="position: relative; z-index: 1;">
         <!-- Title with PRO Animation -->
         <div style="text-align: center; margin-bottom: 4rem;" class="partners-title-pro">
@@ -4294,7 +4363,7 @@ setTimeout(() => {
                 Avec nos partenaires stratégiques, nous œuvrons pour la sécurité alimentaire et le développement durable au Sénégal
             </p>
         </div>
-        
+
         <!-- Partners Grid with PRO 3D Effects -->
         <div class="partners-grid-pro" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2.5rem; margin-bottom: 4rem; perspective: 1000px;">
             @foreach($partners as $index => $partner)
@@ -4303,22 +4372,22 @@ setTimeout(() => {
                     <div class="card-inner" style="background: #ffffff; border-radius: 28px; padding: 3rem 2rem; text-align: center; position: relative; overflow: hidden; border: 2px solid transparent; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); min-height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; transform-style: preserve-3d;">
                         <!-- Ripple Effect on Hover -->
                         <div class="ripple-effect"></div>
-                        
+
                         <!-- Animated Gradient Border -->
                         <div class="animated-gradient-border"></div>
-                        
+
                         <!-- Shine Effect -->
                         <div class="shine-effect"></div>
-                        
+
                         <!-- Background Pattern -->
                         <div class="card-pattern"></div>
-                        
+
                         <!-- Partner Logo -->
                         <div style="position: relative; z-index: 2; margin-bottom: 1.5rem;">
                             @if($partner->logo)
                             <div style="width: 140px; height: 140px; margin: 0 auto; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border-radius: 20px; padding: 1.5rem; transition: all 0.4s ease;">
-                                <img src="{{ asset('images/' . $partner->logo) }}" 
-                                     alt="{{ $partner->name }}" 
+                                <img src="{{ asset('images/' . $partner->logo) }}"
+                                     alt="{{ $partner->name }}"
                                      title="{{ $partner->name }}"
                                      class="partner-logo-img"
                                      style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; transition: all 0.4s ease;"
@@ -4330,7 +4399,7 @@ setTimeout(() => {
                             </div>
                             @endif
                         </div>
-                        
+
                         <!-- Partner Info -->
                         <div style="position: relative; z-index: 2;">
                             <h3 style="font-size: 1.1rem; font-weight: 700; color: #1f2937; margin-bottom: 0.5rem; transition: color 0.3s ease;">
@@ -4339,7 +4408,7 @@ setTimeout(() => {
                             <p style="font-size: 0.85rem; color: #6b7280; margin: 0; transition: color 0.3s ease;">
                                 {{ $partner->organization }}
                             </p>
-                            
+
                             <!-- Badge Type -->
                             <div style="margin-top: 1rem; display: inline-block; padding: 4px 12px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%); border-radius: 20px;">
                                 <span style="font-size: 0.75rem; color: #22c55e; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">
@@ -4351,7 +4420,7 @@ setTimeout(() => {
                                 </span>
                             </div>
                         </div>
-                        
+
                         <!-- Hover Icon -->
                         <div class="hover-icon" style="position: absolute; bottom: 20px; right: 20px; width: 40px; height: 40px; background: linear-gradient(135deg, #22c55e, #10b981); border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0) rotate(-180deg); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); z-index: 3;">
                             <i class="fas fa-arrow-right" style="color: white; font-size: 1rem;"></i>
@@ -4361,7 +4430,7 @@ setTimeout(() => {
             </div>
             @endforeach
         </div>
-        
+
         <!-- View All Partners Button with Animation -->
         <div style="text-align: center;" data-aos="fade-up" data-aos-delay="400">
             <a href="{{ route('partners.index') }}" class="btn-partners-modern" style="display: inline-flex; align-items: center; gap: 12px; padding: 16px 40px; background: linear-gradient(135deg, #22c55e 0%, #10b981 100%); color: white; font-weight: 700; font-size: 1rem; border-radius: 50px; text-decoration: none; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;">
@@ -4651,7 +4720,7 @@ setTimeout(() => {
 .card-pattern {
     position: absolute;
     inset: 0;
-    background-image: 
+    background-image:
         radial-gradient(circle at 20% 30%, rgba(34, 197, 94, 0.03) 0%, transparent 50%),
         radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
     opacity: 0;
@@ -4771,7 +4840,7 @@ setTimeout(() => {
     .partner-card-pro:hover .card-inner {
         transform: translateY(-10px) scale(1.02);
     }
-    
+
     .gradient-orb {
         width: 300px !important;
         height: 300px !important;
@@ -4795,224 +4864,274 @@ setTimeout(() => {
 </style>
 @endif
 
-<!-- Script Météo — proxy Laravel (clé sécurisée, cache 10 min, refresh auto) -->
+<!-- Module météo géolocalisé — données Open-Meteo via proxy local /api/weather -->
 <script>
 (function() {
-    var DAKAR_LAT = 14.6928;
-    var DAKAR_LON = -17.4467;
-    var refreshInterval = null;
+    var DAKAR = { lat: 14.6928, lon: -17.4467, name: 'Dakar' };
+    var API = '/api/weather';
+    var CACHE_KEY = 'csar_wx_last';
+    var FETCH_TIMEOUT = 9000;
+    var REFRESH_MS = 10 * 60 * 1000;
 
-    function setEl(id, val) {
-        var el = document.getElementById(id);
-        if (el) el.textContent = val;
-    }
+    var state = { lat: DAKAR.lat, lon: DAKAR.lon, label: 'Dakar', source: 'default' };
+    var refreshTimer = null;
+    var searchTimer = null;
+    var geoAsked = false;
 
-    function showLoading() {
-        var w = document.getElementById('weather-widget');
-        if (w) w.style.opacity = '0.6';
-        setEl('weather-city', 'Chargement...');
-        setEl('weather-temp', '--°');
-        setEl('weather-desc', '');
-        setEl('weather-feels', '--°');
-        setEl('weather-humidity', '--%');
-        setEl('weather-wind', '-- km/h');
-        setEl('weather-pressure', '-- hPa');
-        setEl('weather-visibility', '-- km');
+    var $ = function(id) { return document.getElementById(id); };
+    function setEl(id, val) { var el = $(id); if (el) el.textContent = val; }
+    function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+    function setLoading(on) {
+        var s = $('wx-spinner'); if (s) s.hidden = !on;
+        var w = $('weather-widget'); if (w) w.style.opacity = on ? '0.65' : '1';
     }
 
     function showError(msg) {
-        var w = document.getElementById('weather-widget');
-        if (w) w.style.opacity = '1';
-        setEl('weather-city', 'Dakar, SN');
-        setEl('weather-temp', '--°');
-        setEl('weather-desc', msg || 'Service indisponible');
-        setEl('weather-feels', '--°');
-        setEl('weather-humidity', '--%');
-        setEl('weather-wind', '-- km/h');
-        setEl('weather-pressure', '-- hPa');
-        setEl('weather-visibility', '-- km');
-        var fc = document.getElementById('weather-forecast');
-        if (fc) fc.innerHTML = '';
+        var box = $('wx-error');
+        if (box) { $('wx-error-msg').textContent = msg; box.hidden = false; }
+    }
+    function hideError() { var box = $('wx-error'); if (box) box.hidden = true; }
+
+    function showHint(msg) {
+        var h = $('wx-hint'); if (h) { h.textContent = msg || ''; h.hidden = !msg; }
     }
 
-    function renderWeather(d) {
-        var w = document.getElementById('weather-widget');
-        if (w) w.style.opacity = '1';
+    /* ---------- Rendu ---------- */
 
-        setEl('weather-city',       d.city + ', ' + d.country);
-        setEl('weather-temp',       d.temp + '°C');
-        setEl('weather-desc',       d.description);
-        setEl('weather-feels',      d.feels_like + '°C');
-        setEl('weather-humidity',   d.humidity + '%');
-        setEl('weather-wind',       d.wind + ' km/h');
-        setEl('weather-pressure',   d.pressure + ' hPa');
-        setEl('weather-visibility', d.visibility !== null ? d.visibility + ' km' : '-- km');
+    function render(data) {
+        var c = data.current || {};
+        var loc = data.location || {};
+        setEl('weather-city', (loc.name || 'Localisation inconnue') + (loc.country ? ', ' + loc.country : ''));
+        setEl('weather-temp', c.temp !== null && c.temp !== undefined ? c.temp + '°C' : '--°');
+        setEl('weather-desc', c.desc || '--');
+        setEl('weather-feels', c.feels_like !== null && c.feels_like !== undefined ? c.feels_like + '°C' : '--°');
+        setEl('weather-humidity', c.humidity !== null && c.humidity !== undefined ? c.humidity + ' %' : '-- %');
+        setEl('weather-wind', c.wind !== null && c.wind !== undefined ? c.wind + ' km/h ' + (c.wind_label || '') : '-- km/h');
+        setEl('weather-pressure', c.pressure !== null && c.pressure !== undefined ? c.pressure + ' hPa' : '-- hPa');
+        setEl('weather-visibility', c.visibility !== null && c.visibility !== undefined ? c.visibility + ' km' : '-- km');
+        setEl('weather-precip', c.precip !== null && c.precip !== undefined ? c.precip + ' mm' : '0 mm');
 
-        // Icône
-        var iconEl = document.getElementById('weather-icon');
-        if (!iconEl) {
-            iconEl = document.createElement('img');
-            iconEl.id = 'weather-icon';
-            iconEl.style.cssText = 'width:60px;height:60px;';
-            var wrap = document.getElementById('weather-temp');
-            if (wrap && wrap.parentNode) wrap.parentNode.insertBefore(iconEl, wrap);
-        }
-        if (d.icon) {
-            iconEl.src = 'https://openweathermap.org/img/wn/' + d.icon + '@2x.png';
-            iconEl.alt = d.description;
-        }
+        var icon = $('weather-icon');
+        if (icon) icon.innerHTML = '<i class="fas ' + esc(c.fa || 'fa-cloud') + '"></i>';
 
-        // Heure de mise à jour
-        var updEl = document.getElementById('weather-updated');
-        if (!updEl) {
-            updEl = document.createElement('div');
-            updEl.id = 'weather-updated';
-            updEl.style.cssText = 'color:rgba(255,255,255,0.4);font-size:0.72rem;margin-top:8px;';
-            var widget = document.getElementById('weather-widget');
-            if (widget) widget.appendChild(updEl);
-        }
-        updEl.textContent = 'Mis à jour à ' + d.updated_at;
+        var upd = 'Mis à jour à ' + (data.updated_at || '--:--') + (data.updated_tz ? ' (' + data.updated_tz + ')' : '');
+        if (data.stale) upd = 'Dernières données disponibles — ' + upd + ' (cache)';
+        setEl('weather-updated', upd + ' — Source : Open-Meteo');
+        if (data.stale) showError('Service météo momentanément indisponible : données précédentes affichées.');
 
-        var fc = document.getElementById('weather-forecast');
-        if (fc) fc.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:0.8rem;text-align:center;padding:8px;">Chargement des prévisions...</div>';
-        var al = document.getElementById('weather-alerts');
-        if (al) al.innerHTML = '';
+        renderHourly(data.hourly || []);
+        renderDaily(data.daily || []);
+        renderRisks(data.risks || []);
+        hideErrorIfFresh(data);
     }
 
-    function renderForecast(forecast) {
-        var fc = document.getElementById('weather-forecast');
-        if (!fc || !forecast || !forecast.length) return;
+    function hideErrorIfFresh(data) { if (!data.stale) hideError(); }
 
-        fc.innerHTML = forecast.map(function(day) {
-            return '<div class="weather-forecast-card">' +
-                '<div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.9);text-transform:capitalize;">' + day.day_label + '</div>' +
-                '<img src="https://openweathermap.org/img/wn/' + day.icon + '@2x.png" alt="' + day.description + '" style="width:48px;height:48px;margin:4px auto;display:block;">' +
-                '<div style="font-size:0.75rem;color:rgba(255,255,255,0.6);text-transform:capitalize;margin-bottom:6px;">' + day.description + '</div>' +
-                '<div style="font-size:1.1rem;font-weight:800;color:white;">' + day.temp_max + '°<span style="font-size:0.85rem;font-weight:400;color:rgba(255,255,255,0.5);margin-left:4px;">' + day.temp_min + '°</span></div>' +
-                (day.rain_prob > 0 ? '<div style="font-size:0.72rem;color:#93c5fd;margin-top:4px;">💧 ' + day.rain_prob + '%</div>' : '') +
-                '<div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:4px;">💨 ' + day.wind + ' km/h</div>' +
-                '</div>';
+    function renderHourly(hours) {
+        var box = $('weather-hourly');
+        if (!box) return;
+        if (!hours.length) { box.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:.8rem;">Prévisions horaires indisponibles.</div>'; return; }
+        box.innerHTML = hours.map(function(h) {
+            return '<div class="wx-hour" title="' + esc(h.desc) + '">' +
+                '<div class="h">' + esc(h.hour) + '</div>' +
+                '<i class="fas ' + esc(h.fa || 'fa-cloud') + '"></i>' +
+                '<div class="t">' + (h.temp !== null ? h.temp + '°' : '--') + '</div>' +
+                (h.rain > 0 ? '<div class="r"><i class="fas fa-droplet"></i> ' + h.rain + ' %</div>' : '') +
+            '</div>';
         }).join('');
     }
 
-    // Mapping WMO → description FR + icône OpenWeather
-    function wmoMap(code, isDay) {
-        var map = {
-            0: ['Ciel dégagé', '01'], 1: ['Principalement dégagé', '02'],
-            2: ['Partiellement nuageux', '03'], 3: ['Couvert', '04'],
-            45: ['Brouillard', '50'], 48: ['Brouillard givrant', '50'],
-            51: ['Bruine légère', '09'], 53: ['Bruine modérée', '09'], 55: ['Bruine dense', '09'],
-            61: ['Pluie légère', '10'], 63: ['Pluie modérée', '10'], 65: ['Pluie forte', '10'],
-            71: ['Neige légère', '13'], 73: ['Neige modérée', '13'], 75: ['Neige forte', '13'],
-            80: ['Averses légères', '09'], 81: ['Averses modérées', '09'], 82: ['Averses violentes', '09'],
-            95: ['Orage', '11'], 96: ['Orage avec grêle', '11'], 99: ['Orage avec grêle forte', '11']
-        };
-        var info = map[code] || ['Conditions inconnues', '03'];
-        var suffix = isDay ? 'd' : 'n';
-        if (['01','02','03','04'].indexOf(info[1]) !== -1) suffix = 'd';
-        return { description: info[0], icon: info[1] + suffix };
+    function renderDaily(days) {
+        var fc = $('weather-forecast');
+        if (!fc) return;
+        if (!days.length) { fc.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:.8rem;">Prévisions indisponibles.</div>'; return; }
+        fc.innerHTML = days.map(function(day) {
+            return '<div class="weather-forecast-card">' +
+                '<div style="font-size:0.8rem;font-weight:700;color:rgba(255,255,255,0.9);text-transform:capitalize;">' + esc(day.day_label) + '</div>' +
+                '<i class="fas ' + esc(day.fa || 'fa-cloud') + '" style="font-size:1.6rem;color:#93c5fd;margin:8px 0;display:block;"></i>' +
+                '<div style="font-size:0.75rem;color:rgba(255,255,255,0.6);text-transform:capitalize;margin-bottom:6px;">' + esc(day.desc) + '</div>' +
+                '<div style="font-size:1.1rem;font-weight:800;color:white;">' + (day.temp_max !== null ? day.temp_max + '°' : '--') +
+                    '<span style="font-size:0.85rem;font-weight:400;color:rgba(255,255,255,0.5);margin-left:4px;">' + (day.temp_min !== null ? day.temp_min + '°' : '') + '</span></div>' +
+                (day.rain_prob > 0 ? '<div style="font-size:0.72rem;color:#93c5fd;margin-top:4px;"><i class="fas fa-droplet"></i> ' + day.rain_prob + ' % · ' + day.rain_sum + ' mm</div>' : '') +
+                (day.wind !== null ? '<div style="font-size:0.72rem;color:rgba(255,255,255,0.4);margin-top:4px;"><i class="fas fa-wind"></i> ' + day.wind + ' km/h</div>' : '') +
+            '</div>';
+        }).join('');
     }
 
-    function fetchForecast(lat, lon) {
-        var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon
-            + '&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max'
-            + '&timezone=auto&wind_speed_unit=kmh&forecast_days=7';
-        fetch(url)
-            .then(function(r) { return r.ok ? r.json() : null; })
-            .then(function(data) {
-                if (!data || !data.daily) {
-                    var fc = document.getElementById('weather-forecast');
-                    if (fc) fc.innerHTML = '<div style="color:rgba(255,255,255,0.4);font-size:0.8rem;text-align:center;padding:8px;">Prévisions indisponibles</div>';
-                    return;
-                }
-                var days = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
-                var today = new Date().toISOString().split('T')[0];
-                var forecast = [];
-                for (var i = 0; i < data.daily.time.length; i++) {
-                    if (data.daily.time[i] === today) continue;
-                    var wmo = wmoMap(data.daily.weather_code[i], 1);
-                    var d = new Date(data.daily.time[i]);
-                    forecast.push({
-                        date: data.daily.time[i],
-                        day_label: days[d.getDay()],
-                        icon: wmo.icon,
-                        description: wmo.description,
-                        temp_max: Math.round(data.daily.temperature_2m_max[i]),
-                        temp_min: Math.round(data.daily.temperature_2m_min[i]),
-                        rain_prob: data.daily.precipitation_probability_max[i] || 0,
-                        wind: Math.round(data.daily.wind_speed_10m_max[i] || 0)
-                    });
-                }
-                renderForecast(forecast);
-            })
-            .catch(function() {
-                var fc = document.getElementById('weather-forecast');
-                if (fc) fc.innerHTML = '';
-            });
+    function renderRisks(risks) {
+        var al = $('weather-alerts');
+        if (!al) return;
+        if (!risks.length) { al.innerHTML = ''; return; }
+        al.innerHTML = '<div class="wx-section-title"><i class="fas fa-shield-halved"></i> Vigilance — risques possibles (sécurité alimentaire)</div>' +
+            risks.map(function(r) {
+                return '<div class="wx-risk ' + esc(r.level) + '">' +
+                    '<div class="rt"><i class="fas fa-triangle-exclamation"></i> ' + esc(r.title) + '</div>' +
+                    '<div>' + esc(r.desc) + '</div>' +
+                    '<div class="src">Indication calculée à partir des prévisions du modèle Open-Meteo — pas une alerte officielle. Référence officielle : ANACIM.</div>' +
+                '</div>';
+            }).join('');
     }
 
-    function fetchWeather(lat, lon) {
-        var url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat + '&longitude=' + lon
-            + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,pressure_msl,wind_speed_10m'
-            + '&timezone=auto&wind_speed_unit=kmh';
-        fetch(url)
-            .then(function(r) {
-                if (!r.ok) throw new Error('HTTP ' + r.status);
-                return r.json();
-            })
+    /* ---------- Réseau ---------- */
+
+    function fetchWithTimeout(url) {
+        return new Promise(function(resolve, reject) {
+            var done = false;
+            var t = setTimeout(function() { if (!done) { done = true; reject(new Error('timeout')); } }, FETCH_TIMEOUT);
+            fetch(url, { headers: { 'Accept': 'application/json' } })
+                .then(function(r) { if (done) return; done = true; clearTimeout(t);
+                    if (!r.ok) reject(new Error('HTTP ' + r.status)); else resolve(r.json()); })
+                .catch(function(e) { if (!done) { done = true; clearTimeout(t); reject(e); } });
+        });
+    }
+
+    function load() {
+        setLoading(true);
+        // Coordonnées arrondies à 2 décimales : la position précise du visiteur n'est ni envoyée ni stockée.
+        var url = API + '?lat=' + state.lat.toFixed(2) + '&lon=' + state.lon.toFixed(2);
+        fetchWithTimeout(url)
             .then(function(data) {
-                if (!data || !data.current) {
-                    showError('Service indisponible');
-                    return;
-                }
-                var cur = data.current;
-                var wmo = wmoMap(cur.weather_code, cur.is_day);
-                renderWeather({
-                    city: 'Dakar',
-                    country: 'SN',
-                    temp: Math.round(cur.temperature_2m),
-                    feels_like: Math.round(cur.apparent_temperature),
-                    humidity: cur.relative_humidity_2m,
-                    wind: Math.round(cur.wind_speed_10m),
-                    pressure: Math.round(cur.pressure_msl),
-                    visibility: null,
-                    description: wmo.description,
-                    icon: wmo.icon,
-                    updated_at: new Date().toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})
-                });
-                fetchForecast(lat, lon);
+                if (!data || !data.current) throw new Error('payload');
+                setLoading(false); hideError();
+                render(data);
+                try { localStorage.setItem(CACHE_KEY, JSON.stringify({ t: Date.now(), data: data })); } catch (e) {}
             })
             .catch(function(err) {
-                console.warn('Erreur météo:', err);
-                showError('Service indisponible');
+                setLoading(false);
+                var cached = null;
+                try { cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null'); } catch (e) {}
+                if (cached && cached.data && cached.data.current) {
+                    cached.data.stale = true;
+                    render(cached.data);
+                    var when = new Date(cached.t);
+                    showError('Connexion au service météo impossible. Affichage des données du ' +
+                        when.toLocaleDateString('fr-FR') + ' ' + when.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + ' (cache).');
+                } else {
+                    showError('Service météo temporairement indisponible. Vérifiez votre connexion puis réessayez.');
+                }
             });
     }
 
-    function init() {
-        showLoading();
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                function(pos) {
-                    fetchWeather(pos.coords.latitude, pos.coords.longitude);
-                },
-                function() {
-                    // Géolocalisation refusée ou échouée → Dakar par défaut
-                    fetchWeather(DAKAR_LAT, DAKAR_LON);
-                },
-                { timeout: 5000, maximumAge: 300000 }
-            );
-        } else {
-            fetchWeather(DAKAR_LAT, DAKAR_LON);
+    /* ---------- Position / recherche ---------- */
+
+    function useMyPosition() {
+        if (!navigator.geolocation) {
+            showHint('Votre navigateur ne prend pas en charge la géolocalisation. Météo de Dakar affichée.');
+            return;
         }
+        showHint('Détection de votre position…');
+        navigator.geolocation.getCurrentPosition(
+            function(pos) {
+                state = { lat: pos.coords.latitude, lon: pos.coords.longitude, label: 'Votre position', source: 'geo' };
+                showHint('');
+                load();
+            },
+            function(err) {
+                var msg = 'Position non détectée';
+                if (err && err.code === 1) msg = 'Géolocalisation refusée — météo de Dakar affichée. Choisissez une ville ou cliquez sur « Ma position ».';
+                else if (err) msg = 'Position indéterminée — météo de Dakar affichée.';
+                showHint(msg);
+                if (state.source === 'geo') { state = { lat: DAKAR.lat, lon: DAKAR.lon, label: 'Dakar', source: 'default' }; load(); }
+            },
+            { timeout: 8000, maximumAge: 600000, enableHighAccuracy: false }
+        );
     }
 
-    // Lancer au chargement
-    init();
+    function selectCity(name, lat, lon, admin) {
+        state = { lat: lat, lon: lon, label: name, source: 'manual' };
+        var inp = $('wx-search'); if (inp) inp.value = '';
+        showHint('');
+        load();
+    }
 
-    // Rafraîchissement automatique toutes les 10 minutes
-    refreshInterval = setInterval(function() {
-        fetchWeather(DAKAR_LAT, DAKAR_LON);
-    }, 600000);
+    function initSearch() {
+        var inp = $('wx-search');
+        if (!inp) return;
+        inp.addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            var q = inp.value.trim();
+            if (q.length < 2) return;
+            searchTimer = setTimeout(function() {
+                fetch('/api/weather/search?q=' + encodeURIComponent(q), { headers: { 'Accept': 'application/json' } })
+                    .then(function(r) { return r.ok ? r.json() : { results: [] }; })
+                    .then(function(res) {
+                        var list = $('wx-cities'); if (!list) return;
+                        list.innerHTML = '';
+                        (res.results || []).forEach(function(g) {
+                            var o = document.createElement('option');
+                            o.value = g.name + (g.admin ? ' (' + g.admin + ')' : '');
+                            o.setAttribute('data-lat', g.lat);
+                            o.setAttribute('data-lon', g.lon);
+                            o.setAttribute('data-name', g.name);
+                            list.appendChild(o);
+                        });
+                    }).catch(function() {});
+            }, 250);
+        });
+        inp.addEventListener('change', function() {
+            var val = inp.value.trim();
+            var list = $('wx-cities');
+            if (!list) return;
+            var opts = list.querySelectorAll('option');
+            for (var i = 0; i < opts.length; i++) {
+                if (opts[i].value === val || opts[i].getAttribute('data-name') === val.split(' (')[0]) {
+                    selectCity(opts[i].getAttribute('data-name'), parseFloat(opts[i].getAttribute('data-lat')), parseFloat(opts[i].getAttribute('data-lon')));
+                    return;
+                }
+            }
+        });
+        // Pré-remplir le datalist avec les principales villes pour un choix sans frappe réseau.
+        fetch('/api/weather/cities', { headers: { 'Accept': 'application/json' } })
+            .then(function(r) { return r.ok ? r.json() : { cities: [] }; })
+            .then(function(res) {
+                var list = $('wx-cities'); if (!list) return;
+                (res.cities || []).forEach(function(c) {
+                    var o = document.createElement('option');
+                    o.value = c.name; o.setAttribute('data-lat', c.lat); o.setAttribute('data-lon', c.lon); o.setAttribute('data-name', c.name);
+                    list.appendChild(o);
+                });
+            }).catch(function() {});
+    }
+
+    /* ---------- Init ---------- */
+
+    function init() {
+        var btnGeo = $('wx-geolocate');
+        if (btnGeo) btnGeo.addEventListener('click', useMyPosition);
+        var btnRef = $('wx-refresh');
+        if (btnRef) btnRef.addEventListener('click', function() { load(); });
+        var btnRetry = $('wx-retry');
+        if (btnRetry) btnRetry.addEventListener('click', function() { hideError(); load(); });
+        initSearch();
+
+        // Dernière donnée valide affichée immédiatement pendant le chargement.
+        try {
+            var cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+            if (cached && cached.data && cached.data.current) {
+                cached.data.stale = true;
+                render(cached.data);
+            }
+        } catch (e) {}
+
+        // Géolocalisation automatique au premier affichage (consentement navigateur requis).
+        if (navigator.geolocation && !geoAsked) {
+            geoAsked = true;
+            useMyPosition();
+        }
+        load();
+
+        refreshTimer = setInterval(load, REFRESH_MS);
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) load();
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 })();
 </script>
 @endsection
