@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/stock_movement.dart';
 import '../services/api_service.dart';
 import '../services/database_service.dart';
@@ -57,6 +58,8 @@ class _SyncScreenState extends State<SyncScreen> {
         for (final m in _pending) {
           if (m.id != null) await DatabaseService.markSynced(m.id!);
         }
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('last_sync_at', DateTime.now().toIso8601String());
         setState(() {
           _status = '${result['data']?['synced'] ?? movements.length} mouvements synchronisés';
         });

@@ -17,6 +17,8 @@ class StockMovement {
   final String movementType;
   final String status;
   final String? creatorName;
+  final String? createdAt;
+  final double? inventoryDiff;
   final bool isSynced;
 
   StockMovement({
@@ -36,6 +38,8 @@ class StockMovement {
     required this.movementType,
     this.status = 'draft',
     this.creatorName,
+    this.createdAt,
+    this.inventoryDiff,
     this.isSynced = false,
   });
 
@@ -61,6 +65,10 @@ class StockMovement {
       movementType: json['type'] ?? 'entry',
       status: json['status'] ?? 'synced',
       creatorName: json['creator']?['name'],
+      createdAt: json['created_at']?.toString(),
+      inventoryDiff: meta['difference_sacs'] != null
+          ? (meta['difference_sacs'] as num).toDouble()
+          : null,
       isSynced: true,
     );
   }

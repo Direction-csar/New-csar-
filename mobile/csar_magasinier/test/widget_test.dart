@@ -1,30 +1,20 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+// Tests de base de l'application CSAR Magasinier.
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:csar_magasinier/main.dart';
+import 'package:csar_warehouse_keeper/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App démarre sans erreur (loader ou écran de connexion)',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const CsarWarehouseApp());
+    await tester.pump(const Duration(seconds: 1));
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // Au premier lancement : soit le loader (vérif token en cours),
+    // soit l'écran de connexion. Dans les deux cas l'app ne plante pas.
+    final hasLoader =
+        find.byType(CircularProgressIndicator).evaluate().isNotEmpty;
+    final hasLogin =
+        find.byType(TextFormField).evaluate().isNotEmpty;
+    expect(hasLoader || hasLogin, isTrue);
   });
 }
