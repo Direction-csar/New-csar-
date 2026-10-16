@@ -180,13 +180,13 @@
     }
 
     @keyframes fadeIn3D {
-        from { 
-            opacity: 0; 
-            transform: translateY(30px) rotateX(-10deg); 
+        from {
+            opacity: 0;
+            transform: translateY(30px) rotateX(-10deg);
         }
-        to { 
-            opacity: 1; 
-            transform: translateY(0) rotateX(0deg); 
+        to {
+            opacity: 1;
+            transform: translateY(0) rotateX(0deg);
         }
     }
 
@@ -270,42 +270,63 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="name" class="form-label">Nom complet <span class="required">*</span></label>
-                            <input type="text" class="form-control form-control-3d" id="name" name="prenoms_nom" 
+                            <input type="text" class="form-control form-control-3d" id="name" name="prenoms_nom"
                                    value="{{ $personnel->prenoms_nom }}" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="email" class="form-label">Email <span class="required">*</span></label>
-                            <input type="email" class="form-control form-control-3d" id="email" name="email" 
+                            <input type="email" class="form-control form-control-3d" id="email" name="email"
                                    value="{{ $personnel->email }}" required>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="phone" class="form-label">Téléphone</label>
-                            <input type="tel" class="form-control form-control-3d" id="phone" name="contact_telephonique" 
+                            <input type="tel" class="form-control form-control-3d" id="phone" name="contact_telephonique"
                                    value="{{ $personnel->contact_telephonique }}">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="role" class="form-label">Poste actuel <span class="required">*</span></label>
-                            <input type="text" class="form-control form-control-3d" id="role" name="poste_actuel" 
+                            <input type="text" class="form-control form-control-3d" id="role" name="poste_actuel"
                                    value="{{ $personnel->poste_actuel }}" required>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="department" class="form-label">Direction/Service</label>
-                            <input type="text" class="form-control form-control-3d" id="department" name="direction_service" 
+                            <input type="text" class="form-control form-control-3d" id="department" name="direction_service"
                                    value="{{ $personnel->direction_service }}">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="status" class="form-label">Statut</label>
-                            <input type="text" class="form-control form-control-3d" id="status" name="statut" 
+                            <input type="text" class="form-control form-control-3d" id="status" name="statut"
                                    value="{{ $personnel->statut }}">
                         </div>
                     </div>
-                    
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="type_contrat" class="form-label">Type de contrat</label>
+                            <select class="form-control form-control-3d" id="type_contrat" name="type_contrat">
+                                <option value="">—</option>
+                                <option value="CDI" {{ $personnel->type_contrat === 'CDI' ? 'selected' : '' }}>CDI</option>
+                                <option value="CDD" {{ $personnel->type_contrat === 'CDD' ? 'selected' : '' }}>CDD</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="date_debut_contrat" class="form-label">Début du contrat</label>
+                            <input type="date" class="form-control form-control-3d" id="date_debut_contrat" name="date_debut_contrat"
+                                   value="{{ optional($personnel->date_debut_contrat)->format('Y-m-d') }}">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="date_fin_contrat" class="form-label">Fin du contrat <small class="text-muted">(CDD / stage)</small></label>
+                            <input type="date" class="form-control form-control-3d" id="date_fin_contrat" name="date_fin_contrat"
+                                   value="{{ optional($personnel->date_fin_contrat)->format('Y-m-d') }}">
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <label for="address" class="form-label">Adresse</label>
                         <textarea class="form-control form-control-3d" id="address" name="adresse_complete" rows="3">{{ $personnel->adresse_complete }}</textarea>
@@ -315,12 +336,12 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Date de création</label>
-                            <input type="text" class="form-control form-control-3d" 
+                            <input type="text" class="form-control form-control-3d"
                                    value="{{ $personnel->created_at->format('d/m/Y à H:i') }}" readonly>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Dernière modification</label>
-                            <input type="text" class="form-control form-control-3d" 
+                            <input type="text" class="form-control form-control-3d"
                                    value="{{ $personnel->updated_at->format('d/m/Y à H:i') }}" readonly>
                         </div>
                     </div>
@@ -362,11 +383,11 @@ function updatePersonnel() {
     const formData = new FormData(document.getElementById('editPersonnelForm'));
     const submitBtn = document.querySelector('#editPersonnelForm button[type="submit"]');
     const originalText = submitBtn.innerHTML;
-    
+
     // Afficher le loading
     submitBtn.innerHTML = '<span class="loading-spinner-3d me-2"></span>Enregistrement...';
     submitBtn.disabled = true;
-    
+
     fetch('{{ route("admin.personnel.update", $personnel->id) }}', {
         method: 'POST',
         body: formData,
@@ -466,7 +487,7 @@ function showToast(message, type = 'info') {
                    type === 'error' ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)' :
                    type === 'warning' ? 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' :
                    'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
-    
+
     toast.style.cssText = `
         position: fixed;
         top: 20px;
@@ -481,15 +502,15 @@ function showToast(message, type = 'info') {
         font-weight: 500;
         animation: slideIn 0.3s ease;
     `;
-    
+
     toast.innerHTML = `
         <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
         ${message}
         <button type="button" class="btn-close btn-close-white ms-3" onclick="this.parentElement.remove()"></button>
     `;
-    
+
     document.body.appendChild(toast);
-    
+
     setTimeout(() => {
         if (toast.parentElement) {
             toast.style.animation = 'slideOut 0.3s ease';

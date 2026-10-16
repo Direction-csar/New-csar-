@@ -1210,6 +1210,15 @@ Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access', 'enfor
     Route::get('/',          [\App\Http\Controllers\Drh\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/dashboard', [\App\Http\Controllers\Drh\DashboardController::class, 'index'])->name('dashboard.alt');
 
+    // 🔎 Consultation détaillée des indicateurs RH
+    Route::prefix('analyse')->name('analytics.')->group(function () {
+        Route::get('/departement/{nom}', [\App\Http\Controllers\Drh\AnalyticsController::class, 'departement'])->where('nom', '.*')->name('departement');
+        Route::get('/service/{nom}',     [\App\Http\Controllers\Drh\AnalyticsController::class, 'service'])->where('nom', '.*')->name('service');
+        Route::get('/{metric}',          [\App\Http\Controllers\Drh\AnalyticsController::class, 'show'])->name('show');
+        Route::get('/{metric}/export',   [\App\Http\Controllers\Drh\AnalyticsController::class, 'exportCsv'])->name('export');
+        Route::get('/{metric}/print',    [\App\Http\Controllers\Drh\AnalyticsController::class, 'print'])->name('print');
+    });
+
     // 👥 Gestion du Personnel (CRUD complet)
     Route::resource('personnel', \App\Http\Controllers\Admin\PersonnelController::class);
     Route::post('/personnel/{id}/toggle-status', [\App\Http\Controllers\Admin\PersonnelController::class, 'toggleStatus'])->name('personnel.toggle-status');

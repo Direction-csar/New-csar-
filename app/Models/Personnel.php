@@ -41,6 +41,8 @@ class Personnel extends Model
         'date_delivrance_id',
         'nombre_epouses',
         'type_contrat',
+        'date_debut_contrat',
+        'date_fin_contrat',
         'direction_service',
         'localisation_region',
         'dernier_poste_avant_csar',
@@ -68,6 +70,8 @@ class Personnel extends Model
         'date_naissance' => 'date',
         'date_recrutement_csar' => 'date',
         'date_prise_service_csar' => 'date',
+        'date_debut_contrat' => 'date',
+        'date_fin_contrat' => 'date',
         'date_validation' => 'datetime',
         'logiciels_maitrises' => 'array',
         'langues_parlees' => 'array',
@@ -118,12 +122,12 @@ class Personnel extends Model
     // Accesseurs
     public function getAgeAttribute()
     {
-        return $this->date_naissance->age;
+        return $this->date_naissance?->age;
     }
 
     public function getAncienneteAttribute()
     {
-        return $this->date_recrutement_csar->diffInYears(now());
+        return $this->date_recrutement_csar?->diffInYears(now());
     }
 
     public function getPhotoUrlAttribute(): string

@@ -55,7 +55,21 @@
     .info-list-item:last-child { border-bottom: none; }
     .no-data { color: #9ca3af; font-style: italic; font-size: 0.85rem; text-align: center; padding: 20px 0; }
 
-    .filter-badge { display: inline-block; background: #f3f4f6; color: #374151; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; margin: 2px; }
+    .filter-badge { display: inline-block; background: #f3f4f6; color: #374151; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; margin: 2px; text-decoration: none; transition: background .15s, color .15s; }
+    a.filter-badge:hover { background: #5a9e3d; color: #fff; }
+    .filter-badge b { color: #5a9e3d; font-weight: 700; margin-left: 4px; }
+    a.filter-badge:hover b { color: #fff; }
+
+    a.info-card, .info-card.clickable { display: block; color: inherit; text-decoration: none; cursor: pointer; transition: transform .15s, box-shadow .15s, border-color .15s; position: relative; }
+    a.info-card:hover, .info-card.clickable:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.10); border-color: #7cb342; color: inherit; }
+    .info-card .card-cta { position: absolute; right: 12px; top: 12px; font-size: .7rem; color: #5a9e3d; font-weight: 700; opacity: 0; transition: opacity .15s; }
+    a.info-card:hover .card-cta, .info-card.clickable:hover .card-cta { opacity: 1; }
+    .chart-hint { font-size: .68rem; color: #9ca3af; text-align: center; margin-top: 4px; }
+    .stat-card.clickable { display: block; color: inherit; text-decoration: none; transition: transform .15s, box-shadow .15s; }
+    .stat-card.clickable:hover { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(0,0,0,0.10); color: inherit; }
+    .kpi-genre a { color: inherit; text-decoration: none; }
+    .genre-box:hover { filter: brightness(1.15); }
+    .mini-split { display: flex; justify-content: center; gap: 14px; font-size: .75rem; color: #64748b; margin-top: 6px; }
 </style>
 @endsection
 
@@ -88,9 +102,12 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
         <div class="kpi-genre h-100 d-flex flex-column justify-content-center">
             <h6><i class="fas fa-venus-mars me-1"></i> Genre</h6>
             <div>
-                <span class="genre-box genre-f" title="Femmes">F<br><small style="font-size:0.65rem">{{ $stats['femmes'] }}</small></span>
-                <span class="genre-box genre-m" title="Hommes">M<br><small style="font-size:0.65rem">{{ $stats['hommes'] }}</small></span>
+                <a href="{{ route('admin.drh.analytics.show', 'genre') }}?sexe=F%C3%A9minin" class="genre-box genre-f" title="Voir les femmes">F<br><small style="font-size:0.65rem">{{ $stats['femmes'] }}</small></a>
+                <a href="{{ route('admin.drh.analytics.show', 'genre') }}?sexe=Masculin" class="genre-box genre-m" title="Voir les hommes">M<br><small style="font-size:0.65rem">{{ $stats['hommes'] }}</small></a>
             </div>
+            @if(($genres['nr'] ?? 0) > 0)
+                <a href="{{ route('admin.drh.analytics.show', 'genre') }}?sexe=nr" class="d-block mt-1" style="font-size:.65rem;opacity:.85">{{ $genres['nr'] }} non renseigné(s)</a>
+            @endif
         </div>
     </div>
     <div class="col-lg-7">
@@ -108,14 +125,14 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
 {{-- Row 2 : Effectif + CDI/CDD/INTÉRIM --}}
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-6">
-        <div class="stat-card h-100">
+        <a href="{{ route('admin.drh.analytics.show', 'genre') }}" class="stat-card clickable h-100" title="Voir tous les agents">
             <div class="stat-icon purple"><i class="fas fa-users"></i></div>
             <div class="stat-number">{{ $stats['effectif'] }}</div>
             <div class="stat-label">Nombre d'employés</div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-6">
-        <div class="stat-card h-100">
+        <a href="{{ route('admin.drh.analytics.show', 'genre') }}?type_contrat=CDI" class="stat-card clickable h-100" title="Voir les agents en CDI">
             <div class="donut-wrap">
                 <svg viewBox="0 0 36 36" width="90" height="90">
                     @php $pctCDI = $stats['effectif'] > 0 ? round($stats['cdi']/$stats['effectif']*100) : 0; @endphp
@@ -126,10 +143,10 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
             </div>
             <div class="stat-label mt-2">Total <strong style="color:#ec407a">CDI</strong></div>
             <div class="text-muted small">{{ $stats['cdi'] }} agent(s)</div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-6">
-        <div class="stat-card h-100">
+        <a href="{{ route('admin.drh.analytics.show', 'genre') }}?type_contrat=CDD" class="stat-card clickable h-100" title="Voir les agents en CDD">
             <div class="donut-wrap">
                 <svg viewBox="0 0 36 36" width="90" height="90">
                     @php $pctCDD = $stats['effectif'] > 0 ? round($stats['cdd']/$stats['effectif']*100) : 0; @endphp
@@ -140,10 +157,10 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
             </div>
             <div class="stat-label mt-2">Total <strong style="color:#ff7043">CDD</strong></div>
             <div class="text-muted small">{{ $stats['cdd'] }} agent(s)</div>
-        </div>
+        </a>
     </div>
     <div class="col-md-3 col-6">
-        <div class="stat-card h-100">
+        <a href="{{ route('admin.drh.analytics.show', 'genre') }}?type_contrat=Stage" class="stat-card clickable h-100" title="Voir les stagiaires">
             <div class="donut-wrap">
                 <svg viewBox="0 0 36 36" width="90" height="90">
                     @php $pctInt = $stats['effectif'] > 0 ? round($stats['interim']/$stats['effectif']*100) : 0; @endphp
@@ -152,9 +169,9 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
                 </svg>
                 <div class="donut-text">{{ $pctInt }}%</div>
             </div>
-            <div class="stat-label mt-2">Total <strong style="color:#ffa726">INTÉRIM</strong></div>
+            <div class="stat-label mt-2">Total <strong style="color:#ffa726">STAGIAIRES</strong></div>
             <div class="text-muted small">{{ $stats['interim'] }} agent(s)</div>
-        </div>
+        </a>
     </div>
 </div>
 
@@ -177,9 +194,9 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
 <div class="row g-3 mb-4">
     <div class="col-md-6">
         <div class="info-card">
-            <div class="info-card-header"><i class="fas fa-building"></i> Départements</div>
+            <div class="info-card-header"><i class="fas fa-building"></i> Départements <small class="text-muted">cliquez pour le détail</small></div>
             @forelse($departments as $dept)
-                <span class="filter-badge">{{ $dept }}</span>
+                <a href="{{ route('admin.drh.analytics.departement', $dept->nom) }}" class="filter-badge" title="Voir le détail du département">{{ $dept->nom }}<b>{{ $dept->c }}</b></a>
             @empty
                 <div class="no-data">Aucun département renseigné</div>
             @endforelse
@@ -187,9 +204,9 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
     </div>
     <div class="col-md-6">
         <div class="info-card">
-            <div class="info-card-header"><i class="fas fa-briefcase"></i> Services</div>
+            <div class="info-card-header"><i class="fas fa-briefcase"></i> Services <small class="text-muted">postes / fonctions — cliquez pour le détail</small></div>
             @forelse($services as $svc)
-                <span class="filter-badge">{{ $svc }}</span>
+                <a href="{{ route('admin.drh.analytics.service', $svc->nom) }}" class="filter-badge" title="Voir le détail">{{ $svc->nom }}<b>{{ $svc->c }}</b></a>
             @empty
                 <div class="no-data">Aucun service renseigné</div>
             @endforelse
@@ -201,7 +218,8 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
 <div class="row g-3 mb-4">
     {{-- Fins de contrats --}}
     <div class="col-lg-3 col-md-6">
-        <div class="info-card">
+        <a href="{{ route('admin.drh.analytics.show', 'fins-contrats') }}" class="info-card" title="Voir les contrats arrivant à échéance">
+            <span class="card-cta">Détail <i class="fas fa-arrow-right"></i></span>
             <div class="info-card-header"><i class="fas fa-star"></i> Fins de contrats <small class="text-muted">90 jours</small></div>
             @if($stats['fins_contrats'] > 0)
                 <div class="text-center py-3">
@@ -209,44 +227,47 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
                     <div class="text-muted small">contrat(s) se terminant bientôt</div>
                 </div>
             @else
-                <div class="no-data">Aucune fin de contrat proche</div>
+                <div class="no-data">Aucune fin de contrat renseignée dans les 90 jours</div>
             @endif
-        </div>
+        </a>
     </div>
 
-    {{-- Solde congé --}}
+    {{-- Congés --}}
     <div class="col-lg-3 col-md-6">
-        <div class="info-card">
-            <div class="info-card-header"><i class="fas fa-star"></i> Solde congé <small class="text-muted">en jours</small></div>
-            <div class="text-center py-2">
-                <div class="donut-wrap" style="width:70px;height:70px">
-                    <svg viewBox="0 0 36 36" width="70" height="70">
-                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e5e7eb" stroke-width="3"/>
-                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#3b82f6" stroke-width="3" stroke-dasharray="0,100"/>
-                    </svg>
-                    <div class="donut-text" style="font-size:0.9rem">0</div>
+        <a href="{{ route('admin.drh.analytics.show', 'conges') }}" class="info-card" title="Voir le détail des congés enregistrés">
+            <span class="card-cta">Détail <i class="fas fa-arrow-right"></i></span>
+            <div class="info-card-header"><i class="fas fa-star"></i> Congés <small class="text-muted">jours enregistrés {{ date('Y') }}</small></div>
+            @if($conges['agents'] > 0)
+                <div class="text-center py-2">
+                    <div class="stat-number" style="font-size:1.8rem">{{ $conges['jours'] }}</div>
+                    <div class="text-muted small">jour(s) pris · {{ $conges['agents'] }} agent(s)</div>
+                    <div class="mini-split"><span>Source : décisions de congé</span></div>
                 </div>
-            </div>
-        </div>
+            @else
+                <div class="no-data">Aucune décision de congé enregistrée en {{ date('Y') }}</div>
+            @endif
+        </a>
     </div>
 
     {{-- Employés par genre --}}
     <div class="col-lg-3 col-md-6">
-        <div class="info-card">
+        <div class="info-card clickable" id="cardGenre">
             <div class="info-card-header"><i class="fas fa-star"></i> Employés par genre <small class="text-muted">effectif total</small></div>
             <div style="height:120px">
                 <canvas id="chartGenre"></canvas>
             </div>
+            <div class="chart-hint">Cliquez sur une barre pour la liste</div>
         </div>
     </div>
 
     {{-- Tranche d'âge --}}
     <div class="col-lg-3 col-md-6">
-        <div class="info-card">
+        <div class="info-card clickable">
             <div class="info-card-header"><i class="fas fa-star"></i> Tranche d'âge <small class="text-muted">par genre</small></div>
             <div style="height:120px">
                 <canvas id="chartAge"></canvas>
             </div>
+            <div class="chart-hint">Cliquez sur une barre pour la liste</div>
         </div>
     </div>
 </div>
@@ -254,50 +275,54 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
 <div class="row g-3 mb-4">
     {{-- AT par département --}}
     <div class="col-lg-3 col-md-6">
-        <div class="info-card">
-            <div class="info-card-header"><i class="fas fa-star"></i> AT par département <small class="text-muted">en jours</small></div>
-            <div class="no-data">Donnée indisponible</div>
-        </div>
+        <a href="{{ route('admin.drh.analytics.show', 'accidents-travail') }}" class="info-card" title="Accidents de travail">
+            <span class="card-cta">Détail <i class="fas fa-arrow-right"></i></span>
+            <div class="info-card-header"><i class="fas fa-star"></i> AT par département <small class="text-muted">accidents de travail — jours</small></div>
+            <div class="no-data">Aucune donnée disponible</div>
+        </a>
     </div>
 
-    {{-- Solde récupération --}}
+    {{-- Récupération --}}
     <div class="col-lg-3 col-md-6">
-        <div class="info-card">
-            <div class="info-card-header"><i class="fas fa-star"></i> Solde récupération <small class="text-muted">en jours</small></div>
-            <div class="text-center py-2">
-                <div class="donut-wrap" style="width:70px;height:70px">
-                    <svg viewBox="0 0 36 36" width="70" height="70">
-                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#e5e7eb" stroke-width="3"/>
-                        <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#3b82f6" stroke-width="3" stroke-dasharray="0,100"/>
-                    </svg>
-                    <div class="donut-text" style="font-size:0.9rem">0</div>
+        <a href="{{ route('admin.drh.analytics.show', 'recuperation') }}" class="info-card" title="Voir le détail des récupérations">
+            <span class="card-cta">Détail <i class="fas fa-arrow-right"></i></span>
+            <div class="info-card-header"><i class="fas fa-star"></i> Récupération <small class="text-muted">jours enregistrés {{ date('Y') }}</small></div>
+            @if($recup['agents'] > 0)
+                <div class="text-center py-2">
+                    <div class="stat-number" style="font-size:1.8rem">{{ $recup['jours'] }}</div>
+                    <div class="text-muted small">jour(s) · {{ $recup['agents'] }} agent(s)</div>
+                    <div class="mini-split"><span>Source : demandes de récupération</span></div>
                 </div>
-            </div>
-        </div>
+            @else
+                <div class="no-data">Aucune demande de récupération enregistrée en {{ date('Y') }}</div>
+            @endif
+        </a>
     </div>
 
     {{-- Retraités à venir --}}
     <div class="col-lg-3 col-md-6">
-        <div class="info-card">
+        <a href="{{ route('admin.drh.analytics.show', 'retraites') }}" class="info-card" title="Voir les agents proches de l'âge légal">
+            <span class="card-cta">Détail <i class="fas fa-arrow-right"></i></span>
             <div class="info-card-header"><i class="fas fa-star"></i> Retraités à venir <small class="text-muted">âge légal : 60 ans</small></div>
             @if($stats['retraites'] > 0)
                 <div class="text-center py-3">
                     <div class="stat-number" style="font-size:1.8rem">{{ $stats['retraites'] }}</div>
-                    <div class="text-muted small">agent(s) proche(s) du départ</div>
+                    <div class="text-muted small">agent(s) atteignant 60 ans dans les 24 mois</div>
                 </div>
             @else
-                <div class="no-data">Aucun départ proche</div>
+                <div class="no-data">Aucun agent n'atteint 60 ans dans les 24 mois</div>
             @endif
-        </div>
+        </a>
     </div>
 
     {{-- Ancienneté --}}
     <div class="col-lg-3 col-md-6">
-        <div class="info-card">
+        <div class="info-card clickable">
             <div class="info-card-header"><i class="fas fa-star"></i> Ancienneté <small class="text-muted">par genre</small></div>
             <div style="height:120px">
                 <canvas id="chartAnciennete"></canvas>
             </div>
+            <div class="chart-hint">Cliquez sur une barre pour la liste</div>
         </div>
     </div>
 </div>
@@ -310,49 +335,84 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
     Chart.defaults.font.family = "'Segoe UI', sans-serif";
     Chart.defaults.font.size = 10;
 
-    // Genre
+    const ANALYTICS_URL = @json(route('admin.drh.analytics.show', '__METRIC__'));
+    const GENDER_KEYS   = ['Féminin', 'Masculin', 'nr'];
+    const GENDER_LABELS = ['Femmes', 'Hommes', 'Non renseigné'];
+    const GENDER_COLORS = ['#ec407a', '#0d9488', '#cbd5e1'];
+
+    function goTo(metric, params) {
+        const url = new URL(ANALYTICS_URL.replace('__METRIC__', metric), window.location.origin);
+        Object.entries(params).forEach(([k, v]) => { if (v) url.searchParams.set(k, v); });
+        window.location.href = url.toString();
+    }
+
+    // Construit des datasets empilés par genre à partir de [{label, Féminin, Masculin, nr}]
+    function genderDatasets(bands) {
+        const keys = Object.keys(bands);
+        return GENDER_KEYS.map((g, i) => ({
+            label: GENDER_LABELS[i],
+            data: keys.map(k => bands[k][g] || 0),
+            backgroundColor: GENDER_COLORS[i],
+            borderRadius: 3,
+            stack: 'genre',
+        })).filter(ds => ds.data.some(v => v > 0));
+    }
+
+    const stackedOpts = (onClick) => ({
+        maintainAspectRatio: false,
+        onClick,
+        onHover: (e, el) => { e.native.target.style.cursor = el.length ? 'pointer' : 'default'; },
+        plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 8, padding: 6 } }, tooltip: { callbacks: { footer: () => 'Cliquer pour la liste' } } },
+        scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } } },
+    });
+
+    // Genre (effectif total, incluant non renseigné)
+    const genres = @json($genres);
+    const genreKeys = GENDER_KEYS.filter(k => genres[k] > 0);
     new Chart(document.getElementById('chartGenre'), {
         type: 'bar',
         data: {
-            labels: ['Femme', 'Homme'],
+            labels: genreKeys.map(k => GENDER_LABELS[GENDER_KEYS.indexOf(k)]),
             datasets: [{
                 label: 'Effectif',
-                data: [{{ $stats['femmes'] }}, {{ $stats['hommes'] }}],
-                backgroundColor: ['#ec407a', '#0d9488'],
+                data: genreKeys.map(k => genres[k]),
+                backgroundColor: genreKeys.map(k => GENDER_COLORS[GENDER_KEYS.indexOf(k)]),
                 borderRadius: 4,
             }]
         },
-        options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } }, maintainAspectRatio: false }
+        options: {
+            indexAxis: 'y', maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { footer: () => 'Cliquer pour la liste' } } },
+            scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+            onHover: (e, el) => { e.native.target.style.cursor = el.length ? 'pointer' : 'default'; },
+            onClick: (e, el) => { if (el.length) goTo('genre', { sexe: genreKeys[el[0].index] }); },
+        }
     });
 
-    // Tranche d'âge
+    // Tranche d'âge par genre
+    const ageBands = @json($tranchesAge);
+    const ageKeys  = Object.keys(ageBands);
     new Chart(document.getElementById('chartAge'), {
         type: 'bar',
-        data: {
-            labels: {!! json_encode(array_keys($tranchesAge)) !!},
-            datasets: [{
-                label: 'Effectif',
-                data: {!! json_encode(array_values($tranchesAge)) !!},
-                backgroundColor: '#ec407a',
-                borderRadius: 4,
-            }]
-        },
-        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, maintainAspectRatio: false }
+        data: { labels: ageKeys.map(k => ageBands[k].label.replace(' ans', '')), datasets: genderDatasets(ageBands) },
+        options: stackedOpts((e, el, chart) => {
+            if (!el.length) return;
+            const g = GENDER_KEYS[GENDER_LABELS.indexOf(chart.data.datasets[el[0].datasetIndex].label)];
+            goTo('age', { tranche: ageKeys[el[0].index], sexe: g });
+        })
     });
 
-    // Ancienneté
+    // Ancienneté par genre
+    const senBands = @json($anciennete);
+    const senKeys  = Object.keys(senBands);
     new Chart(document.getElementById('chartAnciennete'), {
         type: 'bar',
-        data: {
-            labels: {!! json_encode(array_keys($anciennete)) !!},
-            datasets: [{
-                label: 'Agents',
-                data: {!! json_encode(array_values($anciennete)) !!},
-                backgroundColor: '#0d9488',
-                borderRadius: 4,
-            }]
-        },
-        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }, maintainAspectRatio: false }
+        data: { labels: senKeys.map(k => senBands[k].label.replace('De ', '').replace(' à moins de ', '–').replace(' ans', '')), datasets: genderDatasets(senBands) },
+        options: stackedOpts((e, el, chart) => {
+            if (!el.length) return;
+            const g = GENDER_KEYS[GENDER_LABELS.indexOf(chart.data.datasets[el[0].datasetIndex].label)];
+            goTo('anciennete', { tranche: senKeys[el[0].index], sexe: g });
+        })
     });
 </script>
 @endsection

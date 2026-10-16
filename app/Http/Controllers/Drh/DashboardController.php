@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Drh;
 
 use App\Http\Controllers\Controller;
 use App\Models\Personnel;
+use App\Services\Drh\HrAnalyticsService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
+    public function __construct(private readonly HrAnalyticsService $analytics)
+    {
+    }
+
     public function index()
     {
         $total      = Personnel::count();
@@ -31,16 +36,17 @@ class DashboardController extends Controller
         $contratCDD  = Personnel::where('type_contrat', 'CDD')->count();
         $contratInt  = Personnel::where('statut', 'Stagiaire')->count();
 
-        // Retraités à venir (âge >= 58)
-        $retraites = Personnel::whereNotNull('date_naissance')
-            ->whereRaw("TIMESTAMPDIFF(YEAR, date_naissance, CURDATE()) >= 58")
-            ->count();
+        // Retraités à venir : 60 ans atteints dans les 24 mois (même requête que la liste détaillée)
+        $retraites = $this->analytics->countRetraites();
 
-        // Fins de contrat dans les 90 jours (si date_fin existe)
-        $finsContrats = Personnel::whereNotNull('date_fin_contrat')
-            ->where('date_fin_contrat', '<=', now()->addDays(90))
-            ->where('date_fin_contrat', '>=', now())
-            ->count();
+        // Fins de contrat dans les 90 jours (date_fin_contrat renseignée uniquement)
+        $finsContrats = $this->analytics->countFinsContrats();
+
+        // Congés / récupération : jours enregistrés via Documents RH (année en cours)
+        $congesRows = $this->analytics->congesRows();
+        $recupRows  = $this->analytics->recuperationRows();
+        $conges = ['agents' => $congesRows->count(), 'jours' => (int) $congesRows->sum('jours')];
+        $recup  = ['agents' => $recupRows->count(),  'jours' => (int) $recupRows->sum('jours')];
 
         // Statistiques
         $stats = [
@@ -59,25 +65,14 @@ class DashboardController extends Controller
             'fins_contrats'   => $finsContrats,
         ];
 
-        // Tranche d'âge
-        $tranchesAge = Personnel::selectRaw('tranche_age, COUNT(*) as c')
-            ->whereNotNull('tranche_age')
-            ->groupBy('tranche_age')
-            ->pluck('c', 'tranche_age')
-            ->toArray();
+        // Tranche d'âge par genre (âge calculé depuis la date de naissance)
+        $tranchesAge = $this->analytics->ageByGender();
 
-        // Ancienneté (calcul par groupes)
-        $anciennete = ['0-2 ans' => 0, '3-5 ans' => 0, '6-10 ans' => 0, '11-15 ans' => 0, '15+ ans' => 0];
-        Personnel::whereNotNull('date_recrutement_csar')->chunk(200, function ($rows) use (&$anciennete) {
-            foreach ($rows as $p) {
-                $years = Carbon::parse($p->date_recrutement_csar)->diffInYears(now());
-                if ($years <= 2) $anciennete['0-2 ans']++;
-                elseif ($years <= 5) $anciennete['3-5 ans']++;
-                elseif ($years <= 10) $anciennete['6-10 ans']++;
-                elseif ($years <= 15) $anciennete['11-15 ans']++;
-                else $anciennete['15+ ans']++;
-            }
-        });
+        // Ancienneté par genre (calculée depuis la date de recrutement)
+        $anciennete = $this->analytics->seniorityByGender();
+
+        // Genre incluant les fiches sans sexe renseigné
+        $genres = $this->analytics->genderCounts();
 
         // Effectif par direction (top 10)
         $parDirection = Personnel::selectRaw('direction_service, COUNT(*) as c')
@@ -151,14 +146,12 @@ class DashboardController extends Controller
             ['label' => 'Bon de sortie',             'slug' => 'bon-sortie',             'icon' => 'fa-door-open'],
         ];
 
-        // Départements et services pour filtres
-        $departments = Personnel::whereNotNull('direction_service')
-            ->distinct()->pluck('direction_service')->filter()->values();
-        $services = Personnel::whereNotNull('poste_actuel')
-            ->distinct()->pluck('poste_actuel')->filter()->values();
+        // Départements et postes (avec effectifs) pour la navigation
+        $departments = $this->analytics->departements();
+        $services    = $this->analytics->services();
 
         return view('admin.drh.dashboard.index', compact(
-            'stats', 'tranchesAge', 'anciennete', 'parDirection',
+            'stats', 'tranchesAge', 'anciennete', 'genres', 'conges', 'recup', 'parDirection',
             'parPoste', 'parRegion', 'parStatut',
             'evolutionRecrutements', 'plusAnciens', 'plusRecents',
             'documentTypes', 'departments', 'services'
