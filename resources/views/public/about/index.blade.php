@@ -1998,8 +1998,11 @@
         <h2 class="text-center mb-2" style="font-size: 2.5rem; font-weight: 800; color: white;">
             {{ __('about.message_minister_title') }}
         </h2>
-        <p class="text-center mb-5" style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
+        <p class="text-center mb-1" style="color: rgba(255,255,255,0.9); font-size: 1.1rem;">
             {{ __('about.message_minister_subtitle') }}
+        </p>
+        <p class="text-center mb-5" style="color: rgba(255,255,255,0.55); font-size: 0.9rem; letter-spacing: 0.03em; text-transform: uppercase;">
+            {{ __('about.minister_ministry') }}
         </p>
 
         <div class="row align-items-center">
@@ -2012,6 +2015,12 @@
                     <p>{{ __('about.minister_para2') }}</p>
 
                     <p>{{ __('about.minister_para3') }}</p>
+
+                    <p>{{ __('about.minister_para4') }}</p>
+
+                    <p style="font-size: 0.8rem; color: var(--gray-600); font-style: italic; margin-top: -0.5rem;">
+                        {{ __('about.minister_disclaimer') }}
+                    </p>
 
                     <div class="message-quote" style="background: linear-gradient(135deg, var(--gray-800), var(--gray-600));">
                         "{{ __('about.minister_quote') }}"
@@ -2030,6 +2039,7 @@
                 </div>
                 <h4 class="message-name">{{ __('about.minister_name') }}</h4>
                 <p class="message-title">{{ __('about.minister_title') }}</p>
+                <p style="font-size: 0.82rem; color: var(--gray-600); margin-top: 0.25rem;">{{ __('about.minister_ministry') }}</p>
             </div>
         </div>
     </div>

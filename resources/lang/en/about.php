@@ -70,13 +70,16 @@ return [
 
     // Message Ministère
     'message_minister_title' => 'Message from the Minister',
-    'message_minister_subtitle' => 'The words of Mrs Marie Angélique Mame Selbé DIOUF, Minister of Family and Solidarity',
+    'message_minister_subtitle' => 'The words of Mrs Marie Angélique Mame Selbé DIOUF, Minister of Family, Social Action and Solidarity',
+    'minister_ministry' => 'Ministry of Family, Social Action and Solidarity',
     'minister_name' => 'Mrs Marie Angélique Mame Selbé DIOUF',
-    'minister_title' => 'Minister of Family and Solidarity',
-    'minister_para1' => 'Guaranteeing every citizen access to sufficient, quality food is a primary responsibility of the State and a pillar of national solidarity. The Commissariat for Food Security and Resilience (CSAR), under the supervision of the Ministry of Family and Solidarity, is at the heart of this republican mission.',
-    'minister_para2' => 'Faced with climatic hazards, market tensions and shocks that weaken households, preventing food crises and strengthening the resilience of populations is a priority. This requires permanent monitoring, available security stocks and rapid, targeted and effective interventions for the benefit of the most vulnerable.',
-    'minister_para3' => 'This ambition rests on transparency, good governance and the modernisation of the administration, as well as close coordination between CSAR, State services, local authorities and technical and financial partners. It is in this spirit of responsibility and accountability that the Ministry supports CSAR in fulfilling its missions in the service of the population.',
+    'minister_title' => 'Minister of Family, Social Action and Solidarity',
+    'minister_para1' => 'National solidarity is the foundation of our republican pact. Protecting families, supporting vulnerable people and guaranteeing every citizen access to sufficient, quality food are essential missions of the State. Food security is therefore a fully-fledged component of social protection: the Commissariat for Food Security and Resilience (CSAR), under the supervision of the Ministry of Family, Social Action and Solidarity, is its operational instrument in the service of the population.',
+    'minister_para2' => 'In the prevention and management of food crises, CSAR plays a central role: monitoring and early warning, building and managing the National Food Security Stock, emergency interventions and aid distribution. Our requirement is equitable, transparent and targeted assistance that reaches, as a priority, the most vulnerable households and communities in all regions of the country.',
+    'minister_para3' => 'Faced with economic and climatic shocks that weaken livelihoods, we are working to sustainably strengthen the resilience of communities. This ambition requires close coordination between the Ministry, CSAR, local authorities, technical State services and our national and international partners, in a spirit of complementarity and efficiency.',
+    'minister_para4' => 'This action also rests on the modernisation of our management tools, the rigorous monitoring of interventions in the field and permanent accountability in the use of public resources. Transparency and good governance remain the conditions of the trust that Senegalese people place in their institutions.',
     'minister_quote' => 'Together, for sustainable food security, in a just, sovereign and prosperous Senegal!',
     'minister_signature' => 'The Minister',
+    'minister_disclaimer' => 'Institutional message of the Ministry of Family, Social Action and Solidarity.',
     'minister_name_short' => 'Marie Angélique Mame Selbé DIOUF',
 ];

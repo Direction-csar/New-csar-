@@ -70,13 +70,16 @@ return [
 
     // Message Ministère
     'message_minister_title' => 'Mot de la Ministre',
-    'message_minister_subtitle' => 'Les mots de Madame Marie Angélique Mame Selbé DIOUF, Ministre de la Famille et des Solidarités',
+    'message_minister_subtitle' => 'Les mots de Madame Marie Angélique Mame Selbé DIOUF, Ministre de la Famille, de l\'Action sociale et des Solidarités',
+    'minister_ministry' => 'Ministère de la Famille, de l\'Action sociale et des Solidarités',
     'minister_name' => 'Madame Marie Angélique Mame Selbé DIOUF',
-    'minister_title' => 'Ministre de la Famille et des Solidarités',
-    'minister_para1' => 'Garantir à chaque citoyen l\'accès à une alimentation suffisante et de qualité est une responsabilité première de l\'État et un pilier de la solidarité nationale. Le Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR), placé sous la tutelle du Ministère de la Famille et des Solidarités, est au cœur de cette mission républicaine.',
-    'minister_para2' => 'Face aux aléas climatiques, aux tensions sur les marchés et aux chocs qui fragilisent les ménages, la prévention des crises alimentaires et le renforcement de la résilience des populations constituent une priorité. Cela exige une veille permanente, des stocks de sécurité disponibles et des interventions rapides, ciblées et efficaces au bénéfice des personnes les plus vulnérables.',
-    'minister_para3' => 'Cette ambition repose sur la transparence, la bonne gouvernance et la modernisation de l\'administration, ainsi que sur une coordination étroite entre le CSAR, les services de l\'État, les collectivités territoriales et les partenaires techniques et financiers. C\'est dans cet esprit de responsabilité et de redevabilité que le Ministère accompagne le CSAR dans l\'accomplissement de ses missions au service des populations.',
+    'minister_title' => 'Ministre de la Famille, de l\'Action sociale et des Solidarités',
+    'minister_para1' => 'La solidarité nationale est le socle de notre pacte républicain. Protéger les familles, accompagner les personnes vulnérables et garantir à chaque citoyen l\'accès à une alimentation suffisante et de qualité constituent des missions essentielles de l\'État. La sécurité alimentaire est ainsi une composante à part entière de la protection sociale : le Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR), placé sous la tutelle du Ministère de la Famille, de l\'Action sociale et des Solidarités, en est l\'instrument opérationnel au service des populations.',
+    'minister_para2' => 'Dans la prévention et la gestion des crises alimentaires, le CSAR joue un rôle central : veille et alerte précoce, constitution et gestion du Stock national de sécurité alimentaire, interventions d\'urgence et distribution d\'aides. Notre exigence est celle d\'une assistance équitable, transparente et ciblée, qui parvienne en priorité aux ménages et aux communautés les plus vulnérables, dans toutes les régions du pays.',
+    'minister_para3' => 'Face aux chocs économiques et climatiques qui fragilisent les moyens d\'existence, nous œuvrons au renforcement durable de la résilience des communautés. Cette ambition suppose une coordination étroite entre le Ministère, le CSAR, les collectivités territoriales, les services techniques de l\'État et nos partenaires nationaux et internationaux, dans un esprit de complémentarité et d\'efficacité.',
+    'minister_para4' => 'Cette action repose également sur la modernisation de nos outils de gestion, le suivi rigoureux des interventions sur le terrain et une redevabilité permanente dans l\'utilisation des ressources publiques. La transparence et la bonne gouvernance demeurent les conditions de la confiance que les Sénégalais placent dans leurs institutions.',
     'minister_quote' => 'Ensemble, pour une sécurité alimentaire durable, dans un Sénégal juste, souverain et prospère !',
     'minister_signature' => 'La Ministre',
+    'minister_disclaimer' => 'Message institutionnel du Ministère de la Famille, de l\'Action sociale et des Solidarités.',
     'minister_name_short' => 'Marie Angélique Mame Selbé DIOUF',
 ];

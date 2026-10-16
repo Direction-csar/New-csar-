@@ -173,7 +173,7 @@
                     <img src="{{ asset('images/ministre-marie-angelique-diouf.jpg') }}" alt="Madame Marie Angélique Mame Selbé DIOUF" loading="lazy" style="width: 100%; height: 100%; object-fit: cover; object-position: center 20%; transition: transform .6s ease;">
                     <div style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.85)); padding: 40px 20px 20px;">
                         <h3 style="color: #fff; font-size: 1.4rem; font-weight: 700; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Madame Marie Angélique Mame Selbé DIOUF</h3>
-                        <p style="color: rgba(255,255,255,0.95); font-size: 1rem; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Ministre de la Famille et des Solidarités</p>
+                        <p style="color: rgba(255,255,255,0.95); font-size: 1rem; font-weight: 500; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">Ministre de la Famille, de l'Action sociale et des Solidarités</p>
                     </div>
                 </div>
 
