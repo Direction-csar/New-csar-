@@ -4070,13 +4070,41 @@ setTimeout(() => {
             </p>
         </div>
 
-        <!-- LinkedIn Feed Widget -->
+        <!-- Réseaux sociaux - liens directs -->
         <div style="max-width: 1200px; margin: 0 auto;" data-aos="fade-up" data-aos-delay="200">
             <div style="background: white; border-radius: 24px; padding: 3rem; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); position: relative; overflow: hidden;">
                 <div style="position: absolute; top: 0; right: 0; width: 150px; height: 150px; background: linear-gradient(135deg, rgba(10, 102, 194, 0.1), transparent); border-radius: 0 24px 0 100%;"></div>
                 <div style="position: relative; z-index: 1;">
-                    <script src="https://elfsightcdn.com/platform.js" async></script>
-                    <div class="elfsight-app-be381de7-81d6-4865-8ce6-34b0a9e2cf55" data-elfsight-app-lazy></div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+                        <a href="https://www.linkedin.com/company/commissariat-%C3%A0-la-s%C3%A9curit%C3%A9-alimentaire-et-%C3%A0-la-r%C3%A9silience/" target="_blank" rel="noopener"
+                           style="display: flex; align-items: center; gap: 14px; padding: 1.25rem 1.5rem; background: linear-gradient(135deg, #0A66C2, #004182); border-radius: 16px; color: #fff; text-decoration: none; font-weight: 700; transition: transform .2s, box-shadow .2s;"
+                           onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 25px rgba(10,102,194,.4)'"
+                           onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                            <i class="fab fa-linkedin-in" style="font-size: 2rem;"></i>
+                            <span>LinkedIn<br><small style="font-weight: 500; opacity: .85;">Suivre le CSAR</small></span>
+                        </a>
+                        <a href="https://www.facebook.com/profile.php?id=61562947586356" target="_blank" rel="noopener"
+                           style="display: flex; align-items: center; gap: 14px; padding: 1.25rem 1.5rem; background: linear-gradient(135deg, #1877F2, #0d5cb8); border-radius: 16px; color: #fff; text-decoration: none; font-weight: 700; transition: transform .2s, box-shadow .2s;"
+                           onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 25px rgba(24,119,242,.4)'"
+                           onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                            <i class="fab fa-facebook-f" style="font-size: 2rem;"></i>
+                            <span>Facebook<br><small style="font-weight: 500; opacity: .85;">Rejoindre la communauté</small></span>
+                        </a>
+                        <a href="https://x.com/csar_sn" target="_blank" rel="noopener"
+                           style="display: flex; align-items: center; gap: 14px; padding: 1.25rem 1.5rem; background: linear-gradient(135deg, #1a1a1a, #000); border-radius: 16px; color: #fff; text-decoration: none; font-weight: 700; transition: transform .2s, box-shadow .2s;"
+                           onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 25px rgba(0,0,0,.4)'"
+                           onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                            <i class="fab fa-x-twitter" style="font-size: 2rem;"></i>
+                            <span>X (Twitter)<br><small style="font-weight: 500; opacity: .85;">@csar_sn</small></span>
+                        </a>
+                        <a href="https://www.instagram.com/csar.sn" target="_blank" rel="noopener"
+                           style="display: flex; align-items: center; gap: 14px; padding: 1.25rem 1.5rem; background: linear-gradient(135deg, #f58529, #dd2a7b, #8134af); border-radius: 16px; color: #fff; text-decoration: none; font-weight: 700; transition: transform .2s, box-shadow .2s;"
+                           onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 10px 25px rgba(221,42,123,.4)'"
+                           onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='none'">
+                            <i class="fab fa-instagram" style="font-size: 2rem;"></i>
+                            <span>Instagram<br><small style="font-weight: 500; opacity: .85;">@csar.sn</small></span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
