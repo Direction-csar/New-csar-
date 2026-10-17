@@ -38,10 +38,10 @@ class HomeController extends Controller
             \Log::warning('Erreur lors de la récupération des backgrounds', ['error' => $e->getMessage()]);
             $backgrounds = collect([]);
         }
-            
+
         // Si aucune image de fond n'est définie, utiliser une valeur par défaut
         $backgroundImage = $backgrounds->isNotEmpty() ? $backgrounds->first()->image_url : asset('img/1.jpg');
-        
+
         // Préparer les données pour le slider d'arrière-plan
         $backgroundSlider = [];
         foreach ($backgrounds as $bg) {
@@ -51,7 +51,7 @@ class HomeController extends Controller
                 'description' => $bg->description
             ];
         }
-        
+
         // Récupérer les chiffres clés depuis la base de données
         $defaultStats = [
             'agents'           => '137',
@@ -85,7 +85,7 @@ class HomeController extends Controller
         } catch (\Exception $e) {
             $stats = $defaultStats;
         }
-        
+
         // Récupérer les actualités publiées
         try {
             $latestNews = News::where('is_published', true)
@@ -95,7 +95,7 @@ class HomeController extends Controller
         } catch (\Exception $e) {
             $latestNews = collect([]); // Collection vide si erreur
         }
-        
+
         // Discours institutionnels depuis la base de données
         try {
             $latestSpeeches = Speech::orderBy('date', 'desc')
@@ -105,18 +105,18 @@ class HomeController extends Controller
         } catch (\Exception $e) {
             $latestSpeeches = collect([]);
         }
-        
+
         // Récupération des entrepôts actifs (avec gestion d'erreur)
         try {
             $warehouses = Warehouse::where('is_active', true)->get();
         } catch (\Exception $e) {
             $warehouses = collect([]);
         }
-        
+
         // Discours institutionnels (par défaut null en attendant la table public_contents)
         $ministerSpeech = null;
         $dgSpeech = null;
-        
+
         // Récupération des partenaires techniques actifs (avec gestion d'erreur)
         try {
             $partners = TechnicalPartner::where('status', 'active')
@@ -127,18 +127,18 @@ class HomeController extends Controller
         } catch (\Exception $e) {
             $partners = collect([]);
         }
-        
-        // Récupération des images de la galerie pour l'accueil (9 images récentes)
+
+        // Récupération des images de la galerie pour l'accueil (50 images récentes)
         try {
             $galleryImages = GalleryImage::where('status', 'active')
                 ->orderBy('is_featured', 'desc')
                 ->orderBy('created_at', 'desc')
-                ->take(9)
+                ->take(50)
                 ->get();
         } catch (\Exception $e) {
             $galleryImages = collect([]);
         }
-        
+
         // Récupération des rapports SIM publics récents (avec ou sans images)
         try {
             $simReports = SimReport::public()
@@ -157,7 +157,7 @@ class HomeController extends Controller
             // Si la table n'existe pas, utiliser une collection vide
             $simReports = collect([]);
         }
-        
+
         // Récupération des publications (actualités avec documents)
         try {
             $publications = News::publications()
@@ -167,7 +167,7 @@ class HomeController extends Controller
         } catch (\Exception $e) {
             $publications = collect([]);
         }
-        
+
         // Récupération des documents publics (recrutement, rapports, etc.)
         try {
             $publicDocuments = PublicDocument::published()
@@ -193,7 +193,7 @@ class HomeController extends Controller
         } catch (\Exception $e) {
             $simDocumentations = collect([]);
         }
-            
+
         // Préparation des données pour la vue
         $viewData = [
             'backgroundImage' => $backgroundImage,
@@ -212,7 +212,7 @@ class HomeController extends Controller
             'simDocumentations' => $simDocumentations,
             'requests' => []
         ];
-        
+
         return view('public.home', $viewData);
     }
 
@@ -258,7 +258,7 @@ class HomeController extends Controller
             ->orderBy('published_at', 'desc')
             ->take(3)
             ->get();
-        
+
         return view('public.news.show', compact('news', 'relatedNews'));
     }
 
@@ -309,7 +309,7 @@ class HomeController extends Controller
 
         // Nettoyer les données
         $cleanData = SecurityService::sanitizeInput($validated);
-        
+
         // Générer le code de suivi et le hash de doublon
         $trackingCode = SecurityService::generateTrackingCode();
         $duplicateHash = SecurityService::generateDuplicateHash($cleanData['email'], $cleanData['type'], $cleanData['description']);
@@ -341,7 +341,7 @@ class HomeController extends Controller
 
             // Créer une notification pour l'admin
             $notification = NotificationService::notifyNewRequest($publicRequest);
-            
+
             // Diffuser la notification en temps réel
             if ($notification) {
                 broadcast(new \App\Events\NotificationSent($notification, null))->toOthers();
@@ -349,7 +349,7 @@ class HomeController extends Controller
 
             // Envoyer les emails automatiques
             $emailService = new EmailService();
-            
+
             // Email de confirmation au demandeur
             $emailService->sendRequestConfirmation([
                 'name' => $cleanData['full_name'],
@@ -357,7 +357,7 @@ class HomeController extends Controller
                 'type' => $cleanData['type'],
                 'tracking_code' => $trackingCode
             ]);
-            
+
             // Notification interne à l'admin
             $emailService->sendRequestNotification([
             'name' => $request->full_name,
@@ -435,9 +435,9 @@ class HomeController extends Controller
     public function downloadPdf($code)
     {
         $publicRequest = PublicRequest::where('tracking_code', $code)->firstOrFail();
-        
+
         $pdf = \PDF::loadView('public.request-pdf', compact('publicRequest'));
-        
+
         return $pdf->download("demande-{$code}.pdf");
     }
 
@@ -451,11 +451,11 @@ class HomeController extends Controller
     {
         $code = $request->query('code');
         $publicRequest = null;
-        
+
         if ($code) {
             $publicRequest = PublicRequest::where('tracking_code', $code)->first();
         }
-        
+
         return view('public.request-success-basic', compact('publicRequest', 'code'));
     }
 
@@ -513,14 +513,14 @@ class HomeController extends Controller
 
         // Envoyer les emails automatiques
         $emailService = new EmailService();
-        
+
         // Email de confirmation au visiteur
         $emailService->sendContactConfirmation([
             'name' => $fullName,
             'email' => $request->email,
             'message' => $request->message
         ]);
-        
+
         // Notification interne à l'admin
         $emailService->sendContactNotification([
             'name' => $fullName,
@@ -608,4 +608,4 @@ class HomeController extends Controller
             return collect();
         }
     }
-} 
+}
