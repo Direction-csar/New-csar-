@@ -16,6 +16,8 @@ Route::prefix('v1')->name('warehouse.api.v1.')->group(function () {
         Route::post('/movements', [WarehouseKeeperController::class, 'storeMovement'])->name('movements.store');
         Route::post('/sync', [WarehouseKeeperController::class, 'syncMovements'])->name('sync');
         Route::get('/products', [WarehouseKeeperController::class, 'getProducts'])->name('products');
+        Route::post('/transfers', [WarehouseKeeperController::class, 'storeTransfer'])->name('transfers.store');
+        Route::post('/inventory', [WarehouseKeeperController::class, 'storeInventory'])->name('inventory.store');
         Route::get('/stock-status', [WarehouseKeeperController::class, 'getStockStatus'])->name('stock-status');
         Route::get('/alerts', [WarehouseKeeperController::class, 'getAlerts'])->name('alerts');
         Route::get('/receipt/{reference}', [WarehouseKeeperController::class, 'getReceipt'])->name('receipt');
