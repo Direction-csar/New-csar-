@@ -93,7 +93,7 @@ class GalerieController extends Controller
             'category' => 'required|string',
             'description' => 'nullable|string',
             'images' => 'required|array',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
         try {
@@ -146,12 +146,12 @@ class GalerieController extends Controller
     {
         try {
             $image = \App\Models\GalleryImage::findOrFail($id);
-            
+
             Log::info('Affichage image galerie Admin', [
                 'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id
             ]);
-            
+
             return view('admin.galerie.show', compact('image'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'affichage de l\'image', [
@@ -159,7 +159,7 @@ class GalerieController extends Controller
                 'image_id' => $id,
                 'error' => $e->getMessage()
             ]);
-            
+
             return redirect()->route($this->getRoutePrefix() . '.galerie.index')->with('error', 'Image non trouvée.');
         }
     }
@@ -171,12 +171,12 @@ class GalerieController extends Controller
     {
         try {
             $image = \App\Models\GalleryImage::findOrFail($id);
-            
+
             Log::info('Accès au formulaire d\'édition d\'image Admin', [
                 'user_id' => $this->getCurrentUserId(),
                 'image_id' => $id
             ]);
-            
+
             return view('admin.galerie.edit', compact('image'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'accès au formulaire d\'édition', [
@@ -184,7 +184,7 @@ class GalerieController extends Controller
                 'image_id' => $id,
                 'error' => $e->getMessage()
             ]);
-            
+
             return redirect()->route($this->getRoutePrefix() . '.galerie.index')->with('error', 'Image non trouvée.');
         }
     }
@@ -223,7 +223,7 @@ class GalerieController extends Controller
                 'image_id' => $id,
                 'error' => $e->getMessage()
             ]);
-            
+
             return redirect()->back()->with('error', 'Erreur lors de la mise à jour de l\'image.');
         }
     }
@@ -235,12 +235,12 @@ class GalerieController extends Controller
     {
         try {
             $image = \App\Models\GalleryImage::findOrFail($id);
-            
+
             // Supprimer le fichier physique
             if ($image->file_path && \Storage::disk('public')->exists($image->file_path)) {
                 \Storage::disk('public')->delete($image->file_path);
             }
-            
+
             $image->delete();
 
             Log::info('Image galerie supprimée par Admin', [
@@ -255,7 +255,7 @@ class GalerieController extends Controller
                 'image_id' => $id,
                 'error' => $e->getMessage()
             ]);
-            
+
             return redirect()->back()->with('error', 'Erreur lors de la suppression de l\'image.');
         }
     }

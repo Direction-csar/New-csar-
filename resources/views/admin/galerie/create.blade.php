@@ -30,11 +30,11 @@
                 <div class="card-body">
                     <form action="{{ route(request()->routeIs('ctc.*') ? 'ctc.galerie.store' : 'admin.galerie.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
-                        
+
                         <div class="form-group mb-3">
                             <label for="title" class="form-label">Titre de l'image <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control @error('title') is-invalid @enderror" 
-                                   id="title" name="title" value="{{ old('title') }}" 
+                            <input type="text" class="form-control @error('title') is-invalid @enderror"
+                                   id="title" name="title" value="{{ old('title') }}"
                                    placeholder="Entrez le titre de l'image" required>
                             @error('title')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -43,7 +43,7 @@
 
                         <div class="form-group mb-3">
                             <label for="category" class="form-label">Catégorie <span class="text-danger">*</span></label>
-                            <select class="form-control @error('category') is-invalid @enderror" 
+                            <select class="form-control @error('category') is-invalid @enderror"
                                     id="category" name="category" required>
                                 <option value="">Sélectionnez une catégorie</option>
                                 <option value="Action humanitaire" {{ old('category') == 'Action humanitaire' ? 'selected' : '' }}>Action humanitaire</option>
@@ -60,8 +60,8 @@
 
                         <div class="form-group mb-3">
                             <label for="description" class="form-label">Description</label>
-                            <textarea class="form-control @error('description') is-invalid @enderror" 
-                                      id="description" name="description" rows="4" 
+                            <textarea class="form-control @error('description') is-invalid @enderror"
+                                      id="description" name="description" rows="4"
                                       placeholder="Décrivez l'image (optionnel)">{{ old('description') }}</textarea>
                             @error('description')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -73,7 +73,7 @@
                             <input type="file" class="form-control @error('images') is-invalid @enderror @error('images.*') is-invalid @enderror"
                                    id="image" name="images[]" accept="image/*" multiple required>
                             <div class="form-text">
-                                Formats acceptés : JPEG, PNG, JPG, GIF, WebP. Taille maximale : 2MB par image. Vous pouvez sélectionner plusieurs images à la fois.
+                                Formats acceptés : JPEG, PNG, JPG, GIF, WebP. Taille maximale : 5MB par image. Vous pouvez sélectionner plusieurs images à la fois.
                             </div>
                             @error('images')
                                 <div class="invalid-feedback">{{ $message }}</div>
