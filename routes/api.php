@@ -85,8 +85,28 @@ Route::post('/login', function (Request $request) {
     ], 401);
 })->middleware('throttle:10,1');
 
+// API Magasinier mobile — authentification (public, throttled)
+Route::post('/warehouse/v1/login', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'login'])
+    ->middleware('throttle:10,1')
+    ->name('warehouse.api.v1.login');
+
 // Routes protégées par authentification
 Route::middleware('auth:sanctum')->group(function () {
+
+    // API Magasinier mobile (CSAR warehouse keeper)
+    Route::prefix('/warehouse/v1')->name('warehouse.api.v1.')->group(function () {
+        Route::get('/warehouses', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'getWarehouses'])->name('warehouses');
+        Route::get('/warehouses/{warehouseId}/sheet', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'getStockSheet'])->name('warehouses.sheet');
+        Route::post('/movements', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'storeMovement'])->name('movements.store');
+        Route::get('/stats', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'getStats'])->name('stats');
+        Route::post('/sync', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'syncMovements'])->name('sync');
+        Route::get('/products', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'getProducts'])->name('products');
+        Route::post('/transfers', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'storeTransfer'])->name('transfers.store');
+        Route::post('/inventory', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'storeInventory'])->name('inventory.store');
+        Route::get('/stock-status', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'getStockStatus'])->name('stock-status');
+        Route::get('/alerts', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'getAlerts'])->name('alerts');
+        Route::get('/receipt/{reference}', [\App\Http\Controllers\Api\Mobile\WarehouseKeeperController::class, 'getReceipt'])->name('receipt');
+    });
 
     // Dashboard et métriques
     Route::get('/dashboard/metrics', function () {
