@@ -1,7 +1,7 @@
 name: csar_warehouse_keeper
 description: APK Mobile Magasinier CSAR - Gestion de Stock
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

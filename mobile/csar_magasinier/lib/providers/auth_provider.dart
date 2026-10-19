@@ -38,11 +38,19 @@ class AuthProvider with ChangeNotifier {
   Future<void> _onSessionExpired() async {
     if (!_isAuthenticated) return;
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await SharedPreferences.getInstance()
+          .timeout(const Duration(seconds: 5));
       await prefs.remove('auth_user');
     } catch (_) {}
     _isAuthenticated = false;
     _user = null;
+    notifyListeners();
+  }
+
+  /// Force la fin du chargement de démarrage (bouton « Continuer » du watchdog).
+  void forceStopLoading() {
+    if (!_isLoading) return;
+    _isLoading = false;
     notifyListeners();
   }
 
@@ -52,8 +60,11 @@ class AuthProvider with ChangeNotifier {
       if (result['success'] == true) {
         _isAuthenticated = true;
         _user = result['user'];
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_user', jsonEncode(_user));
+        try {
+          final prefs = await SharedPreferences.getInstance()
+              .timeout(const Duration(seconds: 5));
+          await prefs.setString('auth_user', jsonEncode(_user));
+        } catch (_) {}
         notifyListeners();
         return true;
       }
@@ -65,7 +76,8 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> _loadStoredUser() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await SharedPreferences.getInstance()
+          .timeout(const Duration(seconds: 5));
       final raw = prefs.getString('auth_user');
       if (raw != null) {
         _user = jsonDecode(raw) as Map<String, dynamic>;
@@ -75,8 +87,11 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     await ApiService.clearToken();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('auth_user');
+    try {
+      final prefs = await SharedPreferences.getInstance()
+          .timeout(const Duration(seconds: 5));
+      await prefs.remove('auth_user');
+    } catch (_) {}
     _isAuthenticated = false;
     _user = null;
     notifyListeners();

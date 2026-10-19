@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';
@@ -67,16 +68,58 @@ class CsarWarehouseApp extends StatelessWidget {
   }
 }
 
-class AuthWrapper extends StatelessWidget {
+class AuthWrapper extends StatefulWidget {
   const AuthWrapper({super.key});
+
+  @override
+  State<AuthWrapper> createState() => _AuthWrapperState();
+}
+
+class _AuthWrapperState extends State<AuthWrapper> {
+  static const String appVersion = '1.0.1+2';
+  bool _slow = false;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer(const Duration(seconds: 12), () {
+      if (mounted) setState(() => _slow = true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<AuthProvider>(
       builder: (context, auth, child) {
         if (auth.isLoading) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Scaffold(
+            body: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CircularProgressIndicator(color: Color(0xFF1B5E20)),
+                  if (_slow) ...[
+                    const SizedBox(height: 24),
+                    const Text('Le chargement est long...',
+                        style: TextStyle(color: Colors.black54)),
+                    const SizedBox(height: 8),
+                    ElevatedButton(
+                      onPressed: () => context.read<AuthProvider>().forceStopLoading(),
+                      child: const Text('CONTINUER'),
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  const Text('v$appVersion', style: TextStyle(color: Colors.black38, fontSize: 12)),
+                ],
+              ),
+            ),
           );
         }
         return auth.isAuthenticated ? const MainShellScreen() : const LoginScreen();

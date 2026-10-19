@@ -73,7 +73,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
 
     try {
-      final pending = await DatabaseService.getPendingSync();
+      await _loadDataInner().timeout(const Duration(seconds: 45));
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = 'Impossible de charger les données';
+        });
+      }
+    }
+  }
+
+  Future<void> _loadDataInner() async {
+    try {
+      final pending = await DatabaseService.getPendingSync()
+          .timeout(const Duration(seconds: 15), onTimeout: () => <StockMovement>[]);
       _pendingSync = pending.length;
 
       final hasNet = await ApiService.hasConnection();
@@ -82,14 +96,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
       List<Warehouse> warehouses = [];
       if (hasNet) {
         warehouses = await ApiService.getWarehouses();
-        await DatabaseService.saveWarehouses(warehouses.map((w) => w.toJson()).toList());
+        try {
+          await DatabaseService.saveWarehouses(warehouses.map((w) => w.toJson()).toList())
+              .timeout(const Duration(seconds: 10));
+        } catch (_) {}
       } else {
-        final local = await DatabaseService.getWarehouses();
+        final local = await DatabaseService.getWarehouses()
+            .timeout(const Duration(seconds: 10), onTimeout: () => <Map<String, dynamic>>[]);
         warehouses = local.map((m) => Warehouse.fromJson(m)).toList();
       }
 
-      final prefs = await SharedPreferences.getInstance();
-      final savedId = prefs.getInt('selected_warehouse_id');
+      int? savedId;
+      try {
+        final prefs = await SharedPreferences.getInstance()
+            .timeout(const Duration(seconds: 5));
+        savedId = prefs.getInt('selected_warehouse_id');
+      } catch (_) {}
       Warehouse? selected = warehouses.isNotEmpty
           ? warehouses.firstWhere((w) => w.id == savedId, orElse: () => warehouses.first)
           : null;
@@ -179,7 +201,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       } else {
         // Hors ligne : mouvements locaux du magasin
         if (selected != null) {
-          recent = await DatabaseService.getMovementsByWarehouse(selected.id);
+          recent = await DatabaseService.getMovementsByWarehouse(selected.id)
+              .timeout(const Duration(seconds: 10), onTimeout: () => <StockMovement>[]);
         }
       }
 
@@ -205,17 +228,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _loading = false;
       });
     } catch (e) {
-      setState(() {
-        _loading = false;
-        _error = 'Impossible de charger les données';
-      });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _error = 'Impossible de charger les données';
+        });
+      }
     }
   }
 
   Future<void> _selectWarehouse(Warehouse w) async {
     setState(() => _selectedWarehouse = w);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('selected_warehouse_id', w.id);
+    try {
+      final prefs = await SharedPreferences.getInstance()
+          .timeout(const Duration(seconds: 5));
+      await prefs.setInt('selected_warehouse_id', w.id);
+    } catch (_) {}
     await _loadData();
   }
 

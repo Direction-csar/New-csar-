@@ -6,7 +6,13 @@ class DatabaseService {
   static Database? _db;
 
   static Future<Database> get database async {
-    _db ??= await _initDb();
+    if (_db != null) return _db!;
+    try {
+      _db = await _initDb().timeout(const Duration(seconds: 10));
+    } catch (_) {
+      _db = null;
+      rethrow;
+    }
     return _db!;
   }
 
