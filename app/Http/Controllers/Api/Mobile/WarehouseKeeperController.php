@@ -310,7 +310,7 @@ class WarehouseKeeperController extends Controller
         $products = \App\Models\Product::where('is_active', 1)
             ->orderBy('category')
             ->orderBy('name')
-            ->get(['id', 'name', 'category', 'unit', 'description'])
+            ->get(['id', 'name', 'category', 'unit', 'description', 'image'])
             ->map(function ($p) {
                 $formats = [];
                 $decoded = json_decode($p->description ?? '', true);
@@ -323,6 +323,7 @@ class WarehouseKeeperController extends Controller
                     'category'   => $p->category,
                     'unit'       => $p->unit,
                     'formats_kg' => $formats,
+                    'image_url'  => $p->image_url,
                 ];
             });
 
@@ -566,6 +567,39 @@ class WarehouseKeeperController extends Controller
             $item['total_kg'] = max(0, $item['total_kg']);
         }
 
+        unset($item);
+
+        foreach ($stockByProduct as &$item) {
+            $item['image_url'] = $this->productImageUrl($item['product_name']);
+        }
+        unset($item);
+
+        // Lots proches de la péremption (table stocks)
+        $expiring = [];
+        try {
+            $expiring = \App\Models\Stock::where('warehouse_id', $warehouseId)
+                ->where('is_active', true)
+                ->whereNotNull('expiry_date')
+                ->whereDate('expiry_date', '<=', now()->addDays(30))
+                ->where('quantity', '>', 0)
+                ->orderBy('expiry_date')
+                ->get(['item_name', 'quantity', 'expiry_date'])
+                ->map(function ($s) {
+                    $days = (int) now()->startOfDay()->diffInDays($s->expiry_date->copy()->startOfDay(), false);
+                    return [
+                        'product_name' => $s->item_name,
+                        'quantity'     => (float) $s->quantity,
+                        'expiry_date'  => $s->expiry_date->format('Y-m-d'),
+                        'days_left'    => $days,
+                        'image_url'    => $this->productImageUrl($s->item_name),
+                    ];
+                })
+                ->values()
+                ->all();
+        } catch (\Throwable $e) {
+            Log::warning('Péremption indisponible : ' . $e->getMessage());
+        }
+
         $warehouse = Warehouse::find($warehouseId);
 
         return response()->json([
@@ -574,6 +608,7 @@ class WarehouseKeeperController extends Controller
             'warehouse_region' => $warehouse->region ?? '',
             'total_current_sacs' => $warehouse->current_stock ?? 0,
             'products' => array_values($stockByProduct),
+            'expiring' => $expiring,
         ]);
     }
 
@@ -651,6 +686,31 @@ class WarehouseKeeperController extends Controller
                 'metadata' => $meta,
             ],
         ]);
+    }
+
+    /**
+     * URL de la photo d'un produit à partir de son nom (correspondance exacte, puis par préfixe).
+     */
+    private function productImageUrl(?string $name): ?string
+    {
+        static $map = null;
+        if ($map === null) {
+            $map = \App\Models\Product::whereNotNull('image')
+                ->get(['name', 'image'])
+                ->mapWithKeys(fn ($p) => [mb_strtolower(trim($p->name)) => $p->image_url])
+                ->all();
+        }
+
+        $key = mb_strtolower(trim((string) $name));
+        if ($key === '') return null;
+        if (isset($map[$key])) return $map[$key];
+
+        foreach ($map as $productName => $url) {
+            if (str_starts_with($key, $productName) || str_starts_with($productName, $key)) {
+                return $url;
+            }
+        }
+        return null;
     }
 
     private function movementTypeLabel($type)

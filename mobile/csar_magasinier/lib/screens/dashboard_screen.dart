@@ -25,6 +25,7 @@ class _AlertItem {
   final String quantity;
   final String severity; // critical | warning | info | anomaly
   final IconData icon;
+  final String? imageUrl;
 
   const _AlertItem({
     required this.title,
@@ -32,6 +33,7 @@ class _AlertItem {
     required this.quantity,
     required this.severity,
     required this.icon,
+    this.imageUrl,
   });
 }
 
@@ -127,20 +129,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
               if (sacs <= 0) {
                 alerts.add(_AlertItem(
                   title: p['product_name'] ?? 'Produit',
-                  subtitle: 'Stock épuisé',
+                  subtitle: 'Stock critique',
                   quantity: '0 kg',
                   severity: 'critical',
                   icon: Icons.inventory_2_outlined,
+                  imageUrl: p['image_url'],
                 ));
               } else if (sacs <= kLowStockThresholdSacs) {
                 alerts.add(_AlertItem(
                   title: p['product_name'] ?? 'Produit',
-                  subtitle: 'Seuil bientôt atteint',
-                  quantity: '${_fmtNum(sacs * 50)} kg',
-                  severity: 'warning',
+                  subtitle: sacs <= kLowStockThresholdSacs / 2 ? 'Stock critique' : 'Seuil bientôt atteint',
+                  quantity: '${_fmtNum(((p['total_kg'] as num?)?.toDouble() ?? sacs * 50))} kg',
+                  severity: sacs <= kLowStockThresholdSacs / 2 ? 'critical' : 'warning',
                   icon: Icons.inventory_2_outlined,
+                  imageUrl: p['image_url'],
                 ));
               }
+            }
+            for (final e in (status['expiring'] ?? [])) {
+              final days = (e['days_left'] as num?)?.toInt() ?? 0;
+              alerts.add(_AlertItem(
+                title: e['product_name'] ?? 'Produit',
+                subtitle: days < 0
+                    ? 'Périmé depuis ${-days} jour${-days > 1 ? 's' : ''}'
+                    : (days == 0 ? 'Périme aujourd\'hui' : 'Péremption dans $days jour${days > 1 ? 's' : ''}'),
+                quantity: '${_fmtNum((e['quantity'] as num?)?.toDouble() ?? 0)} kg',
+                severity: days <= 0 ? 'critical' : 'info',
+                icon: Icons.event_busy,
+                imageUrl: e['image_url'],
+              ));
             }
           } catch (_) {}
         }
@@ -176,6 +193,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         final d = m.movementDate.isNotEmpty ? m.movementDate : (m.createdAt ?? '');
         return d.startsWith(today) && (m.movementType == 'exit' || m.movementType == 'transfer');
       }).length;
+
+      const order = {'critical': 0, 'warning': 1, 'info': 2, 'anomaly': 3};
+      alerts.sort((a, b) => (order[a.severity] ?? 9).compareTo(order[b.severity] ?? 9));
 
       setState(() {
         _warehouses = warehouses;
@@ -350,19 +370,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ],
                     ),
                     const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundColor: const Color(0xFFE8F5E9),
-                        child: Text(
-                          _initials(user?['name']?.toString()),
-                          style: const TextStyle(color: _green, fontWeight: FontWeight.bold, fontSize: 14),
+                    PopupMenuButton<String>(
+                      offset: const Offset(0, 52),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      onSelected: _onMenu,
+                      itemBuilder: (_) => [
+                        PopupMenuItem(
+                          enabled: false,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(user?['name']?.toString() ?? 'Magasinier',
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1B2E1F))),
+                              Text(user?['email']?.toString() ?? '',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                            ],
+                          ),
                         ),
+                        const PopupMenuDivider(),
+                        const PopupMenuItem(value: 'sync', child: ListTile(leading: Icon(Icons.sync), title: Text('Synchroniser'), contentPadding: EdgeInsets.zero)),
+                        const PopupMenuItem(value: 'receipts', child: ListTile(leading: Icon(Icons.receipt_long), title: Text('Mes reçus'), contentPadding: EdgeInsets.zero)),
+                        const PopupMenuItem(value: 'logout', child: ListTile(leading: Icon(Icons.logout, color: Colors.red), title: Text('Se déconnecter', style: TextStyle(color: Colors.red)), contentPadding: EdgeInsets.zero)),
+                      ],
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(2),
+                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+                            child: CircleAvatar(
+                              radius: 20,
+                              backgroundColor: const Color(0xFFE8F5E9),
+                              child: Text(
+                                _initials(user?['name']?.toString()),
+                                style: const TextStyle(color: _green, fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                            ),
+                          ),
+                          const Icon(Icons.keyboard_arrow_down, color: Colors.white),
+                        ],
                       ),
                     ),
-                    const Icon(Icons.keyboard_arrow_down, color: Colors.white),
                   ],
                 ),
               ),
@@ -445,6 +493,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _onMenu(String value) async {
+    switch (value) {
+      case 'sync':
+        _open(() => const SyncScreen());
+        break;
+      case 'receipts':
+        _open(() => const ReceiptHistoryScreen());
+        break;
+      case 'logout':
+        final ok = await showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Se déconnecter'),
+            content: const Text('Voulez-vous vraiment vous déconnecter ?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
+              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Déconnexion', style: TextStyle(color: Colors.red))),
+            ],
+          ),
+        );
+        if (ok == true && mounted) {
+          await context.read<AuthProvider>().logout();
+        }
+        break;
+    }
+  }
+
+  /// Nom du produit extrait du libellé (« Riz [25kg] … » ou « Produit: Riz | … »).
+  String? _productFromLabel(String label) {
+    final a = RegExp(r'^(.+?)\s*\[\d+\s*kg\]', caseSensitive: false).firstMatch(label);
+    if (a != null) return a.group(1)!.trim();
+    final b = RegExp(r'Produit:\s*(.+?)\s*\|').firstMatch(label);
+    if (b != null) return b.group(1)!.trim();
+    return null;
   }
 
   // ---------- BANDEAUX ----------
@@ -656,11 +740,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Container(
                   width: 52,
                   height: 52,
+                  clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(a.icon, color: textColor, size: 28),
+                  child: a.imageUrl != null && a.imageUrl!.isNotEmpty
+                      ? Image.network(
+                          a.imageUrl!,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(a.icon, color: textColor, size: 28),
+                        )
+                      : Icon(a.icon, color: textColor, size: 28),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -959,6 +1050,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   Text(m.label,
                       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5, color: Color(0xFF1B2E1F)),
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
                   Container(
@@ -979,7 +1071,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: qtyColor),
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 2),
-                  Text('${_fmtNum(sacs)} sacs', style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600)),
+                  Text(_productFromLabel(m.label) ?? '${_fmtNum(sacs)} sacs',
+                      style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
+                      overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),

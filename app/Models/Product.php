@@ -16,6 +16,7 @@ class Product extends Model
         'description',
         'unit_price',
         'category',
+        'image',
         'is_active'
     ];
 
@@ -55,6 +56,11 @@ class Product extends Model
     public function getFormattedPriceAttribute()
     {
         return $this->unit_price ? number_format($this->unit_price, 0, ',', ' ') . ' FCFA' : 'Non défini';
+    }
+
+    public function getImageUrlAttribute()
+    {
+        return $this->image ? asset('storage/' . $this->image) : null;
     }
 
     public function getFullNameAttribute()

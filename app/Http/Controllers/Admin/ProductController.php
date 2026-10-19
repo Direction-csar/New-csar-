@@ -8,6 +8,7 @@ use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -76,6 +77,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'unit_price' => 'nullable|numeric|min:0',
             'category' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'is_active' => 'boolean'
         ]);
 
@@ -86,9 +88,12 @@ class ProductController extends Controller
                 'name' => $request->name,
                 'type' => $request->type,
                 'unit' => $request->unit,
-                'description' => $request->description,
+                'description' => $request->filled('description')
+                    ? $request->description
+                    : json_encode(['formats_kg' => [5, 10, 25, 50, 100]]),
                 'unit_price' => $request->unit_price,
                 'category' => $request->category,
+                'image' => $request->hasFile('image') ? $request->file('image')->store('products', 'public') : null,
                 'is_active' => $request->has('is_active')
             ]);
 
@@ -121,7 +126,7 @@ class ProductController extends Controller
     {
         try {
             $product = Product::findOrFail($id);
-            return view('admin.products.show', compact('product'));
+            return redirect()->route('admin.products.edit', $product->id);
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'affichage du produit: ' . $e->getMessage());
             return redirect()->route('admin.products.index')
@@ -156,6 +161,7 @@ class ProductController extends Controller
             'description' => 'nullable|string',
             'unit_price' => 'nullable|numeric|min:0',
             'category' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:5120',
             'is_active' => 'boolean'
         ]);
 
@@ -163,13 +169,26 @@ class ProductController extends Controller
             DB::beginTransaction();
 
             $product = Product::findOrFail($id);
+
+            $image = $product->image;
+            if ($request->hasFile('image')) {
+                if ($image) {
+                    Storage::disk('public')->delete($image);
+                }
+                $image = $request->file('image')->store('products', 'public');
+            } elseif ($request->boolean('remove_image') && $image) {
+                Storage::disk('public')->delete($image);
+                $image = null;
+            }
+
             $product->update([
                 'name' => $request->name,
                 'type' => $request->type,
                 'unit' => $request->unit,
-                'description' => $request->description,
+                'description' => $request->has('description') ? $request->description : $product->description,
                 'unit_price' => $request->unit_price,
                 'category' => $request->category,
+                'image' => $image,
                 'is_active' => $request->has('is_active')
             ]);
 
@@ -205,6 +224,9 @@ class ProductController extends Controller
 
             $product = Product::findOrFail($id);
             $name = $product->name;
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
             $product->delete();
 
             // Créer une notification

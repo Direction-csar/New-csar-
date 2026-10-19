@@ -1028,6 +1028,14 @@
                 </a>
             </div>
 
+            <!-- Produits -->
+            <div class="menu-item">
+                <a href="{{ route('admin.products.index') }}" class="menu-link {{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
+                    <i class="fas fa-seedling"></i>
+                    <span>Produits</span>
+                </a>
+            </div>
+
             <!-- Gestion du personnel -->
             <div class="menu-item">
                 <a href="{{ route('admin.personnel.index') }}" class="menu-link {{ request()->routeIs('admin.personnel.*') ? 'active' : '' }}">
