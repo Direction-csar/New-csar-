@@ -3,14 +3,15 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import '../models/warehouse.dart';
-import '../models/stock_movement.dart';
 import '../models/product.dart';
 
 class ApiService {
   static const String baseUrl = 'https://www.csar.sn/api/warehouse/v1';
-  static const _storage = FlutterSecureStorage();
+  static const _storage = FlutterSecureStorage(
+    aOptions: AndroidOptions(encryptedSharedPreferences: false),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+  );
   static const Duration _timeout = Duration(seconds: 20);
 
   /// Appelé quand le serveur répond 401 (session expirée ou révoquée).
@@ -57,8 +58,13 @@ class ApiService {
   }
 
   static Future<bool> hasConnection() async {
-    final result = await Connectivity().checkConnectivity();
-    return result != ConnectivityResult.none;
+    try {
+      final addresses = await InternetAddress.lookup('csar.sn')
+          .timeout(const Duration(seconds: 5));
+      return addresses.isNotEmpty && addresses.first.rawAddress.isNotEmpty;
+    } catch (_) {
+      return false;
+    }
   }
 
   static Map<String, String> _headers(String? token) {
