@@ -1,10 +1,12 @@
+import getpass
+import os
 import paramiko
 import sys
 import time
 
-host = "192.168.2.141"
-user = "msow"
-password = "CsarMS20@"
+host = os.environ.get("CSAR_SSH_HOST", "192.168.2.141")
+user = os.environ.get("CSAR_SSH_USER", "msow")
+password = os.environ.get("CSAR_SSH_PASSWORD") or getpass.getpass(f"Mot de passe SSH pour {user}@{host} : ")
 command = "cd /var/www/csar && bash deploy-server.sh && php artisan db:seed --class=AgentsImportSeeder --force && php artisan contracts:generate --user-id=1"
 
 client = paramiko.SSHClient()

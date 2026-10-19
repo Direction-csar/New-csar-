@@ -1,9 +1,11 @@
+import getpass
+import os
 import paramiko
 import sys
 
-host = "192.168.2.141"
-user = "msow"
-password = "CsarMS20@"
+host = os.environ.get("CSAR_SSH_HOST", "192.168.2.141")
+user = os.environ.get("CSAR_SSH_USER", "msow")
+password = os.environ.get("CSAR_SSH_PASSWORD") or getpass.getpass(f"Mot de passe SSH pour {user}@{host} : ")
 command = "cd /var/www/csar && php artisan tinker --execute=\"App\\Models\\RhDocument::truncate(); echo 'Suppression terminee';\""
 
 client = paramiko.SSHClient()
