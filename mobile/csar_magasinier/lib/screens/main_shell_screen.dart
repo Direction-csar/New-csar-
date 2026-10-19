@@ -27,32 +27,52 @@ class _MainShellScreenState extends State<MainShellScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _tabs),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (i) => setState(() => _currentIndex = i),
-        indicatorColor: const Color(0xFF1B5E20).withValues(alpha: 0.12),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home, color: Color(0xFF1B5E20)),
-            label: 'Accueil',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, -2))],
+        ),
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 68,
+            child: Row(
+              children: [
+                _navItem(0, Icons.home, Icons.home_outlined, 'Accueil'),
+                _navItem(1, Icons.inventory_2, Icons.inventory_2_outlined, 'Stocks'),
+                _navItem(2, Icons.swap_horiz, Icons.swap_horiz, 'Mouvements'),
+                _navItem(3, Icons.person, Icons.person_outline, 'Profil'),
+              ],
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.inventory_2_outlined),
-            selectedIcon: Icon(Icons.inventory_2, color: Color(0xFF1B5E20)),
-            label: 'Stocks',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.swap_horiz),
-            selectedIcon: Icon(Icons.swap_horiz, color: Color(0xFF1B5E20)),
-            label: 'Mouvements',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person, color: Color(0xFF1B5E20)),
-            label: 'Profil',
-          ),
-        ],
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem(int index, IconData activeIcon, IconData icon, String label) {
+    const green = Color(0xFF1B5E20);
+    final selected = _currentIndex == index;
+    final color = selected ? green : Colors.grey.shade600;
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _currentIndex = index),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(selected ? activeIcon : icon, color: color, size: 28),
+            const SizedBox(height: 4),
+            Text(label,
+                style: TextStyle(fontSize: 12.5, color: color, fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
+            const SizedBox(height: 5),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 3,
+              width: selected ? 56 : 0,
+              decoration: BoxDecoration(color: green, borderRadius: BorderRadius.circular(2)),
+            ),
+          ],
+        ),
       ),
     );
   }
