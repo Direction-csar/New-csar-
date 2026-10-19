@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -10,9 +11,39 @@ import '../models/product.dart';
 class ApiService {
   static const String baseUrl = 'https://www.csar.sn/api/warehouse/v1';
   static const _storage = FlutterSecureStorage();
+  static const Duration _timeout = Duration(seconds: 20);
+
+  /// Appelé quand le serveur répond 401 (session expirée ou révoquée).
+  static void Function()? onUnauthorized;
+
+  static Future<http.Response> _get(Uri uri, {Map<String, String>? headers}) async {
+    final response = await http.get(uri, headers: headers).timeout(_timeout);
+    await _checkUnauthorized(response, headers);
+    return response;
+  }
+
+  static Future<http.Response> _post(Uri uri, {Map<String, String>? headers, Object? body}) async {
+    final response = await http.post(uri, headers: headers, body: body).timeout(_timeout);
+    await _checkUnauthorized(response, headers);
+    return response;
+  }
+
+  static Future<void> _checkUnauthorized(http.Response response, Map<String, String>? headers) async {
+    if (response.statusCode == 401 && (headers?.containsKey('Authorization') ?? false)) {
+      await clearToken();
+      onUnauthorized?.call();
+    }
+  }
 
   static Future<String?> getToken() async {
-    return await _storage.read(key: 'auth_token');
+    try {
+      return await _storage.read(key: 'auth_token').timeout(const Duration(seconds: 5));
+    } catch (_) {
+      try {
+        await _storage.deleteAll();
+      } catch (_) {}
+      return null;
+    }
   }
 
   static Future<void> setToken(String token) async {
@@ -20,7 +51,9 @@ class ApiService {
   }
 
   static Future<void> clearToken() async {
-    await _storage.delete(key: 'auth_token');
+    try {
+      await _storage.delete(key: 'auth_token');
+    } catch (_) {}
   }
 
   static Future<bool> hasConnection() async {
@@ -36,7 +69,7 @@ class ApiService {
 
   // AUTH
   static Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await http.post(
+    final response = await _post(
       Uri.parse('$baseUrl/login'),
       headers: _headers(null),
       body: jsonEncode({'email': email, 'password': password}),
@@ -53,7 +86,7 @@ class ApiService {
   // MAGASINS
   static Future<List<Warehouse>> getWarehouses() async {
     final token = await getToken();
-    final response = await http.get(
+    final response = await _get(
       Uri.parse('$baseUrl/warehouses'),
       headers: _headers(token),
     );
@@ -74,7 +107,7 @@ class ApiService {
         if (dateTo != null) 'date_to': dateTo,
       },
     );
-    final response = await http.get(uri, headers: _headers(token));
+    final response = await _get(uri, headers: _headers(token));
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -85,7 +118,7 @@ class ApiService {
   // MOUVEMENT
   static Future<Map<String, dynamic>> createMovement(Map<String, dynamic> data) async {
     final token = await getToken();
-    final response = await http.post(
+    final response = await _post(
       Uri.parse('$baseUrl/movements'),
       headers: _headers(token),
       body: jsonEncode(data),
@@ -100,7 +133,7 @@ class ApiService {
   // SYNCHRONISATION BATCH
   static Future<Map<String, dynamic>> syncMovements(List<Map<String, dynamic>> movements) async {
     final token = await getToken();
-    final response = await http.post(
+    final response = await _post(
       Uri.parse('$baseUrl/sync'),
       headers: _headers(token),
       body: jsonEncode({'movements': movements}),
@@ -115,7 +148,7 @@ class ApiService {
   // PRODUITS
   static Future<List<Product>> getProducts() async {
     final token = await getToken();
-    final response = await http.get(
+    final response = await _get(
       Uri.parse('$baseUrl/products'),
       headers: _headers(token),
     );
@@ -130,7 +163,7 @@ class ApiService {
   // TRANSFERT INTER-MAGASIN
   static Future<Map<String, dynamic>> createTransfer(Map<String, dynamic> data) async {
     final token = await getToken();
-    final response = await http.post(
+    final response = await _post(
       Uri.parse('$baseUrl/transfers'),
       headers: _headers(token),
       body: jsonEncode(data),
@@ -145,7 +178,7 @@ class ApiService {
   // INVENTAIRE PHYSIQUE
   static Future<Map<String, dynamic>> createInventory(Map<String, dynamic> data) async {
     final token = await getToken();
-    final response = await http.post(
+    final response = await _post(
       Uri.parse('$baseUrl/inventory'),
       headers: _headers(token),
       body: jsonEncode(data),
@@ -160,7 +193,7 @@ class ApiService {
   // ÉTAT DU STOCK
   static Future<Map<String, dynamic>> getStockStatus(int warehouseId) async {
     final token = await getToken();
-    final response = await http.get(
+    final response = await _get(
       Uri.parse('$baseUrl/stock-status?warehouse_id=$warehouseId'),
       headers: _headers(token),
     );
@@ -174,7 +207,7 @@ class ApiService {
   // ALERTES SEUIL
   static Future<Map<String, dynamic>> getAlerts({int threshold = 100}) async {
     final token = await getToken();
-    final response = await http.get(
+    final response = await _get(
       Uri.parse('$baseUrl/alerts?threshold=$threshold'),
       headers: _headers(token),
     );
@@ -188,7 +221,7 @@ class ApiService {
   // REÇU
   static Future<Map<String, dynamic>> getReceipt(String reference) async {
     final token = await getToken();
-    final response = await http.get(
+    final response = await _get(
       Uri.parse('$baseUrl/receipt/$reference'),
       headers: _headers(token),
     );
@@ -202,7 +235,7 @@ class ApiService {
   // STATS
   static Future<Map<String, dynamic>> getStats() async {
     final token = await getToken();
-    final response = await http.get(
+    final response = await _get(
       Uri.parse('$baseUrl/stats'),
       headers: _headers(token),
     );

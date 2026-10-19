@@ -13,6 +13,7 @@ class AuthProvider with ChangeNotifier {
   Map<String, dynamic>? get user => _user;
 
   AuthProvider() {
+    ApiService.onUnauthorized = _onSessionExpired;
     _checkAuth();
   }
 
@@ -20,20 +21,32 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final token = await ApiService.getToken();
-    if (token != null && token.isNotEmpty) {
-      _isAuthenticated = true;
-      await _loadStoredUser();
+    try {
+      final token = await ApiService.getToken();
+      if (token != null && token.isNotEmpty) {
+        _isAuthenticated = true;
+        await _loadStoredUser();
+      }
+    } catch (_) {
+      _isAuthenticated = false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
+  }
 
-    _isLoading = false;
+  Future<void> _onSessionExpired() async {
+    if (!_isAuthenticated) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('auth_user');
+    } catch (_) {}
+    _isAuthenticated = false;
+    _user = null;
     notifyListeners();
   }
 
   Future<bool> login(String email, String password) async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
       final result = await ApiService.login(email, password);
       if (result['success'] == true) {
@@ -41,16 +54,11 @@ class AuthProvider with ChangeNotifier {
         _user = result['user'];
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_user', jsonEncode(_user));
-        _isLoading = false;
         notifyListeners();
         return true;
       }
-      _isLoading = false;
-      notifyListeners();
       return false;
     } catch (e) {
-      _isLoading = false;
-      notifyListeners();
       return false;
     }
   }

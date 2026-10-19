@@ -19,9 +19,10 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _isLoading = true);
     final auth = context.read<AuthProvider>();
     final ok = await auth.login(_emailCtrl.text.trim(), _passwordCtrl.text);
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (!ok && mounted) {
+    if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Identifiants invalides'), backgroundColor: Colors.red),
       );
