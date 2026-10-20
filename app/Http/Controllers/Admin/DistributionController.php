@@ -734,7 +734,7 @@ class DistributionController extends Controller
             if ($match) return $match;
         }
         if ($fullName) {
-            $match = (clone $query)->where('full_name', 'ILIKE', $fullName)->first();
+            $match = (clone $query)->where('full_name', 'LIKE', $fullName)->first();
             if ($match) return $match;
         }
         return null;

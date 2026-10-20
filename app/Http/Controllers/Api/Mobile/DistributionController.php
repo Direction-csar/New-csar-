@@ -611,7 +611,7 @@ class DistributionController extends Controller
         }
 
         if ($request->filled('full_name')) {
-            $match = (clone $query)->where('full_name', 'ILIKE', $request->full_name)->first();
+            $match = (clone $query)->where('full_name', 'LIKE', $request->full_name)->first();
             if ($match) {
                 $duplicates[] = [
                     'field' => 'full_name',
