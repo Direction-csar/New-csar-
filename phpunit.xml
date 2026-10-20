@@ -25,6 +25,7 @@
     </source>
     <php>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:0BOaF/8QqzQPfroa2oC7EdtRQyujwd/WT3e32WS3jgw="/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_STORE" value="array"/>
@@ -38,5 +39,7 @@
         <env name="NIGHTWATCH_ENABLED" value="false"/>
         <env name="LOG_CHANNEL" value="stderr"/>
         <env name="LOG_LEVEL" value="emergency"/>
+        <env name="BICTORYS_MODE" value="test" force="true"/>
+        <env name="BICTORYS_API_KEY" value="test-bictorys-key" force="true"/>
     </php>
 </phpunit>

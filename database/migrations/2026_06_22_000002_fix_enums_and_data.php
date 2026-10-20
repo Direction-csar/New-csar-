@@ -24,7 +24,11 @@ return new class extends Migration {
             DB::statement("UPDATE health_insurance_surveys SET {$col} = NULL WHERE {$col} NOT IN ('{$validStr}') OR {$col} = ''");
         }
 
-        // Modifier les enums
+        // Modifier les enums — syntaxe MySQL uniquement (SQLite stocke déjà en varchar)
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement("ALTER TABLE health_insurance_surveys MODIFY q1_info_level ENUM('totalement','partiellement','non','pas_concerne') NULL");
         DB::statement("ALTER TABLE health_insurance_surveys MODIFY q2_documents_clarity ENUM('tres_clairs','moyennement','peu_clairs','pas_concerne') NULL");
         DB::statement("ALTER TABLE health_insurance_surveys MODIFY q3_difficulty ENUM('jamais','parfois','souvent','pas_concerne') NULL");

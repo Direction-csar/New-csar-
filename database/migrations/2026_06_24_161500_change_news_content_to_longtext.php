@@ -14,6 +14,11 @@ return new class extends Migration
     {
         // Le contenu des actualités peut inclure des images base64 volumineuses
         // dépassant la limite de TEXT (64 Ko). On passe en LONGTEXT (4 Go).
+        // Syntaxe MySQL uniquement — sous SQLite la colonne est déjà un varchar/text.
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement('ALTER TABLE `news` MODIFY `content` LONGTEXT NOT NULL');
     }
 
