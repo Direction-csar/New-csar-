@@ -4,14 +4,15 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
 import '../models/ticket_receipt.dart';
+import 'printing/thermal_printer_service.dart';
 
 /// Impression du ticket sur imprimante thermique via le dialogue
 /// d'impression système (permet de choisir l'imprimante et le pilote
 /// 58 mm / 80 mm). Le QR contient le qr_token existant du ticket :
 /// imprimer ou réimprimer ne modifie aucun statut côté serveur.
 class TicketPrintService {
-  /// [paperMm] : 58 ou 80 selon le papier thermique.
-  static Future<void> printTicket(
+  /// Construit le document PDF du ticket (page rouleau [paperMm] × ∞).
+  static Future<pw.Document> buildDocument(
     TicketReceipt r, {
     double paperMm = 58,
   }) async {
@@ -195,10 +196,41 @@ class TicketPrintService {
       ),
     );
 
-    // Dialogue natif : choix de l'imprimante (USB/BT/Wi-Fi via pilotes).
+    return doc;
+  }
+
+  /// Impression via le dialogue natif complet : l'utilisateur y choisit
+  /// lui-même l'imprimante et le format (pilotes OS USB/BT/Wi-Fi).
+  static Future<void> printTicket(
+    TicketReceipt r, {
+    double paperMm = 58,
+  }) async {
+    final doc = await buildDocument(r, paperMm: paperMm);
     await Printing.layoutPdf(
       onLayout: (_) async => doc.save(),
       name: 'ticket_${r.ticketCode}',
     );
+  }
+
+  /// Impression directe vers une imprimante déjà sélectionnée, sans
+  /// boîte de dialogue. Retourne le résultat réel de l'envoi.
+  static Future<PrintResult> printViaPrinter(
+    Printer printer,
+    TicketReceipt r, {
+    double paperMm = 58,
+  }) async {
+    try {
+      final doc = await buildDocument(r, paperMm: paperMm);
+      final ok = await Printing.directPrintPdf(
+        printer: printer,
+        name: 'ticket_${r.ticketCode}',
+        onLayout: (_) async => doc.save(),
+      );
+      return ok
+          ? const PrintResult.ok()
+          : const PrintResult.fail("L'imprimante a refusé le document.");
+    } catch (e) {
+      return PrintResult.fail('Erreur d\'impression : $e');
+    }
   }
 }

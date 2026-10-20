@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:printing/printing.dart' show Printer, Printing;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -29,6 +30,8 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
   bool _detecting = true;
   ThermalPrinterService? _printer;
   PrinterState _printerState = PrinterState.unknown;
+  Printer? _selectedPrinter;
+  String? _lastPrintError;
 
   @override
   void initState() {
@@ -144,6 +147,59 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
     }
   }
 
+  /// Sélecteur natif d'imprimante (pilotes OS) — chemin de repli quand
+  /// aucune imprimante intégrée n'est détectée sur le terminal.
+  Future<void> _pickPrinter() async {
+    final printer = await Printing.pickPrinter(context: context);
+    if (!mounted) return;
+    setState(() {
+      _selectedPrinter = printer;
+      _lastPrintError = null;
+    });
+    if (printer == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aucune imprimante sélectionnée.')),
+      );
+    }
+  }
+
+  /// Impression/reprise sur l'imprimante choisie (résultat réel
+  /// directPrintPdf) ou dialogue natif si aucune n'est sélectionnée.
+  Future<void> _printFallback(TicketReceipt receipt) async {
+    if (_printing) return;
+    setState(() {
+      _printing = true;
+      _lastPrintError = null;
+    });
+    try {
+      final printer = _selectedPrinter;
+      if (printer != null) {
+        final result = await TicketPrintService.printViaPrinter(
+          printer,
+          receipt,
+        );
+        if (!mounted) return;
+        if (!result.success) {
+          setState(() => _lastPrintError = result.message);
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result.success
+                  ? 'Ticket imprimé.'
+                  : 'Échec impression : ${result.message}',
+            ),
+            backgroundColor: result.success ? null : Colors.red.shade700,
+          ),
+        );
+      } else {
+        await _printTicket(receipt);
+      }
+    } finally {
+      if (mounted) setState(() => _printing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final agentName = context.read<AuthService>().user?['name']?.toString();
@@ -250,9 +306,58 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => _printTicket(receipt),
-                    icon: const Icon(Icons.print),
-                    label: const Text('Imprimer / Réimprimer'),
+                    onPressed: _printing ? null : _pickPrinter,
+                    icon: const Icon(Icons.print_outlined),
+                    label: Text(
+                      _selectedPrinter == null
+                          ? 'Choisir une imprimante'
+                          : 'Changer d\'imprimante',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFFD84315),
+                      side: const BorderSide(color: Color(0xFFD84315)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _printing ? null : () => _printFallback(receipt),
+                    icon: _printing
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.print),
+                    label: Text(
+                      _printing ? 'Impression...' : 'Imprimer le ticket',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFD84315),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _printing ? null : () => _printFallback(receipt),
+                    icon: const Icon(Icons.replay),
+                    label: const Text('Réimprimer le ticket'),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFD84315),
                       side: const BorderSide(color: Color(0xFFD84315)),
@@ -293,10 +398,20 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
     }
     final printer = _printer;
     if (printer == null) {
-      return const Text(
-        'Pas d\'imprimante intégrée détectée — impression via PDF',
+      // Repli : état de l'imprimante système choisie manuellement.
+      final err = _lastPrintError;
+      if (err != null) {
+        return Text(
+          'Imprimante : erreur — $err',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 12, color: Colors.red.shade700),
+        );
+      }
+      final sel = _selectedPrinter;
+      return Text(
+        sel == null ? 'Imprimante : non connectée' : 'Imprimante : ${sel.name}',
         textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 12, color: Colors.grey),
+        style: const TextStyle(fontSize: 12, color: Colors.grey),
       );
     }
     final ok = _printerState == PrinterState.ready;
