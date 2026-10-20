@@ -50,18 +50,32 @@ class _SyncScreenState extends State<SyncScreen> {
       'sacs': m.movementType == 'entry' ? m.entrySacs : m.exitSacs,
       'kg': m.movementType == 'entry' ? m.entryKg : m.exitKg,
       'observation': m.observation,
+      'client_ref': m.reference,
     }).toList();
 
     try {
       final result = await ApiService.syncMovements(movements);
       if (result['success'] == true) {
-        for (final m in _pending) {
-          if (m.id != null) await DatabaseService.markSynced(m.id!);
+        final results = (result['data']?['results'] as List? ?? []);
+        final errors = (result['data']?['errors'] as List? ?? []);
+        // Marquer uniquement les mouvements confirmés par le serveur
+        final confirmedIdx = results
+            .where((r) => r['status'] == 'synced' || r['status'] == 'duplicate')
+            .map((r) => r['index'] as int)
+            .toSet();
+        for (var i = 0; i < _pending.length; i++) {
+          final m = _pending[i];
+          if (confirmedIdx.contains(i) && m.id != null) {
+            await DatabaseService.markSynced(m.id!);
+          }
         }
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('last_sync_at', DateTime.now().toIso8601String());
+        final rejected = errors.length;
         setState(() {
-          _status = '${result['data']?['synced'] ?? movements.length} mouvements synchronisés';
+          _status = rejected == 0
+              ? '${confirmedIdx.length} mouvement(s) synchronisé(s)'
+              : '${confirmedIdx.length} synchronisé(s), $rejected rejeté(s) : ${errors.first['message'] ?? ''}';
         });
         await _loadPending();
       } else {
@@ -147,7 +161,7 @@ class _SyncScreenState extends State<SyncScreen> {
                               color: m.movementType == 'entry' ? Colors.green : Colors.red,
                             ),
                             title: Text(m.label),
-                            subtitle: Text('${m.movementDate} | ${m.movementType == 'entry' ? '+' : '-'}${m.movementType == 'entry' ? m.entrySacs : m.exitSacs} sacs'),
+                            subtitle: Text('${m.movementDate} | ${m.movementType == 'entry' ? '+' : '-'}${m.movementType == 'entry' ? m.entrySacs : m.exitSacs} contenants'),
                             trailing: const Chip(label: Text('OFFLINE'), backgroundColor: Colors.orange, labelStyle: TextStyle(color: Colors.white, fontSize: 10)),
                           ),
                         );

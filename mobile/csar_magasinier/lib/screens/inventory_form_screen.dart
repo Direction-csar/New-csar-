@@ -64,7 +64,7 @@ class _InventoryFormScreenState extends State<InventoryFormScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Inventaire enregistré. Écart: ${diff > 0 ? '+' : ''}$diff sacs'),
+              content: Text('Inventaire enregistré. Écart: ${diff > 0 ? '+' : ''}$diff contenants'),
               backgroundColor: diff == 0 ? Colors.green : Colors.orange,
             ),
           );
@@ -119,14 +119,14 @@ class _InventoryFormScreenState extends State<InventoryFormScreen> {
             TextField(
               controller: _theoCtrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Stock Théorique (sacs)'),
+              decoration: const InputDecoration(labelText: 'Stock Théorique (contenants)'),
             ),
             const SizedBox(height: 16),
 
             TextField(
               controller: _actualCtrl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Stock Réel compté (sacs)'),
+              decoration: const InputDecoration(labelText: 'Stock Réel compté (contenants)'),
             ),
             const SizedBox(height: 16),
 

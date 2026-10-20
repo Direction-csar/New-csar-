@@ -48,21 +48,26 @@ class StockMovement {
         ? (json['metadata'] is String ? Map<String, dynamic>.from(jsonDecode(json['metadata'])) : json['metadata'])
         : {};
 
+    // Normalisation web↔mobile : 'in'='entry', 'out'='exit'
+    final rawType = json['type'] ?? 'entry';
+    final type = rawType == 'in' ? 'entry' : (rawType == 'out' ? 'exit' : rawType);
+    final qty = (json['quantity'] as num?)?.toDouble() ?? 0;
+
     return StockMovement(
       id: json['id'],
       warehouseId: json['warehouse_id'],
       movementDate: meta['movement_date'] ?? json['created_at']?.toString().split('T')[0] ?? '',
       label: json['reason'] ?? json['label'] ?? '',
       position: meta['position'],
-      entrySacs: (meta['entry_sacs'] ?? 0).toDouble(),
+      entrySacs: (meta['entry_sacs'] ?? (type == 'entry' ? qty : 0)).toDouble(),
       entryKg: (meta['entry_kg'] ?? 0).toDouble(),
-      exitSacs: (meta['exit_sacs'] ?? 0).toDouble(),
+      exitSacs: (meta['exit_sacs'] ?? (type == 'exit' ? qty : 0)).toDouble(),
       exitKg: (meta['exit_kg'] ?? 0).toDouble(),
       balanceSacs: (meta['balance_sacs'] ?? json['quantity_after'] ?? 0).toDouble(),
       balanceKg: (meta['balance_kg'] ?? 0).toDouble(),
       observation: meta['observation'],
       reference: json['reference'] ?? '',
-      movementType: json['type'] ?? 'entry',
+      movementType: type,
       status: json['status'] ?? 'synced',
       creatorName: json['creator']?['name'],
       createdAt: json['created_at']?.toString(),

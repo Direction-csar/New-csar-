@@ -79,6 +79,7 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
         'sacs': sacs,
         'kg': kg,
         'observation': _obsCtrl.text.trim(),
+        'client_ref': 'TRF-${DateTime.now().millisecondsSinceEpoch}',
       });
 
       if (result['success'] == true) {

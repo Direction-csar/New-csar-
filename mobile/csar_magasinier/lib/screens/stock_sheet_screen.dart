@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../models/warehouse.dart';
 import '../models/stock_movement.dart';
 import '../services/api_service.dart';
@@ -18,7 +17,7 @@ class _StockSheetScreenState extends State<StockSheetScreen> {
   List<StockMovement> _movements = [];
   bool _loading = true;
   double _balanceSacs = 0;
-  double _balanceKg = 0;
+  Map<String, double> _balanceUnits = {};
 
   @override
   void initState() {
@@ -32,9 +31,14 @@ class _StockSheetScreenState extends State<StockSheetScreen> {
       final hasNet = await ApiService.hasConnection();
       if (hasNet) {
         final data = await ApiService.getStockSheet(widget.warehouse.id);
+        final units = <String, double>{};
+        (data['balance_units'] as Map? ?? {}).forEach((k, v) {
+          final val = (v as num).toDouble();
+          if (val > 0) units[k.toString()] = val;
+        });
         setState(() {
           _balanceSacs = (data['balance_sacs'] ?? 0).toDouble();
-          _balanceKg = (data['balance_kg'] ?? 0).toDouble();
+          _balanceUnits = units;
           _movements = (data['movements']?['data'] as List? ?? [])
               .map((e) => StockMovement.fromJson(e))
               .toList();
@@ -80,9 +84,11 @@ class _StockSheetScreenState extends State<StockSheetScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          _balanceBox('Sacs', _balanceSacs.toStringAsFixed(0)),
-                          const SizedBox(width: 24),
-                          _balanceBox('KG', _balanceKg.toStringAsFixed(0)),
+                          _balanceBox('Contenants', _balanceSacs.toStringAsFixed(0)),
+                          ..._balanceUnits.entries.expand((e) => [
+                                const SizedBox(width: 24),
+                                _balanceBox(e.key, e.value.toStringAsFixed(0)),
+                              ]),
                         ],
                       ),
                     ],

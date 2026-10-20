@@ -126,6 +126,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
           'sacs': sacs,
           'kg': kg,
           'observation': movement.observation,
+          'client_ref': movement.reference,
           'photo_base64': _photoPath != null ? await _fileToBase64(_photoPath!) : null,
           'signature_base64': _signatureBytes != null ? base64Encode(_signatureBytes!) : null,
         });

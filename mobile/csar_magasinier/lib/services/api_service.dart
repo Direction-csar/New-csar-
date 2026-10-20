@@ -130,7 +130,7 @@ class ApiService {
       body: jsonEncode(data),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       return {'success': true, 'data': jsonDecode(response.body)};
     }
     return {'success': false, 'message': jsonDecode(response.body)['message'] ?? 'Erreur'};
@@ -175,7 +175,7 @@ class ApiService {
       body: jsonEncode(data),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200 || response.statusCode == 201) {
       return {'success': true, 'data': jsonDecode(response.body)};
     }
     return {'success': false, 'message': jsonDecode(response.body)['message'] ?? 'Erreur transfert'};

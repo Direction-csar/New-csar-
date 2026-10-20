@@ -84,6 +84,10 @@ class WarehouseKeeperController extends Controller
         $dateFrom = $request->input('date_from');
         $dateTo   = $request->input('date_to');
 
+        if ($resp = $this->denyWarehouseAccess($request->user(), (int) $warehouseId)) {
+            return $resp;
+        }
+
         $query = StockMovement::with(['creator:id,name'])
             ->where('warehouse_id', $warehouseId)
             ->orderBy('created_at', 'desc');
@@ -93,15 +97,15 @@ class WarehouseKeeperController extends Controller
 
         $movements = $query->paginate(50);
 
-        // Calcul du solde courant
-        $balanceSacs = StockMovement::where('warehouse_id', $warehouseId)
-            ->whereIn('type', ['entry', 'exit', 'adjustment'])
-            ->sum(DB::raw('CASE WHEN type = "exit" THEN -quantity ELSE quantity END'));
+        // Solde réel : tous les types (entry/exit/in/out/transfer/adjustment),
+        // unités calculées depuis les formats enregistrés dans les libellés
+        $balance = $this->calculateBalance($warehouseId);
 
         return response()->json([
             'movements' => $movements,
-            'balance_sacs' => $balanceSacs,
-            'balance_kg'  => $balanceSacs * 50, // Approximation : 1 sac = 50kg
+            'balance_sacs' => $balance['sacs'],
+            'balance_kg'  => $balance['kg'],
+            'balance_units' => $balance['units'],
         ]);
     }
 
@@ -119,6 +123,7 @@ class WarehouseKeeperController extends Controller
             'sacs' => 'required|numeric|min:0',
             'kg' => 'required|numeric|min:0',
             'observation' => 'nullable|string|max:1000',
+            'client_ref' => 'nullable|string|max:100',
         ]);
 
         $user = $request->user();
@@ -126,76 +131,112 @@ class WarehouseKeeperController extends Controller
         $sacs = (float) $request->sacs;
         $kg   = (float) $request->kg;
 
-        // Vérifier solde suffisant pour sortie
-        if (in_array($type, ['exit', 'adjustment'])) {
-            $balance = $this->calculateBalance($request->warehouse_id);
-            if ($sacs > $balance['sacs']) {
+        if ($resp = $this->denyWarehouseAccess($user, (int) $request->warehouse_id)) {
+            return $resp;
+        }
+
+        // Idempotence : un client_ref déjà enregistré renvoie le mouvement existant
+        $clientRef = $request->client_ref;
+        if ($clientRef) {
+            $existing = StockMovement::where('reference', $clientRef)->first();
+            if ($existing) {
+                $meta = json_decode($existing->metadata ?? '{}', true);
                 return response()->json([
-                    'message' => 'Solde insuffisant. Disponible : ' . $balance['sacs'] . ' sacs'
-                ], 422);
+                    'message' => 'Mouvement déjà enregistré.',
+                    'reference' => $existing->reference,
+                    'balance_sacs' => $meta['balance_sacs'] ?? null,
+                    'balance_kg' => $meta['balance_kg'] ?? null,
+                    'movement' => $existing,
+                    'duplicate' => true,
+                ], 200);
             }
         }
 
-        $ref = 'STK-' . strtoupper(Str::random(8));
+        try {
+            $result = DB::transaction(function () use ($request, $user, $type, $sacs, $kg, $clientRef) {
+                // Verrou sur le magasin pour sérialiser les sorties concurrentes
+                Warehouse::where('id', $request->warehouse_id)->lockForUpdate()->first();
 
-        $entrySacs = in_array($type, ['entry', 'report']) ? $sacs : 0;
-        $entryKg   = in_array($type, ['entry', 'report']) ? $kg : 0;
-        $exitSacs  = in_array($type, ['exit']) ? $sacs : 0;
-        $exitKg    = in_array($type, ['exit']) ? $kg : 0;
+                // Vérifier solde suffisant pour sortie / ajustement négatif
+                if (in_array($type, ['exit', 'adjustment'])) {
+                    $balance = $this->calculateBalance($request->warehouse_id);
+                    if ($sacs > $balance['sacs']) {
+                        abort(response()->json([
+                            'message' => 'Solde insuffisant. Disponible : ' . $balance['sacs'] . ' contenants'
+                        ], 422));
+                    }
+                }
 
-        // Recalculer les soldes
-        $balance = $this->calculateBalance($request->warehouse_id);
-        $newBalanceSacs = $balance['sacs'] + $entrySacs - $exitSacs;
-        $newBalanceKg   = $balance['kg'] + $entryKg - $exitKg;
+                // Réutiliser la référence client (idempotence) sinon en générer une
+                $ref = $clientRef ?: 'STK-' . strtoupper(Str::random(8));
 
-        $movement = StockMovement::create([
-            'warehouse_id'    => $request->warehouse_id,
-            'stock_id'        => null, // pas lié à un stock spécifique
-            'type'            => $type,
-            'quantity'        => $sacs,
-            'quantity_before' => $balance['sacs'],
-            'quantity_after'  => $newBalanceSacs,
-            'reason'          => $request->label,
-            'reference'       => $ref,
-            'created_by'      => $user->id,
-        ]);
+                $entrySacs = in_array($type, ['entry', 'report']) ? $sacs : 0;
+                $entryKg   = in_array($type, ['entry', 'report']) ? $kg : 0;
+                $exitSacs  = in_array($type, ['exit']) ? $sacs : 0;
+                $exitKg    = in_array($type, ['exit']) ? $kg : 0;
 
-        // Métadonnées spécifiques fiche de stock (colonne JSON ou table pivot)
-        // On stocke dans metadata
-        $movement->metadata = json_encode([
-            'entry_sacs' => $entrySacs,
-            'entry_kg'   => $entryKg,
-            'exit_sacs'  => $exitSacs,
-            'exit_kg'    => $exitKg,
-            'balance_sacs' => $newBalanceSacs,
-            'balance_kg'   => $newBalanceKg,
-            'position'     => $request->position,
-            'observation'  => $request->observation,
-            'movement_date' => $request->movement_date,
-            'photo_base64' => $request->photo_base64 ?? null,
-            'signature_base64' => $request->signature_base64 ?? null,
-        ]);
-        $movement->save();
+                $balance = $this->calculateBalance($request->warehouse_id);
+                $newBalanceSacs = $balance['sacs'] + $entrySacs - $exitSacs;
+                $newBalanceKg   = $balance['kg'] + $entryKg - $exitKg;
 
-        // Mise à jour du stock courant du magasin
-        Warehouse::where('id', $request->warehouse_id)
-            ->update(['current_stock' => $newBalanceSacs]);
+                $movement = StockMovement::create([
+                    'warehouse_id'    => $request->warehouse_id,
+                    'stock_id'        => null,
+                    'type'            => $type,
+                    'quantity'        => $sacs,
+                    'quantity_before' => $balance['sacs'],
+                    'quantity_after'  => $newBalanceSacs,
+                    'reason'          => $request->label,
+                    'reference'       => $ref,
+                    'created_by'      => $user->id,
+                ]);
 
-        // Journal d'audit
-        Log::info('Mouvement de stock créé', [
-            'user_id' => $user->id,
-            'warehouse_id' => $request->warehouse_id,
-            'reference' => $ref,
-            'type' => $type,
-            'sacs' => $sacs,
-        ]);
+                $movement->metadata = json_encode([
+                    'entry_sacs' => $entrySacs,
+                    'entry_kg'   => $entryKg,
+                    'exit_sacs'  => $exitSacs,
+                    'exit_kg'    => $exitKg,
+                    'balance_sacs' => $newBalanceSacs,
+                    'balance_kg'   => $newBalanceKg,
+                    'position'     => $request->position,
+                    'observation'  => $request->observation,
+                    'movement_date' => $request->movement_date,
+                    'photo_base64' => $request->photo_base64 ?? null,
+                    'signature_base64' => $request->signature_base64 ?? null,
+                    'client_ref'   => $clientRef,
+                ]);
+                $movement->save();
+
+                Warehouse::where('id', $request->warehouse_id)
+                    ->update(['current_stock' => $newBalanceSacs]);
+
+                Log::info('Mouvement de stock créé', [
+                    'user_id' => $user->id,
+                    'warehouse_id' => $request->warehouse_id,
+                    'reference' => $ref,
+                    'type' => $type,
+                    'sacs' => $sacs,
+                ]);
+
+                return [
+                    'ref' => $ref,
+                    'movement' => $movement,
+                    'balance_sacs' => $newBalanceSacs,
+                    'balance_kg' => $newBalanceKg,
+                ];
+            });
+        } catch (\Illuminate\Http\Exceptions\HttpResponseException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            return response()->json(['message' => 'Erreur enregistrement : ' . $e->getMessage()], 500);
+        }
 
         return response()->json([
             'message' => 'Mouvement enregistré avec succès.',
-            'reference' => $ref,
-            'balance_sacs' => $newBalanceSacs,
-            'balance_kg' => $newBalanceKg,
-            'movement' => $movement,
+            'reference' => $result['ref'],
+            'balance_sacs' => $result['balance_sacs'],
+            'balance_kg' => $result['balance_kg'],
+            'movement' => $result['movement'],
         ], 201);
     }
 
@@ -208,12 +249,12 @@ class WarehouseKeeperController extends Controller
 
         $today = now()->format('Y-m-d');
         $entriesToday = StockMovement::where('created_by', $user->id)
-            ->where('type', 'entry')
+            ->whereIn('type', ['entry', 'in'])
             ->whereDate('created_at', $today)
             ->sum('quantity');
 
         $exitsToday = StockMovement::where('created_by', $user->id)
-            ->where('type', 'exit')
+            ->whereIn('type', ['exit', 'out'])
             ->whereDate('created_at', $today)
             ->sum('quantity');
 
@@ -239,64 +280,88 @@ class WarehouseKeeperController extends Controller
             'movements.*.movement_type' => 'required|in:entry,exit,adjustment,report',
             'movements.*.sacs' => 'required|numeric|min:0',
             'movements.*.kg' => 'required|numeric|min:0',
+            'movements.*.client_ref' => 'nullable|string|max:100',
         ]);
 
         $user = $request->user();
         $results = [];
         $errors = [];
 
-        DB::beginTransaction();
-        try {
-            foreach ($request->movements as $idx => $data) {
-                $ref = 'STK-' . strtoupper(Str::random(8));
+        foreach ($request->movements as $idx => $data) {
+            // Contrôle d'accès par mouvement
+            if ($this->denyWarehouseAccess($user, (int) $data['warehouse_id']) !== null) {
+                $errors[] = ['index' => $idx, 'status' => 'rejected', 'message' => 'Magasin non autorisé'];
+                continue;
+            }
 
-                $balance = $this->calculateBalance($data['warehouse_id']);
-                $newBalanceSacs = $balance['sacs'];
-                $newBalanceKg   = $balance['kg'];
-
-                if ($data['movement_type'] === 'entry' || $data['movement_type'] === 'report') {
-                    $newBalanceSacs += $data['sacs'];
-                    $newBalanceKg   += $data['kg'];
-                } else {
-                    $newBalanceSacs -= $data['sacs'];
-                    $newBalanceKg   -= $data['kg'];
+            // Idempotence : client_ref déjà enregistré -> confirmé sans doublon
+            $clientRef = $data['client_ref'] ?? null;
+            if ($clientRef) {
+                $existing = StockMovement::where('reference', $clientRef)->first();
+                if ($existing) {
+                    $results[] = ['index' => $idx, 'reference' => $clientRef, 'status' => 'duplicate'];
+                    continue;
                 }
+            }
 
-                $movement = StockMovement::create([
-                    'warehouse_id'    => $data['warehouse_id'],
-                    'type'            => $data['movement_type'],
-                    'quantity'        => $data['sacs'],
-                    'quantity_before' => $balance['sacs'],
-                    'quantity_after'  => $newBalanceSacs,
-                    'reason'          => $data['label'],
-                    'reference'       => $ref,
-                    'created_by'      => $user->id,
-                    'metadata'        => json_encode([
-                        'entry_sacs' => $data['movement_type'] === 'entry' ? $data['sacs'] : 0,
-                        'entry_kg'   => $data['movement_type'] === 'entry' ? $data['kg'] : 0,
-                        'exit_sacs'  => $data['movement_type'] === 'exit' ? $data['sacs'] : 0,
-                        'exit_kg'    => $data['movement_type'] === 'exit' ? $data['kg'] : 0,
-                        'balance_sacs' => $newBalanceSacs,
-                        'balance_kg'   => $newBalanceKg,
-                        'position'     => $data['position'] ?? null,
-                        'observation'  => $data['observation'] ?? null,
-                        'movement_date' => $data['movement_date'],
-                    ]),
-                ]);
+            try {
+                $ref = DB::transaction(function () use ($data, $user, $clientRef) {
+                    Warehouse::where('id', $data['warehouse_id'])->lockForUpdate()->first();
 
-                Warehouse::where('id', $data['warehouse_id'])
-                    ->update(['current_stock' => $newBalanceSacs]);
+                    $balance = $this->calculateBalance($data['warehouse_id']);
+                    $newBalanceSacs = $balance['sacs'];
+                    $newBalanceKg   = $balance['kg'];
+
+                    if ($data['movement_type'] === 'entry' || $data['movement_type'] === 'report') {
+                        $newBalanceSacs += $data['sacs'];
+                        $newBalanceKg   += $data['kg'];
+                    } else {
+                        if ($data['sacs'] > $balance['sacs']) {
+                            throw new \RuntimeException('Solde insuffisant (' . $balance['sacs'] . ')');
+                        }
+                        $newBalanceSacs -= $data['sacs'];
+                        $newBalanceKg   -= $data['kg'];
+                    }
+
+                    $ref = $clientRef ?: 'STK-' . strtoupper(Str::random(8));
+
+                    StockMovement::create([
+                        'warehouse_id'    => $data['warehouse_id'],
+                        'type'            => $data['movement_type'],
+                        'quantity'        => $data['sacs'],
+                        'quantity_before' => $balance['sacs'],
+                        'quantity_after'  => $newBalanceSacs,
+                        'reason'          => $data['label'],
+                        'reference'       => $ref,
+                        'created_by'      => $user->id,
+                        'metadata'        => json_encode([
+                            'entry_sacs' => in_array($data['movement_type'], ['entry', 'report']) ? $data['sacs'] : 0,
+                            'entry_kg'   => in_array($data['movement_type'], ['entry', 'report']) ? $data['kg'] : 0,
+                            'exit_sacs'  => $data['movement_type'] === 'exit' ? $data['sacs'] : 0,
+                            'exit_kg'    => $data['movement_type'] === 'exit' ? $data['kg'] : 0,
+                            'balance_sacs' => $newBalanceSacs,
+                            'balance_kg'   => $newBalanceKg,
+                            'position'     => $data['position'] ?? null,
+                            'observation'  => $data['observation'] ?? null,
+                            'movement_date' => $data['movement_date'],
+                            'client_ref'   => $clientRef,
+                        ]),
+                    ]);
+
+                    Warehouse::where('id', $data['warehouse_id'])
+                        ->update(['current_stock' => $newBalanceSacs]);
+
+                    return $ref;
+                });
 
                 $results[] = ['index' => $idx, 'reference' => $ref, 'status' => 'synced'];
+            } catch (\Throwable $e) {
+                $errors[] = ['index' => $idx, 'status' => 'rejected', 'message' => $e->getMessage()];
             }
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['message' => 'Erreur synchronisation : ' . $e->getMessage()], 500);
         }
 
         return response()->json([
-            'synced' => count($results),
+            'synced' => count(array_filter($results, fn($r) => $r['status'] === 'synced')),
             'errors' => $errors,
             'results' => $results,
         ]);
@@ -355,24 +420,50 @@ class WarehouseKeeperController extends Controller
             'sacs' => 'required|numeric|min:1',
             'kg' => 'required|numeric|min:1',
             'observation' => 'nullable|string|max:1000',
+            'client_ref' => 'nullable|string|max:100',
         ]);
 
         $user = $request->user();
         $sacs = (float) $request->sacs;
         $kg   = (float) $request->kg;
 
-        $balanceSource = $this->calculateBalance($request->warehouse_id);
-        if ($sacs > $balanceSource['sacs']) {
-            return response()->json([
-                'message' => 'Solde insuffisant pour le transfert. Disponible : ' . $balanceSource['sacs'] . ' sacs'
-            ], 422);
+        if ($resp = $this->denyWarehouseAccess($user, (int) $request->warehouse_id)) {
+            return $resp;
+        }
+        if ($resp = $this->denyWarehouseAccess($user, (int) $request->destination_warehouse_id)) {
+            return $resp;
         }
 
-        $ref = 'TRF-' . strtoupper(Str::random(8));
+        // Idempotence : un client_ref déjà utilisé renvoie le transfert existant
+        $clientRef = $request->client_ref;
+        if ($clientRef) {
+            $existing = StockMovement::where('reference', $clientRef)->first();
+            if ($existing) {
+                return response()->json([
+                    'message' => 'Transfert déjà enregistré.',
+                    'reference' => $existing->reference,
+                    'numero_transfert' => $existing->numero_transfert,
+                    'duplicate' => true,
+                ], 200);
+            }
+        }
+
+        $ref = $clientRef ?: 'TRF-' . strtoupper(Str::random(8));
         $numeroTransfert = 'T-' . now()->format('Ymd') . '-' . strtoupper(Str::random(4));
 
         DB::beginTransaction();
         try {
+            // Verrous sur les deux magasins (ordre déterministe pour éviter les deadlocks)
+            Warehouse::whereIn('id', [$request->warehouse_id, $request->destination_warehouse_id])
+                ->orderBy('id')->lockForUpdate()->get();
+
+            $balanceSource = $this->calculateBalance($request->warehouse_id);
+            if ($sacs > $balanceSource['sacs']) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'Solde insuffisant pour le transfert. Disponible : ' . $balanceSource['sacs'] . ' contenants'
+                ], 422);
+            }
             // Sortie du magasin source
             $newBalanceSource = $balanceSource['sacs'] - $sacs;
             $movementSource = StockMovement::create([
@@ -387,22 +478,22 @@ class WarehouseKeeperController extends Controller
                 'numero_transfert' => $numeroTransfert,
                 'entrepot_destination_id' => $request->destination_warehouse_id,
                 'created_by'      => $user->id,
+                'metadata'        => json_encode([
+                    'transfer_type' => 'out',
+                    'client_ref' => $clientRef,
+                    'destination_warehouse_id' => $request->destination_warehouse_id,
+                    'destination_warehouse_name' => Warehouse::find($request->destination_warehouse_id)->name,
+                    'entry_sacs' => 0,
+                    'entry_kg'   => 0,
+                    'exit_sacs'  => $sacs,
+                    'exit_kg'    => $kg,
+                    'balance_sacs' => $newBalanceSource,
+                    'balance_kg'   => $newBalanceSource * ($kg / $sacs),
+                    'observation'  => $request->observation,
+                    'movement_date' => $request->movement_date,
+                    'numero_transfert' => $numeroTransfert,
+                ]),
             ]);
-            $movementSource->metadata = json_encode([
-                'transfer_type' => 'out',
-                'destination_warehouse_id' => $request->destination_warehouse_id,
-                'destination_warehouse_name' => Warehouse::find($request->destination_warehouse_id)->name,
-                'entry_sacs' => 0,
-                'entry_kg'   => 0,
-                'exit_sacs'  => $sacs,
-                'exit_kg'    => $kg,
-                'balance_sacs' => $newBalanceSource,
-                'balance_kg'   => $newBalanceSource * ($kg / $sacs),
-                'observation'  => $request->observation,
-                'movement_date' => $request->movement_date,
-                'numero_transfert' => $numeroTransfert,
-            ]);
-            $movementSource->save();
 
             // Entrée dans le magasin destination
             $balanceDest = $this->calculateBalance($request->destination_warehouse_id);
@@ -472,37 +563,52 @@ class WarehouseKeeperController extends Controller
         ]);
 
         $user = $request->user();
+
+        if ($resp = $this->denyWarehouseAccess($user, (int) $request->warehouse_id)) {
+            return $resp;
+        }
+
         $theoretical = (float) $request->theoretical_sacs;
         $actual = (float) $request->actual_sacs;
         $diff = $actual - $theoretical;
 
         $ref = 'INV-' . strtoupper(Str::random(8));
 
-        $movement = StockMovement::create([
-            'warehouse_id'    => $request->warehouse_id,
-            'stock_id'        => null,
-            'type'            => 'adjustment',
-            'quantity'        => abs($diff),
-            'quantity_before' => $theoretical,
-            'quantity_after'  => $actual,
-            'reason'          => $request->label . ' (Inventaire)',
-            'reference'       => $ref,
-            'raison_ajustement' => 'Inventaire physique',
-            'created_by'      => $user->id,
-        ]);
+        try {
+            $movement = DB::transaction(function () use ($request, $user, $theoretical, $actual, $diff, $ref) {
+                Warehouse::where('id', $request->warehouse_id)->lockForUpdate()->first();
 
-        $movement->metadata = json_encode([
-            'inventory_type' => true,
-            'theoretical_sacs' => $theoretical,
-            'actual_sacs' => $actual,
-            'difference_sacs' => $diff,
-            'observation' => $request->observation,
-            'movement_date' => $request->movement_date,
-        ]);
-        $movement->save();
+                $movement = StockMovement::create([
+                    'warehouse_id'    => $request->warehouse_id,
+                    'stock_id'        => null,
+                    'type'            => 'adjustment',
+                    'quantity'        => abs($diff),
+                    'quantity_before' => $theoretical,
+                    'quantity_after'  => $actual,
+                    'reason'          => $request->label . ' (Inventaire)',
+                    'reference'       => $ref,
+                    'raison_ajustement' => 'Inventaire physique',
+                    'created_by'      => $user->id,
+                ]);
 
-        Warehouse::where('id', $request->warehouse_id)
-            ->update(['current_stock' => $actual]);
+                $movement->metadata = json_encode([
+                    'inventory_type' => true,
+                    'theoretical_sacs' => $theoretical,
+                    'actual_sacs' => $actual,
+                    'difference_sacs' => $diff,
+                    'observation' => $request->observation,
+                    'movement_date' => $request->movement_date,
+                ]);
+                $movement->save();
+
+                Warehouse::where('id', $request->warehouse_id)
+                    ->update(['current_stock' => $actual]);
+
+                return $movement;
+            });
+        } catch (\Throwable $e) {
+            return response()->json(['message' => 'Erreur inventaire : ' . $e->getMessage()], 500);
+        }
 
         return response()->json([
             'message' => 'Inventaire enregistré.',
@@ -525,10 +631,14 @@ class WarehouseKeeperController extends Controller
 
         $warehouseId = $request->input('warehouse_id');
 
-        // Récupérer tous les mouvements pour ce magasin
+        if ($resp = $this->denyWarehouseAccess($request->user(), (int) $warehouseId)) {
+            return $resp;
+        }
+
+        // Tous les types de mouvements : entry/exit/adjustment/transfer/report
+        // (mobile) et in/out (back-office web)
         $movements = StockMovement::where('warehouse_id', $warehouseId)
-            ->whereIn('type', ['entry', 'exit', 'adjustment', 'transfer'])
-            ->get(['type', 'quantity', 'reason', 'metadata']);
+            ->get(['type', 'quantity', 'quantity_before', 'quantity_after', 'reason', 'metadata', 'stock_id']);
 
         // Analyser les métadonnées pour extraire produit et format
         $stockByProduct = [];
@@ -548,6 +658,14 @@ class WarehouseKeeperController extends Controller
                 $productName = trim($matches[1]);
                 if (isset($meta['format_kg'])) $formatKg = (int) $meta['format_kg'];
                 if (isset($meta['format_unit'])) $formatUnit = $meta['format_unit'];
+            } elseif ($m->stock_id) {
+                // Mouvements saisis au back-office : nom via le lot (stocks)
+                $stock = \App\Models\Stock::find($m->stock_id);
+                if ($stock) {
+                    $productName = $stock->item_name ?: $productName;
+                    // Quantité saisie au web = quantité directe (format 1)
+                    $formatKg = 1;
+                }
             }
 
             $key = $productName . '|' . $formatKg . '|' . $formatUnit;
@@ -561,20 +679,9 @@ class WarehouseKeeperController extends Controller
                 ];
             }
 
-            if (in_array($m->type, ['entry', 'report'])) {
-                $stockByProduct[$key]['total_sacs'] += $m->quantity;
-            } elseif ($m->type === 'exit') {
-                $stockByProduct[$key]['total_sacs'] -= $m->quantity;
-            } elseif ($m->type === 'adjustment') {
-                $stockByProduct[$key]['total_sacs'] = $m->quantity_after ?? 0;
-            } elseif ($m->type === 'transfer') {
-                $meta = json_decode($m->metadata ?? '{}', true);
-                if (isset($meta['transfer_type']) && $meta['transfer_type'] === 'out') {
-                    $stockByProduct[$key]['total_sacs'] -= $m->quantity;
-                } elseif (isset($meta['transfer_type']) && $meta['transfer_type'] === 'in') {
-                    $stockByProduct[$key]['total_sacs'] += $m->quantity;
-                }
-            }
+            // Agrégation signée et unifiée : in/entry/report = +, out/exit/transfer-out = -,
+            // adjustment = écart signé (before→after)
+            $stockByProduct[$key]['total_sacs'] += $this->signedQuantity($m);
         }
 
         // Recalculer le total dans l'unité du produit (kg ou L)
@@ -763,11 +870,34 @@ class WarehouseKeeperController extends Controller
         return null;
     }
 
+    /**
+     * Refuse l'accès à un magasin pour un magasinier qui n'y est pas rattaché.
+     * Retourne une réponse 403 ou null si l'accès est autorisé.
+     */
+    private function denyWarehouseAccess($user, int $warehouseId): ?\Illuminate\Http\JsonResponse
+    {
+        if (!$user || $user->role !== 'magasinier') {
+            return null; // admin / super_admin : accès libre
+        }
+
+        $allowed = Warehouse::where('id', $warehouseId)
+            ->whereHas('users', function ($q) use ($user) {
+                $q->where('id', $user->id);
+            })
+            ->exists();
+
+        return $allowed
+            ? null
+            : response()->json(['message' => 'Magasin non autorisé.'], 403);
+    }
+
     private function movementTypeLabel($type)
     {
         $labels = [
             'entry' => 'Entrée de stock',
             'exit' => 'Sortie de stock',
+            'in' => 'Entrée de stock',
+            'out' => 'Sortie de stock',
             'adjustment' => 'Ajustement',
             'transfer' => 'Transfert',
             'report' => 'Report',
@@ -775,25 +905,63 @@ class WarehouseKeeperController extends Controller
         return $labels[$type] ?? $type;
     }
 
+    /**
+     * Signe d'un mouvement : +1 entrée, -1 sortie, écart signé pour ajustement.
+     * Convention canonique : entry/report/in = entrée, exit/out = sortie,
+     * transfer = sortie (l'entrée destination est enregistrée en type 'entry').
+     */
+    private function signedQuantity(StockMovement $m): float
+    {
+        switch ($m->type) {
+            case 'entry':
+            case 'report':
+            case 'in':
+                return (float) $m->quantity;
+            case 'exit':
+            case 'out':
+            case 'transfer':
+                return -(float) $m->quantity;
+            case 'adjustment':
+                $diff = (float) $m->quantity_after - (float) $m->quantity_before;
+                return $diff != 0.0 ? $diff : (float) $m->quantity;
+            default:
+                return 0.0;
+        }
+    }
+
+    /**
+     * Extrait le format et l'unité d'un libellé « Produit [25kg] » / « Huile [20L] ».
+     * Retourne [valeur, 'kg'|'L'] ou null si non détecté.
+     */
+    private function parseFormatFromReason(?string $reason): ?array
+    {
+        if ($reason && preg_match('/\[(\d+)\s*(kg|L|litres?)\]/i', $reason, $mm)) {
+            return [(int) $mm[1], strtolower($mm[2]) === 'kg' ? 'kg' : 'L'];
+        }
+        return null;
+    }
+
     private function calculateBalance($warehouseId)
     {
-        $entries = StockMovement::where('warehouse_id', $warehouseId)
-            ->whereIn('type', ['entry', 'report'])
-            ->sum('quantity');
+        $movements = StockMovement::where('warehouse_id', $warehouseId)
+            ->get(['type', 'quantity', 'quantity_before', 'quantity_after', 'reason']);
 
-        $exits = StockMovement::where('warehouse_id', $warehouseId)
-            ->where('type', 'exit')
-            ->sum('quantity');
-
-        $adjustments = StockMovement::where('warehouse_id', $warehouseId)
-            ->where('type', 'adjustment')
-            ->sum('quantity');
-
-        $sacs = $entries - $exits + $adjustments;
+        $sacs = 0;
+        $units = [];
+        foreach ($movements as $m) {
+            $signed = $this->signedQuantity($m);
+            $sacs += $signed;
+            // Somme par unité réelle quand le libellé porte le format
+            if (($fmt = $this->parseFormatFromReason($m->reason)) !== null) {
+                [$val, $unit] = $fmt;
+                $units[$unit] = ($units[$unit] ?? 0) + $signed * $val;
+            }
+        }
 
         return [
-            'sacs' => max(0, $sacs),
-            'kg'   => max(0, $sacs * 50),
+            'sacs'  => max(0, $sacs),
+            'kg'    => max(0, $units['kg'] ?? 0),
+            'units' => $units,
         ];
     }
 }

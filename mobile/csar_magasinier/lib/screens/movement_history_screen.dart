@@ -257,7 +257,7 @@ class _MovementHistoryScreenState extends State<MovementHistoryScreen> {
                                     m.entrySacs > 0 ? '+${m.entrySacs.toStringAsFixed(0)}' : m.exitSacs > 0 ? '-${m.exitSacs.toStringAsFixed(0)}' : '0',
                                     style: TextStyle(fontWeight: FontWeight.bold, color: _typeColor(m.movementType), fontSize: 14),
                                   ),
-                                  Text('sacs', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
+                                  Text('contenants', style: TextStyle(fontSize: 10, color: Colors.grey.shade600)),
                                 ],
                               ),
                               onTap: () => Navigator.push(

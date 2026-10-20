@@ -40,9 +40,9 @@ Type: ${_receipt['type_label']}
 Magasin: ${_receipt['warehouse_name']} (${_receipt['warehouse_region']})
 Date: ${_receipt['movement_date']}
 Opérateur: ${_receipt['created_by']}
-Quantité: ${_receipt['quantity_sacs']} sacs
-Solde avant: ${_receipt['quantity_before']} sacs
-Solde après: ${_receipt['quantity_after']} sacs
+Quantité: ${_receipt['quantity_sacs']} contenants
+Solde avant: ${_receipt['quantity_before']} contenants
+Solde après: ${_receipt['quantity_after']} contenants
 Motif: ${_receipt['reason']}
 =================
 ''';    Share.share(text, subject: 'Reçu ${_receipt['reference']}');
@@ -90,9 +90,9 @@ Motif: ${_receipt['reason']}
                           _row('Date création', _receipt['created_at'] ?? '-'),
                           _row('Opérateur', _receipt['created_by'] ?? '-'),
                           const Divider(height: 32),
-                          _row('Quantité', '${_receipt['quantity_sacs']} sacs'),
-                          _row('Solde avant', '${_receipt['quantity_before']} sacs'),
-                          _row('Solde après', '${_receipt['quantity_after']} sacs', isBold: true),
+                          _row('Quantité', '${_receipt['quantity_sacs']} contenants'),
+                          _row('Solde avant', '${_receipt['quantity_before']} contenants'),
+                          _row('Solde après', '${_receipt['quantity_after']} contenants', isBold: true),
                           const Divider(height: 32),
                           const Text('Motif / Produit:', style: TextStyle(fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
