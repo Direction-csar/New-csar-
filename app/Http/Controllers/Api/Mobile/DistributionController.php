@@ -397,39 +397,45 @@ class DistributionController extends Controller
             ], 422);
         }
 
-        $existingTicket = $beneficiary->tickets()->whereIn('status', [
-            DistributionTicket::STATUS_ISSUED,
-            DistributionTicket::STATUS_SCANNED,
-            DistributionTicket::STATUS_COLLECTED,
-        ])->first();
+        return DB::transaction(function () use ($id) {
+            // Verrouille la ligne bénéficiaire pour sérialiser les appels
+            // concurrents et éviter la création de deux tickets actifs.
+            $beneficiary = DistributionBeneficiary::where('id', $id)->lockForUpdate()->firstOrFail();
 
-        if ($existingTicket) {
+            $existingTicket = $beneficiary->tickets()->whereIn('status', [
+                DistributionTicket::STATUS_ISSUED,
+                DistributionTicket::STATUS_SCANNED,
+                DistributionTicket::STATUS_COLLECTED,
+            ])->first();
+
+            if ($existingTicket) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Un ticket actif existe déjà pour ce bénéficiaire.',
+                    'data' => $existingTicket,
+                ], 422);
+            }
+
+            $ticketCode = 'CSAR-' . strtoupper(Str::random(8));
+            $qrToken = Str::uuid()->toString();
+
+            $ticket = DistributionTicket::create([
+                'beneficiary_id' => $beneficiary->id,
+                'planning_id' => $beneficiary->planning_id,
+                'ticket_code' => $ticketCode,
+                'qr_token' => $qrToken,
+                'status' => DistributionTicket::STATUS_ISSUED,
+                'issued_at' => now(),
+            ]);
+
+            $beneficiary->update(['status' => DistributionBeneficiary::STATUS_TICKET_ISSUED]);
+
             return response()->json([
-                'success' => false,
-                'message' => 'Un ticket actif existe déjà pour ce bénéficiaire.',
-                'data' => $existingTicket,
-            ], 422);
-        }
-
-        $ticketCode = 'CSAR-' . strtoupper(Str::random(8));
-        $qrToken = Str::uuid()->toString();
-
-        $ticket = DistributionTicket::create([
-            'beneficiary_id' => $beneficiary->id,
-            'planning_id' => $beneficiary->planning_id,
-            'ticket_code' => $ticketCode,
-            'qr_token' => $qrToken,
-            'status' => DistributionTicket::STATUS_ISSUED,
-            'issued_at' => now(),
-        ]);
-
-        $beneficiary->update(['status' => DistributionBeneficiary::STATUS_TICKET_ISSUED]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Ticket généré avec succès.',
-            'data' => $ticket->load('beneficiary', 'planning'),
-        ]);
+                'success' => true,
+                'message' => 'Ticket généré avec succès.',
+                'data' => $ticket->load('beneficiary', 'planning'),
+            ]);
+        });
     }
 
     public function ticketsHistory(Request $request): JsonResponse
