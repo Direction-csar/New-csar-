@@ -79,22 +79,24 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       return;
     }
     if (_selectedFormatKg == null) {
-      _showError('Sélectionnez un format de sac');
+      _showError('Sélectionnez un format');
       return;
     }
     if (_sacsCtrl.text.isEmpty || double.tryParse(_sacsCtrl.text) == null) {
-      _showError('Quantité sacs invalide');
+      _showError('Quantité invalide');
       return;
     }
 
     setState(() => _isLoading = true);
 
+    final product = _isCustomProduct ? null : _selectedProduct;
+    final unit = product?.formatUnit ?? 'kg';
     final sacs = double.parse(_sacsCtrl.text);
     final kg = sacs * _selectedFormatKg!;
     final ref = 'STK-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(999)}';
     final productName = _isCustomProduct ? _productCtrl.text.trim() : _selectedProduct!.name;
     final category = _isCustomProduct ? (_categoryCtrl.text.trim().isNotEmpty ? _categoryCtrl.text.trim() : 'Divers') : _selectedProduct!.category;
-    final label = '$productName [${_selectedFormatKg}kg]';
+    final label = '$productName [${_selectedFormatKg}$unit]';
 
     final movement = StockMovement(
       warehouseId: _selectedWarehouse!.id,
@@ -105,7 +107,7 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
       entryKg: _movementType == 'entry' ? kg : 0,
       exitSacs: _movementType == 'exit' ? sacs : 0,
       exitKg: _movementType == 'exit' ? kg : 0,
-      observation: '${_obsCtrl.text.trim()} | Produit: $productName | Catégorie: $category | Format: ${_selectedFormatKg}kg',
+      observation: '${_obsCtrl.text.trim()} | Produit: $productName | Catégorie: $category | Format: ${_selectedFormatKg}$unit',
       reference: ref,
       movementType: _movementType,
       status: 'draft',
@@ -285,11 +287,18 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
               ),
             if (_isCustomProduct) const SizedBox(height: 16),
 
-            // Format de sac
+            // Format (unité selon le produit : kg, L...)
             DropdownButtonFormField<int>(
               value: _selectedFormatKg,
-              decoration: const InputDecoration(labelText: 'Format de sac (kg)'),
-              items: [5, 10, 25, 50, 100].map((f) => DropdownMenuItem(value: f, child: Text('$f kg'))).toList(),
+              decoration: InputDecoration(
+                labelText: 'Format (${_isCustomProduct ? 'kg' : (_selectedProduct?.formatUnit ?? 'kg')})',
+              ),
+              items: ((_isCustomProduct ? null : _selectedProduct?.formats) ?? const [5, 10, 25, 50, 100])
+                  .map((f) => DropdownMenuItem(
+                        value: f,
+                        child: Text('$f ${_isCustomProduct ? 'kg' : (_selectedProduct?.formatUnit ?? 'kg')}'),
+                      ))
+                  .toList(),
               onChanged: (v) => setState(() {
                 _selectedFormatKg = v;
                 _updateKgFromSacs();
@@ -311,7 +320,11 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                   child: TextField(
                     controller: _sacsCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Sacs'),
+                    decoration: InputDecoration(
+                      labelText: _isCustomProduct
+                          ? 'Sacs'
+                          : (_selectedProduct?.containerLabel ?? 'Sacs'),
+                    ),
                     onChanged: (_) => _updateKgFromSacs(),
                   ),
                 ),
@@ -322,7 +335,8 @@ class _MovementFormScreenState extends State<MovementFormScreen> {
                     readOnly: true,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
-                      labelText: 'KG${_selectedFormatKg != null ? ' (×$_selectedFormatKg)' : ''}',
+                      labelText:
+                          '${_isCustomProduct ? 'kg' : (_selectedProduct?.formatUnit ?? 'kg').toUpperCase()}${_selectedFormatKg != null ? ' (×$_selectedFormatKg)' : ''}',
                     ),
                   ),
                 ),

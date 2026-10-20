@@ -98,21 +98,24 @@ class _StockStatusScreenState extends State<StockStatusScreen> {
                         itemCount: _products.length,
                         itemBuilder: (context, index) {
                           final p = _products[index];
+                          final unit = (p['unit'] ?? 'kg').toString();
+                          final isLiquid = unit.toLowerCase() != 'kg';
+                          final container = isLiquid ? 'bidons' : 'sacs';
                           return Card(
                             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                             child: ListTile(
                               leading: CircleAvatar(
                                 backgroundColor: const Color(0xFF1B5E20),
-                                child: Text('${p['format_kg']}kg', style: const TextStyle(fontSize: 10, color: Colors.white)),
+                                child: Text('${p['format_kg']}$unit', style: const TextStyle(fontSize: 10, color: Colors.white)),
                               ),
                               title: Text(p['product_name'] ?? 'Produit'),
-                              subtitle: Text('Format: ${p['format_kg']}kg'),
+                              subtitle: Text('Format: ${p['format_kg']}$unit'),
                               trailing: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
-                                  Text('${p['total_sacs']} sacs', style: const TextStyle(fontWeight: FontWeight.bold)),
-                                  Text('${p['total_kg']} kg', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                  Text('${p['total_sacs']} $container', style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  Text('${p['total_kg']} $unit', style: const TextStyle(fontSize: 12, color: Colors.grey)),
                                 ],
                               ),
                             ),

@@ -7,10 +7,14 @@ use Illuminate\Support\Facades\DB;
 
 /*
  * Produits de sécurité alimentaire CSAR.
- * Chaque produit dispose des mêmes formats de sacs : 5, 10, 25, 50, 100 kg.
- * Les formats sont stockés en JSON dans la colonne description sous la clé "formats".
+ * Les produits solides utilisent des formats en kg : 5, 10, 25, 50, 100.
+ * Les produits liquides (huile) utilisent des formats en litres : 1, 5, 10, 20, 25.
+ * Les formats sont stockés en JSON dans la colonne description
+ * (cles "formats_kg" / "formats_l").
+ * Le script met a jour les produits existants (unite + formats).
  */
-$formats = [5, 10, 25, 50, 100]; // kg
+$formatsKg = [5, 10, 25, 50, 100];
+$formatsL  = [1, 5, 10, 20, 25];
 
 $products = [
     ['name' => 'Riz',      'category' => 'Céréales',     'unit' => 'kg'],
@@ -26,14 +30,26 @@ $products = [
 ];
 
 $created = 0;
-$skipped = 0;
+$updated = 0;
 
 DB::beginTransaction();
 try {
     foreach ($products as $p) {
-        $exists = DB::table('products')->where('name', $p['name'])->exists();
-        if ($exists) {
-            $skipped++;
+        $isLiquid = $p['unit'] === 'L';
+        $description = json_encode(
+            $isLiquid
+                ? ['formats_l' => $formatsL]
+                : ['formats_kg' => $formatsKg]
+        );
+
+        $existing = DB::table('products')->where('name', $p['name'])->first();
+        if ($existing) {
+            DB::table('products')->where('id', $existing->id)->update([
+                'unit'        => $p['unit'],
+                'description' => $description,
+                'updated_at'  => now(),
+            ]);
+            $updated++;
             continue;
         }
 
@@ -42,7 +58,7 @@ try {
             'type'        => $p['category'],
             'unit'        => $p['unit'],
             'category'    => $p['category'],
-            'description' => json_encode(['formats_kg' => $formats]),
+            'description' => $description,
             'unit_price'  => 0,
             'is_active'   => 1,
             'created_at'  => now(),
@@ -52,9 +68,10 @@ try {
     }
     DB::commit();
     echo "Produits créés : {$created}\n";
-    echo "Ignorés (déjà existants) : {$skipped}\n";
+    echo "Produits mis à jour : {$updated}\n";
     echo "Total produits en base : " . DB::table('products')->count() . "\n";
-    echo "Formats disponibles : " . implode(', ', array_map(fn($f) => "{$f}kg", $formats)) . "\n";
+    echo "Formats solides : " . implode(', ', array_map(fn($f) => "{$f}kg", $formatsKg)) . "\n";
+    echo "Formats liquides : " . implode(', ', array_map(fn($f) => "{$f}L", $formatsL)) . "\n";
 } catch (\Throwable $e) {
     DB::rollBack();
     echo "ERREUR : " . $e->getMessage() . "\n";

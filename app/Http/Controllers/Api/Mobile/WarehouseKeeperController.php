@@ -312,16 +312,28 @@ class WarehouseKeeperController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'category', 'unit', 'description', 'image'])
             ->map(function ($p) {
-                $formats = [];
+                $u = mb_strtolower(trim((string) $p->unit));
+                $isLiquid = $u === 'l' || str_starts_with($u, 'litre');
+
                 $decoded = json_decode($p->description ?? '', true);
-                if (is_array($decoded) && isset($decoded['formats_kg'])) {
-                    $formats = $decoded['formats_kg'];
+                $formats = [];
+                if (is_array($decoded)) {
+                    if ($isLiquid && isset($decoded['formats_l'])) {
+                        $formats = $decoded['formats_l'];
+                    } elseif (!$isLiquid && isset($decoded['formats_kg'])) {
+                        $formats = $decoded['formats_kg'];
+                    }
                 }
+                // Formats par défaut adaptés à l'unité du produit
+                if (empty($formats)) {
+                    $formats = $isLiquid ? [1, 5, 10, 20, 25] : [5, 10, 25, 50, 100];
+                }
+
                 return [
                     'id'         => $p->id,
                     'name'       => $p->name,
                     'category'   => $p->category,
-                    'unit'       => $p->unit,
+                    'unit'       => $isLiquid ? 'L' : 'kg',
                     'formats_kg' => $formats,
                     'image_url'  => $p->image_url,
                 ];
@@ -523,22 +535,27 @@ class WarehouseKeeperController extends Controller
         foreach ($movements as $m) {
             $meta = json_decode($m->metadata ?? '{}', true);
             $reason = $m->reason ?? '';
-            // Extraire nom produit depuis le reason (ex: "Riz [25kg]")
+            // Extraire nom produit et format depuis le reason
+            // (ex: "Riz [25kg]", "Huile [20L]")
             $productName = 'Non spécifié';
             $formatKg = 50;
-            if (preg_match('/^(.+?)\s*\[(\d+)kg\]/', $reason, $matches)) {
+            $formatUnit = 'kg';
+            if (preg_match('/^(.+?)\s*\[(\d+)\s*(kg|L|litres?)\]/i', $reason, $matches)) {
                 $productName = trim($matches[1]);
                 $formatKg = (int) $matches[2];
+                $formatUnit = strtolower($matches[3]) === 'kg' ? 'kg' : 'L';
             } elseif (preg_match('/Produit:\s*(.+?)\s*\|/', $reason, $matches)) {
                 $productName = trim($matches[1]);
                 if (isset($meta['format_kg'])) $formatKg = (int) $meta['format_kg'];
+                if (isset($meta['format_unit'])) $formatUnit = $meta['format_unit'];
             }
 
-            $key = $productName . '|' . $formatKg;
+            $key = $productName . '|' . $formatKg . '|' . $formatUnit;
             if (!isset($stockByProduct[$key])) {
                 $stockByProduct[$key] = [
                     'product_name' => $productName,
                     'format_kg' => $formatKg,
+                    'unit' => $formatUnit,
                     'total_sacs' => 0,
                     'total_kg' => 0,
                 ];
@@ -560,7 +577,7 @@ class WarehouseKeeperController extends Controller
             }
         }
 
-        // Recalculer KG
+        // Recalculer le total dans l'unité du produit (kg ou L)
         foreach ($stockByProduct as $key => &$item) {
             $item['total_kg'] = $item['total_sacs'] * $item['format_kg'];
             $item['total_sacs'] = max(0, $item['total_sacs']);
@@ -571,6 +588,11 @@ class WarehouseKeeperController extends Controller
 
         foreach ($stockByProduct as &$item) {
             $item['image_url'] = $this->productImageUrl($item['product_name']);
+            // Unité de secours : celle du produit en base si non détectée
+            if (($item['unit'] ?? 'kg') === 'kg') {
+                $unit = $this->productUnit($item['product_name']);
+                if ($unit !== null) $item['unit'] = $unit;
+            }
         }
         unset($item);
 
@@ -708,6 +730,34 @@ class WarehouseKeeperController extends Controller
         foreach ($map as $productName => $url) {
             if (str_starts_with($key, $productName) || str_starts_with($productName, $key)) {
                 return $url;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Unité d'un produit ('kg' ou 'L') d'après son nom, null si inconnu.
+     */
+    private function productUnit(?string $name): ?string
+    {
+        static $map = null;
+        if ($map === null) {
+            $map = \App\Models\Product::get(['name', 'unit'])
+                ->mapWithKeys(function ($p) {
+                    $u = mb_strtolower(trim((string) $p->unit));
+                    $liquid = $u === 'l' || str_starts_with($u, 'litre');
+                    return [mb_strtolower(trim((string) $p->name)) => $liquid ? 'L' : 'kg'];
+                })
+                ->all();
+        }
+
+        $key = mb_strtolower(trim((string) $name));
+        if ($key === '') return null;
+        if (isset($map[$key])) return $map[$key];
+
+        foreach ($map as $productName => $unit) {
+            if (str_starts_with($key, $productName) || str_starts_with($productName, $key)) {
+                return $unit;
             }
         }
         return null;

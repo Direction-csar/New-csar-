@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/warehouse.dart';
 import '../models/product.dart';
 import '../services/api_service.dart';
-import 'dart:math';
 
 class TransferFormScreen extends StatefulWidget {
   final Warehouse? warehouse;
@@ -61,14 +60,15 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
       return;
     }
     if (_sacsCtrl.text.isEmpty || double.tryParse(_sacsCtrl.text) == null) {
-      _showError('Quantité sacs invalide');
+      _showError('Quantité invalide');
       return;
     }
 
     setState(() => _isLoading = true);
+    final unit = _selectedProduct?.formatUnit ?? 'kg';
     final sacs = double.parse(_sacsCtrl.text);
     final kg = sacs * _selectedFormatKg!;
-    final label = '${_selectedProduct?.name ?? "Produit"} [${_selectedFormatKg}kg]';
+    final label = '${_selectedProduct?.name ?? "Produit"} [${_selectedFormatKg}$unit]';
 
     try {
       final result = await ApiService.createTransfer({
@@ -166,11 +166,18 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
               ),
             const SizedBox(height: 16),
 
-            // Format
+            // Format (unité selon le produit : kg, L...)
             DropdownButtonFormField<int>(
               value: _selectedFormatKg,
-              decoration: const InputDecoration(labelText: 'Format de sac (kg)'),
-              items: [5, 10, 25, 50, 100].map((f) => DropdownMenuItem(value: f, child: Text('$f kg'))).toList(),
+              decoration: InputDecoration(
+                labelText: 'Format (${_selectedProduct?.formatUnit ?? 'kg'})',
+              ),
+              items: (_selectedProduct?.formats ?? const [5, 10, 25, 50, 100])
+                  .map((f) => DropdownMenuItem(
+                        value: f,
+                        child: Text('$f ${_selectedProduct?.formatUnit ?? 'kg'}'),
+                      ))
+                  .toList(),
               onChanged: (v) => setState(() { _selectedFormatKg = v; _updateKg(); }),
             ),
             const SizedBox(height: 16),
@@ -182,7 +189,9 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
                   child: TextField(
                     controller: _sacsCtrl,
                     keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Sacs'),
+                    decoration: InputDecoration(
+                      labelText: _selectedProduct?.containerLabel ?? 'Sacs',
+                    ),
                     onChanged: (_) => _updateKg(),
                   ),
                 ),
@@ -191,7 +200,9 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
                   child: TextField(
                     controller: _kgCtrl,
                     readOnly: true,
-                    decoration: InputDecoration(labelText: 'KG${_selectedFormatKg != null ? ' (×$_selectedFormatKg)' : ''}'),
+                    decoration: InputDecoration(
+                      labelText: '${(_selectedProduct?.formatUnit ?? 'kg').toUpperCase()}${_selectedFormatKg != null ? ' (×$_selectedFormatKg)' : ''}',
+                    ),
                   ),
                 ),
               ],
