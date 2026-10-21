@@ -13,13 +13,33 @@ use Carbon\Carbon;
 class CTCLoginController extends Controller
 {
     /**
-     * Réinitialiser la limite de tentatives de connexion pour l'IP actuelle
+     * Réinitialiser le limiteur de connexion CTC pour une IP cible.
+     *
+     * Réservé aux administrateurs (route POST /admin/ctc-login/reset-rate-limit,
+     * middleware admin + enforce.2fa + throttle). Journalisé pour audit.
      */
-    public function resetRateLimit(Request $request)
+    public function resetRateLimitForUser(Request $request)
     {
-        $key = 'ctc-login:' . $request->ip();
+        $request->validate([
+            'ip' => ['required', 'ip'],
+        ]);
+
+        $targetIp = $request->input('ip');
+        $key = 'ctc-login:' . $targetIp;
+        $hadAttempts = RateLimiter::attempts($key);
         RateLimiter::clear($key);
-        return redirect()->route('ctc.login')->with('success', 'Limite réinitialisée. Vous pouvez réessayer de vous connecter.');
+
+        Log::warning('Réinitialisation administrative du rate-limiter CTC', [
+            'admin_id' => Auth::guard('admin')->id(),
+            'target_ip' => $targetIp,
+            'cleared_attempts' => $hadAttempts,
+            'admin_ip' => $request->ip(),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Limite de connexion CTC réinitialisée pour {$targetIp}.",
+        ]);
     }
 
     /**

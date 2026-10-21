@@ -12,6 +12,8 @@ use App\Models\Personnel;
 use App\Models\Notification;
 use App\Models\Message;
 use App\Models\PublicRequest;
+use App\Services\StockAlertService;
+use App\Services\StockStatsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -22,36 +24,38 @@ class DashboardController extends Controller
     /**
      * Afficher le tableau de bord Admin
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
             // Statistiques générales
             $stats = $this->getDashboardStats();
-            
+
             // Activités récentes
             $recentActivities = $this->getRecentActivities();
-            
+
             // Graphiques des données
             $chartsData = $this->getChartsData();
-            
+
             // Alertes et notifications
             $alerts = $this->getSystemAlerts();
-            
+
+            $stockAlertPanel = $this->getStockAlertPanel($request);
+
             // Log de l'accès au dashboard
             Log::info('Accès au dashboard Admin', [
                 'user_id' => auth()->id(),
                 'timestamp' => Carbon::now()
             ]);
 
-            return view('admin.dashboard.index', compact('stats', 'recentActivities', 'chartsData', 'alerts'));
-            
+            return view('admin.dashboard.index', compact('stats', 'recentActivities', 'chartsData', 'alerts', 'stockAlertPanel'));
+
         } catch (\Exception $e) {
             Log::error('Erreur lors du chargement du dashboard Admin', [
                 'user_id' => auth()->id(),
                 'error' => $e->getMessage(),
                 'timestamp' => Carbon::now()
             ]);
-            
+
             return redirect()->back()->with('error', 'Erreur lors du chargement du tableau de bord.');
         }
     }
@@ -71,14 +75,14 @@ class DashboardController extends Controller
                 'rejected_requests' => PublicRequest::where('status', 'rejected')->count(),
                 'total_warehouses' => Warehouse::count(),
                 'active_warehouses' => Warehouse::where('is_active', true)->count(),
-                'total_stocks' => Stock::sum('quantity') ?? 0,
+                'total_stocks' => Stock::where('is_active', true)->sum('quantity') ?? 0,
                 'low_stock_items' => $this->getLowStockCount(),
                 'total_personnel' => Personnel::count(),
                 'active_personnel' => Personnel::where('statut', '!=', 'inactif')->count(),
                 'today_requests' => PublicRequest::whereDate('created_at', today())->count(),
                 'month_requests' => PublicRequest::whereMonth('created_at', now()->month)->count(),
                 'fuel_available' => $this->getFuelAvailable(),
-                'total_stock' => Stock::count(),
+                'total_stock' => Stock::where('is_active', true)->count(),
                 'unread_notifications' => Notification::where('read', false)->count(),
                 'unread_messages' => Message::where('lu', false)->count(),
             ];
@@ -103,6 +107,17 @@ class DashboardController extends Controller
             } catch (\Exception $e) {
                 $stats['total_audit_logs'] = 0;
                 $stats['today_audit_logs'] = 0;
+            }
+
+            try {
+                $stats['workflow'] = PublicRequest::whereNotNull('workflow_status')
+                    ->selectRaw('workflow_status, COUNT(*) as total')
+                    ->groupBy('workflow_status')
+                    ->pluck('total', 'workflow_status')
+                    ->map(fn ($v) => (int) $v)
+                    ->toArray();
+            } catch (\Exception $e) {
+                $stats['workflow'] = [];
             }
 
             return $stats;
@@ -175,23 +190,13 @@ class DashboardController extends Controller
                 ->pluck('count', 'region')
                 ->toArray();
 
-            // Niveau d'occupation par entrepôt
-            $fuelByEntrepot = Warehouse::select('name', 'current_stock')
-                ->limit(5)
-                ->pluck('current_stock', 'name')
-                ->toArray();
+            // Carburant par entrepôt : vrais lots actifs assimilés carburant
+            $fuelByEntrepot = app(StockStatsService::class)->fuelByWarehouse(null);
 
-            // Stock par entrepôt
+            // Stock par catégorie : vraies catégories (stock_types), lots actifs
             $stockByCategory = [];
             try {
-                $stockByCategory = Stock::select('warehouse_id', DB::raw('sum(quantity) as total'))
-                    ->with('warehouse')
-                    ->groupBy('warehouse_id')
-                    ->orderBy('total', 'desc')
-                    ->limit(5)
-                    ->get()
-                    ->pluck('total', 'warehouse.name')
-                    ->toArray();
+                $stockByCategory = app(StockStatsService::class)->stockByCategory(null);
             } catch (\Exception $e) {
                 $stockByCategory = [];
             }
@@ -215,7 +220,7 @@ class DashboardController extends Controller
                 ->toArray();
 
             // Données pour la carte - Demandes d'aide alimentaire (PublicRequest uniquement)
-            $publicRequestsMapData = PublicRequest::select('id', 'full_name', 'latitude', 'longitude', 
+            $publicRequestsMapData = PublicRequest::select('id', 'full_name', 'latitude', 'longitude',
                                                           'region', 'status', 'type', 'created_at', 'address')
                 ->whereNotNull('latitude')
                 ->whereNotNull('longitude')
@@ -255,14 +260,14 @@ class DashboardController extends Controller
                 ->distinct()
                 ->pluck('region')
                 ->toArray();
-            
+
             $warehouseRegions = Warehouse::select('region')
                 ->whereNotNull('region')
                 ->where('region', '!=', '')
                 ->distinct()
                 ->pluck('region')
                 ->toArray();
-            
+
             $allRegions = array_unique(array_merge($publicRegions, $warehouseRegions));
             sort($allRegions);
 
@@ -348,7 +353,7 @@ class DashboardController extends Controller
     {
         try {
             $alerts = [];
-            
+
             // Vérifier les stocks faibles
             $lowStockWarehouses = Warehouse::where('current_stock', '<', 100)->get();
             foreach ($lowStockWarehouses as $warehouse) {
@@ -359,7 +364,7 @@ class DashboardController extends Controller
                     'priority' => 'medium'
                 ];
             }
-            
+
             // Vérifier les demandes en attente
             $pendingRequests = PublicRequest::where('status', 'pending')->count();
             if ($pendingRequests > 0) {
@@ -370,7 +375,7 @@ class DashboardController extends Controller
                     'priority' => 'low'
                 ];
             }
-            
+
             return $alerts;
         } catch (\Exception $e) {
             Log::error('Erreur dans getSystemAlerts', ['error' => $e->getMessage()]);
@@ -386,7 +391,7 @@ class DashboardController extends Controller
         try {
             $stats = $this->getDashboardStats();
             $chartsData = $this->getChartsData();
-            
+
             return response()->json([
                 'total_requests' => $stats['total_requests'],
                 'pending_requests' => $stats['pending_requests'],
@@ -395,7 +400,7 @@ class DashboardController extends Controller
                 'total_users' => $stats['total_users'],
                 'active_users' => $stats['active_users'],
                 'total_warehouses' => $stats['total_warehouses'],
-                'stock_value' => $stats['total_stocks'],
+                'stock_value' => $this->getStockValuation(),
                 'low_stock_items' => $stats['low_stock_items'],
                 'fuel_available' => $stats['fuel_available'],
                 'total_stock' => $stats['total_stock'],
@@ -447,7 +452,7 @@ class DashboardController extends Controller
             ]);
 
             // Demandes publiques uniquement
-            $publicQuery = PublicRequest::select('id', 'full_name', 'latitude', 'longitude', 
+            $publicQuery = PublicRequest::select('id', 'full_name', 'latitude', 'longitude',
                                                  'region', 'status', 'type', 'created_at', 'address')
                 ->whereNotNull('latitude')
                 ->whereNotNull('longitude')
@@ -456,15 +461,15 @@ class DashboardController extends Controller
             if (!empty($filters['year'])) {
                 $publicQuery->whereYear('created_at', $filters['year']);
             }
-            
+
             if (!empty($filters['month'])) {
                 $publicQuery->whereMonth('created_at', $filters['month']);
             }
-            
+
             if (!empty($filters['region'])) {
                 $publicQuery->where('region', $filters['region']);
             }
-            
+
             if (!empty($filters['status'])) {
                 $publicQuery->where('status', $filters['status']);
             }
@@ -495,7 +500,7 @@ class DashboardController extends Controller
                 $warehousesQuery = Warehouse::select('name', 'latitude', 'longitude', 'status', 'address', 'region')
                     ->whereNotNull('latitude')
                     ->whereNotNull('longitude');
-                
+
                 if (!empty($filters['region'])) {
                     $warehousesQuery->where('region', $filters['region']);
                 }
@@ -570,10 +575,10 @@ class DashboardController extends Controller
 
             // Collecter les vraies données de la base MySQL
             $reportData = $this->collectDashboardData($dateFrom, $dateTo, $request->type);
-            
+
             // Générer le rapport selon le format demandé
             $reportFile = $this->generateReportFile($reportData, $request->format, $request->type, $dateFrom, $dateTo);
-            
+
             // Créer une notification
             $this->createNotification(
                 'Rapport généré',
@@ -651,7 +656,7 @@ class DashboardController extends Controller
 
         } catch (\Exception $e) {
             Log::warning('Erreur lors de la collecte des données', ['error' => $e->getMessage()]);
-            
+
             // Retourner des données vides si erreur
             return [
                 'period' => ['from' => $dateFrom, 'to' => $dateTo, 'type' => $type],
@@ -805,7 +810,7 @@ class DashboardController extends Controller
     private function generatePdfReport($data, $filePath, $type, $dateFrom, $dateTo)
     {
         $html = view('admin.reports.pdf-template', compact('data', 'type', 'dateFrom', 'dateTo'))->render();
-        
+
         // Utiliser DomPDF ou une autre bibliothèque PDF
         // Pour l'instant, créer un fichier HTML simple
         file_put_contents($filePath, $html);
@@ -839,15 +844,15 @@ class DashboardController extends Controller
         $csv = "Rapport CSAR - " . date('Y-m-d H:i:s') . "\n";
         $csv .= "Période: {$data['period']['from']} à {$data['period']['to']}\n";
         $csv .= "Type: {$data['period']['type']}\n\n";
-        
+
         $csv .= "RÉSUMÉ\n";
         foreach ($data['summary'] as $key => $value) {
             $csv .= ucfirst(str_replace('_', ' ', $key)) . ": {$value}\n";
         }
-        
+
         $csv .= "\nDÉTAILS\n";
         $csv .= json_encode($data['details'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        
+
         return $csv;
     }
 
@@ -857,7 +862,7 @@ class DashboardController extends Controller
     private function getPeriodDates($period)
     {
         $now = now();
-        
+
         switch ($period) {
             case 'week':
                 return [
@@ -894,7 +899,7 @@ class DashboardController extends Controller
     {
         try {
             $filePath = storage_path("app/reports/{$filename}");
-            
+
             if (!file_exists($filePath)) {
                 return response()->json([
                     'success' => false,
@@ -903,7 +908,7 @@ class DashboardController extends Controller
             }
 
             return response()->download($filePath, $filename);
-            
+
         } catch (\Exception $e) {
             Log::error('Erreur lors du téléchargement du rapport', [
                 'error' => $e->getMessage(),
@@ -925,7 +930,7 @@ class DashboardController extends Controller
     {
         try {
             $user = auth()->user();
-            
+
             // Données du profil
             $profileData = [
                 'id' => $user->id,
@@ -958,13 +963,13 @@ class DashboardController extends Controller
 
             // Activités récentes réelles
             $recentActivities = [];
-            
+
             // Récupérer les dernières activités de l'utilisateur
             $recentMovements = StockMovement::where('created_by', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->limit(3)
                 ->get();
-                
+
             foreach ($recentMovements as $movement) {
                 $recentActivities[] = [
                     'action' => "Mouvement de stock {$movement->type} - {$movement->reference}",
@@ -975,14 +980,14 @@ class DashboardController extends Controller
             }
 
             return view('admin.profile.index', compact('profileData', 'personalStats', 'recentActivities'));
-            
+
         } catch (\Exception $e) {
             Log::error('Erreur lors du chargement du profil Admin', [
                 'user_id' => auth()->id(),
                 'error' => $e->getMessage(),
                 'timestamp' => Carbon::now()
             ]);
-            
+
             return redirect()->back()->with('error', 'Erreur lors du chargement du profil.');
         }
     }
@@ -994,7 +999,7 @@ class DashboardController extends Controller
     {
         try {
             $user = auth()->user();
-            
+
             // Vérifier si c'est un changement de mot de passe
             if ($request->has('change_password')) {
                 // Validation pour changement de mot de passe
@@ -1003,7 +1008,7 @@ class DashboardController extends Controller
                     'new_password' => 'required|string|min:8',
                     'new_password_confirmation' => 'required|string|same:new_password'
                 ]);
-                
+
                 // Vérifier le mot de passe actuel
                 if (!\Hash::check($request->current_password, $user->password)) {
                     return response()->json([
@@ -1011,21 +1016,21 @@ class DashboardController extends Controller
                         'message' => 'Le mot de passe actuel est incorrect.'
                     ], 400);
                 }
-                
+
                 // Mettre à jour le mot de passe
                 $user->password = \Hash::make($request->new_password);
                 $user->save();
-                
+
                 Log::info('Mot de passe Admin changé', [
                     'user_id' => $user->id,
                     'timestamp' => Carbon::now()
                 ]);
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Mot de passe changé avec succès.'
                 ]);
-                
+
             } else {
                 // Validation pour mise à jour du profil
                 $request->validate([
@@ -1033,22 +1038,22 @@ class DashboardController extends Controller
                     'email' => 'required|email|max:255',
                     'phone' => 'nullable|string|max:20'
                 ]);
-                
+
                 // Mettre à jour les informations de base
                 $user->name = $request->name;
                 $user->email = $request->email;
-                
+
                 if ($request->filled('phone')) {
                     $user->phone = $request->phone;
                 }
-                
+
                 $user->save();
-                
+
                 Log::info('Profil Admin mis à jour', [
                     'user_id' => $user->id,
                     'timestamp' => Carbon::now()
                 ]);
-                
+
                 return response()->json([
                     'success' => true,
                     'message' => 'Profil mis à jour avec succès.',
@@ -1059,25 +1064,38 @@ class DashboardController extends Controller
                     ]
                 ]);
             }
-            
+
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur de validation.',
                 'errors' => $e->errors()
             ], 422);
-            
+
         } catch (\Exception $e) {
             Log::error('Erreur lors de la mise à jour du profil Admin', [
                 'user_id' => auth()->id(),
                 'error' => $e->getMessage(),
                 'timestamp' => Carbon::now()
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la mise à jour du profil.'
             ], 500);
+        }
+    }
+
+    /**
+     * Panneau « Alertes de stock » ; null si le calcul échoue (aucune valeur inventée).
+     */
+    private function getStockAlertPanel(Request $request): ?array
+    {
+        try {
+            return app(StockAlertService::class)->buildPanel($request->user(), $request->query());
+        } catch (\Throwable $e) {
+            Log::error('Alertes de stock indisponibles sur le dashboard: ' . $e->getMessage());
+            return null;
         }
     }
 
@@ -1087,7 +1105,9 @@ class DashboardController extends Controller
     private function getLowStockCount()
     {
         try {
-            return Stock::whereRaw('quantity <= min_quantity')->count();
+            // Même prédicat que les alertes de stock : lots actifs épuisés
+            // ou sous leur seuil (min_quantity > 0 requis pour « faible »).
+            return app(StockStatsService::class)->lowStockLotsCount(null);
         } catch (\Exception $e) {
             return 0;
         }
@@ -1099,11 +1119,21 @@ class DashboardController extends Controller
     private function getFuelAvailable()
     {
         try {
-            return Stock::where(function($query) {
-                $query->where('item_name', 'like', '%carburant%')
-                      ->orWhere('item_name', 'like', '%fuel%')
-                      ->orWhere('item_name', 'like', '%essence%');
-            })->sum('quantity') ?? 0;
+            // Même source que le graphique « Carburant par entrepôt » : lots actifs.
+            return app(StockStatsService::class)->fuelTotal(null);
+        } catch (\Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Valorisation réelle du stock (quantity x unit_price des lots actifs).
+     * Renvoie 0 quand aucun prix n'est renseigné — l'API realtime attend un nombre.
+     */
+    private function getStockValuation()
+    {
+        try {
+            return app(StockStatsService::class)->stockTotals(null)['valeur'] ?? 0;
         } catch (\Exception $e) {
             return 0;
         }

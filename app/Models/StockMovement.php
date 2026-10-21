@@ -18,7 +18,11 @@ class StockMovement extends Model
         'quantity_after',
         'reason',
         'reference',
-        'created_by'
+        'created_by',
+        'numero_transfert',
+        'entrepot_destination_id',
+        'raison_ajustement',
+        'metadata'
     ];
 
     protected $casts = [

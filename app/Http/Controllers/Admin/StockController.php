@@ -10,6 +10,8 @@ use App\Models\Stock;
 use App\Models\StockLevel;
 use App\Models\StockType;
 use App\Models\Notification;
+use App\Services\StockAlertService;
+use App\Services\StockStatsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -25,8 +27,8 @@ class StockController extends Controller
         try {
             // Récupérer les données avec gestion d'erreur robuste
             $mouvementsPaginated = $this->getStockMovements($request);
-            $stats = $this->getStockStats();
-            $chartData = $this->getChartData();
+            $stats = $this->getStockStats($request);
+            $chartData = $this->getChartData($request);
 
             // Passer les variables de filtrage à la vue
             $search = $request->get('search', '');
@@ -35,8 +37,11 @@ class StockController extends Controller
             $entrepot = $request->get('entrepot', '');
             $date_debut = $request->get('date_debut', '');
             $date_fin = $request->get('date_fin', '');
+            $stockAlertPanel = $this->getStockAlertPanel($request);
+            $entrepots = $this->getFilterWarehouses();
 
             return view('admin.stock.index', compact(
+                'stockAlertPanel',
                 'mouvementsPaginated',
                 'stats',
                 'chartData',
@@ -45,7 +50,8 @@ class StockController extends Controller
                 'mouvement',
                 'entrepot',
                 'date_debut',
-                'date_fin'
+                'date_fin',
+                'entrepots'
             ));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'affichage des mouvements de stock: ' . $e->getMessage());
@@ -58,8 +64,78 @@ class StockController extends Controller
                 'mouvement' => '',
                 'entrepot' => '',
                 'date_debut' => '',
-                'date_fin' => ''
+                'date_fin' => '',
+                'stockAlertPanel' => $this->getStockAlertPanel($request),
+                'entrepots' => collect(),
             ])->with('error', 'Erreur lors du chargement des données.');
+        }
+    }
+
+    /**
+     * Panneau « Alertes de stock » ; null si le calcul échoue (aucune valeur inventée).
+     */
+    private function getStockAlertPanel(Request $request): ?array
+    {
+        try {
+            return app(StockAlertService::class)->buildPanel($request->user(), $request->query());
+        } catch (\Throwable $e) {
+            Log::error('Alertes de stock indisponibles sur la page stock: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Liste réelle des magasins pour le filtre « Entrepôt » (fin des options codées en dur).
+     */
+    private function getFilterWarehouses()
+    {
+        try {
+            return app(StockAlertService::class)->accessibleWarehouses(auth()->user());
+        } catch (\Throwable $e) {
+            return Warehouse::orderBy('name')->get(['id', 'name']);
+        }
+    }
+
+    /**
+     * Export CSV des mouvements filtrés (mêmes filtres que la liste affichée).
+     */
+    public function export(Request $request)
+    {
+        try {
+            $mouvements = $this->getStockMovements($request, false);
+
+            $typeLabels = [
+                'in' => 'Entrée', 'entry' => 'Entrée', 'report' => 'Report',
+                'out' => 'Sortie', 'exit' => 'Sortie',
+                'transfer' => 'Transfert', 'transfert' => 'Transfert',
+                'adjustment' => 'Ajustement', 'ajustement' => 'Ajustement',
+            ];
+
+            $csv = "\xEF\xBB\xBF"; // BOM UTF-8 pour Excel
+            $csv .= "Référence;Date;Type;Produit;Quantité;Unité;Magasin;Responsable;Motif\n";
+            foreach ($mouvements as $m) {
+                $type = $m['type'] ?? '';
+                $fields = [
+                    $m['reference'] ?? '',
+                    $m['date_mouvement'] instanceof \Carbon\Carbon ? $m['date_mouvement']->format('d/m/Y H:i') : (string) $m['date_mouvement'],
+                    $typeLabels[$type] ?? $type,
+                    $m['produit'] ?? '',
+                    number_format((float) ($m['quantite'] ?? 0), 2, ',', ' '),
+                    $m['unite'] ?? '',
+                    $m['entrepot_nom'] ?? '',
+                    $m['responsable'] ?? '',
+                    $m['reason'] ?? '',
+                ];
+                $csv .= implode(';', array_map(fn ($f) => '"' . str_replace('"', '""', (string) $f) . '"', $fields)) . "\n";
+            }
+
+            return response($csv, 200, [
+                'Content-Type' => 'text/csv; charset=UTF-8',
+                'Content-Disposition' => 'attachment; filename="mouvements_stock_' . date('Ymd_His') . '.csv"',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Erreur export mouvements de stock: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de l\'export des mouvements.');
         }
     }
 
@@ -206,16 +282,33 @@ class StockController extends Controller
             $typeMap = [
                 'entree' => ['in', 'entry', 'report'],
                 'sortie' => ['out', 'exit'],
-                'transfert' => ['transfert'],
+                'transfert' => ['transfert', 'transfer'],
                 'ajustement' => ['ajustement', 'adjustment'],
             ];
             $types = $typeMap[$request->type] ?? [$request->type];
             $query->whereIn('type', $types);
         }
 
-        // Filtre par entrepôt
-        if ($request->filled('entrepot')) {
-            $query->where('warehouse_id', $request->entrepot);
+        // Filtre « Mouvements » (alias pluriel du filtre Type, historiquement inerte)
+        if ($request->filled('mouvement')) {
+            $mouvementMap = [
+                'entrees' => ['in', 'entry', 'report'],
+                'sorties' => ['out', 'exit'],
+                'transferts' => ['transfert', 'transfer'],
+                'ajustements' => ['ajustement', 'adjustment'],
+            ];
+            if (isset($mouvementMap[$request->mouvement])) {
+                $query->whereIn('type', $mouvementMap[$request->mouvement]);
+            }
+        }
+
+        // Portée par rôle + filtre entrepôt : scopedWarehouseIds() valide le
+        // paramètre « entrepot » contre les magasins autorisés ([] = aucun).
+        $scope = $this->scopedWarehouseIds($request);
+        if ($scope === []) {
+            $query->whereRaw('1 = 0');
+        } elseif ($scope !== null) {
+            $query->whereIn('warehouse_id', $scope);
         }
 
         // Filtre par date
@@ -281,29 +374,83 @@ class StockController extends Controller
         }
     }
 
-    private function getStockStats()
+    /**
+     * Périmètre magasin issu du filtre « entrepot » + de la portée du rôle.
+     * Retourne null (tous) ou une liste d'ids autorisés.
+     */
+    private function scopedWarehouseIds(Request $request): ?array
     {
         try {
-            $stats = [
-                'total_movements' => StockMovement::count(),
-                'entrees' => StockMovement::whereIn('type', ['in', 'entry', 'report'])->count(),
-                'sorties' => StockMovement::whereIn('type', ['out', 'exit'])->count(),
-                'transferts' => StockMovement::where('type', 'transfert')->count(),
-                'ajustements' => StockMovement::whereIn('type', ['ajustement', 'adjustment'])->count(),
-                'valeur_totale' => StockMovement::sum('quantity'),
-                'total' => StockMovement::count()
+            $allowed = app(StockAlertService::class)->accessibleWarehouseIds($request->user());
+        } catch (\Throwable $e) {
+            // Fail-closed : ne jamais ouvrir le périmètre global sur erreur.
+            $user = $request->user();
+            $allowed = $user && in_array($user->role, config('stock_alerts.global_roles', []), true)
+                ? null
+                : [];
+        }
+
+        $entrepot = $request->filled('entrepot') ? (int) $request->entrepot : null;
+        if ($entrepot !== null) {
+            if ($allowed !== null && !in_array($entrepot, $allowed, true)) {
+                return []; // magasin demandé hors périmètre : aucun résultat
+            }
+            return [$entrepot];
+        }
+
+        return $allowed;
+    }
+
+    private function getStockStats(Request $request)
+    {
+        try {
+            $service = app(StockStatsService::class);
+            $scope = $this->scopedWarehouseIds($request);
+            $from = $request->filled('date_debut') ? $request->date_debut : null;
+            $to = $request->filled('date_fin') ? $request->date_fin : null;
+
+            $movements = $service->movementTotals($scope, $from, $to);
+            $totals = $service->stockTotals($scope);
+
+            return [
+                'total_movements' => $movements['total_movements'],
+                'entrees' => $movements['entrees'],
+                'qte_entrees' => $movements['qte_entrees'],
+                'sorties' => $movements['sorties'],
+                'qte_sorties' => $movements['qte_sorties'],
+                'transferts' => $movements['transferts'],
+                'ajustements' => $movements['ajustements'],
+                'ajustement_net' => $movements['ajustement_net'],
+                // Valorisation réelle : somme(quantity x unit_price) des lots actifs.
+                // null quand aucun lot n'a de prix : la vue affiche « Non valorisé ».
+                'valeur_totale' => $totals['valeur'],
+                'lots_sans_prix' => $totals['lots_sans_prix'],
+                'lots' => $totals['lots'],
+                'produits_distincts' => $totals['produits_distincts'],
+                'quantites_par_unite' => $totals['by_unit'],
+                'evolution_mensuelle' => $service->monthlyEntryVariation($scope),
+                'total' => $movements['total_movements']
             ];
-            return $stats;
         } catch (\Exception $e) {
             Log::error('Erreur lors du calcul des statistiques: ' . $e->getMessage());
             return $this->getDefaultStats();
         }
     }
 
-    private function getChartData()
+    private function getChartData(Request $request)
     {
         try {
-            $rawTypes = StockMovement::selectRaw('type, COUNT(*) as count')
+            $service = app(StockStatsService::class);
+            $scope = $this->scopedWarehouseIds($request);
+            $from = $request->filled('date_debut') ? $request->date_debut : null;
+            $to = $request->filled('date_fin') ? $request->date_fin : null;
+
+            $rawTypes = StockMovement::query()
+                ->when($scope !== null, fn ($q) => $q->whereIn('warehouse_id', $scope))
+                ->when($scope === [], fn ($q) => $q->whereRaw('1 = 0'))
+                ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
+                ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))
+                ->selectRaw('type, COUNT(*) as count')
                 ->groupBy('type')
                 ->pluck('count', 'type')
                 ->toArray();
@@ -312,25 +459,15 @@ class StockController extends Controller
             $types = [
                 'entree' => ($rawTypes['in'] ?? 0) + ($rawTypes['entry'] ?? 0) + ($rawTypes['report'] ?? 0),
                 'sortie' => ($rawTypes['out'] ?? 0) + ($rawTypes['exit'] ?? 0),
-                'transfert' => $rawTypes['transfert'] ?? 0,
+                'transfert' => ($rawTypes['transfert'] ?? 0) + ($rawTypes['transfer'] ?? 0),
                 'ajustement' => ($rawTypes['ajustement'] ?? 0) + ($rawTypes['adjustment'] ?? 0),
             ];
 
-            $entrepots = StockMovement::with('warehouse')
-                ->selectRaw('warehouse_id, COUNT(*) as count')
-                ->groupBy('warehouse_id')
-                ->get()
-                ->map(function($item) {
-                    return [
-                        'name' => $item->warehouse->name ?? 'Inconnu',
-                        'count' => $item->count
-                    ];
-                });
-
             return [
                 'types' => $types,
-                'entrepots' => $entrepots,
-                'produits' => collect([])
+                'entrepots' => $service->movementsByWarehouse($scope === [] ? [0] : $scope, $from, $to),
+                'produits' => $service->topProducts($scope === [] ? [0] : $scope),
+                'monthly' => $service->monthlySeries($scope === [] ? [0] : $scope),
             ];
         } catch (\Exception $e) {
             Log::error('Erreur lors du calcul des données de graphique: ' . $e->getMessage());
@@ -805,10 +942,18 @@ Reçu généré le " . now()->format('d/m/Y à H:i') . " pour le téléchargemen
         return [
             'total_movements' => 0,
             'entrees' => 0,
+            'qte_entrees' => 0.0,
             'sorties' => 0,
+            'qte_sorties' => 0.0,
             'transferts' => 0,
             'ajustements' => 0,
-            'valeur_totale' => 0,
+            'ajustement_net' => 0.0,
+            'valeur_totale' => null,
+            'lots_sans_prix' => 0,
+            'lots' => 0,
+            'produits_distincts' => 0,
+            'quantites_par_unite' => [],
+            'evolution_mensuelle' => null,
             'total' => 0
         ];
     }
@@ -825,8 +970,9 @@ Reçu généré le " . now()->format('d/m/Y à H:i') . " pour le téléchargemen
                 'transfert' => 0,
                 'ajustement' => 0
             ],
-            'entrepots' => collect([]),
-            'produits' => collect([])
+            'entrepots' => [],
+            'produits' => [],
+            'monthly' => ['labels' => [], 'entrees' => [], 'sorties' => []]
         ];
     }
 }

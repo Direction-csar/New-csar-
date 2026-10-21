@@ -921,13 +921,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/reports/print', [\App\Http\Controllers\Admin\DistributionController::class, 'printReport'])->name('reports.print');
             Route::get('/alerts', [\App\Http\Controllers\Admin\DistributionController::class, 'alerts'])->name('alerts');
         });
+
+        // Déblocage administratif du rate-limiter de connexion CTC (POST, throttlé, journalisé)
+        Route::post('/ctc-login/reset-rate-limit', [\App\Http\Controllers\Auth\CTCLoginController::class, 'resetRateLimitForUser'])
+            ->middleware('throttle:20,1')
+            ->name('ctc.reset-rate-limit');
     });
 });
 
 // Routes CTC - Conseil Technique de la Communication (publications, actualités, rapports, newsletter, galerie)
 Route::prefix('ctc')->name('ctc.')->group(function () {
     Route::get('/login', [\App\Http\Controllers\Auth\CTCLoginController::class, 'showLoginForm'])->name('login');
-    Route::get('/login/reset-rate-limit', [\App\Http\Controllers\Auth\CTCLoginController::class, 'resetRateLimit'])->name('login.reset-rate-limit');
     Route::post('/login', [\App\Http\Controllers\Auth\CTCLoginController::class, 'login'])->name('login.submit');
     Route::post('/logout', [\App\Http\Controllers\Auth\CTCLoginController::class, 'logout'])->name('logout');
 
@@ -1108,7 +1112,8 @@ Route::match(['get', 'post'], '/entrepot/{path}', fn () => view('auth.interface-
 Route::match(['get', 'post'], '/collecteur/{path?}', fn () => view('auth.interface-desactivee'))->where('path', '.*');
 
 // API temps réel collecteurs (utilisée par dashboard superviseur + app mobile)
-Route::prefix('api/mobile')->name('api.mobile.')->group(function () {
+// Protégée : token Sanctum (app) ou session staff (admin/superviseur) — voir CollectorTrackingAuth
+Route::prefix('api/mobile')->name('api.mobile.')->middleware('collector-tracking')->group(function () {
     Route::get('/collectors/locations', [App\Http\Controllers\Api\Mobile\CollectorLocationController::class, 'getActiveCollectors'])->name('collectors.locations');
     Route::post('/collectors/location', [App\Http\Controllers\Api\Mobile\CollectorLocationController::class, 'updateLocation'])->name('collectors.location.update');
 });
