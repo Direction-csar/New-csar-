@@ -100,26 +100,83 @@ Route::post('/csp-violations', \App\Http\Controllers\Security\CspReportControlle
 // Language switching routes
 Route::get('/set-locale/{locale}', [LanguageController::class, 'setLocale'])->name('set-locale');
 
-// Téléchargement de l'application mobile SIM
+// Téléchargement des applications mobiles CSAR
 Route::get('/telecharger-app', function () {
-    return view('public.download-app');
+    $applications = [
+        [
+            'name' => 'SIM Collecte',
+            'role' => 'Collecte hebdomadaire des prix sur les marchés',
+            'version' => '1.0.0',
+            'files' => ['sim-collecte.apk', 'sim-csar.apk'],
+            'route' => 'app.download.apk',
+            'size' => '≈ 49 Mo',
+        ],
+        [
+            'name' => 'CSAR Distribution',
+            'role' => 'Distribution alimentaire et tickets QR des bénéficiaires',
+            'version' => '1.0.0',
+            'files' => ['csar-distribution.apk'],
+            'route' => 'app.distribution.download.apk',
+            'size' => '≈ 73 Mo',
+        ],
+        [
+            'name' => 'CSAR Scanner',
+            'role' => 'Scan des tickets QR et suivi des collectes',
+            'version' => '1.0.0',
+            'files' => ['csar-scanner.apk'],
+            'route' => 'app.scanner.download.apk',
+            'size' => '≈ 65 Mo',
+        ],
+        [
+            'name' => 'CSAR Magasinier',
+            'role' => 'Gestion des stocks, mouvements et missions DTL',
+            'version' => '1.0.1',
+            'files' => ['csar-warehouse.apk'],
+            'route' => 'app.magasinier.download.apk',
+            'size' => '≈ 68 Mo',
+        ],
+        [
+            'name' => 'CSAR Comptable',
+            'role' => 'Comptabilité des matières : mouvements, carburant, matériel',
+            'version' => '1.0.0',
+            'files' => ['csar-comptable.apk'],
+            'route' => 'app.comptable.download.apk',
+            'size' => '≈ 51 Mo',
+        ],
+    ];
+
+    foreach ($applications as &$app) {
+        $app['available'] = false;
+        foreach ($app['files'] as $name) {
+            if (file_exists(public_path('downloads/' . $name))) {
+                $app['available'] = true;
+                break;
+            }
+        }
+    }
+    unset($app);
+
+    return view('public.download-app', ['applications' => $applications]);
 })->name('app.download');
 
 Route::get('/telecharger-app/apk', function () {
-    $file = public_path('downloads/sim-collecte.apk');
-    if (!file_exists($file)) {
-        abort(404, 'Fichier APK non disponible');
+    // Le fichier peut porter l'un des deux noms selon l'environnement.
+    foreach (['sim-collecte.apk', 'sim-csar.apk'] as $name) {
+        $file = public_path('downloads/' . $name);
+        if (file_exists($file)) {
+            return response()->download($file, 'CSAR-SIM-Collecte.apk', [
+                'Content-Type' => 'application/vnd.android.package-archive',
+            ]);
+        }
     }
-    return response()->download($file, 'CSAR-SIM-Collecte.apk', [
-        'Content-Type' => 'application/vnd.android.package-archive',
-    ]);
+    abort(404, "L'application SIM Collecte n'est pas encore disponible au téléchargement.");
 })->name('app.download.apk');
 
 // Téléchargement de l'application Distribution
 Route::get('/telecharger-distribution/apk', function () {
     $file = public_path('downloads/csar-distribution.apk');
     if (!file_exists($file)) {
-        abort(404, 'Fichier APK non disponible');
+        abort(404, "L'application CSAR Distribution n'est pas encore disponible au téléchargement.");
     }
     return response()->download($file, 'CSAR-Distribution.apk', [
         'Content-Type' => 'application/vnd.android.package-archive',
@@ -130,12 +187,34 @@ Route::get('/telecharger-distribution/apk', function () {
 Route::get('/telecharger-scanner/apk', function () {
     $file = public_path('downloads/csar-scanner.apk');
     if (!file_exists($file)) {
-        abort(404, 'Fichier APK non disponible');
+        abort(404, "L'application CSAR Scanner n'est pas encore disponible au téléchargement.");
     }
     return response()->download($file, 'CSAR-Scanner.apk', [
         'Content-Type' => 'application/vnd.android.package-archive',
     ]);
 })->name('app.scanner.download.apk');
+
+// Téléchargement de l'application Magasinier
+Route::get('/telecharger-magasinier/apk', function () {
+    $file = public_path('downloads/csar-warehouse.apk');
+    if (!file_exists($file)) {
+        abort(404, "L'application CSAR Magasinier n'est pas encore disponible au téléchargement.");
+    }
+    return response()->download($file, 'CSAR-Magasinier.apk', [
+        'Content-Type' => 'application/vnd.android.package-archive',
+    ]);
+})->name('app.magasinier.download.apk');
+
+// Téléchargement de l'application Comptable
+Route::get('/telecharger-comptable/apk', function () {
+    $file = public_path('downloads/csar-comptable.apk');
+    if (!file_exists($file)) {
+        abort(404, "L'application CSAR Comptable n'est pas encore disponible au téléchargement.");
+    }
+    return response()->download($file, 'CSAR-Comptable.apk', [
+        'Content-Type' => 'application/vnd.android.package-archive',
+    ]);
+})->name('app.comptable.download.apk');
 
 // Redirect root to French by default
 Route::get('/', function () {
