@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')
                 ->prefix('api/warehouse')
                 ->group(base_path('routes/warehouse-api.php'));
+
+            Route::middleware('api')
+                ->prefix('api/comptable')
+                ->group(base_path('routes/comptable-api.php'));
         },
         health: '/up',
     )

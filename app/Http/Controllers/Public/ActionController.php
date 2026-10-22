@@ -15,7 +15,7 @@ class ActionController extends Controller
     {
         return view('public.action');
     }
-    
+
     public function submit(Request $request)
     {
         $rules = [
@@ -27,16 +27,16 @@ class ActionController extends Controller
             'region' => 'required|string|max:255',
             'description' => 'required|string',
         ];
-        
+
         // Géolocalisation optionnelle (recommandée mais pas obligatoire)
         $rules['latitude'] = 'nullable|numeric';
         $rules['longitude'] = 'nullable|numeric';
-        
+
         $request->validate($rules);
-        
+
         // Generate unique tracking code
         $trackingCode = 'CSAR' . str_pad(PublicRequest::count() + 1, 6, '0', STR_PAD_LEFT);
-        
+
         // Create the request
         $publicRequest = PublicRequest::create([
             'name' => $request->full_name, // Champ obligatoire
@@ -56,7 +56,7 @@ class ActionController extends Controller
             'urgency' => 'medium',
             'preferred_contact' => 'email'
         ]);
-        
+
         // Send SMS notification using SmsService
         $smsSent = false;
         try {
@@ -67,13 +67,13 @@ class ActionController extends Controller
             // Log error but don't fail the request
             \Log::error('SMS sending failed: ' . $e->getMessage());
         }
-        
+
         $publicRequest->update(['sms_sent' => $smsSent]);
-        
+
         // Créer une notification automatique pour l'admin
         NotificationService::notifyNewRequest($publicRequest);
-        
-        return redirect()->route('request.success', ['code' => $publicRequest->tracking_code])
+
+        return redirect()->route('demande.success', ['code' => $publicRequest->tracking_code])
             ->with('success', '✅ Votre demande a été envoyée avec succès ! Un SMS de confirmation vous a été envoyé.');
     }
 }

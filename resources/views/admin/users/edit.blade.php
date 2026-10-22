@@ -79,10 +79,20 @@
                                     <option value="">Sélectionner un rôle</option>
                                     <option value="admin" {{ ($user->role ?? '') === 'admin' ? 'selected' : '' }}>Administrateur</option>
                                     <option value="dg" {{ ($user->role ?? '') === 'dg' ? 'selected' : '' }}>Directeur Général</option>
+                                    <option value="drh" {{ ($user->role ?? '') === 'drh' ? 'selected' : '' }}>DRH</option>
+                                    <option value="entrepot" {{ ($user->role ?? '') === 'entrepot' ? 'selected' : '' }}>Entrepôt</option>
                                     <option value="responsable" {{ ($user->role ?? '') === 'responsable' ? 'selected' : '' }}>Responsable</option>
+                                    <option value="magasinier" {{ ($user->role ?? '') === 'magasinier' ? 'selected' : '' }}>Magasinier</option>
                                     <option value="agent" {{ ($user->role ?? '') === 'agent' ? 'selected' : '' }}>Agent</option>
                                     <option value="distributeur" {{ ($user->role ?? '') === 'distributeur' ? 'selected' : '' }}>Distributeur d'aide</option>
                                     <option value="scanner" {{ ($user->role ?? '') === 'scanner' ? 'selected' : '' }}>Scanner de tickets</option>
+                                    <option value="dtl" {{ ($user->role ?? '') === 'dtl' ? 'selected' : '' }}>DTL</option>
+                                    <option value="cpm" {{ ($user->role ?? '') === 'cpm' ? 'selected' : '' }}>CPM</option>
+                                    <option value="dpse" {{ ($user->role ?? '') === 'dpse' ? 'selected' : '' }}>DPSE</option>
+                                    <option value="inspecteur" {{ ($user->role ?? '') === 'inspecteur' ? 'selected' : '' }}>Inspecteur terrain</option>
+                                    <option value="comptable" {{ ($user->role ?? '') === 'comptable' ? 'selected' : '' }}>Comptable des matières</option>
+                                    <option value="superviseur" {{ ($user->role ?? '') === 'superviseur' ? 'selected' : '' }}>Superviseur</option>
+                                    <option value="ctc" {{ ($user->role ?? '') === 'ctc' ? 'selected' : '' }}>CTC</option>
                                 </select>
                             </div>
 

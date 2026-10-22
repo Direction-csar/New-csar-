@@ -20,10 +20,9 @@ class TrackController extends Controller
     {
         $request->validate([
             'tracking_code' => 'required|string|max:20',
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'required|string|max:20',
         ]);
 
-        Log::info('TRACK DEBUG: code=[' . $request->tracking_code . '] len=' . strlen($request->tracking_code));
         $publicRequest = PublicRequest::where('tracking_code', $request->tracking_code)->first();
 
         $view = request()->is('suivi') || request()->is('*/suivi') ? 'public.suivi' : 'public.track';
@@ -32,7 +31,9 @@ class TrackController extends Controller
             return view($view, ['notFound' => true]);
         }
 
-        if ($request->phone && $publicRequest->phone !== $request->phone) {
+        // Vérification d'identité : le code de suivi seul ne suffit pas,
+        // le téléphone déclaré doit correspondre exactement.
+        if ($publicRequest->phone !== $request->phone) {
             return view($view, ['notFound' => true]);
         }
 

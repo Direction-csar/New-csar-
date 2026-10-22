@@ -1306,6 +1306,67 @@ foreach (['cpm', 'dpse', 'dtl'] as $directionSlug) {
     });
 }
 
+// === PORTAIL DTL : DOSSIERS TRANSMI & MISSIONS ===
+Route::middleware(['direction:dtl'])->prefix('dtl')->name('dtl.')->group(function () {
+    Route::get('/demandes', [\App\Http\Controllers\Dtl\DemandeController::class, 'index'])->name('demandes.index');
+    Route::get('/demandes/{id}', [\App\Http\Controllers\Dtl\DemandeController::class, 'show'])->name('demandes.show');
+    Route::post('/demandes/{id}/instruct', [\App\Http\Controllers\Dtl\DemandeController::class, 'instruct'])->name('demandes.instruct');
+    Route::post('/demandes/{id}/missions', [\App\Http\Controllers\Dtl\DemandeController::class, 'storeMission'])->name('demandes.missions.store');
+    Route::post('/missions/{missionId}/cancel', [\App\Http\Controllers\Dtl\DemandeController::class, 'cancelMission'])->name('missions.cancel');
+    Route::post('/missions/{missionId}/validate', [\App\Http\Controllers\Dtl\DemandeController::class, 'validateMission'])->name('missions.validate');
+    Route::post('/missions/{missionId}/correct', [\App\Http\Controllers\Dtl\DemandeController::class, 'requestCorrection'])->name('missions.correct');
+});
+
+// === PORTAIL COMPTABLE DES MATIÈRES ===
+Route::prefix('comptable')->name('comptable.')->group(function () {
+    Route::get('/login', fn () => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->showLoginForm('comptable'))->name('login');
+    Route::post('/login', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->login($request, 'comptable'))->name('login.submit');
+    Route::post('/logout', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->logout($request, 'comptable'))->name('logout');
+});
+
+Route::middleware(['direction:comptable'])->prefix('comptable')->name('comptable.')->group(function () {
+    Route::get('/', fn () => redirect()->route('comptable.mouvements.index'))->name('dashboard');
+    Route::get('/mouvements', [\App\Http\Controllers\Comptable\MouvementController::class, 'index'])->name('mouvements.index');
+    Route::get('/mouvements/{id}', [\App\Http\Controllers\Comptable\MouvementController::class, 'show'])->name('mouvements.show');
+    Route::post('/mouvements/{id}/valider', [\App\Http\Controllers\Comptable\MouvementController::class, 'validateMovement'])->name('mouvements.valider');
+    Route::post('/mouvements/{id}/rejeter', [\App\Http\Controllers\Comptable\MouvementController::class, 'reject'])->name('mouvements.rejeter');
+});
+
+Route::middleware(['direction:comptable'])->prefix('archives/comptable')->name('archives.comptable.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Comptable\ArchiveController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\Comptable\ArchiveController::class, 'store'])->name('store');
+    Route::get('/{archive}', [\App\Http\Controllers\Comptable\ArchiveController::class, 'show'])->name('show');
+    Route::put('/{archive}', [\App\Http\Controllers\Comptable\ArchiveController::class, 'update'])->name('update');
+    Route::delete('/{archive}', [\App\Http\Controllers\Comptable\ArchiveController::class, 'destroy'])->name('destroy');
+    Route::get('/{archive}/download', [\App\Http\Controllers\Comptable\ArchiveController::class, 'download'])->name('download');
+    Route::get('/{archive}/print', [\App\Http\Controllers\Comptable\ArchiveController::class, 'print'])->name('print');
+});
+
+// === PORTAIL INSPECTEUR ===
+Route::prefix('inspecteur')->name('inspecteur.')->group(function () {
+    Route::get('/login', fn () => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->showLoginForm('inspecteur'))->name('login');
+    Route::post('/login', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->login($request, 'inspecteur'))->name('login.submit');
+    Route::post('/logout', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->logout($request, 'inspecteur'))->name('logout');
+});
+
+Route::middleware(['direction:inspecteur'])->prefix('inspecteur')->name('inspecteur.')->group(function () {
+    Route::get('/', fn () => redirect()->route('inspecteur.missions.index'))->name('dashboard');
+    Route::get('/missions', [\App\Http\Controllers\Inspecteur\MissionController::class, 'index'])->name('missions.index');
+    Route::get('/missions/{id}', [\App\Http\Controllers\Inspecteur\MissionController::class, 'show'])->name('missions.show');
+    Route::post('/missions/{id}/start', [\App\Http\Controllers\Inspecteur\MissionController::class, 'start'])->name('missions.start');
+    Route::post('/missions/{id}/report', [\App\Http\Controllers\Inspecteur\MissionController::class, 'submitReport'])->name('missions.report');
+
+    Route::prefix('archives')->name('archives.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'index'])->name('index');
+        Route::post('/', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'store'])->name('store');
+        Route::get('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'show'])->name('show');
+        Route::put('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'update'])->name('update');
+        Route::delete('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'destroy'])->name('destroy');
+        Route::get('/{archive}/download', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'download'])->name('download');
+        Route::get('/{archive}/print', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'print'])->name('print');
+    });
+});
+
 // === ADMIN : CONTRÔLE TOTAL ===
 Route::middleware(['admin'])->prefix('admin/archives')->name('admin.archives.')->group(function () {
     Route::get('/', [App\Http\Controllers\Admin\ArchiveController::class, 'index'])->name('index');

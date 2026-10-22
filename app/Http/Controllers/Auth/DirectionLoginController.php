@@ -19,6 +19,8 @@ class DirectionLoginController extends Controller
         'cpm' => 'Cellule Passation des Marchés',
         'dpse' => 'Direction Planification & Suivi Évaluation',
         'dtl' => 'Direction Technique et Logistique',
+        'inspecteur' => 'Inspections terrain',
+        'comptable' => 'Comptabilité des matières',
     ];
 
     public function showLoginForm(string $direction)

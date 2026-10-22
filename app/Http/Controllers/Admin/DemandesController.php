@@ -10,6 +10,7 @@ use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
 class DemandesController extends Controller
@@ -99,7 +100,7 @@ class DemandesController extends Controller
                 return redirect()->route('admin.demandes.index')
                     ->with('error', 'Demande non trouvée.');
             }
-            
+
             return $this->generateDemandePdf($demande);
         } catch (\Exception $e) {
             Log::error('Erreur lors de la génération du PDF: ' . $e->getMessage());
@@ -115,7 +116,9 @@ class DemandesController extends Controller
         try {
             $demande = PublicRequest::findOrFail($id);
             $users = User::where('role', '!=', 'admin')->get();
-            return view('admin.demandes.edit', compact('demande', 'users'));
+            $allowedTransitions = app(\App\Services\RequestWorkflowService::class)
+                ->allowedTransitionsFor($demande->workflow_status, auth()->user());
+            return view('admin.demandes.edit', compact('demande', 'users', 'allowedTransitions'));
         } catch (\Exception $e) {
             Log::error('Erreur lors de l\'édition de la demande: ' . $e->getMessage());
             return redirect()->route('admin.demandes.index')
@@ -139,12 +142,10 @@ class DemandesController extends Controller
 
             $demande = PublicRequest::findOrFail($id);
             $oldStatut = $demande->status;
+            $actor = auth()->user();
+            $service = app(\App\Services\RequestWorkflowService::class);
 
             $updateData = [];
-            if ($request->filled('status')) {
-                $updateData['status'] = $request->status;
-                $updateData['updated_at'] = now();
-            }
             if ($request->filled('admin_comment')) {
                 $updateData['admin_comment'] = $request->admin_comment;
             }
@@ -152,17 +153,45 @@ class DemandesController extends Controller
                 $updateData['assigned_to'] = $request->assigned_to;
             }
 
-            // Synchroniser le workflow_status si le statut legacy change
-            if (isset($updateData['status']) && $oldStatut !== $updateData['status']) {
+            // Synchroniser le workflow_status si le statut legacy change —
+            // chaque étape du chemin passe par le service (rôles, motifs, audit).
+            if ($request->filled('status') && $oldStatut !== $request->status) {
                 $workflowMap = [
-                    'pending' => 'en_revue',
-                    'approved' => 'approuvee',
-                    'rejected' => 'rejetee',
+                    'pending'   => 'en_revue',
+                    'approved'  => 'approuvee',
+                    'rejected'  => 'rejetee',
                     'completed' => 'cloturee',
                 ];
-                if (isset($workflowMap[$updateData['status']]) && $demande->workflow_status !== $workflowMap[$updateData['status']]) {
-                    $demande->advanceWorkflow($workflowMap[$updateData['status']], 'Synchronisé depuis le changement de statut admin');
+                $target = $workflowMap[$request->status] ?? null;
+                if ($target && $demande->workflow_status !== $target) {
+                    $path = $service->findPath($demande->workflow_status, $target);
+                    if ($path === null) {
+                        throw ValidationException::withMessages([
+                            'status' => "Impossible de passer de « {$demande->workflow_status} » à « {$target} ».",
+                        ]);
+                    }
+                    $needsComment = in_array($target, \App\Services\RequestWorkflowService::COMMENT_REQUIRED, true);
+                    $comment = $request->admin_comment;
+                    if ($needsComment && empty(trim((string) $comment))) {
+                        throw ValidationException::withMessages([
+                            'admin_comment' => 'Un motif est obligatoire pour rejeter une demande ou demander des pièces.',
+                        ]);
+                    }
+                    $stepComment = 'Synchronisé depuis le changement de statut admin'
+                        . ($comment ? ' — ' . $comment : '');
+                    foreach ($path as $step) {
+                        $demande = $service->advance(
+                            $demande,
+                            $step,
+                            in_array($step, \App\Services\RequestWorkflowService::COMMENT_REQUIRED, true)
+                                ? ($comment ? "Motif : {$comment}" : $stepComment)
+                                : null,
+                            $actor
+                        );
+                    }
                 }
+                $updateData['status'] = $request->status;
+                $updateData['updated_at'] = now();
             }
 
             $demande->update($updateData);
@@ -181,6 +210,11 @@ class DemandesController extends Controller
 
             return redirect()->route('admin.demandes.index')
                 ->with('success', 'Demande mise à jour avec succès.');
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->withInput()
+                ->withErrors($e->errors());
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur lors de la mise à jour de la demande: ' . $e->getMessage());
@@ -229,14 +263,14 @@ class DemandesController extends Controller
     {
         try {
             DB::beginTransaction();
-            
+
             $demande = PublicRequest::findOrFail($id);
             $demande->update([
                 'status' => 'approved',
                 'processed_date' => now(),
                 'updated_at' => now()
             ]);
-            
+
             // Créer une notification
             Notification::create([
                 'type' => 'demande_approved',
@@ -246,15 +280,15 @@ class DemandesController extends Controller
                 'read' => false,
                 'user_id' => null
             ]);
-            
+
             DB::commit();
-            
+
             Log::info("Demande approuvée", [
                 'demande_id' => $id,
                 'tracking_code' => $demande->tracking_code,
                 'admin_id' => auth()->id()
             ]);
-            
+
             return redirect()->back()
                 ->with('success', 'Demande approuvée avec succès.');
         } catch (\Exception $e) {
@@ -313,14 +347,14 @@ class DemandesController extends Controller
     {
         try {
             DB::beginTransaction();
-            
+
             $demande = PublicRequest::findOrFail($id);
             $demande->update([
                 'status' => 'rejected',
                 'processed_date' => now(),
                 'updated_at' => now()
             ]);
-            
+
             // Créer une notification
             Notification::create([
                 'type' => 'demande_rejected',
@@ -330,15 +364,15 @@ class DemandesController extends Controller
                 'read' => false,
                 'user_id' => null
             ]);
-            
+
             DB::commit();
-            
+
             Log::info("Demande rejetée", [
                 'demande_id' => $id,
                 'tracking_code' => $demande->tracking_code,
                 'admin_id' => auth()->id()
             ]);
-            
+
             return redirect()->back()
                 ->with('success', 'Demande rejetée avec succès.');
         } catch (\Exception $e) {
@@ -620,12 +654,12 @@ class DemandesController extends Controller
     {
         try {
             $html = $this->generateDemandeHtml($demande);
-            
+
             // Créer le PDF avec DomPDF ou fallback vers HTML
             if (class_exists('\Barryvdh\DomPDF\Facade\Pdf')) {
                 $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html);
                 $pdf->setPaper('A4', 'portrait');
-                
+
                 return $pdf->download('demande_' . $demande->tracking_code . '.pdf');
             } else {
                 // Fallback vers HTML si DomPDF n'est pas disponible
@@ -635,7 +669,7 @@ class DemandesController extends Controller
             }
         } catch (\Exception $e) {
             Log::error('Erreur lors de la génération du PDF: ' . $e->getMessage());
-            
+
             // Fallback vers texte simple
             $content = $this->generateSimpleDemande($demande);
             return response($content)
@@ -652,19 +686,19 @@ class DemandesController extends Controller
         // Utiliser le logo CSAR disponible
         $logoPath = public_path('images/logos/LOGO CSAR vectoriel-01.png');
         $logoBase64 = '';
-        
+
         if (file_exists($logoPath)) {
             $logoContent = file_get_contents($logoPath);
             $logoBase64 = 'data:image/png;base64,' . base64_encode($logoContent);
         }
-        
+
         $statutLabels = [
             'en_attente' => 'En attente',
             'en_cours' => 'En cours',
             'traitee' => 'Traitée',
             'rejetee' => 'Rejetée'
         ];
-        
+
         $statutLabel = $statutLabels[$demande->statut] ?? 'En attente';
         $statutColor = match($demande->statut) {
             'traitee' => '#28a745',
@@ -672,9 +706,9 @@ class DemandesController extends Controller
             'en_cours' => '#17a2b8',
             default => '#ffc107'
         };
-        
+
         $createdAt = \Carbon\Carbon::parse($demande->created_at);
-        
+
         $html = '
         <!DOCTYPE html>
         <html>
@@ -862,13 +896,13 @@ class DemandesController extends Controller
                         <h1>CSAR</h1>
                         <p class="subtitle">Commissariat à la Sécurité Alimentaire<br>et à la Résilience</p>
                     </div>
-                    
+
                     <div class="demande-title">FICHE DE DEMANDE</div>
-                    
+
                     <div class="tracking-code">
                         Code de Suivi: ' . $demande->tracking_code . '
                     </div>
-                    
+
                     <div class="demande-info">
                         <div class="section-title">Informations du Demandeur</div>
                         <div class="info-row">
@@ -884,7 +918,7 @@ class DemandesController extends Controller
                             <span class="info-value">' . ($demande->telephone ?? 'N/A') . '</span>
                         </div>
                     </div>
-                    
+
                     <div class="demande-info">
                         <div class="section-title">Détails de la Demande</div>
                         <div class="info-row">
@@ -904,12 +938,12 @@ class DemandesController extends Controller
                             <span class="info-value">' . $createdAt->format('d/m/Y à H:i') . '</span>
                         </div>
                     </div>
-                    
+
                     <div class="description-section">
                         <div class="description-title">Description de la demande:</div>
                         <div class="description-content">' . ($demande->description ?? 'Aucune description fournie.') . '</div>
                     </div>
-                    
+
                     ' . (isset($demande->reponse) && !empty($demande->reponse) ? '
                     <div class="description-section">
                         <div class="description-title">Réponse de l\'administration:</div>
@@ -917,7 +951,7 @@ class DemandesController extends Controller
                         ' . (isset($demande->date_traitement) ? '<div style="margin-top: 10px; font-size: 12px; color: #6c757d;">Date de traitement: ' . \Carbon\Carbon::parse($demande->date_traitement)->format('d/m/Y à H:i') . '</div>' : '') . '
                     </div>
                     ' : '') . '
-                    
+
                     <div class="footer">
                         <div class="footer-title">Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)</div>
                         <div>Plateforme de Gestion des Demandes</div>
@@ -929,7 +963,7 @@ class DemandesController extends Controller
             </div>
         </body>
         </html>';
-        
+
         return $html;
     }
 
@@ -944,10 +978,10 @@ class DemandesController extends Controller
             'traitee' => 'Traitée',
             'rejetee' => 'Rejetée'
         ];
-        
+
         $statutLabel = $statutLabels[$demande->statut] ?? 'En attente';
         $createdAt = \Carbon\Carbon::parse($demande->created_at);
-        
+
         return "
 CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience
 ================================================================
@@ -1001,23 +1035,8 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
             $oldStatus = $demande->workflow_status;
             $newStatus = $request->workflow_status;
 
-            $demande->advanceWorkflow($newStatus, $request->comment);
-
-            // Synchroniser le statut legacy
-            $statusMap = [
-                'soumise' => 'pending',
-                'en_revue' => 'pending',
-                'document_attente' => 'pending',
-                'signee' => 'pending',
-                'scannee' => 'pending',
-                'validee_dg' => 'pending',
-                'approuvee' => 'approved',
-                'rejetee' => 'rejected',
-                'cloturee' => 'completed',
-            ];
-            if (isset($statusMap[$newStatus])) {
-                $demande->update(['status' => $statusMap[$newStatus]]);
-            }
+            app(\App\Services\RequestWorkflowService::class)
+                ->advance($demande, $newStatus, $request->comment, auth()->user());
 
             // Notifier le demandeur du changement de statut
             try {
@@ -1062,6 +1081,12 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
             }
 
             return redirect()->back()->with('success', 'Workflow avancé avec succès');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $message = collect($e->errors())->flatten()->first() ?? 'Transition non autorisée';
+            if ($request->ajax() || $request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $message], 422);
+            }
+            return redirect()->back()->with('error', $message);
         } catch (\Exception $e) {
             Log::error('Erreur avancement workflow: ' . $e->getMessage());
             if ($request->ajax() || $request->wantsJson()) {
@@ -1103,12 +1128,24 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
             }
             $demande->update($updateData);
 
-            // Avancer automatiquement si pas encore signée
-            if (in_array($demande->workflow_status, ['soumise', 'en_revue', 'document_attente'])) {
-                $demande->advanceWorkflow('signee', 'Document signé uploadé par ' . auth()->user()->name);
+            // Avancer automatiquement si pas encore signée (via le service métier)
+            if (!in_array($demande->workflow_status, ['signee', 'scannee', 'validee_dg', 'approuvee', 'cloturee'], true)) {
+                $signComment = 'Document signé uploadé par ' . auth()->user()->name
+                    . ($request->filled('comment') ? ' — ' . $request->comment : '');
+                $service = app(\App\Services\RequestWorkflowService::class);
+                // Passer par les étapes intermédiaires si nécessaire
+                $path = $service->findPath($demande->workflow_status, 'signee');
+                if ($path === null) {
+                    throw new \RuntimeException('Impossible de marquer cette demande comme signée depuis son statut actuel.');
+                }
+                foreach ($path as $step) {
+                    $demande = $service->advance($demande, $step, $step === 'signee' ? $signComment : null, auth()->user());
+                }
             }
 
             return redirect()->back()->with('success', 'Document signé enregistré avec succès');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->with('error', collect($e->errors())->flatten()->first() ?? 'Transition non autorisée');
         } catch (\Exception $e) {
             Log::error('Erreur upload signature: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Erreur lors de l\'enregistrement du document signé');
@@ -1137,12 +1174,23 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
                 $demande->update(['document_notes' => $request->comment]);
             }
 
-            // Avancer automatiquement si pas encore scannée
-            if (in_array($demande->workflow_status, ['soumise', 'en_revue', 'document_attente', 'signee'])) {
-                $demande->advanceWorkflow('scannee', 'Scan uploadé par ' . auth()->user()->name);
+            // Avancer automatiquement si pas encore scannée (via le service métier)
+            if (!in_array($demande->workflow_status, ['scannee', 'validee_dg', 'approuvee', 'cloturee'], true)) {
+                $scanComment = 'Scan uploadé par ' . auth()->user()->name
+                    . ($request->filled('comment') ? ' — ' . $request->comment : '');
+                $service = app(\App\Services\RequestWorkflowService::class);
+                $path = $service->findPath($demande->workflow_status, 'scannee');
+                if ($path === null) {
+                    throw new \RuntimeException('Impossible de marquer cette demande comme scannée depuis son statut actuel.');
+                }
+                foreach ($path as $step) {
+                    $demande = $service->advance($demande, $step, $step === 'scannee' ? $scanComment : null, auth()->user());
+                }
             }
 
             return redirect()->back()->with('success', 'Scan enregistré avec succès');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->with('error', collect($e->errors())->flatten()->first() ?? 'Transition non autorisée');
         } catch (\Exception $e) {
             Log::error('Erreur upload scan: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Erreur lors de l\'enregistrement du scan');
@@ -1161,21 +1209,13 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
 
         try {
             $demande = PublicRequest::findOrFail($id);
-
             $oldStatus = $demande->workflow_status;
+            $approved = $request->boolean('dg_approved');
 
-            if ($request->boolean('dg_approved')) {
-                $demande->update([
-                    'dg_approved_by' => auth()->id(),
-                    'dg_approved_at' => now(),
-                ]);
-                $demande->advanceWorkflow('validee_dg', $request->dg_comment ?? 'Validée par la Direction Générale');
-                $message = 'Demande validée par le DG';
-            } else {
-                $demande->advanceWorkflow('rejetee', $request->dg_comment ?? 'Rejetée par la Direction Générale');
-                $demande->update(['status' => 'rejected']);
-                $message = 'Demande rejetée par le DG';
-            }
+            $demande = app(\App\Services\RequestWorkflowService::class)
+                ->dgValidate($demande, $approved, $request->dg_comment, auth()->user());
+
+            $message = $approved ? 'Demande validée par la Directrice' : 'Demande rejetée par la Directrice';
 
             // Notifier le demandeur
             try {
@@ -1185,6 +1225,8 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
             }
 
             return redirect()->back()->with('success', $message);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->with('error', collect($e->errors())->flatten()->first() ?? 'Décision impossible');
         } catch (\Exception $e) {
             Log::error('Erreur validation DG: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Erreur lors de la validation DG');
@@ -1304,7 +1346,11 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
 
             $ids = $request->input('ids', []);
             $newStatus = $request->input('status');
+            $actor = auth()->user();
+            $service = app(\App\Services\RequestWorkflowService::class);
             $updated = 0;
+            $failed = 0;
+            $errors = [];
 
             foreach ($ids as $id) {
                 $demande = PublicRequest::find($id);
@@ -1312,26 +1358,13 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
 
                 $oldStatus = $demande->workflow_status;
 
-                // Synchroniser le statut legacy
-                $legacyMap = [
-                    'soumise' => 'pending',
-                    'en_revue' => 'pending',
-                    'document_attente' => 'pending',
-                    'signee' => 'pending',
-                    'scannee' => 'pending',
-                    'validee_dg' => 'approved',
-                    'approuvee' => 'approved',
-                    'rejetee' => 'rejected',
-                    'cloturee' => 'completed',
-                ];
-
-                $demande->update([
-                    'workflow_status' => $newStatus,
-                    'status' => $legacyMap[$newStatus] ?? $demande->status,
-                    'updated_at' => now(),
-                ]);
-
-                $demande->logWorkflowAction("Transition en masse: {$oldStatus} → {$newStatus}", 'Action groupée');
+                try {
+                    $service->advance($demande, $newStatus, $request->input('comment'), $actor);
+                } catch (\Illuminate\Validation\ValidationException $e) {
+                    $failed++;
+                    $errors[] = $demande->tracking_code . ': ' . (collect($e->errors())->flatten()->first() ?? 'transition refusée');
+                    continue;
+                }
 
                 // Notification au demandeur
                 try {
@@ -1343,10 +1376,17 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
                 $updated++;
             }
 
+            $message = "{$updated} demande(s) avancée(s) vers « {$newStatus} »";
+            if ($failed > 0) {
+                $message .= " — {$failed} refusée(s) : " . implode(' ; ', array_slice($errors, 0, 5));
+            }
+
             return response()->json([
-                'success' => true,
-                'message' => "{$updated} demande(s) avancée(s) avec succès vers le statut « {$newStatus} »",
-            ]);
+                'success' => $failed === 0,
+                'message' => $message,
+                'updated' => $updated,
+                'failed' => $failed,
+            ], $failed > 0 && $updated === 0 ? 422 : 200);
         } catch (\Exception $e) {
             Log::error('Erreur bulk workflow: ' . $e->getMessage());
             return response()->json([

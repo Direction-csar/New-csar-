@@ -55,9 +55,19 @@ ssh_pass.bat
 
 # APK files (trop volumineux pour Git)
 /public/downloads/*.apk
+*.apk
+
+# Signature release Android — secrets locaux, jamais commités
+**/android/key.properties
+*.jks
+*.keystore
+upload-keystore.*
 
 # Flutter build artifacts
 distribution-app/build/
 scanner-app/build/
 scanner-app/.dart_tool/
 distribution-app/.dart_tool/
+
+# Fichiers temporaires locaux (dumps SQL, logs, sorties de test)
+/storage/tmp/

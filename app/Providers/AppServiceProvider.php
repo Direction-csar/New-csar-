@@ -48,6 +48,12 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        // Valeur par défaut du paramètre {locale} des routes localisées :
+        // évite UrlGenerationException hors middleware SetLocale
+        // (routes directes /demande, appels route() en CLI/tests).
+        // SetLocale surcharge cette valeur pour les requêtes localisées.
+        URL::defaults(['locale' => config('app.locale', 'fr')]);
+
         // Partager la route courante avec toutes les vues utilisant le layout DRH
         View::composer('layouts.drh-portal', function ($view) {
             $view->with('currentRoute', request()->route()?->getName());

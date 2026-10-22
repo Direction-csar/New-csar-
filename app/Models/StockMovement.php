@@ -19,16 +19,34 @@ class StockMovement extends Model
         'reason',
         'reference',
         'created_by',
+        'produit',
+        'unite',
+        'prix_unitaire',
+        'total',
+        'responsable',
+        'motif',
+        'date_mouvement',
+        'fournisseur',
+        'numero_facture',
+        'destinataire',
+        'numero_bon',
         'numero_transfert',
         'entrepot_destination_id',
         'raison_ajustement',
-        'metadata'
+        'metadata',
+        'public_request_id',
+        'request_mission_id',
+        'status',
+        'validated_by',
+        'validated_at',
+        'rejection_reason',
     ];
 
     protected $casts = [
         'quantity' => 'decimal:2',
         'quantity_before' => 'decimal:2',
-        'quantity_after' => 'decimal:2'
+        'quantity_after' => 'decimal:2',
+        'validated_at' => 'datetime',
     ];
 
     /**

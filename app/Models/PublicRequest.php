@@ -49,6 +49,9 @@ class PublicRequest extends Model
         'scan_file',
         'document_notes',
         'workflow_history',
+        'dtl_transmitted_at',
+        'dtl_transmitted_by',
+        'dtl_instructions',
     ];
 
     protected $casts = [
@@ -98,11 +101,6 @@ class PublicRequest extends Model
         return $this->belongsTo(User::class, 'dg_approved_by');
     }
 
-    public function warehouse()
-    {
-        return $this->belongsTo(Warehouse::class, 'warehouse_id');
-    }
-
     public function originalRequest()
     {
         return $this->belongsTo(self::class, 'duplicate_of');
@@ -111,6 +109,11 @@ class PublicRequest extends Model
     public function duplicates()
     {
         return $this->hasMany(self::class, 'duplicate_of');
+    }
+
+    public function missions()
+    {
+        return $this->hasMany(RequestMission::class, 'public_request_id');
     }
 
     public static function generateTrackingCode()

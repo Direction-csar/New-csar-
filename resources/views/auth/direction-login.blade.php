@@ -131,9 +131,14 @@
                 <label class="form-label fw-semibold text-secondary small">Mot de passe</label>
                 <div class="input-group">
                     <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                    <input type="password" name="password"
+                    <input type="password" name="password" id="password"
                         class="form-control @error('password') is-invalid @enderror"
                         placeholder="••••••••" required>
+                    <button type="button" class="btn btn-outline-secondary" id="togglePassword"
+                        style="border:2px solid #e5e7eb;border-left:none;border-radius:0 10px 10px 0;"
+                        aria-label="Afficher le mot de passe" onclick="togglePwd()">
+                        <i class="fas fa-eye" id="togglePwdIcon"></i>
+                    </button>
                 </div>
             </div>
 
@@ -141,7 +146,17 @@
                 <i class="fas fa-sign-in-alt me-2"></i> Accéder à l'espace {{ strtoupper($direction) }}
             </button>
         </form>
-
+script>
+function togglePwd() {
+    const pwd = document.getElementById('password');
+    const icon = document.getElementById('togglePwdIcon');
+    const show = pwd.type === 'password';
+    pwd.type = show ? 'text' : 'password';
+    icon.classList.toggle('fa-eye', !show);
+    icon.classList.toggle('fa-eye-slash', show);
+}
+</script>
+<
     </div>
 </div>
 

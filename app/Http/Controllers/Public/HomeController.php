@@ -390,7 +390,7 @@ class HomeController extends Controller
                 'success' => true,
                 'message' => 'Votre demande a été envoyée avec succès ! Nous vous contacterons dans les plus brefs délais.',
                 'tracking_code' => $trackingCode,
-                'redirect' => route('request.success', ['code' => $trackingCode])
+                'redirect' => route('demande.success', ['code' => $trackingCode])
             ]);
 
         } catch (\Exception $e) {

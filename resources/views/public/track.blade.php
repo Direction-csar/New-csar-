@@ -250,38 +250,11 @@
                         @endforeach
                     </div>
 
-                    @if($request->dg_signature_file || $request->scan_file)
-                    <div class="mt-4">
-                        <h6 style="color: #1f2937; font-weight: 700; margin-bottom: 12px;"><i class="fas fa-paperclip me-2 text-success"></i>Documents associés</h6>
-                        <div class="d-flex gap-2">
-                            @if($request->dg_signature_file)
-                            <a href="{{ asset('storage/' . $request->dg_signature_file) }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                                <i class="fas fa-signature me-1"></i>Document signé
-                            </a>
-                            @endif
-                            @if($request->scan_file)
-                            <a href="{{ asset('storage/' . $request->scan_file) }}" target="_blank" class="btn btn-outline-info btn-sm">
-                                <i class="fas fa-file-pdf me-1"></i>Scan
-                            </a>
-                            @endif
-                        </div>
-                    </div>
-                    @endif
+                    {{-- Les pièces internes (signature DG, scan) et les
+                         commentaires d'administration ne sont pas exposés
+                         publiquement : le demandeur ne voit que les étapes,
+                         dates et la décision (motif de rejet dans la timeline). --}}
                 </div>
-
-                <!-- Admin Comments -->
-                @if($request->admin_comment)
-                <div style="margin-bottom: 40px;">
-                    <h4 style="color: #1f2937; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 12px; font-size: 1.3rem; font-weight: 700;">
-                        <i class="fas fa-comment" style="color: #ef4444; margin-right: 10px;"></i> Commentaire de l'administration
-                    </h4>
-                    <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); padding: 25px; border-radius: 12px; border-left: 4px solid #ef4444; border: 1px solid #fca5a5;">
-                        <p style="color: #991b1b; font-size: 1.1rem; line-height: 1.6; margin: 0; font-weight: 500;">
-                            {{ $request->admin_comment }}
-                        </p>
-                    </div>
-                </div>
-                @endif
 
                 <!-- Actions -->
                 <div style="text-align: center; padding-top: 30px; border-top: 2px solid #e5e7eb;">

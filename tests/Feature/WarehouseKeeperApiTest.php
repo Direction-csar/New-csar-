@@ -80,7 +80,7 @@ class WarehouseKeeperApiTest extends TestCase
      */
     private function createSchema(): void
     {
-        foreach (['stock_movements', 'stocks', 'products', 'warehouses', 'users'] as $t) {
+        foreach (['request_missions', 'public_requests', 'stock_movements', 'stocks', 'products', 'warehouses', 'users'] as $t) {
             Schema::dropIfExists($t);
         }
 
@@ -148,8 +148,61 @@ class WarehouseKeeperApiTest extends TestCase
             $t->string('numero_transfert')->nullable();
             $t->unsignedBigInteger('entrepot_destination_id')->nullable();
             $t->string('raison_ajustement')->nullable();
+            $t->unsignedBigInteger('public_request_id')->nullable();
+            $t->unsignedBigInteger('request_mission_id')->nullable();
             $t->timestamps();
         });
+
+        Schema::create('public_requests', function (Blueprint $t) {
+            $t->id();
+            $t->string('tracking_code')->unique();
+            $t->string('full_name')->nullable();
+            $t->string('region')->nullable();
+            $t->string('type')->nullable();
+            $t->string('status')->default('pending');
+            $t->string('workflow_status')->default('soumise');
+            $t->text('workflow_history')->nullable();
+            $t->timestamps();
+        });
+
+        Schema::create('request_missions', function (Blueprint $t) {
+            $t->id();
+            $t->unsignedBigInteger('public_request_id');
+            $t->string('type'); // inspection | stock_exit
+            $t->unsignedBigInteger('assigned_by')->nullable();
+            $t->unsignedBigInteger('assigned_to')->nullable();
+            $t->text('instructions')->nullable();
+            $t->string('status')->default('affectee');
+            $t->text('report')->nullable();
+            $t->text('attachments')->nullable();
+            $t->decimal('visit_latitude', 10, 7)->nullable();
+            $t->decimal('visit_longitude', 10, 7)->nullable();
+            $t->timestamp('visited_at')->nullable();
+            $t->timestamp('reported_at')->nullable();
+            $t->timestamp('completed_at')->nullable();
+            $t->timestamps();
+        });
+    }
+
+    private function makeMissionFor(User $assignee, string $status = 'affectee'): \App\Models\RequestMission
+    {
+        $request = \App\Models\PublicRequest::create([
+            'tracking_code' => 'CSAR-TEST-' . uniqid(),
+            'full_name' => 'Demandeur Test',
+            'region' => 'Dakar',
+            'type' => 'aide_alimentaire',
+            'status' => 'approved',
+            'workflow_status' => 'approuvee',
+        ]);
+
+        return \App\Models\RequestMission::create([
+            'public_request_id' => $request->id,
+            'type' => \App\Models\RequestMission::TYPE_STOCK_EXIT,
+            'assigned_by' => $this->admin->id,
+            'assigned_to' => $assignee->id,
+            'instructions' => 'Livrer les kits au point de distribution.',
+            'status' => $status,
+        ]);
     }
 
     private function apiAdmin()
@@ -175,6 +228,104 @@ class WarehouseKeeperApiTest extends TestCase
             'kg' => $kg,
             'client_ref' => $ref,
         ]);
+    }
+
+    /** 16. GET /missions ne retourne que les missions stock_exit du magasinier */
+    public function test_get_missions_returns_only_assigned_stock_exit()
+    {
+        $this->apiMagasinier();
+
+        $own = $this->makeMissionFor($this->magasinier);
+        $this->makeMissionFor($this->admin); // mission d'un autre utilisateur
+
+        $r = $this->getJson('/api/warehouse/v1/missions')->assertStatus(200);
+
+        $missions = $r->json('missions');
+        $this->assertCount(1, $missions);
+        $this->assertSame($own->id, $missions[0]['id']);
+        $this->assertSame('affectee', $missions[0]['status']);
+        $this->assertNotNull($missions[0]['tracking_code']);
+    }
+
+    /** 17. POST /missions/{id}/report clôture la mission et lie le mouvement */
+    public function test_report_mission_closes_and_links_movement()
+    {
+        // Créer un mouvement de sortie dans le magasin A (magasin du magasinier)
+        $this->apiAdmin();
+        $this->postEntry($this->whA->id, 'Riz Test [25kg]', 10, 250, 'T-IN-M1')->assertStatus(201);
+        $exit = $this->postJson('/api/warehouse/v1/movements', [
+            'warehouse_id' => $this->whA->id,
+            'movement_date' => '2026-10-20',
+            'label' => 'Riz Test [25kg]',
+            'movement_type' => 'exit',
+            'sacs' => 2,
+            'kg' => 50,
+            'client_ref' => 'T-OUT-M1',
+        ])->assertStatus(201);
+        $ref = $exit->json('reference');
+
+        $mission = $this->makeMissionFor($this->magasinier);
+
+        $this->apiMagasinier();
+        $this->postJson("/api/warehouse/v1/missions/{$mission->id}/report", [
+            'report' => 'Sortie effectuée et remise au convoi.',
+            'movement_reference' => $ref,
+        ])->assertStatus(200);
+
+        $mission->refresh();
+        $this->assertSame('terminee', $mission->status);
+        $this->assertNotNull($mission->completed_at);
+
+        $movement = StockMovement::where('reference', $ref)->first();
+        $this->assertSame($mission->id, $movement->request_mission_id);
+        $this->assertSame($mission->public_request_id, $movement->public_request_id);
+    }
+
+    /** 18. report refuse un justificatif provenant d'un magasin non autorisé */
+    public function test_report_mission_rejects_movement_from_other_warehouse()
+    {
+        $this->apiAdmin();
+        $this->postEntry($this->whB->id, 'Riz Test [25kg]', 10, 250, 'T-IN-M2')->assertStatus(201);
+        $exit = $this->postJson('/api/warehouse/v1/movements', [
+            'warehouse_id' => $this->whB->id,
+            'movement_date' => '2026-10-20',
+            'label' => 'Riz Test [25kg]',
+            'movement_type' => 'exit',
+            'sacs' => 1,
+            'kg' => 25,
+            'client_ref' => 'T-OUT-M2',
+        ])->assertStatus(201);
+        $ref = $exit->json('reference');
+
+        $mission = $this->makeMissionFor($this->magasinier);
+
+        // Le magasinier n'a accès qu'au magasin A → refus 403
+        $this->apiMagasinier();
+        $this->postJson("/api/warehouse/v1/missions/{$mission->id}/report", [
+            'report' => 'Tentative de rattacher une sortie du magasin B.',
+            'movement_reference' => $ref,
+        ])->assertStatus(403);
+
+        $this->assertSame('affectee', $mission->fresh()->status);
+    }
+
+    /** 19. report refuse une référence qui n'est pas une sortie de stock */
+    public function test_report_mission_rejects_entry_movement_reference()
+    {
+        $this->apiAdmin();
+        $entry = $this->postEntry($this->whA->id, 'Riz Test [25kg]', 10, 250, 'T-IN-M3');
+        $entry->assertStatus(201);
+        $ref = $entry->json('reference');
+
+        $mission = $this->makeMissionFor($this->magasinier);
+
+        $this->apiMagasinier();
+        $this->postJson("/api/warehouse/v1/missions/{$mission->id}/report", [
+            'report' => 'Tentative de rattacher une entrée comme justificatif.',
+            'movement_reference' => $ref,
+        ])->assertStatus(422);
+
+        $this->assertSame('affectee', $mission->fresh()->status);
     }
 
     /** 1. Entrée de 40 sacs de riz 25kg = +1000 kg */

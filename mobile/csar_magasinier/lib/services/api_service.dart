@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/warehouse.dart';
 import '../models/product.dart';
+import '../models/mission.dart';
 
 class ApiService {
   static const String baseUrl = 'https://www.csar.sn/api/warehouse/v1';
@@ -250,5 +251,48 @@ class ApiService {
       return jsonDecode(response.body);
     }
     throw Exception('Erreur stats');
+  }
+
+  // MISSIONS DE SORTIE (affectées par le DTL)
+  static Future<List<Mission>> getMissions({String? status}) async {
+    final token = await getToken();
+    final uri = Uri.parse('$baseUrl/missions').replace(
+      queryParameters: {if (status != null) 'status': status},
+    );
+    final response = await _get(uri, headers: _headers(token));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data['missions'] as List)
+          .map((e) => Mission.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    }
+    throw Exception('Erreur chargement missions');
+  }
+
+  // Clôturer une mission avec justificatif (référence de mouvement sortie)
+  static Future<Map<String, dynamic>> reportMission(
+    int missionId, {
+    String? movementReference,
+    required String report,
+  }) async {
+    final token = await getToken();
+    final response = await _post(
+      Uri.parse('$baseUrl/missions/$missionId/report'),
+      headers: _headers(token),
+      body: jsonEncode({
+        'report': report,
+        if (movementReference != null && movementReference.isNotEmpty)
+          'movement_reference': movementReference,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return {'success': true, 'message': jsonDecode(response.body)['message']};
+    }
+    return {
+      'success': false,
+      'message': jsonDecode(response.body)['message'] ?? 'Erreur clôture mission'
+    };
   }
 }

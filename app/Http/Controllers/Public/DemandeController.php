@@ -139,7 +139,7 @@ class DemandeController extends Controller
 
             // Message de succès
             $successMessage = '✅ Votre demande a bien été transmise ! Code de suivi: ' . $trackingCode;
-            
+
             // Vérifier si c'est une requête AJAX
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -147,12 +147,12 @@ class DemandeController extends Controller
                     'message' => $successMessage,
                     'tracking_code' => $trackingCode,
                     'is_aide_request' => $request->type_demande === 'aide_alimentaire',
-                    'redirect' => route('request.success', ['code' => $trackingCode])
+                    'redirect' => route('demande.success', ['code' => $trackingCode])
                 ]);
             }
-            
+
             // Rediriger vers la page de succès
-            return redirect()->route('request.success')->with([
+            return redirect()->route('demande.success')->with([
                 'success' => $successMessage,
                 'tracking_code' => $trackingCode
             ]);
@@ -164,7 +164,7 @@ class DemandeController extends Controller
                 'trace' => $e->getTraceAsString(),
                 'data' => $request->except(['_token'])
             ]);
-            
+
             // Vérifier si c'est une requête AJAX
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -173,14 +173,14 @@ class DemandeController extends Controller
                     'error_details' => config('app.debug') ? $e->getMessage() : null
                 ], 500);
             }
-            
+
             // En cas d'erreur, rediriger avec un message d'erreur
             return redirect()->back()->withErrors([
                 'error' => 'Une erreur est survenue lors de la soumission de votre demande. Veuillez réessayer.'
             ])->withInput();
         }
     }
-    
+
     public function success()
     {
         return view('public.demande-succes');

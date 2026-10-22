@@ -964,4 +964,106 @@ class WarehouseKeeperController extends Controller
             'units' => $units,
         ];
     }
+
+    /**
+     * Missions de sortie de stock affectées au magasinier par le DTL.
+     * Admin/super_admin voient toutes les missions stock_exit actives.
+     */
+    public function getMissions(Request $request)
+    {
+        $user = $request->user();
+
+        $query = \App\Models\RequestMission::where('type', \App\Models\RequestMission::TYPE_STOCK_EXIT)
+            ->with('request:id,tracking_code,full_name,region,workflow_status');
+
+        if ($user->role === 'magasinier') {
+            $query->where('assigned_to', $user->id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        } else {
+            $query->whereIn('status', ['affectee', 'en_cours']);
+        }
+
+        $missions = $query->orderBy('created_at', 'desc')->limit(50)->get()->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'tracking_code' => $m->request?->tracking_code,
+                'demandeur' => $m->request?->full_name,
+                'region' => $m->request?->region,
+                'instructions' => $m->instructions,
+                'status' => $m->status,
+                'assigned_at' => $m->created_at?->toIso8601String(),
+            ];
+        });
+
+        return response()->json(['missions' => $missions]);
+    }
+
+    /**
+     * Déclarer l'exécution d'une mission de sortie de stock.
+     * Le mouvement de stock doit avoir été enregistré via /movements ;
+     * ce endpoint rattache le justificatif (référence mouvement) à la mission.
+     */
+    public function reportMission(Request $request, $id)
+    {
+        $request->validate([
+            'movement_reference' => 'nullable|string|max:100',
+            'report' => 'required|string|min:10|max:5000',
+        ]);
+
+        $user = $request->user();
+        $mission = \App\Models\RequestMission::where('type', \App\Models\RequestMission::TYPE_STOCK_EXIT)
+            ->findOrFail($id);
+
+        // Seul le magasinier assigné (ou admin) peut clôturer la mission
+        if ($user->role === 'magasinier' && $mission->assigned_to !== $user->id) {
+            return response()->json(['message' => 'Mission non affectée à cet utilisateur.'], 403);
+        }
+        if (in_array($mission->status, ['terminee', 'annulee'], true)) {
+            return response()->json(['message' => 'Mission déjà clôturée.'], 409);
+        }
+
+        // Vérifier que la référence de mouvement existe si fournie
+        $movementId = null;
+        if ($request->filled('movement_reference')) {
+            $movement = StockMovement::where('reference', $request->movement_reference)->first();
+            if (!$movement) {
+                return response()->json(['message' => 'Référence de mouvement introuvable.'], 422);
+            }
+            // Le justificatif doit être une sortie de stock
+            if (!in_array($movement->type, ['out', 'exit'], true)) {
+                return response()->json(['message' => 'La référence doit correspondre à une sortie de stock.'], 422);
+            }
+            // Magasinier : le mouvement doit appartenir à un de ses magasins
+            if ($resp = $this->denyWarehouseAccess($user, (int) $movement->warehouse_id)) {
+                return $resp;
+            }
+            $movementId = $movement->id;
+        }
+
+        DB::transaction(function () use ($mission, $request, $movementId, $user) {
+            $mission->update([
+                'status' => 'terminee',
+                'report' => $request->report,
+                'completed_at' => now(),
+            ]);
+
+            if ($movementId) {
+                StockMovement::where('id', $movementId)->update([
+                    'public_request_id' => $mission->public_request_id,
+                    'request_mission_id' => $mission->id,
+                ]);
+            }
+
+            $mission->request?->logWorkflowAction(
+                'Sortie de stock exécutée',
+                "Mission #{$mission->id} clôturée par {$user->name} : {$request->report}",
+                $user->id
+            );
+        });
+
+        return response()->json(['message' => 'Mission clôturée avec justificatif.']);
+    }
 }

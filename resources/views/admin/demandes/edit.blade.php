@@ -100,7 +100,7 @@
                     <div class="col-md-6">
                         <p><strong>Type:</strong> {{ ucfirst($demande->type) }}</p>
                         <p><strong>Date de demande:</strong> {{ optional($demande->request_date)->format('d/m/Y') ?? \Carbon\Carbon::parse($demande->created_at)->format('d/m/Y') }}</p>
-                        <p><strong>Statut actuel:</strong> 
+                        <p><strong>Statut actuel:</strong>
                             <span class="badge bg-{{ $demande->status === 'approved' ? 'success' : ($demande->status === 'rejected' ? 'danger' : ($demande->status === 'completed' ? 'info' : 'warning')) }}">
                                 {{ ucfirst($demande->status) }}
                             </span>
@@ -131,7 +131,7 @@
                 <form action="{{ route('admin.demandes.update', $demande->id) }}" method="POST">
                     @csrf
                     @method('PUT')
-                    
+
                     @if ($errors->any())
                         <div class="alert alert-danger">
                             <ul class="mb-0">
@@ -141,7 +141,7 @@
                             </ul>
                         </div>
                     @endif
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="status" class="form-label small fw-bold">Statut *</label>
@@ -152,7 +152,7 @@
                                 <option value="completed" {{ $demande->status === 'completed' ? 'selected' : '' }}>Terminée</option>
                             </select>
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <label for="assigned_to" class="form-label small fw-bold">Assigner à</label>
                             <select class="form-select form-select-sm" id="assigned_to" name="assigned_to">
@@ -165,13 +165,13 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="admin_comment" class="form-label small fw-bold">Commentaire administrateur</label>
-                        <textarea class="form-control form-control-sm" id="admin_comment" name="admin_comment" rows="3" 
+                        <textarea class="form-control form-control-sm" id="admin_comment" name="admin_comment" rows="3"
                                   placeholder="Ajoutez un commentaire...">{{ $demande->admin_comment ?? '' }}</textarea>
                     </div>
-                    
+
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary btn-sm">
                             <i class="fas fa-save me-1"></i>Mettre à jour
@@ -187,8 +187,8 @@
                     @csrf
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Nouveau statut workflow</label>
-                        <select class="form-select form-select-sm" name="workflow_status" required>
-                            @foreach([
+                        @php
+                            $workflowLabels = [
                                 'soumise' => 'Soumise',
                                 'en_revue' => 'En revue',
                                 'document_attente' => 'Attente document',
@@ -198,12 +198,19 @@
                                 'approuvee' => 'Approuvée',
                                 'rejetee' => 'Rejetée',
                                 'cloturee' => 'Clôturée',
-                            ] as $value => $label)
-                                <option value="{{ $value }}" {{ ($demande->workflow_status ?? 'soumise') === $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
+                            ];
+                            $currentWorkflow = $demande->workflow_status ?? 'soumise';
+                            $allowed = $allowedTransitions ?? [];
+                        @endphp
+                        <select class="form-select form-select-sm" name="workflow_status" required>
+                            <option value="{{ $currentWorkflow }}" selected>{{ $workflowLabels[$currentWorkflow] ?? $currentWorkflow }} (actuel)</option>
+                            @foreach($allowed as $value)
+                                <option value="{{ $value }}">{{ $workflowLabels[$value] ?? $value }}</option>
                             @endforeach
                         </select>
+                        @if(empty($allowed))
+                            <small class="text-muted">Aucune transition disponible depuis ce statut pour votre rôle.</small>
+                        @endif
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Commentaire</label>

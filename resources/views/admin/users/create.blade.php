@@ -78,6 +78,13 @@
                                     <option value="agent" {{ old('role') == 'agent' ? 'selected' : '' }}>Agent</option>
                                     <option value="distributeur" {{ old('role') == 'distributeur' ? 'selected' : '' }}>Distributeur d'aide</option>
                                     <option value="scanner" {{ old('role') == 'scanner' ? 'selected' : '' }}>Scanner de tickets</option>
+                                    <option value="dtl" {{ old('role') == 'dtl' ? 'selected' : '' }}>DTL</option>
+                                    <option value="cpm" {{ old('role') == 'cpm' ? 'selected' : '' }}>CPM</option>
+                                    <option value="dpse" {{ old('role') == 'dpse' ? 'selected' : '' }}>DPSE</option>
+                                    <option value="inspecteur" {{ old('role') == 'inspecteur' ? 'selected' : '' }}>Inspecteur terrain</option>
+                                    <option value="comptable" {{ old('role') == 'comptable' ? 'selected' : '' }}>Comptable des matières</option>
+                                    <option value="superviseur" {{ old('role') == 'superviseur' ? 'selected' : '' }}>Superviseur</option>
+                                    <option value="ctc" {{ old('role') == 'ctc' ? 'selected' : '' }}>CTC</option>
                                 </select>
                             </div>
 

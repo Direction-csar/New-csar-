@@ -152,7 +152,7 @@ class RequestNotificationService
                     Mail::send('emails.request-dg-pending', [
                         'request' => $request,
                         'dgName' => $dg->name,
-                        'approvalUrl' => route('admin.demandes.edit', $request->id),
+                        'approvalUrl' => route('dg.demandes.show', $request->id),
                     ], function ($message) use ($dg, $request) {
                         $message->to($dg->email, $dg->name)
                             ->subject('Validation DG requise - Demande ' . $request->tracking_code);
@@ -161,6 +161,48 @@ class RequestNotificationService
             }
         } catch (\Exception $e) {
             Log::error('Erreur notification DG: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Notifier le DTL quand un dossier approuvé lui est transmis
+     */
+    public static function notifyDtl(PublicRequest $request): void
+    {
+        try {
+            $dtlUsers = \App\Models\User::whereIn('role', ['dtl'])->get();
+
+            foreach ($dtlUsers as $dtl) {
+                // Notification interne persistante
+                try {
+                    \App\Models\Notification::create([
+                        'type' => 'demande_transmise_dtl',
+                        'title' => 'Dossier approuvé à instruire',
+                        'message' => "La demande {$request->tracking_code} a été validée par la Directrice et transmise au DTL.",
+                        'user_id' => $dtl->id,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::warning('Notification interne DTL échouée: ' . $e->getMessage());
+                }
+
+                if (filter_var($dtl->email, FILTER_VALIDATE_EMAIL)) {
+                    try {
+                        Mail::raw(
+                            "Bonjour,\n\nLe dossier {$request->tracking_code} ({$request->full_name}) a été approuvé et signé par la Direction Générale. "
+                            . "Il vous est transmis pour instruction opérationnelle (missions inspecteur / sorties magasin).\n\n"
+                            . "Espace DTL : " . route('dtl.dashboard') . "\n\nCSAR",
+                            function ($message) use ($dtl, $request) {
+                                $message->to($dtl->email, $dtl->name)
+                                    ->subject('Dossier approuvé à instruire - ' . $request->tracking_code);
+                            }
+                        );
+                    } catch (\Exception $e) {
+                        Log::warning('Email DTL échoué: ' . $e->getMessage());
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Erreur notification DTL: ' . $e->getMessage());
         }
     }
 

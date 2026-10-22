@@ -111,7 +111,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email|max:255',
             'phone' => 'required|string|max:20',
-            'role' => 'required|string|in:admin,dg,drh,entrepot,agent,magasinier,distributeur,scanner',
+            'role' => 'required|string|in:admin,dg,drh,entrepot,agent,magasinier,distributeur,scanner,dtl,cpm,dpse,inspecteur,comptable,superviseur,ctc',
             'status' => 'required|string|in:actif,inactif',
             'password' => 'required|string|min:8|confirmed',
             'warehouse_id' => 'required_if:role,magasinier|nullable|exists:warehouses,id',
@@ -199,7 +199,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $id,
             'phone' => 'required|string|max:20',
-            'role' => 'required|string|in:admin,dg,drh,entrepot,agent,distributeur,scanner',
+            'role' => 'required|string|in:admin,dg,drh,entrepot,agent,magasinier,distributeur,scanner,dtl,cpm,dpse,inspecteur,comptable,superviseur,ctc',
             'is_active' => 'required|boolean'
         ]);
 

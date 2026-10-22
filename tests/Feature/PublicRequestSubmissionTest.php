@@ -25,7 +25,7 @@ class PublicRequestSubmissionTest extends TestCase
             'telephone' => '+221701234567',
             'objet' => 'Demande d\'assistance alimentaire',
             'description' => 'Je sollicite votre aide pour ma famille de 5 personnes en situation difficile depuis 2 mois.',
-            'type' => 'aide_alimentaire',
+            'type_demande' => 'aide_alimentaire',
             'region' => 'Dakar',
             'latitude' => 14.7167,
             'longitude' => -17.4677,
@@ -54,7 +54,7 @@ class PublicRequestSubmissionTest extends TestCase
         $publicRequest = PublicRequest::where('email', 'mamadou.diallo@test.com')->first();
         $this->assertNotNull($publicRequest);
         $this->assertNotNull($publicRequest->tracking_code);
-        $this->assertStringStartsWith('DEM', $publicRequest->tracking_code);
+        $this->assertStringStartsWith('CSAR-', $publicRequest->tracking_code);
     }
 
     /**
@@ -71,7 +71,7 @@ class PublicRequestSubmissionTest extends TestCase
             'telephone' => '+221775554433',
             'objet' => 'Aide matérielle',
             'description' => 'Besoin urgent de matériel pour ma famille.',
-            'type' => 'aide_materielle',
+            'type_demande' => 'aide_materielle',
             'region' => 'Thiès',
         ];
 
@@ -145,6 +145,8 @@ class PublicRequestSubmissionTest extends TestCase
             'telephone' => '+221701234567',
             'objet' => 'Test GPS',
             'description' => 'Test avec coordonnées GPS',
+            'type_demande' => 'aide_alimentaire',
+            'region' => 'Dakar',
             'latitude' => 14.7167,
             'longitude' => -17.4677,
         ];
@@ -170,6 +172,8 @@ class PublicRequestSubmissionTest extends TestCase
             'telephone' => '+221701234567',
             'objet' => 'Test',
             'description' => 'Test IP et User Agent',
+            'type_demande' => 'aide_alimentaire',
+            'region' => 'Dakar',
         ];
 
         $response = $this->post('/demande', $requestData);

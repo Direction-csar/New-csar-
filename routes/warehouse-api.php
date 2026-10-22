@@ -22,5 +22,8 @@ Route::prefix('v1')->name('warehouse.api.v1.')->group(function () {
         Route::get('/alerts', [WarehouseKeeperController::class, 'getAlerts'])->name('alerts');
         Route::get('/receipt/{reference}', [WarehouseKeeperController::class, 'getReceipt'])->name('receipt');
         Route::get('/stats', [WarehouseKeeperController::class, 'getStats'])->name('stats');
+        // Missions de sortie de stock affectées par le DTL
+        Route::get('/missions', [WarehouseKeeperController::class, 'getMissions'])->name('missions');
+        Route::post('/missions/{id}/report', [WarehouseKeeperController::class, 'reportMission'])->name('missions.report');
     });
 });

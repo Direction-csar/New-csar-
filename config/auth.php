@@ -72,6 +72,14 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'inspecteur' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+        'comptable' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
     ],
 
     /*

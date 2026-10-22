@@ -264,10 +264,33 @@ $directionSlug = strtolower($direction);
             <span class="menu-text">Tableau de bord</span>
         </a>
 
+        @if($directionSlug === 'dtl' && Route::has('dtl.demandes.index'))
+        <a href="{{ route('dtl.demandes.index') }}" class="menu-link {{ str_contains($currentRoute, 'dtl.demandes') ? 'active' : '' }}">
+            <i class="fas fa-inbox"></i>
+            <span class="menu-text">Dossiers approuvés</span>
+        </a>
+        @endif
+
+        @if($directionSlug === 'comptable' && Route::has('comptable.mouvements.index'))
+        <a href="{{ route('comptable.mouvements.index') }}" class="menu-link {{ str_contains($currentRoute, 'comptable.mouvements') ? 'active' : '' }}">
+            <i class="fas fa-calculator"></i>
+            <span class="menu-text">Validation mouvements</span>
+        </a>
+        @endif
+
+        @if($directionSlug === 'inspecteur' && Route::has('inspecteur.missions.index'))
+        <a href="{{ route('inspecteur.missions.index') }}" class="menu-link {{ str_contains($currentRoute, 'inspecteur.missions') ? 'active' : '' }}">
+            <i class="fas fa-clipboard-check"></i>
+            <span class="menu-text">Mes missions</span>
+        </a>
+        @endif
+
+        @if(Route::has('archives.' . $directionSlug . '.index'))
         <a href="{{ route('archives.' . $directionSlug . '.index') }}" class="menu-link {{ str_contains($currentRoute, 'archives.' . $directionSlug) ? 'active' : '' }}">
             <i class="fas fa-archive"></i>
             <span class="menu-text">Archives {{ strtoupper($direction) }}</span>
         </a>
+        @endif
 
         <a href="{{ url('/') }}" target="_blank" class="menu-link">
             <i class="fas fa-external-link-alt"></i>
