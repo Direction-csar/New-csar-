@@ -4,27 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Direction Générale') - CSAR Platform</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/csar-logo.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/csar-logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/csar-logo.png') }}">
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <!-- Leaflet CSS for Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+
     <!-- Responsive CSS -->
     <link href="{{ asset('css/dg-responsive.css') }}" rel="stylesheet">
-    
+
     <!-- Custom CSS -->
     <style>
         :root {
@@ -37,7 +37,7 @@
             --dark-color: #2c3e50;
             --light-color: #ecf0f1;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: #f8f9fa;
@@ -245,7 +245,7 @@
             border-radius: 20px;
             font-weight: 500;
         }
-        
+
         .badge-success {
             background: var(--success-color);
         }
@@ -328,51 +328,51 @@
                 transition: transform 0.3s ease;
                 z-index: 1050;
             }
-            
+
             .sidebar.show {
                 transform: translateX(0);
             }
-            
+
             .main-content {
                 margin-left: 0;
             }
-            
+
             .top-navbar {
                 padding: 0.5rem 1rem;
                 position: sticky;
                 top: 0;
                 z-index: 1000;
             }
-            
+
             .content-area {
                 padding: 1rem;
             }
-            
+
             .stats-card {
                 margin-bottom: 1rem;
             }
-            
+
             .stats-number {
                 font-size: 1.5rem;
             }
-            
+
             .btn-primary {
                 padding: 0.5rem 1rem;
                 font-size: 0.9rem;
             }
-            
+
             .table {
                 font-size: 0.85rem;
             }
-            
+
             .menu-link {
                 padding: 0.75rem 1rem;
             }
-            
+
             .logo {
                 font-size: 1.2rem;
             }
-            
+
             .logo i {
                 font-size: 1.5rem;
             }
@@ -385,7 +385,7 @@
             }
         }
     </style>
-    
+
     @stack('styles')
 </head>
 <body>
@@ -397,7 +397,7 @@
                 <span class="logo-text">DG</span>
             </a>
         </div>
-        
+
         <nav class="sidebar-menu">
             <div class="menu-item">
                 <a href="{{ route('dg.dashboard') }}" class="menu-link {{ request()->routeIs('dg.dashboard') ? 'active' : '' }}">
@@ -405,42 +405,42 @@
                     <span>Tableau de Bord</span>
                 </a>
             </div>
-            
+
             <div class="menu-item">
-                <a href="{{ route('dg.requests.index') }}" class="menu-link {{ request()->routeIs('dg.requests.*') ? 'active' : '' }}">
+                <a href="{{ route('dg.demandes.index') }}" class="menu-link {{ request()->routeIs('dg.demandes.*') ? 'active' : '' }}">
                     <i class="fas fa-clipboard-list"></i>
                     <span>Demandes</span>
                 </a>
             </div>
-            
+
             <div class="menu-item">
                 <a href="{{ route('dg.users.index') }}" class="menu-link {{ request()->routeIs('dg.users.*') ? 'active' : '' }}">
                     <i class="fas fa-users"></i>
                     <span>Utilisateurs</span>
                 </a>
             </div>
-            
+
             <div class="menu-item">
                 <a href="{{ route('dg.warehouses.index') }}" class="menu-link {{ request()->routeIs('dg.warehouses.*') ? 'active' : '' }}">
                     <i class="fas fa-warehouse"></i>
                     <span>Entrepôts</span>
                 </a>
             </div>
-            
+
             <div class="menu-item">
                 <a href="{{ route('dg.stocks.index') }}" class="menu-link {{ request()->routeIs('dg.stocks.*') ? 'active' : '' }}">
                     <i class="fas fa-boxes"></i>
                     <span>Stocks</span>
                 </a>
             </div>
-            
+
             <div class="menu-item">
                 <a href="{{ route('dg.personnel.index') }}" class="menu-link {{ request()->routeIs('dg.personnel.*') ? 'active' : '' }}">
                     <i class="fas fa-user-tie"></i>
                     <span>Personnel</span>
                 </a>
             </div>
-            
+
             <div class="menu-item">
                 <a href="{{ route('dg.map') }}" class="menu-link {{ request()->routeIs('dg.map') ? 'active' : '' }}">
                     <i class="fas fa-map-marked-alt"></i>
@@ -456,14 +456,14 @@
                     <span class="badge bg-success ms-auto" style="font-size:0.65rem;">Live</span>
                 </a>
             </div>
-            
+
             <div class="menu-item">
                 <a href="{{ route('dg.reports.index') }}" class="menu-link {{ request()->routeIs('dg.reports.*') ? 'active' : '' }}">
                     <i class="fas fa-chart-bar"></i>
                     <span>Rapports</span>
                 </a>
             </div>
-            
+
             <div class="menu-item">
                 <a href="{{ route('admin.profile') }}" class="menu-link {{ request()->routeIs('admin.profile.*') ? 'active' : '' }}">
                     <i class="fas fa-user-cog"></i>
@@ -484,7 +484,7 @@
                 <h4 class="mb-0 ms-3">@yield('page-title', 'Direction Générale')</h4>
                 <span class="dg-badge">DG</span>
             </div>
-            
+
             <div class="d-flex align-items-center">
                 <div class="user-dropdown">
                     <div class="user-avatar" data-bs-toggle="dropdown">
@@ -522,7 +522,7 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
-            
+
             @if(session('error'))
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
@@ -538,24 +538,24 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
-            
+
             @yield('content')
         </div>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Leaflet JS for Map -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
+
     <!-- Custom JS -->
     <script>
         // Sidebar toggle
         document.getElementById('sidebarToggle').addEventListener('click', function() {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
-            
+
             if (window.innerWidth <= 768) {
                 sidebar.classList.toggle('show');
                 // Add overlay for mobile
@@ -607,10 +607,10 @@
         document.addEventListener('click', function(event) {
             const sidebar = document.getElementById('sidebar');
             const sidebarToggle = document.getElementById('sidebarToggle');
-            
-            if (window.innerWidth <= 768 && 
-                sidebar.classList.contains('show') && 
-                !sidebar.contains(event.target) && 
+
+            if (window.innerWidth <= 768 &&
+                sidebar.classList.contains('show') &&
+                !sidebar.contains(event.target) &&
                 !sidebarToggle.contains(event.target)) {
                 closeMobileSidebar();
             }
@@ -653,7 +653,7 @@
         // Update stats every 30 seconds
         setInterval(updateStats, 30000);
     </script>
-    
+
     @stack('scripts')
 </body>
-</html> 
+</html>

@@ -117,7 +117,7 @@ class MapController extends Controller
                 });
 
             // Demandes avec coordonnées (priorité: lat/lng de la demande, sinon entrepôt)
-            $recentRequests = PublicRequest::with(['warehouse', 'assignedTo'])
+            $recentRequests = PublicRequest::with(['assignedTo'])
                 ->orderBy('created_at', 'desc')
                 ->limit(100)
                 ->get()

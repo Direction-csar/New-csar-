@@ -71,3 +71,4 @@ distribution-app/.dart_tool/
 
 # Fichiers temporaires locaux (dumps SQL, logs, sorties de test)
 /storage/tmp/
+/storage/app/reports

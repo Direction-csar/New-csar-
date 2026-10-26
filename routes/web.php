@@ -438,6 +438,8 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::get('/demandes', [App\Http\Controllers\DG\DemandeController::class, 'index'])->name('demandes.index');
         Route::get('/demandes/{id}', [App\Http\Controllers\DG\DemandeController::class, 'show'])->name('demandes.show');
         Route::put('/demandes/{id}', [App\Http\Controllers\DG\DemandeController::class, 'update'])->name('demandes.update');
+        Route::post('/demandes/{id}/signature', [App\Http\Controllers\DG\DemandeController::class, 'uploadSignature'])->name('demandes.signature');
+        Route::post('/demandes/{id}/scan', [App\Http\Controllers\DG\DemandeController::class, 'uploadScan'])->name('demandes.scan');
 
         // Consultation des entrepôts (lecture seule)
         Route::get('/warehouses', [App\Http\Controllers\DG\WarehouseController::class, 'index'])->name('warehouses.index');

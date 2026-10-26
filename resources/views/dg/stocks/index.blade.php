@@ -48,7 +48,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -63,7 +63,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -78,7 +78,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -114,14 +114,14 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-4 mb-3">
             <div class="card-modern p-3">
                 <h6 class="mb-3 fw-bold">
                     <i class="fas fa-bell me-2 text-warning"></i>
                     Alertes Stock
                 </h6>
-                
+
                 <div class="alert alert-warning d-flex align-items-center mb-2">
                     <i class="fas fa-exclamation-triangle me-2"></i>
                     <div>
@@ -129,7 +129,7 @@
                         <small>Riz - Entrepôt Principal</small>
                     </div>
                 </div>
-                
+
                 <div class="alert alert-danger d-flex align-items-center mb-2">
                     <i class="fas fa-times-circle me-2"></i>
                     <div>
@@ -137,7 +137,7 @@
                         <small>Huile - Entrepôt Régional</small>
                     </div>
                 </div>
-                
+
                 <div class="alert alert-info d-flex align-items-center mb-2">
                     <i class="fas fa-info-circle me-2"></i>
                     <div>
@@ -162,7 +162,7 @@
                         <span class="badge bg-primary">{{ $stocks->count() }} article(s)</span>
                     </div>
                 </div>
-                
+
                 @if($stocks->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -289,7 +289,7 @@
     }
 
     function exportStocks() {
-        alert('Export des stocks en cours...');
+        window.location.href = '{{ route('dg.reports.export', ['type' => 'stocks', 'format' => 'csv']) }}';
     }
 
     function updateStockChart(type) {

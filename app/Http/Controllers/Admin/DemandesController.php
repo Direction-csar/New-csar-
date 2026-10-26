@@ -1111,6 +1111,10 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
         try {
             $demande = PublicRequest::findOrFail($id);
 
+            if (!app(\App\Services\RequestWorkflowService::class)->canPerform(auth()->user(), 'signee')) {
+                return redirect()->back()->with('error', 'Votre rôle ne permet pas de signer cette demande.');
+            }
+
             if ($request->hasFile('signature_file')) {
                 $path = $request->file('signature_file')->store('demandes/signatures', 'public');
                 $demande->update(['dg_signature_file' => $path]);
@@ -1164,6 +1168,10 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
 
         try {
             $demande = PublicRequest::findOrFail($id);
+
+            if (!app(\App\Services\RequestWorkflowService::class)->canPerform(auth()->user(), 'scannee')) {
+                return redirect()->back()->with('error', 'Votre rôle ne permet pas de scanner cette demande.');
+            }
 
             if ($request->hasFile('scan_file')) {
                 $path = $request->file('scan_file')->store('demandes/scans', 'public');

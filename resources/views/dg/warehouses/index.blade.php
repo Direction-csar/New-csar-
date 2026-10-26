@@ -48,7 +48,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -63,7 +63,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -78,7 +78,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -108,7 +108,7 @@
                         <span class="badge bg-primary">{{ $warehouses->count() }} entrepôt(s)</span>
                     </div>
                 </div>
-                
+
                 @if($warehouses->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -186,7 +186,7 @@
     }
 
     function exportWarehouses() {
-        alert('Export des entrepôts en cours...');
+        window.location.href = '{{ route('dg.reports.export', ['type' => 'warehouses', 'format' => 'csv']) }}';
     }
 </script>
 @endsection
