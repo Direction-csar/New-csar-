@@ -22,6 +22,18 @@ return [
         'Ziguinchor'     => ['lat' => 12.5833, 'lng' => -16.2833],
     ],
 
+    /*
+    | Emprise du territoire sénégalais (degrés décimaux, WGS84) :
+    | du cap Vert (ouest) à la frontière malienne (est), de la Casamance
+    | (sud) au fleuve Sénégal à Saint-Louis/Podor (nord).
+    */
+    'bounds' => [
+        'south' => 12.30,
+        'west' => -17.55,
+        'north' => 16.70,
+        'east' => -11.35,
+    ],
+
     'names' => [
         'Dakar', 'Diourbel', 'Fatick', 'Kaffrine', 'Kaolack', 'Kédougou',
         'Kolda', 'Louga', 'Matam', 'Saint-Louis', 'Sédhiou', 'Tambacounda', 'Thiès', 'Ziguinchor',

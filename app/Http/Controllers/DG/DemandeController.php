@@ -7,6 +7,7 @@ use App\Models\PublicRequest;
 use App\Services\RequestWorkflowService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -127,7 +128,7 @@ class DemandeController extends Controller
                     : 'nullable|string|max:1000',
             ]);
 
-            $actor = auth()->user();
+            $actor = Auth::user();
             $comment = $request->commentaire_admin;
             $service = app(\App\Services\RequestWorkflowService::class);
             $uiStatus = $request->statut;
@@ -195,6 +196,27 @@ class DemandeController extends Controller
         }
     }
 
+    /**
+     * Consultation sécurisée d'une pièce déposée (signature ou scan).
+     * Réservé au périmètre DG via le groupe de routes ; le type est en liste blanche.
+     */
+    public function document($id, string $type)
+    {
+        $columns = [
+            'signature' => 'dg_signature_file',
+            'scan' => 'scan_file',
+        ];
+
+        abort_unless(isset($columns[$type]), 404);
+
+        $demande = PublicRequest::findOrFail($id);
+        $path = $demande->{$columns[$type]};
+
+        abort_unless($path && Storage::disk('public')->exists($path), 404);
+
+        return Storage::disk('public')->response($path);
+    }
+
     public function uploadSignature(Request $request, $id): RedirectResponse
     {
         $request->validate([
@@ -223,7 +245,7 @@ class DemandeController extends Controller
      */
     private function recordDocument(Request $request, int $id, string $input, string $target, string $column, string $directory, string $defaultComment): RedirectResponse
     {
-        $actor = auth()->user();
+        $actor = Auth::user();
         $service = app(RequestWorkflowService::class);
 
         if (!$service->canPerform($actor, $target)) {

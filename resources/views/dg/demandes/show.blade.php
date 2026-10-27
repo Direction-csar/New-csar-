@@ -217,12 +217,19 @@
                 </h6>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <div class="p-2 bg-light rounded mb-2">
-                            <strong>Document signé :</strong>
+                        <div class="p-2 bg-light rounded mb-2 d-flex justify-content-between align-items-center">
+                            <span>
+                                <strong>Document signé :</strong>
+                                @if($demande->dg_signature_file)
+                                    <span class="badge bg-success ms-1">Déposé</span>
+                                @else
+                                    <span class="badge bg-secondary ms-1">Non déposé</span>
+                                @endif
+                            </span>
                             @if($demande->dg_signature_file)
-                                <span class="badge bg-success ms-1">Déposé</span>
-                            @else
-                                <span class="badge bg-secondary ms-1">Non déposé</span>
+                                <a href="{{ route('dg.demandes.document', [$demande->id, 'signature']) }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-file-pdf me-1"></i>Consulter
+                                </a>
                             @endif
                         </div>
                         @if(!in_array($demande->workflow_status, ['signee', 'scannee', 'validee_dg', 'approuvee', 'rejetee', 'cloturee'], true))
@@ -239,12 +246,19 @@
                     </div>
 
                     <div class="col-md-6">
-                        <div class="p-2 bg-light rounded mb-2">
-                            <strong>Scan :</strong>
+                        <div class="p-2 bg-light rounded mb-2 d-flex justify-content-between align-items-center">
+                            <span>
+                                <strong>Scan :</strong>
+                                @if($demande->scan_file)
+                                    <span class="badge bg-success ms-1">Déposé</span>
+                                @else
+                                    <span class="badge bg-secondary ms-1">Non déposé</span>
+                                @endif
+                            </span>
                             @if($demande->scan_file)
-                                <span class="badge bg-success ms-1">Déposé</span>
-                            @else
-                                <span class="badge bg-secondary ms-1">Non déposé</span>
+                                <a href="{{ route('dg.demandes.document', [$demande->id, 'scan']) }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-file-pdf me-1"></i>Consulter
+                                </a>
                             @endif
                         </div>
                         @if($demande->workflow_status === 'signee')
@@ -260,6 +274,80 @@
                         @endif
                     </div>
                 </div>
+
+                @if($demande->document_notes)
+                <div class="mt-3">
+                    <label class="form-label fw-bold">Notes sur les pièces</label>
+                    <div class="p-2 bg-light rounded">
+                        <i class="fas fa-sticky-note me-2"></i>{{ $demande->document_notes }}
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Transmission DTL -->
+    @if($demande->dtl_transmitted_at)
+    <div class="row">
+        <div class="col-12 mb-3">
+            <div class="card-modern p-3">
+                <h6 class="mb-3 fw-bold">
+                    <i class="fas fa-share-square me-2 text-success"></i>
+                    Transmission DTL
+                </h6>
+                <div class="row">
+                    <div class="col-md-4 mb-2">
+                        <label class="form-label fw-bold">Transmise le</label>
+                        <div class="p-2 bg-light rounded">
+                            {{ \Carbon\Carbon::parse($demande->dtl_transmitted_at)->format('d/m/Y H:i') }}
+                        </div>
+                    </div>
+                    <div class="col-md-8 mb-2">
+                        <label class="form-label fw-bold">Instructions DTL</label>
+                        <div class="p-2 bg-light rounded">
+                            {{ $demande->dtl_instructions ?: 'Aucune instruction enregistrée' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Historique du workflow -->
+    <div class="row">
+        <div class="col-12 mb-3">
+            <div class="card-modern p-3">
+                <h6 class="mb-3 fw-bold">
+                    <i class="fas fa-history me-2 text-info"></i>
+                    Historique du workflow
+                </h6>
+                @php $history = collect($demande->workflow_history ?? [])->filter(fn ($e) => is_array($e) && !empty($e['timestamp'])); @endphp
+                @if($history->isNotEmpty())
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                    <th>Commentaire</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($history->sortByDesc('timestamp') as $entry)
+                                <tr>
+                                    <td class="text-nowrap"><small>{{ \Carbon\Carbon::parse($entry['timestamp'])->format('d/m/Y H:i') }}</small></td>
+                                    <td><span class="badge bg-light text-dark small">{{ $entry['action'] ?? '—' }}</span></td>
+                                    <td><small>{{ $entry['comment'] ?? '—' }}</small></td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p class="text-muted small mb-0">Aucune entrée d'historique enregistrée pour ce dossier.</p>
+                @endif
             </div>
         </div>
     </div>

@@ -671,13 +671,26 @@
 
                     <div class="d-flex align-items-center gap-3">
                         <!-- Notifications -->
+                        @php $notifs = $dgNotifications ?? ['items' => [], 'total' => 0]; @endphp
                         <div class="dropdown">
-                            <button class="btn btn-outline-primary btn-sm position-relative" data-bs-toggle="dropdown">
+                            <button class="btn btn-outline-primary btn-sm position-relative" data-bs-toggle="dropdown" aria-label="Notifications">
                                 <i class="fas fa-bell"></i>
+                                @if(($notifs['total'] ?? 0) > 0)
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{ $notifs['total'] }}
+                                    </span>
+                                @endif
                             </button>
-                            <div class="dropdown-menu dropdown-menu-end">
+                            <div class="dropdown-menu dropdown-menu-end" style="min-width: 300px;">
                                 <h6 class="dropdown-header">Notifications</h6>
-                                <div class="dropdown-item-text text-muted">Notifications non disponibles</div>
+                                @forelse($notifs['items'] ?? [] as $item)
+                                    <a class="dropdown-item d-flex align-items-start py-2" href="{{ $item['url'] }}">
+                                        <i class="fas {{ $item['icon'] }} me-2 mt-1 text-{{ $item['level'] === 'danger' ? 'danger' : 'warning' }}"></i>
+                                        <span class="small">{{ $item['label'] }}</span>
+                                    </a>
+                                @empty
+                                    <div class="dropdown-item-text text-muted small">Aucune notification</div>
+                                @endforelse
                             </div>
                         </div>
 

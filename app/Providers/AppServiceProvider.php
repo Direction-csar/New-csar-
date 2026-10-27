@@ -59,6 +59,14 @@ class AppServiceProvider extends ServiceProvider
             $view->with('currentRoute', request()->route()?->getName());
         });
 
+        // Notifications réelles de la Direction générale (cloche de la barre supérieure)
+        View::composer('layouts.dg-modern', function ($view) {
+            $user = auth('dg')->user();
+            $view->with('dgNotifications', $user
+                ? app(\App\Services\DgDashboardService::class)->notificationsFor($user)
+                : ['items' => [], 'total' => 0]);
+        });
+
         // Directive Blade @lazyImage pour images optimisées (lazy-loading + dimensions)
         // Usage : @lazyImage('/storage/images/photo.jpg', 'Description', ['class' => 'w-full', 'width' => 800, 'height' => 600])
         Blade::directive('lazyImage', function ($expression) {

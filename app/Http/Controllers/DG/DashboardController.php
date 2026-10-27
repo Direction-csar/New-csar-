@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\DG;
 
 use App\Http\Controllers\Controller;
+use App\Services\DgDashboardService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -13,67 +15,43 @@ class DashboardController extends Controller
     /**
      * Afficher le tableau de bord DG (lecture seule)
      */
-    public function index(Request $request)
+    public function index(Request $request, DgDashboardService $service)
     {
         try {
-            // Filtres période
-            $period = $request->get('period', 'month');
-            $dates = $this->getPeriodDates($period);
-            $dateFrom = $dates['from'];
-            $dateTo = $dates['to'];
+            $filters = $service->normalizeFilters($request->only(['period', 'region', 'type']));
+            $dateFrom = $filters['from']->format('Y-m-d');
+            $dateTo = $filters['to']->format('Y-m-d');
 
-            // Filtres optionnels
-            $regionFilter = $request->get('region');
-            $directionFilter = $request->get('direction');
+            $directions = \App\Models\Personnel::distinct()->pluck('direction_service')->filter()->values()->toArray();
+            $directionFilter = in_array($request->get('direction'), $directions, true) ? $request->get('direction') : null;
+            $filters['directions'] = $directions;
+            $filters['direction'] = $directionFilter;
 
-            // Statistiques générales (lecture seule)
-            $stats = $this->getDashboardStats();
+            $dashboard = $service->build(Auth::user(), $filters);
 
-            // Données consolidées par direction
-            $drhStats = $this->getDrhStats($dateFrom, $dateTo, $regionFilter, $directionFilter);
-            $dsarStats = $this->getDsarStats($dateFrom, $dateTo, $regionFilter);
-            $stockStats = $this->getStockStats($dateFrom, $dateTo, $regionFilter);
-            $projetStats = $this->getProjetStats($dateFrom, $dateTo, $regionFilter, $directionFilter);
+            // Synthèse consolidée par direction (données réelles existantes)
+            $drhStats = $this->getDrhStats($dateFrom, $dateTo, $filters['region'], $directionFilter);
+            $dsarStats = $this->getDsarStats($dateFrom, $dateTo, $filters['region']);
+            $stockStats = $this->getStockStats($dateFrom, $dateTo, $filters['region']);
+            $projetStats = $this->getProjetStats($dateFrom, $dateTo, $filters['region'], $directionFilter);
             $commStats = $this->getCommunicationStats($dateFrom, $dateTo);
 
-            // Activités récentes (lecture seule)
-            $recentActivities = $this->getRecentActivities();
-
-            // Demandes récentes pour l'affichage
-            $recentRequests = \App\Models\PublicRequest::latest()->take(5)->get();
             $recentDonations = \App\Models\Donation::latest()->take(5)->get();
-            // Graphiques des données (lecture seule)
-            $chartsData = $this->getChartsData();
 
-            // Alertes système (lecture seule)
-            $alerts = $this->getSystemAlerts();
-
-            // Données de la carte interactive
-            $mapData = $this->getMapData();
-
-            // Données de filtrage pour la vue
-            $filters = [
-                'period' => $period,
-                'regions' => \App\Models\Warehouse::distinct()->pluck('region')->filter()->values()->toArray(),
-                'directions' => \App\Models\Personnel::distinct()->pluck('direction_service')->filter()->values()->toArray(),
-            ];
-
-            // Log de l'accès au dashboard DG
             Log::info('Accès au dashboard DG', [
-                'user_id' => auth()->id(),
-                'timestamp' => Carbon::now(),
-                'filters' => $filters
+                'user_id' => Auth::id(),
+                'period' => $filters['period'],
+                'region' => $filters['region'],
+                'type' => $filters['type'],
             ]);
 
             return view('dg.dashboard-executive', compact(
-                'stats', 'recentActivities', 'chartsData', 'alerts', 'mapData',
-                'recentRequests', 'recentDonations',
-                'drhStats', 'dsarStats', 'stockStats', 'projetStats', 'commStats',
-                'filters'
+                'dashboard', 'filters', 'recentDonations',
+                'drhStats', 'dsarStats', 'stockStats', 'projetStats', 'commStats'
             ));
         } catch (\Exception $e) {
             Log::error('Erreur lors du chargement du dashboard DG', [
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'error' => $e->getMessage(),
                 'timestamp' => Carbon::now()
             ]);
@@ -91,18 +69,18 @@ class DashboardController extends Controller
             // Utiliser les données partagées pour synchroniser avec Admin
             $sharedController = new \App\Http\Controllers\Shared\RealtimeDataController();
             $response = $sharedController->getSharedData();
-            
+
             if ($response->getStatusCode() === 200) {
                 $sharedData = json_decode($response->getContent(), true)['data'];
                 $stats = $sharedData['stats'];
-                
+
                 // Ajouter les KPIs de performance
                 $perfResponse = $sharedController->getPerformanceStats();
                 if ($perfResponse->getStatusCode() === 200) {
                     $perfData = json_decode($perfResponse->getContent(), true)['data'];
                     $stats = array_merge($stats, $perfData);
                 }
-                
+
                 // Ajouter les stats de donations
                 try {
                     $stats['total_donations'] = \App\Models\Donation::count();
@@ -113,7 +91,7 @@ class DashboardController extends Controller
                     $stats['donation_success'] = 0;
                     $stats['donation_amount'] = 0;
                 }
-                
+
                 return $stats;
             } else {
                 throw new \Exception('Erreur lors de la récupération des données partagées');
@@ -231,7 +209,7 @@ class DashboardController extends Controller
     {
         try {
             $alerts = [];
-            
+
             // Vérifier les stocks faibles
             $lowStockWarehouses = \App\Models\Warehouse::where('current_stock', '<', 100)->get();
             foreach ($lowStockWarehouses as $warehouse) {
@@ -242,7 +220,7 @@ class DashboardController extends Controller
                     'priority' => 'medium'
                 ];
             }
-            
+
             // Vérifier les demandes en attente
             $pendingRequests = \App\Models\PublicRequest::where('status', 'pending')->count();
             if ($pendingRequests > 0) {
@@ -253,7 +231,7 @@ class DashboardController extends Controller
                     'priority' => 'low'
                 ];
             }
-            
+
             return $alerts;
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Erreur dans getSystemAlerts DG', ['error' => $e->getMessage()]);
@@ -294,7 +272,7 @@ class DashboardController extends Controller
         try {
             $stats = $this->getDashboardStats();
             $chartsData = $this->getChartsData();
-            
+
             return response()->json([
                 'total_requests' => $stats['total_requests'],
                 'pending_requests' => $stats['pending_requests'],
@@ -340,10 +318,10 @@ class DashboardController extends Controller
 
             // Collecter les données selon le type de rapport
             $reportData = $this->collectDGData($dates['from'], $dates['to'], $request->type);
-            
+
             // Générer le fichier de rapport
             $reportFile = $this->generateReportFile($reportData, $request->format, $request->type, $dates['from'], $dates['to']);
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Rapport DG généré avec succès',
@@ -355,7 +333,7 @@ class DashboardController extends Controller
         } catch (\Exception $e) {
             Log::error('Erreur dans DGDashboardController@generateReport', [
                 'error' => $e->getMessage(),
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'request' => $request->all()
             ]);
 
@@ -420,7 +398,7 @@ class DashboardController extends Controller
 
         } catch (\Exception $e) {
             Log::warning('Erreur lors de la collecte des données DG', ['error' => $e->getMessage()]);
-            
+
             return [
                 'period' => ['from' => $dateFrom, 'to' => $dateTo, 'type' => $type],
                 'summary' => ['message' => 'Aucune donnée disponible'],
@@ -593,15 +571,15 @@ class DashboardController extends Controller
         $csv = "Rapport DG CSAR - " . date('Y-m-d H:i:s') . "\n";
         $csv .= "Période: {$data['period']['from']} à {$data['period']['to']}\n";
         $csv .= "Type: {$data['period']['type']}\n\n";
-        
+
         $csv .= "RÉSUMÉ\n";
         foreach ($data['summary'] as $key => $value) {
             $csv .= ucfirst(str_replace('_', ' ', $key)) . ": {$value}\n";
         }
-        
+
         $csv .= "\nDÉTAILS\n";
         $csv .= json_encode($data['details'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        
+
         return $csv;
     }
 
@@ -611,7 +589,7 @@ class DashboardController extends Controller
     private function getPeriodDates($period)
     {
         $now = now();
-        
+
         switch ($period) {
             case 'week':
                 return [
@@ -653,7 +631,7 @@ class DashboardController extends Controller
             }
 
             $filePath = storage_path("app/reports/{$safe}");
-            
+
             if (!file_exists($filePath)) {
                 // Fallback: rapports livrés dans public/rapport
                 $publicPath = public_path("rapport/{$safe}");
@@ -665,12 +643,12 @@ class DashboardController extends Controller
             }
 
             return response()->download($filePath, $safe);
-            
+
         } catch (\Exception $e) {
             Log::error('Erreur lors du téléchargement du rapport DG', [
                 'error' => $e->getMessage(),
                 'filename' => $filename,
-                'user_id' => auth()->id()
+                'user_id' => Auth::id()
             ]);
 
             return response()->json([
