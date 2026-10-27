@@ -44,7 +44,7 @@
         }
 
         .sidebar {
-            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            background: #0f2741;
             min-height: 100vh;
             position: fixed;
             top: 0;
@@ -132,7 +132,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             padding: 1rem 2rem;
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
         }
 

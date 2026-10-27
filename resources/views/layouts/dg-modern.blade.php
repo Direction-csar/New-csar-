@@ -5,61 +5,62 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Direction Générale') - CSAR Platform</title>
-    
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('images/csar-logo.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('images/csar-logo.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('images/csar-logo.png') }}">
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+
     <!-- Leaflet CSS for Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
+
     <!-- Responsive CSS -->
     <link href="{{ asset('css/dg-responsive.css') }}" rel="stylesheet">
-    
+
     <!-- Custom CSS -->
     <style>
         :root {
-            --primary-color: #667eea;
-            --secondary-color: #764ba2;
-            --success-color: #51cf66;
-            --warning-color: #ffd43b;
-            --danger-color: #ff6b6b;
-            --info-color: #74c0fc;
-            --dark-color: #2c3e50;
-            --light-color: #f8f9fa;
-            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --gradient-success: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --gradient-warning: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            --gradient-danger: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --gradient-info: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --navy: #0f2741;
+            --primary-color: #1e3a5f;
+            --secondary-color: #2c5282;
+            --success-color: #2f855a;
+            --warning-color: #b7791f;
+            --danger-color: #c53030;
+            --info-color: #2b6cb0;
+            --dark-color: #1a202c;
+            --light-color: #f4f6f9;
+            --gradient-primary: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+            --gradient-secondary: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            --gradient-success: linear-gradient(135deg, #2f855a 0%, #38a169 100%);
+            --gradient-warning: linear-gradient(135deg, #b7791f 0%, #d69e2e 100%);
+            --gradient-danger: linear-gradient(135deg, #9b2c2c 0%, #c53030 100%);
+            --gradient-info: linear-gradient(135deg, #2b6cb0 0%, #3182ce 100%);
             --shadow-soft: 0 10px 30px rgba(0, 0, 0, 0.1);
             --shadow-medium: 0 15px 35px rgba(0, 0, 0, 0.15);
             --shadow-strong: 0 20px 40px rgba(0, 0, 0, 0.2);
             --border-radius: 15px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: #f4f6f9;
             min-height: 100vh;
             overflow-x: hidden;
         }
 
         /* Sidebar Modern */
         .sidebar {
-            background: var(--gradient-primary);
+            background: var(--navy);
             min-height: 100vh;
             position: fixed;
             top: 0;
@@ -67,8 +68,7 @@
             width: 280px;
             z-index: 1000;
             transition: var(--transition);
-            box-shadow: var(--shadow-strong);
-            backdrop-filter: blur(10px);
+            box-shadow: 2px 0 12px rgba(15, 39, 65, 0.15);
         }
 
         .sidebar.collapsed {
@@ -144,7 +144,6 @@
         .menu-link:hover {
             color: white;
             background: rgba(255,255,255,0.1);
-            transform: translateX(5px);
         }
 
         .menu-link.active {
@@ -160,11 +159,26 @@
             text-align: center;
         }
 
+        .sidebar.collapsed .logo-text,
+        .sidebar.collapsed .menu-link span {
+            display: none;
+        }
+
+        .sidebar.collapsed .menu-link {
+            justify-content: center;
+            margin-right: 0.5rem;
+        }
+
+        .sidebar.collapsed .menu-link i {
+            margin-right: 0;
+        }
+
         /* Main Content */
         .main-content {
             margin-left: 280px;
             transition: var(--transition);
             min-height: 100vh;
+            min-width: 0;
         }
 
         .main-content.expanded {
@@ -185,7 +199,7 @@
 
         .top-bar-content {
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
         }
 
@@ -201,7 +215,6 @@
         }
 
         .card-modern:hover {
-            transform: translateY(-5px);
             box-shadow: var(--shadow-medium);
         }
 
@@ -269,7 +282,6 @@
         }
 
         .stats-card:hover {
-            transform: translateY(-5px);
             box-shadow: var(--shadow-medium);
         }
 
@@ -277,10 +289,7 @@
             font-size: 2.5rem;
             font-weight: 700;
             margin: 0;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: var(--dark-color);
         }
 
         .stats-label {
@@ -362,7 +371,7 @@
             .sidebar {
                 width: 250px;
             }
-            
+
             .main-content {
                 margin-left: 250px;
             }
@@ -372,15 +381,15 @@
             .sidebar {
                 width: 220px;
             }
-            
+
             .main-content {
                 margin-left: 220px;
             }
-            
+
             .stats-number {
                 font-size: 2rem;
             }
-            
+
             .top-bar {
                 padding: 0.75rem 1rem;
             }
@@ -393,64 +402,64 @@
                 z-index: 1050;
                 transition: transform 0.3s ease;
             }
-            
+
             .sidebar.show {
                 transform: translateX(0);
             }
-            
+
             .main-content {
                 margin-left: 0;
             }
-            
+
             .top-bar {
                 padding: 0.5rem 1rem;
                 position: sticky;
                 top: 0;
                 z-index: 1000;
             }
-            
+
             .top-bar-content {
                 flex-direction: row;
                 justify-content: space-between;
                 align-items: center;
             }
-            
+
             .stats-number {
                 font-size: 1.8rem;
             }
-            
+
             .card-modern {
                 margin-bottom: 1rem;
                 padding: 1rem;
             }
-            
+
             .btn-modern {
                 padding: 0.5rem 1rem;
                 font-size: 0.9rem;
             }
-            
+
             .table-responsive {
                 font-size: 0.85rem;
             }
-            
+
             .icon-3d {
                 width: 30px !important;
                 height: 30px !important;
                 font-size: 1rem !important;
             }
-            
+
             .content-wrapper {
                 padding: 1rem !important;
             }
-            
+
             .menu-link {
                 padding: 0.75rem 1rem;
             }
-            
+
             .logo {
                 font-size: 1.2rem;
             }
-            
+
             .logo i {
                 font-size: 1.5rem;
                 padding: 0.3rem;
@@ -461,44 +470,44 @@
             .sidebar {
                 width: 100%;
             }
-            
+
             .content-wrapper {
                 padding: 1rem !important;
             }
-            
+
             .stats-number {
                 font-size: 1.5rem;
             }
-            
+
             .stats-card {
                 padding: 1rem;
             }
-            
+
             .card-modern {
                 padding: 1rem;
             }
-            
+
             .btn-modern {
                 padding: 0.4rem 0.8rem;
                 font-size: 0.8rem;
             }
-            
+
             .table-responsive {
                 font-size: 0.8rem;
             }
-            
+
             .badge {
                 font-size: 0.7rem;
             }
-            
+
             .menu-link {
                 padding: 0.75rem 1rem;
             }
-            
+
             .logo {
                 font-size: 1.2rem;
             }
-            
+
             .logo i {
                 font-size: 1.5rem;
                 padding: 0.3rem;
@@ -509,20 +518,20 @@
             .stats-number {
                 font-size: 1.3rem;
             }
-            
+
             .card-modern {
                 padding: 0.75rem;
             }
-            
+
             .btn-modern {
                 padding: 0.3rem 0.6rem;
                 font-size: 0.75rem;
             }
-            
+
             .table-responsive {
                 font-size: 0.75rem;
             }
-            
+
             .icon-3d {
                 width: 25px !important;
                 height: 25px !important;
@@ -578,10 +587,10 @@
                         alt="CSAR"
                         onerror="this.style.display='none';"
                     >
-                    <span class="logo-text">DG</span>
+                    <span class="logo-text">Direction Générale</span>
                 </a>
             </div>
-            
+
             <nav class="sidebar-menu">
                 <div class="menu-item">
                     <a href="{{ route('dg.dashboard') }}" class="menu-link {{ request()->routeIs('dg.dashboard') ? 'active' : '' }}">
@@ -589,35 +598,35 @@
                         <span>Tableau de Bord</span>
                     </a>
                 </div>
-                
+
                 <div class="menu-item">
                     <a href="{{ route('dg.demandes.index') }}" class="menu-link {{ request()->routeIs('dg.demandes.*') ? 'active' : '' }}">
                         <i class="fas fa-clipboard-list"></i>
                         <span>Demandes</span>
                     </a>
                 </div>
-                
+
                 <div class="menu-item">
                     <a href="{{ route('dg.warehouses.index') }}" class="menu-link {{ request()->routeIs('dg.warehouses.*') ? 'active' : '' }}">
                         <i class="fas fa-warehouse"></i>
                         <span>Entrepôts</span>
                     </a>
                 </div>
-                
+
                 <div class="menu-item">
                     <a href="{{ route('dg.stocks.index') }}" class="menu-link {{ request()->routeIs('dg.stocks.*') ? 'active' : '' }}">
                         <i class="fas fa-boxes"></i>
                         <span>Stocks</span>
                     </a>
                 </div>
-                
+
                 <div class="menu-item">
                     <a href="{{ route('dg.personnel.index') }}" class="menu-link {{ request()->routeIs('dg.personnel.*') ? 'active' : '' }}">
                         <i class="fas fa-users"></i>
                         <span>Personnel</span>
                     </a>
                 </div>
-                
+
                 <div class="menu-item">
                     <a href="{{ route('dg.reports.index') }}" class="menu-link {{ request()->routeIs('dg.reports.*') ? 'active' : '' }}">
                         <i class="fas fa-chart-bar"></i>
@@ -638,7 +647,7 @@
                         <span>Donations</span>
                     </a>
                 </div>
-                
+
                 <div class="menu-item">
                     <a href="#" class="menu-link" onclick="toggleDarkMode()">
                         <i class="fas fa-moon"></i>
@@ -659,32 +668,26 @@
                         </button>
                         <h1 class="h4 mb-0">@yield('page-title', 'Direction Générale')</h1>
                     </div>
-                    
+
                     <div class="d-flex align-items-center gap-3">
                         <!-- Notifications -->
                         <div class="dropdown">
                             <button class="btn btn-outline-primary btn-sm position-relative" data-bs-toggle="dropdown">
                                 <i class="fas fa-bell"></i>
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                    0
-                                </span>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
                                 <h6 class="dropdown-header">Notifications</h6>
-                                <div class="dropdown-item-text text-muted">Aucune notification</div>
+                                <div class="dropdown-item-text text-muted">Notifications non disponibles</div>
                             </div>
                         </div>
-                        
+
                         <!-- User Menu -->
                         <div class="dropdown">
                             <button class="btn btn-outline-primary btn-sm dropdown-toggle" data-bs-toggle="dropdown">
                                 <i class="fas fa-user-circle me-1"></i>
-                                {{ auth()->user()->name ?? 'DG' }}
+                                <span class="d-none d-sm-inline">{{ auth()->user()->name ?? 'DG' }}</span>
                             </button>
                             <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profil</a>
-                                <a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Paramètres</a>
-                                <div class="dropdown-divider"></div>
                                 <a class="dropdown-item" href="{{ route('dg.logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                                     <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
                                 </a>
@@ -708,21 +711,12 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
+
     <!-- Custom JS -->
     <script>
-        // Sidebar toggle
-        document.getElementById('sidebarToggle').addEventListener('click', function() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('mainContent');
-            
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('expanded');
-        });
-
         // Dark mode toggle
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
@@ -775,7 +769,7 @@
         function toggleMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
-            
+
             if (window.innerWidth <= 768) {
                 sidebar.classList.toggle('show');
                 // Add overlay for mobile
@@ -830,7 +824,7 @@
         window.addEventListener('resize', function() {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
-            
+
             if (window.innerWidth <= 768) {
                 sidebar.classList.remove('collapsed');
                 mainContent.classList.remove('expanded');
@@ -841,10 +835,10 @@
         document.addEventListener('click', function(event) {
             const sidebar = document.getElementById('sidebar');
             const sidebarToggle = document.getElementById('sidebarToggle');
-            
-            if (window.innerWidth <= 768 && 
-                sidebar.classList.contains('show') && 
-                !sidebar.contains(event.target) && 
+
+            if (window.innerWidth <= 768 &&
+                sidebar.classList.contains('show') &&
+                !sidebar.contains(event.target) &&
                 !sidebarToggle.contains(event.target)) {
                 closeMobileSidebar();
             }
@@ -857,7 +851,7 @@
             }
         });
     </script>
-    
+
     @yield('scripts')
 </body>
 </html>
