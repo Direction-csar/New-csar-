@@ -21,6 +21,26 @@ use Illuminate\Support\Str;
 
 class DistributionController extends Controller
 {
+    /**
+     * Un admin/super_admin n'est pas limite aux plannings qui lui sont assignes.
+     */
+    private function isAdminUser(): bool
+    {
+        return in_array(optional(Auth::user())->role, ['admin', 'super_admin'], true);
+    }
+
+    /**
+     * Convention existante du controleur : un planning accessible est soit
+     * non assigne, soit assigne a l'agent authentifie (admin : toujours).
+     */
+    private function canAccessDistributionPlanning(?DistributionPlanning $planning): bool
+    {
+        if ($this->isAdminUser() || !$planning || is_null($planning->assigned_to)) {
+            return true;
+        }
+        return (int) $planning->assigned_to === (int) Auth::id();
+    }
+
     public function sync(): JsonResponse
     {
         $plannings = Planning::whereHas('agents', function ($q) {
@@ -156,6 +176,14 @@ class DistributionController extends Controller
         }
 
         $bon = $ticket->bonMatiere;
+
+        // Cloisonnement : seuls les agents affectes au planning (pivot
+        // planning_user) ou un admin peuvent consommer ce ticket.
+        $planning = $bon?->planning;
+        if ($planning && !$this->isAdminUser()
+            && !$planning->agents()->where('users.id', Auth::id())->exists()) {
+            return response()->json(['success' => false, 'message' => 'Planning non autorisé.'], 403);
+        }
 
         DB::transaction(function () use ($ticket, $bon) {
             $ticket->update([
@@ -538,6 +566,16 @@ class DistributionController extends Controller
             ], 422);
         }
 
+        // Cloisonnement : le planning du ticket doit etre assigne a l'agent
+        // (ou non assigne), sauf admin — meme convention que les autres
+        // endpoints distribution.
+        if (!$this->canAccessDistributionPlanning($ticket->planning)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Planning non autorisé.',
+            ], 403);
+        }
+
         DB::transaction(function () use ($ticket, $request) {
             $ticket->update([
                 'status' => DistributionTicket::STATUS_COLLECTED,
@@ -589,6 +627,16 @@ class DistributionController extends Controller
             'cni' => 'nullable|string|max:100',
             'full_name' => 'nullable|string|max:255',
         ]);
+
+        // Cloisonnement : l'agent ne peut interroger que son planning
+        // (ou un planning non assigne), sauf admin.
+        $planning = DistributionPlanning::findOrFail($request->planning_id);
+        if (!$this->canAccessDistributionPlanning($planning)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Planning non autorisé.',
+            ], 403);
+        }
 
         $query = DistributionBeneficiary::where('planning_id', $request->planning_id);
 

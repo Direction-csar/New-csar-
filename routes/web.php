@@ -1348,6 +1348,12 @@ Route::middleware(['admin'])->group(function () {
         Route::get('/{archive}/print', [App\Http\Controllers\Dfc\ArchiveController::class, 'print'])->name('print');
     });
 
+});
+
+// Dossiers d'archives : création possible par chaque direction dans SON
+// espace (contrôle serveur dans ArchiveFolderController), renommage et
+// suppression réservés aux admins par les vérifications du contrôleur.
+Route::middleware(['any-portal'])->group(function () {
     Route::post('/archive-folders', [App\Http\Controllers\ArchiveFolderController::class, 'store'])->name('folders.store');
     Route::put('/archive-folders/{folder}', [App\Http\Controllers\ArchiveFolderController::class, 'update'])->name('folders.update');
     Route::delete('/archive-folders/{folder}', [App\Http\Controllers\ArchiveFolderController::class, 'destroy'])->name('folders.destroy');
@@ -1443,16 +1449,16 @@ Route::middleware(['direction:inspecteur'])->prefix('inspecteur')->name('inspect
     Route::get('/missions/{id}', [\App\Http\Controllers\Inspecteur\MissionController::class, 'show'])->name('missions.show');
     Route::post('/missions/{id}/start', [\App\Http\Controllers\Inspecteur\MissionController::class, 'start'])->name('missions.start');
     Route::post('/missions/{id}/report', [\App\Http\Controllers\Inspecteur\MissionController::class, 'submitReport'])->name('missions.report');
+});
 
-    Route::prefix('archives')->name('archives.')->group(function () {
-        Route::get('/', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'index'])->name('index');
-        Route::post('/', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'store'])->name('store');
-        Route::get('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'show'])->name('show');
-        Route::put('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'update'])->name('update');
-        Route::delete('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'destroy'])->name('destroy');
-        Route::get('/{archive}/download', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'download'])->name('download');
-        Route::get('/{archive}/print', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'print'])->name('print');
-    });
+Route::middleware(['direction:inspecteur'])->prefix('archives/inspecteur')->name('archives.inspecteur.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'store'])->name('store');
+    Route::get('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'show'])->name('show');
+    Route::put('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'update'])->name('update');
+    Route::delete('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'destroy'])->name('destroy');
+    Route::get('/{archive}/download', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'download'])->name('download');
+    Route::get('/{archive}/print', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'print'])->name('print');
 });
 
 // === ADMIN : CONTRÔLE TOTAL ===

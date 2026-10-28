@@ -56,6 +56,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'http-cache' => \App\Http\Middleware\HttpCache::class,
             'workflow.role' => \App\Http\Middleware\CheckWorkflowRole::class,
             'direction' => \App\Http\Middleware\DirectionPortalMiddleware::class,
+            'any-portal' => \App\Http\Middleware\AnyPortalMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

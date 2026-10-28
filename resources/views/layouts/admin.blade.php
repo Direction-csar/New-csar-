@@ -642,6 +642,8 @@
                 ['label' => 'Archives DTL', 'icon' => 'fa-folder', 'url' => route('archives.dtl.index'), 'active' => request()->routeIs('archives.dtl.*')],
                 ['label' => 'Archives DPSE', 'icon' => 'fa-folder', 'url' => route('archives.dpse.index'), 'active' => request()->routeIs('archives.dpse.*')],
                 ['label' => 'Archives DRH', 'icon' => 'fa-folder', 'url' => route('archives.drh.index'), 'active' => request()->routeIs('archives.drh.*')],
+                ['label' => 'Archives Inspecteur', 'icon' => 'fa-folder', 'url' => route('archives.inspecteur.index'), 'active' => request()->routeIs('archives.inspecteur.*')],
+                ['label' => 'Archives Comptable', 'icon' => 'fa-folder', 'url' => route('archives.comptable.index'), 'active' => request()->routeIs('archives.comptable.*')],
             ]],
             ['title' => 'Administration', 'items' => [
                 ['label' => 'Utilisateurs', 'icon' => 'fa-users', 'url' => route('admin.users.index'), 'active' => request()->routeIs('admin.users.*')],
