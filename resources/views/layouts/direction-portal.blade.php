@@ -271,11 +271,31 @@ $directionSlug = strtolower($direction);
         </a>
         @endif
 
-        @if($directionSlug === 'comptable' && Route::has('comptable.mouvements.index'))
-        <a href="{{ route('comptable.mouvements.index') }}" class="menu-link {{ str_contains($currentRoute, 'comptable.mouvements') ? 'active' : '' }}">
-            <i class="fas fa-calculator"></i>
-            <span class="menu-text">Validation mouvements</span>
-        </a>
+        @if($directionSlug === 'comptable')
+            @if(Route::has('comptable.mouvements.index'))
+            <a href="{{ route('comptable.mouvements.index') }}" class="menu-link {{ str_contains($currentRoute, 'comptable.mouvements') ? 'active' : '' }}">
+                <i class="fas fa-calculator"></i>
+                <span class="menu-text">Validation mouvements</span>
+            </a>
+            @endif
+            @if(Route::has('comptable.stocks'))
+            <a href="{{ route('comptable.stocks') }}" class="menu-link {{ str_contains($currentRoute, 'comptable.stocks') ? 'active' : '' }}">
+                <i class="fas fa-warehouse"></i>
+                <span class="menu-text">Stocks & magasins</span>
+            </a>
+            @endif
+            @if(Route::has('comptable.carburant'))
+            <a href="{{ route('comptable.carburant') }}" class="menu-link {{ str_contains($currentRoute, 'comptable.carburant') ? 'active' : '' }}">
+                <i class="fas fa-gas-pump"></i>
+                <span class="menu-text">Carburant</span>
+            </a>
+            @endif
+            @if(Route::has('comptable.materiel'))
+            <a href="{{ route('comptable.materiel') }}" class="menu-link {{ str_contains($currentRoute, 'comptable.materiel') ? 'active' : '' }}">
+                <i class="fas fa-hand-holding"></i>
+                <span class="menu-text">Matériel</span>
+            </a>
+            @endif
         @endif
 
         @if($directionSlug === 'inspecteur' && Route::has('inspecteur.missions.index'))

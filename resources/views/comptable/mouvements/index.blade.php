@@ -75,6 +75,12 @@
             <button class="btn btn-sm btn-primary w-100"><i class="fas fa-filter"></i></button>
         </div>
     </form>
+    <div class="text-end mt-2">
+        <a href="{{ route('comptable.mouvements.export', request()->only(['status','warehouse_id','type','linked','from','to','q'])) }}"
+           class="btn btn-sm btn-outline-success">
+            <i class="fas fa-file-csv me-1"></i> Exporter en CSV
+        </a>
+    </div>
 </div></div>
 
 <div class="card border-0 shadow-sm">

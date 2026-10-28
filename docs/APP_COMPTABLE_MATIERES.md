@@ -1,8 +1,9 @@
 # Application Android — Comptable des matières (conception)
 
-Statut : **conception validée, implémentation à démarrer**.
-Aucun code applicatif n'existe encore ; ce document fixe le périmètre,
-le modèle de données réutilisé et les prérequis backend.
+Statut : **implémenté** (API backend `/api/comptable/v1` + app Flutter `mobile/csar_comptable`).
+Ce document décrit le périmètre, le modèle de données et les prérequis backend.
+Pour la connexion des APK (dev/test/prod) et la création des comptes :
+`docs/MOBILE_APPS_TEST.md`.
 
 ## 1. Objectif
 
@@ -28,7 +29,7 @@ validations comptables aujourd'hui faites dans le portail web
 
 ## 3. Écrans
 
-1. **Login** — `POST /api/v1/comptable/login` (Sanctum), jeton stocké.
+1. **Login** — `POST /api/comptable/v1/login` (Sanctum), jeton stocké.
 2. **Tableau de bord** — soldes par catégorie (carburant, matériel), alertes seuils.
 3. **Mouvements** — liste filtrable (statut, magasin, type, période, référence bon/facture).
 4. **Détail mouvement** — quantités avant/après, justificatifs, mission liée, décision Valider / Rejeter (motif ≥ 10 car., même règle que le web).
@@ -40,14 +41,18 @@ validations comptables aujourd'hui faites dans le portail web
 
 ## 4. Endpoints backend à créer (requis avant implémentation)
 
-Sous `routes/api.php` ou `routes/comptable-api.php`, Sanctum + rôle `comptable` :
+Implémentés dans `routes/comptable-api.php` sous `auth:sanctum` + rôle `comptable` revérifié à chaque requête :
 
-- `GET /api/v1/comptable/movements?status=&warehouse_id=&type=&from=&to=&q=`
-- `GET /api/v1/comptable/movements/{id}`
-- `POST /api/v1/comptable/movements/{id}/validate`
-- `POST /api/v1/comptable/movements/{id}/reject` (`rejection_reason` requis)
-- `GET /api/v1/comptable/stocks/summary` (soldes + alertes seuil)
-- `GET /api/v1/comptable/movements/export?format=pdf|xlsx` (si backend export prêt)
+- `POST /api/comptable/v1/login`, `POST /logout`
+- `GET /api/comptable/v1/dashboard` (soldes + alertes seuil)
+- `GET /api/comptable/v1/movements?status=&warehouse_id=&type=&from=&to=&q=`
+- `GET /api/comptable/v1/movements/{id}`
+- `POST /api/comptable/v1/movements/{id}/validate`
+- `POST /api/comptable/v1/movements/{id}/reject` (`rejection_reason` requis, ≥ 10 car.)
+- `GET /api/comptable/v1/fuel/summary` (carburant, soldes en litres)
+- `GET|POST /api/comptable/v1/equipment-assignments`, `POST .../{id}/close` (matériel)
+- `GET /api/comptable/v1/warehouses`
+- `GET /api/comptable/v1/movements/export?format=pdf|xlsx` (si backend export prêt — à ajouter)
 
 Réutiliser `App\Http\Controllers\Comptable\MouvementController` : extraire
 les règles (transition draft→validated/rejected, motif requis, gel après

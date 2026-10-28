@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../config/app_config.dart';
 import '../models/movement.dart';
 import '../models/warehouse.dart';
 import '../models/equipment.dart';
@@ -11,7 +12,7 @@ import '../models/equipment.dart';
 /// Mêmes conventions que l'app Magasinier : Sanctum Bearer,
 /// jeton en stockage sécurisé, déconnexion automatique sur 401.
 class ApiService {
-  static const String baseUrl = 'https://www.csar.sn/api/comptable/v1';
+  static const String baseUrl = AppConfig.comptableBaseUrl;
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: false),
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
@@ -63,7 +64,8 @@ class ApiService {
 
   static Future<bool> hasConnection() async {
     try {
-      final addresses = await InternetAddress.lookup('csar.sn')
+      final host = Uri.parse(baseUrl).host;
+      final addresses = await InternetAddress.lookup(host)
           .timeout(const Duration(seconds: 5));
       return addresses.isNotEmpty && addresses.first.rawAddress.isNotEmpty;
     } catch (_) {
@@ -91,6 +93,24 @@ class ApiService {
       return {'success': true, 'user': data['user']};
     }
     return {'success': false, 'message': jsonDecode(response.body)['message'] ?? 'Erreur de connexion'};
+  }
+
+  /// Révoque le jeton côté serveur puis le supprime localement.
+  /// Best-effort : la session est fermée même si le serveur est injoignable.
+  static Future<void> logout() async {
+    try {
+      final token = await getToken();
+      if (token != null) {
+        await _post(
+          Uri.parse('$baseUrl/logout'),
+          headers: _headers(token),
+        );
+      }
+    } catch (_) {
+      // Réseau indisponible : le jeton local est quand même effacé.
+    } finally {
+      await clearToken();
+    }
   }
 
   // TABLEAU DE BORD

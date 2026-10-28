@@ -4,11 +4,11 @@ namespace App\Http\Controllers\Comptable;
 
 use App\Http\Controllers\Controller;
 use App\Models\StockMovement;
+use App\Services\Comptable\ComptableMovementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Portail Comptable des matières : validation comptable des mouvements
@@ -20,46 +20,35 @@ use Illuminate\Support\Facades\Schema;
  */
 class MouvementController extends Controller
 {
+    public function __construct(
+        private readonly ComptableMovementService $service,
+    ) {}
+
     /** La colonne status n'existe qu'après la migration 2026_10_21_010000. */
     private function hasValidationColumns(): bool
     {
         return Schema::hasColumn('stock_movements', 'status');
     }
 
+    private function filters(Request $request): array
+    {
+        return $request->only(['status', 'warehouse_id', 'type', 'linked', 'from', 'to', 'q']);
+    }
+
     public function index(Request $request)
     {
-        $query = StockMovement::with(['warehouse:id,name', 'creator:id,name,role'])
-            ->orderBy('created_at', 'desc');
-
-        if ($this->hasValidationColumns()) {
-            $status = $request->get('status', 'draft');
-            if (in_array($status, ['draft', 'validated', 'rejected'], true)) {
-                $query->where('status', $status);
-            }
+        $filters = $this->filters($request);
+        if (!$this->hasValidationColumns()) {
+            unset($filters['status']);
         }
 
-        if ($request->filled('warehouse_id')) {
-            $query->where('warehouse_id', $request->warehouse_id);
-        }
-        if ($request->filled('type')) {
-            $query->whereIn('type', [$request->type, $request->type === 'exit' ? 'out' : $request->type]);
-        }
-        if ($request->filled('linked')) {
-            $request->linked === 'mission'
-                ? $query->whereNotNull('request_mission_id')
-                : $query->whereNull('request_mission_id');
-        }
-
-        $mouvements = $query->paginate(20)->withQueryString();
+        $mouvements = $this->service->filteredMovementsQuery($filters)
+            ->paginate(20)->withQueryString();
         $warehouses = \App\Models\Warehouse::orderBy('name')->get(['id', 'name']);
 
         $stats = ['draft' => null, 'validated' => null, 'rejected' => null];
         if ($this->hasValidationColumns()) {
-            $stats = [
-                'draft'     => StockMovement::where('status', 'draft')->count(),
-                'validated' => StockMovement::where('status', 'validated')->count(),
-                'rejected'  => StockMovement::where('status', 'rejected')->count(),
-            ];
+            $stats = $this->service->statusCounts();
         }
 
         return view('comptable.mouvements.index', [
@@ -100,24 +89,9 @@ class MouvementController extends Controller
             return redirect()->back()->with('error', 'Colonnes de validation absentes : exécutez les migrations.');
         }
 
-        $mouvement = StockMovement::findOrFail($id);
+        $result = $this->service->validate(StockMovement::findOrFail($id), Auth::user());
 
-        if ($mouvement->status === 'validated') {
-            return redirect()->back()->with('error', 'Mouvement déjà validé.');
-        }
-
-        DB::transaction(function () use ($mouvement) {
-            $mouvement->update([
-                'status'           => 'validated',
-                'validated_by'     => Auth::id(),
-                'validated_at'     => now(),
-                'rejection_reason' => null,
-            ]);
-
-            $this->logMissionValidation($mouvement, 'Justificatif validé');
-        });
-
-        return redirect()->back()->with('success', "Mouvement {$mouvement->reference} validé comptablement.");
+        return redirect()->back()->with($result['ok'] ? 'success' : 'error', $result['message']);
     }
 
     /** Rejeter le mouvement avec un motif obligatoire. */
@@ -131,41 +105,60 @@ class MouvementController extends Controller
             'rejection_reason' => 'required|string|min:10|max:1000',
         ]);
 
-        $mouvement = StockMovement::findOrFail($id);
+        $result = $this->service->reject(
+            StockMovement::findOrFail($id),
+            $request->rejection_reason,
+            Auth::user()
+        );
 
-        if ($mouvement->status === 'validated') {
-            return redirect()->back()->with('error', 'Un mouvement validé ne peut pas être rejeté.');
-        }
-
-        DB::transaction(function () use ($mouvement, $request) {
-            $mouvement->update([
-                'status'           => 'rejected',
-                'validated_by'     => Auth::id(),
-                'validated_at'     => now(),
-                'rejection_reason' => $request->rejection_reason,
-            ]);
-
-            $this->logMissionValidation($mouvement, 'Justificatif rejeté', $request->rejection_reason);
-        });
-
-        return redirect()->back()->with('success', "Mouvement {$mouvement->reference} rejeté.");
+        return redirect()->back()->with($result['ok'] ? 'success' : 'error', $result['message']);
     }
 
-    /** Trace la décision comptable dans l'historique workflow de la demande liée. */
-    private function logMissionValidation(StockMovement $mouvement, string $action, ?string $reason = null): void
+    /**
+     * Export CSV du journal des mouvements (mêmes filtres que la liste).
+     * Encodage UTF-8 avec BOM pour une ouverture directe dans Excel.
+     */
+    public function exportCsv(Request $request): StreamedResponse
     {
-        try {
-            $request = null;
-            if ($mouvement->public_request_id) {
-                $request = \App\Models\PublicRequest::find($mouvement->public_request_id);
+        $rows = $this->service->filteredMovementsQuery($this->filters($request))
+            ->limit(10000)
+            ->get();
+
+        $filename = 'mouvements-comptable-' . now()->format('Ymd-His') . '.csv';
+
+        return response()->streamDownload(function () use ($rows) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, "\xEF\xBB\xBF"); // BOM UTF-8
+            fputcsv($out, [
+                'ID', 'Référence', 'Date', 'Magasin', 'Type', 'Produit',
+                'Quantité', 'Unité', 'Stock avant', 'Stock après',
+                'Statut', 'Saisi par', 'Validé par', 'Validé le',
+                'Motif de rejet', 'Mission liée',
+            ], ';');
+
+            foreach ($rows as $m) {
+                fputcsv($out, [
+                    $m->id,
+                    $m->reference,
+                    $m->created_at?->format('d/m/Y H:i'),
+                    $m->warehouse?->name,
+                    $m->type,
+                    $m->produit,
+                    (float) $m->quantity,
+                    $m->unite,
+                    $m->quantity_before !== null ? (float) $m->quantity_before : null,
+                    $m->quantity_after !== null ? (float) $m->quantity_after : null,
+                    $m->status ?? 'draft',
+                    $m->creator?->name,
+                    $m->validated_by,
+                    $m->validated_at?->format('d/m/Y H:i'),
+                    $m->rejection_reason,
+                    $m->request_mission_id,
+                ], ';');
             }
-
-            $comment = "Mouvement {$mouvement->reference} par " . Auth::user()->name
-                . ($reason ? " — Motif : {$reason}" : '');
-
-            $request?->logWorkflowAction($action, $comment, Auth::id());
-        } catch (\Exception $e) {
-            Log::warning('Traçabilité validation comptable échouée: ' . $e->getMessage());
-        }
+            fclose($out);
+        }, $filename, [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 }

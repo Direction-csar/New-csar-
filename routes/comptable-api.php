@@ -14,6 +14,7 @@ Route::prefix('v1')->name('comptable.api.v1.')->group(function () {
         ->name('login')->middleware('throttle:5,1');
 
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [ComptableApiController::class, 'logout'])->name('logout');
         Route::get('/dashboard', [ComptableApiController::class, 'dashboard'])->name('dashboard');
         Route::get('/movements', [ComptableApiController::class, 'movements'])->name('movements');
         Route::get('/movements/{id}', [ComptableApiController::class, 'movement'])->name('movements.show');

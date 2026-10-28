@@ -1407,8 +1407,14 @@ Route::prefix('comptable')->name('comptable.')->group(function () {
 });
 
 Route::middleware(['direction:comptable'])->prefix('comptable')->name('comptable.')->group(function () {
-    Route::get('/', fn () => redirect()->route('comptable.mouvements.index'))->name('dashboard');
+    Route::get('/', [\App\Http\Controllers\Comptable\PortailController::class, 'dashboard'])->name('dashboard');
+    Route::get('/stocks', [\App\Http\Controllers\Comptable\PortailController::class, 'stocks'])->name('stocks');
+    Route::get('/carburant', [\App\Http\Controllers\Comptable\PortailController::class, 'carburant'])->name('carburant');
+    Route::get('/materiel', [\App\Http\Controllers\Comptable\PortailController::class, 'materiel'])->name('materiel');
+    Route::post('/materiel', [\App\Http\Controllers\Comptable\PortailController::class, 'storeMateriel'])->name('materiel.store');
+    Route::post('/materiel/{id}/cloturer', [\App\Http\Controllers\Comptable\PortailController::class, 'cloturerMateriel'])->name('materiel.cloturer');
     Route::get('/mouvements', [\App\Http\Controllers\Comptable\MouvementController::class, 'index'])->name('mouvements.index');
+    Route::get('/mouvements/export-csv', [\App\Http\Controllers\Comptable\MouvementController::class, 'exportCsv'])->name('mouvements.export');
     Route::get('/mouvements/{id}', [\App\Http\Controllers\Comptable\MouvementController::class, 'show'])->name('mouvements.show');
     Route::post('/mouvements/{id}/valider', [\App\Http\Controllers\Comptable\MouvementController::class, 'validateMovement'])->name('mouvements.valider');
     Route::post('/mouvements/{id}/rejeter', [\App\Http\Controllers\Comptable\MouvementController::class, 'reject'])->name('mouvements.rejeter');

@@ -5,11 +5,9 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\StockMovement;
 use App\Models\Warehouse;
+use App\Services\Comptable\ComptableMovementService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 
 /**
  * API mobile « CSAR Comptable des matières » (Sanctum).
@@ -20,6 +18,10 @@ use Illuminate\Support\Facades\Schema;
  */
 class ComptableApiController extends Controller
 {
+    public function __construct(
+        private readonly ComptableMovementService $service,
+    ) {}
+
     /** Authentification comptable (mêmes identifiants que le portail web) */
     public function login(Request $request)
     {
@@ -52,6 +54,18 @@ class ComptableApiController extends Controller
         ]);
     }
 
+    /** Révoque le jeton courant (déconnexion de l'app). */
+    public function logout(Request $request)
+    {
+        if ($resp = $this->denyNonComptable($request)) {
+            return $resp;
+        }
+
+        $request->user()->currentAccessToken()?->delete();
+
+        return response()->json(['message' => 'Déconnexion réussie.']);
+    }
+
     /** Tableau de bord : volumes par statut + magasins sous seuil */
     public function dashboard(Request $request)
     {
@@ -59,22 +73,8 @@ class ComptableApiController extends Controller
             return $resp;
         }
 
-        $stats = [
-            'draft' => StockMovement::where('status', 'draft')->count(),
-            'validated' => StockMovement::where('status', 'validated')->count(),
-            'rejected' => StockMovement::where('status', 'rejected')->count(),
-        ];
-
-        $warehouses = Warehouse::orderBy('name')->get(['id', 'name', 'region', 'capacity', 'current_stock']);
-        $lowStock = $warehouses->filter(function ($w) {
-            return $w->capacity > 0 && ($w->current_stock / $w->capacity) < 0.2;
-        })->map(fn ($w) => [
-            'id' => $w->id,
-            'name' => $w->name,
-            'current_stock' => $w->current_stock,
-            'capacity' => $w->capacity,
-            'ratio' => round($w->current_stock / max($w->capacity, 1) * 100, 1),
-        ])->values();
+        $stats = $this->service->statusCounts();
+        $lowStock = $this->service->lowStockWarehouses();
 
         $recent = StockMovement::with(['warehouse:id,name', 'creator:id,name'])
             ->orderBy('created_at', 'desc')
@@ -95,38 +95,9 @@ class ComptableApiController extends Controller
             return $resp;
         }
 
-        $query = StockMovement::with(['warehouse:id,name', 'creator:id,name,role'])
-            ->orderBy('created_at', 'desc');
-
-        $status = $request->get('status');
-        if (in_array($status, ['draft', 'validated', 'rejected'], true)) {
-            $query->where('status', $status);
-        }
-        if ($request->filled('warehouse_id')) {
-            $query->where('warehouse_id', $request->warehouse_id);
-        }
-        if ($request->filled('type')) {
-            $types = ['exit' => ['exit', 'out'], 'entry' => ['entry', 'in']];
-            $query->whereIn('type', $types[$request->type] ?? [$request->type]);
-        }
-        if ($request->filled('from')) {
-            $query->whereDate('created_at', '>=', $request->from);
-        }
-        if ($request->filled('to')) {
-            $query->whereDate('created_at', '<=', $request->to);
-        }
-        if ($request->filled('q')) {
-            $q = '%' . $request->q . '%';
-            $query->where(function ($sub) use ($q) {
-                $sub->where('reference', 'like', $q)
-                    ->orWhere('reason', 'like', $q);
-            });
-        }
-        if ($request->filled('linked')) {
-            $request->linked === 'mission'
-                ? $query->whereNotNull('request_mission_id')
-                : $query->whereNull('request_mission_id');
-        }
+        $query = $this->service->filteredMovementsQuery(
+            $request->only(['status', 'warehouse_id', 'type', 'linked', 'from', 'to', 'q'])
+        );
 
         return response()->json($query->paginate(30)->withQueryString());
     }
@@ -162,23 +133,14 @@ class ComptableApiController extends Controller
         }
 
         $mouvement = StockMovement::findOrFail($id);
+        $result = $this->service->validate($mouvement, $request->user());
 
-        if ($mouvement->status === 'validated') {
-            return response()->json(['message' => 'Mouvement déjà validé.'], 422);
+        if (!$result['ok']) {
+            return response()->json(['message' => $result['message']], 422);
         }
 
-        DB::transaction(function () use ($mouvement, $request) {
-            $mouvement->update([
-                'status' => 'validated',
-                'validated_by' => $request->user()->id,
-                'validated_at' => now(),
-                'rejection_reason' => null,
-            ]);
-            $this->logDecision($mouvement, 'Justificatif validé', null, $request->user());
-        });
-
         return response()->json([
-            'message' => "Mouvement {$mouvement->reference} validé comptablement.",
+            'message' => $result['message'],
             'movement' => $mouvement->fresh(),
         ]);
     }
@@ -195,23 +157,14 @@ class ComptableApiController extends Controller
         ]);
 
         $mouvement = StockMovement::findOrFail($id);
+        $result = $this->service->reject($mouvement, $request->rejection_reason, $request->user());
 
-        if ($mouvement->status === 'validated') {
-            return response()->json(['message' => 'Un mouvement validé ne peut pas être rejeté.'], 422);
+        if (!$result['ok']) {
+            return response()->json(['message' => $result['message']], 422);
         }
 
-        DB::transaction(function () use ($mouvement, $request) {
-            $mouvement->update([
-                'status' => 'rejected',
-                'validated_by' => $request->user()->id,
-                'validated_at' => now(),
-                'rejection_reason' => $request->rejection_reason,
-            ]);
-            $this->logDecision($mouvement, 'Justificatif rejeté', $request->rejection_reason, $request->user());
-        });
-
         return response()->json([
-            'message' => "Mouvement {$mouvement->reference} rejeté.",
+            'message' => $result['message'],
             'movement' => $mouvement->fresh(),
         ]);
     }
@@ -227,29 +180,7 @@ class ComptableApiController extends Controller
             return $resp;
         }
 
-        $rows = StockMovement::selectRaw(
-                "COALESCE(NULLIF(produit,''),'Carburant') as produit,
-                 warehouse_id,
-                 SUM(CASE WHEN type IN ('in','entry') THEN quantity ELSE 0 END) as total_in,
-                 SUM(CASE WHEN type IN ('out','exit') THEN quantity ELSE 0 END) as total_out"
-            )
-            ->where('unite', 'L')
-            ->groupBy('produit', 'warehouse_id')
-            ->get();
-
-        $warehouses = Warehouse::whereIn('id', $rows->pluck('warehouse_id')->filter()->unique())
-            ->pluck('name', 'id');
-
-        $summary = $rows->map(fn ($r) => [
-            'produit' => $r->produit,
-            'warehouse_id' => $r->warehouse_id,
-            'warehouse_name' => $warehouses[$r->warehouse_id] ?? null,
-            'total_in' => (float) $r->total_in,
-            'total_out' => (float) $r->total_out,
-            'balance' => round((float) $r->total_in - (float) $r->total_out, 2),
-        ])->values();
-
-        return response()->json($summary);
+        return response()->json($this->service->fuelSummary());
     }
 
     /** Liste des affectations de matériel (filtre status/agent). */
@@ -358,23 +289,6 @@ class ComptableApiController extends Controller
         return response()->json(
             Warehouse::orderBy('name')->get(['id', 'name', 'region', 'capacity', 'current_stock'])
         );
-    }
-
-    /** Trace la décision dans l'historique workflow de la demande liée */
-    private function logDecision(StockMovement $mouvement, string $action, ?string $reason, $user): void
-    {
-        try {
-            $demande = $mouvement->public_request_id
-                ? \App\Models\PublicRequest::find($mouvement->public_request_id)
-                : null;
-
-            $comment = "Mouvement {$mouvement->reference} par {$user->name}"
-                . ($reason ? " — Motif : {$reason}" : '');
-
-            $demande?->logWorkflowAction($action, $comment, $user->id);
-        } catch (\Exception $e) {
-            Log::warning('Traçabilité décision comptable API échouée: ' . $e->getMessage());
-        }
     }
 
     /** Vérification du rôle à chaque requête protégée */

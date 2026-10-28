@@ -86,7 +86,7 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await ApiService.clearToken();
+    await ApiService.logout();
     try {
       final prefs = await SharedPreferences.getInstance()
           .timeout(const Duration(seconds: 5));
