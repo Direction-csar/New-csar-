@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../config/app_config.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://www.csar.sn/mobile/v1';
+  static const String baseUrl = AppConfig.simBaseUrl;
 
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(

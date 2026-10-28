@@ -8,10 +8,12 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
     // Authentification (publiques)
     Route::post('/login', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'login'])->name('login')
         ->middleware('throttle:5,1');
-    Route::post('/logout', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'logout'])->name('logout');
-
     // Routes protégées (token Sanctum)
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'logout'])->name('logout');
+
+        // Endpoints collecteur : jeton d'un collecteur SIM actif uniquement
+        Route::middleware('sim.collector')->group(function () {
         // Données de référence (marchés, produits)
         Route::get('/markets', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getMarkets'])->name('markets');
         Route::get('/products', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getProducts'])->name('products');
@@ -34,6 +36,7 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
 
         // Stats du collecteur
         Route::get('/stats', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getCollectorStats'])->name('stats');
+        });
 
         // Distribution (aide alimentaire / bons-matière)
         Route::prefix('distribution')->group(function () {

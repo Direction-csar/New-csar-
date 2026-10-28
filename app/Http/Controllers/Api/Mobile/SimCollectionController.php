@@ -411,9 +411,9 @@ class SimCollectionController extends Controller
         ]);
     }
 
-    public function logout(): JsonResponse
+    public function logout(Request $request): JsonResponse
     {
-        $collector = Auth::user();
+        $collector = $request->user();
 
         // Révoquer tous les tokens
         $collector->tokens()->delete();
