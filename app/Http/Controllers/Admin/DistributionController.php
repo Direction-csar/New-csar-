@@ -270,7 +270,10 @@ class DistributionController extends Controller
      */
     public function beneficiariesImport()
     {
-        $plannings = DistributionPlanning::where('status', 'active')->pluck('name', 'id');
+        $plannings = DistributionPlanning::whereIn('status', ['draft', 'active'])
+            ->with('event:id,name')
+            ->get()
+            ->mapWithKeys(fn ($p) => [$p->id => $p->name . ' (' . ($p->event->name ?? 'sans événement') . ' — ' . $p->status . ')']);
         return view('admin.distribution.beneficiaries.import', compact('plannings'));
     }
 
