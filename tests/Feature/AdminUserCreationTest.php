@@ -253,6 +253,29 @@ class AdminUserCreationTest extends TestCase
         $this->assertTrue(Hash::check('Secret123!', $comptable->password));
     }
 
+    public function test_admin_can_create_user_with_responsable_role(): void
+    {
+        $admin = $this->adminWith2fa();
+
+        $response = $this->actingAs($admin, 'admin')->post('/admin/users', [
+            'name' => 'Responsable Test',
+            'email' => 'responsable.test@csar.test',
+            'phone' => '772345678',
+            'role' => 'responsable',
+            'status' => 'actif',
+            'password' => 'Secret123!',
+            'password_confirmation' => 'Secret123!',
+        ]);
+
+        $response->assertRedirect(route('admin.users.index'));
+        $response->assertSessionHasNoErrors();
+
+        $user = User::where('email', 'responsable.test@csar.test')->first();
+        $this->assertNotNull($user);
+        $this->assertSame('responsable', $user->role);
+        $this->assertSame(12, $user->role_id);
+    }
+
     // ===== Connexion Web /comptable =====
 
     public function test_comptable_web_login_lands_on_portal(): void
