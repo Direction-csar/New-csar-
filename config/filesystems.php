@@ -47,6 +47,15 @@ return [
             'report' => false,
         ],
 
+        // Justificatifs carburant : disque privé, accès uniquement via
+        // les contrôleurs qui vérifient le rôle (web + API).
+        'fuel_attachments' => [
+            'driver' => 'local',
+            'root' => storage_path('app/fuel_attachments'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),
