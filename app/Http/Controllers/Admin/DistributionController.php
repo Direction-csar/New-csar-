@@ -413,15 +413,98 @@ class DistributionController extends Controller
             'status' => 'required|in:pending,validated,ticket_issued,kit_collected',
         ]);
 
-        $beneficiary->update($request->only([
+        $data = $request->only([
             'planning_id', 'full_name', 'phone', 'cni', 'address', 'category', 'quantity_kg',
             'is_vulnerable', 'is_pregnant', 'is_elderly', 'is_disabled', 'status',
-        ]));
+        ]);
+
+        // Traçabilité : le passage à « validated » enregistre qui et quand,
+        // comme le fait l'endpoint mobile validateBeneficiary.
+        if ($request->status === 'validated' && $beneficiary->status !== 'validated'
+            && is_null($beneficiary->validated_at)) {
+            $data['validated_at'] = now();
+            $data['validated_by'] = Auth::id();
+        }
+
+        $beneficiary->update($data);
 
         $this->recomputeExecuted($beneficiary->planning_id);
 
         return redirect()->route('admin.distribution.beneficiaries.index')
             ->with('success', 'Bénéficiaire mis à jour.');
+    }
+
+    /**
+     * Valider un bénéficiaire depuis l'admin : même écriture que
+     * l'API mobile (statut + validated_at + validated_by).
+     */
+    public function beneficiariesValidate($id)
+    {
+        $beneficiary = DistributionBeneficiary::findOrFail($id);
+
+        if ($beneficiary->status !== 'pending') {
+            return redirect()->back()->with('error', 'Ce bénéficiaire est déjà validé.');
+        }
+
+        $beneficiary->update([
+            'status' => 'validated',
+            'validated_at' => now(),
+            'validated_by' => Auth::id(),
+        ]);
+
+        return redirect()->back()->with('success', 'Bénéficiaire validé.');
+    }
+
+    /**
+     * Générer un ticket QR depuis l'admin : mêmes règles que
+     * l'API mobile generateTicket (bénéficiaire validé, pas de ticket actif).
+     */
+    public function beneficiariesGenerateTicket($id)
+    {
+        return DB::transaction(function () use ($id) {
+            $beneficiary = DistributionBeneficiary::where('id', $id)->lockForUpdate()->firstOrFail();
+
+            if (!in_array($beneficiary->status, ['validated', 'ticket_issued'], true)) {
+                return redirect()->back()
+                    ->with('error', 'Le bénéficiaire doit être validé avant de générer un ticket.');
+            }
+
+            $existing = $beneficiary->tickets()->whereIn('status', ['issued', 'scanned', 'collected'])->first();
+            if ($existing) {
+                return redirect()->back()
+                    ->with('error', "Un ticket actif existe déjà : {$existing->ticket_code}.");
+            }
+
+            $ticket = DistributionTicket::create([
+                'beneficiary_id' => $beneficiary->id,
+                'planning_id' => $beneficiary->planning_id,
+                'ticket_code' => 'CSAR-' . strtoupper(Str::random(8)),
+                'qr_token' => Str::uuid()->toString(),
+                'status' => 'issued',
+                'issued_at' => now(),
+            ]);
+
+            $beneficiary->update(['status' => 'ticket_issued']);
+
+            return redirect()->route('admin.distribution.tickets.show', $ticket->id)
+                ->with('success', "Ticket {$ticket->ticket_code} généré.");
+        });
+    }
+
+    /**
+     * Activer un planning : sans cette étape il reste en 'draft' et est
+     * invisible dans l'APK (myPlannings exige status='active').
+     */
+    public function planningsActivate($id)
+    {
+        $planning = DistributionPlanning::findOrFail($id);
+
+        if ($planning->status === 'draft') {
+            $planning->update(['status' => 'active']);
+            return redirect()->back()->with('success', "Planning « {$planning->name} » activé : visible dans l'APK.");
+        }
+
+        return redirect()->back()->with('error', "Le planning est déjà « {$planning->status} ».");
     }
 
     public function beneficiariesDestroy($id)

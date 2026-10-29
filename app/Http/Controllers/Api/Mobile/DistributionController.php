@@ -662,7 +662,8 @@ class DistributionController extends Controller
                 'scanned_at' => now(),
                 'collected_at' => now(),
                 'scanned_by' => Auth::id(),
-                'scan_location' => $request->input('location'),
+                // scanner-app envoie 'scan_location', distribution-app 'location' : accepter les deux.
+                'scan_location' => $request->input('location') ?: $request->input('scan_location'),
             ]);
 
             $ticket->beneficiary->update([

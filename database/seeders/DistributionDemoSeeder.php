@@ -26,7 +26,7 @@ class DistributionDemoSeeder extends Seeder
             ]
         );
         $distributeur->role = 'distributeur';
-        $distributeur->role_id = 4;
+        $distributeur->role_id = \App\Models\Role::where('name', 'distributeur')->value('id');
         $distributeur->save();
 
         $scanner = User::firstOrCreate(
@@ -39,7 +39,7 @@ class DistributionDemoSeeder extends Seeder
             ]
         );
         $scanner->role = 'scanner';
-        $scanner->role_id = 4;
+        $scanner->role_id = \App\Models\Role::where('name', 'scanner')->value('id');
         $scanner->save();
 
         $admin = User::where('role', 'admin')->first() ?? $distributeur;
