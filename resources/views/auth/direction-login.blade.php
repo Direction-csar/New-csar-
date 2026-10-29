@@ -146,7 +146,7 @@
                 <i class="fas fa-sign-in-alt me-2"></i> Accéder à l'espace {{ strtoupper($direction) }}
             </button>
         </form>
-script>
+<script>
 function togglePwd() {
     const pwd = document.getElementById('password');
     const icon = document.getElementById('togglePwdIcon');
@@ -156,7 +156,6 @@ function togglePwd() {
     icon.classList.toggle('fa-eye-slash', show);
 }
 </script>
-<
     </div>
 </div>
 

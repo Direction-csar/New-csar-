@@ -18,19 +18,11 @@ class UserController extends Controller
      */
     private function getRoleIdFromRoleName($roleName)
     {
-        $roleMap = [
-            'admin' => 1,
-            'dg' => 2,
-            'responsable' => 3,
-            'agent' => 4,
-            'drh' => 5,
-            'entrepot' => 3, // Alias pour responsable
-            'magasinier' => 3, // Magasinier rattaché à un magasin
-            'distributeur' => 4, // Distributeur d'aide (app mobile distribution)
-            'scanner' => 4 // Scanner de tickets QR (app mobile scanner)
-        ];
-
-        return $roleMap[$roleName] ?? 4; // Par défaut: agent
+        // La table roles est la source de vérité : un role_id incorrect
+        // ferait écraser la colonne users.role par le boot hook du modèle.
+        // Les rôles absents de la table gardent role_id = null, ce qui
+        // préserve le libellé 'role' choisi dans le formulaire.
+        return \App\Models\Role::where('name', $roleName)->value('id');
     }
 
     /**
