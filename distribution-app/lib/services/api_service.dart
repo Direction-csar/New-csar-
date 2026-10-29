@@ -103,6 +103,18 @@ class ApiService {
     return jsonDecode(response.body);
   }
 
+  /// Import en masse V2 : cree des DistributionBeneficiary (statut pending).
+  /// Chaque item : planning_id, full_name, phone?, cni?, address?, category?,
+  /// quantity_kg, is_vulnerable?, is_pregnant?, is_elderly?, is_disabled?
+  static Future<Map<String, dynamic>> batchBeneficiaries(String token, List<Map<String, dynamic>> beneficiaries) async {
+    final response = await http.post(
+      Uri.parse('$distBaseUrl/beneficiaries/batch'),
+      headers: _headers(token),
+      body: jsonEncode({'beneficiaries': beneficiaries}),
+    );
+    return jsonDecode(response.body);
+  }
+
   static Future<Map<String, dynamic>> scan(String token, String code) async {
     final response = await http.post(
       Uri.parse('$distBaseUrl/scan'),

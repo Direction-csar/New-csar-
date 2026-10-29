@@ -10,7 +10,10 @@
             <div class="card-modern p-3">
                 <div class="d-flex justify-content-between align-items-center">
                     <h1 class="h4 mb-0 fw-bold">👥 Bénéficiaires</h1>
-                    <a href="{{ route('admin.distribution.beneficiaries.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Nouveau bénéficiaire</a>
+                    <div>
+                        <a href="{{ route('admin.distribution.beneficiaries.import') }}" class="btn btn-outline-primary btn-sm me-1"><i class="fas fa-file-import me-1"></i>Import en masse</a>
+                        <a href="{{ route('admin.distribution.beneficiaries.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Nouveau bénéficiaire</a>
+                    </div>
                 </div>
             </div>
         </div>

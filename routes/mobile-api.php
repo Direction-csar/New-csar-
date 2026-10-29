@@ -44,6 +44,7 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
             Route::post('/beneficiaires', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'storeBeneficiaire']);
             Route::post('/beneficiaries', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'storeBeneficiaryV2']);
             Route::post('/beneficiaires/batch', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'batch']);
+            Route::post('/beneficiaries/batch', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'batchBeneficiaries']);
             Route::post('/scan', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scan']);
             Route::get('/tickets/history', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'ticketsHistory']);
             Route::get('/scans/history', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scansHistory']);
@@ -52,6 +53,7 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
             // Nouvelles routes pour le système complet
             Route::get('/events', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'events']);
             Route::get('/events/{id}/plannings', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'eventPlannings']);
+            Route::get('/my-plannings', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'myPlannings']);
             Route::get('/plannings', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'myPlannings']);
             Route::get('/plannings/{id}/beneficiaries', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'planningBeneficiaries']);
             Route::post('/beneficiaries/{id}/validate', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'validateBeneficiary']);

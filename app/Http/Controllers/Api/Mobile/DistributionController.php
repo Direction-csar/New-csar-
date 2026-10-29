@@ -273,6 +273,86 @@ class DistributionController extends Controller
         ]);
     }
 
+    /**
+     * Import en masse V2 : plusieurs beneficiaires en un seul appel.
+     * Chaque ligne est validee independamment ; les doublons (telephone/CNI/nom
+     * exact dans le meme planning) sont signales mais ne bloquent pas les autres.
+     */
+    public function batchBeneficiaries(Request $request): JsonResponse
+    {
+        $request->validate([
+            'beneficiaries' => 'required|array|min:1|max:200',
+            'beneficiaries.*.planning_id' => 'required|exists:distribution_plannings,id',
+            'beneficiaries.*.full_name' => 'required|string|max:255',
+            'beneficiaries.*.phone' => 'nullable|string|max:20',
+            'beneficiaries.*.cni' => 'nullable|string|max:100',
+            'beneficiaries.*.address' => 'nullable|string|max:500',
+            'beneficiaries.*.category' => 'nullable|string|max:100',
+            'beneficiaries.*.quantity_kg' => 'required|numeric|min:0.01',
+            'beneficiaries.*.is_vulnerable' => 'boolean',
+            'beneficiaries.*.is_pregnant' => 'boolean',
+            'beneficiaries.*.is_elderly' => 'boolean',
+            'beneficiaries.*.is_disabled' => 'boolean',
+        ]);
+
+        $created = [];
+        $skipped = [];
+
+        foreach ($request->input('beneficiaries') as $i => $item) {
+            $planning = DistributionPlanning::find($item['planning_id']);
+            if (!$planning || !$this->canAccessDistributionPlanning($planning)) {
+                $skipped[] = ['index' => $i, 'name' => $item['full_name'] ?? null, 'reason' => 'Planning non autorise.'];
+                continue;
+            }
+
+            $dupQuery = DistributionBeneficiary::where('planning_id', $planning->id);
+            $dup = $dupQuery->where(function ($q) use ($item) {
+                $q->where('full_name', trim((string) $item['full_name']));
+                if (!empty($item['phone'])) {
+                    $q->orWhere('phone', $item['phone']);
+                }
+                if (!empty($item['cni'])) {
+                    $q->orWhere('cni', $item['cni']);
+                }
+            })->first();
+
+            if ($dup) {
+                $skipped[] = [
+                    'index' => $i,
+                    'name' => $item['full_name'],
+                    'reason' => "Doublon : {$dup->full_name} existe deja (statut {$dup->status}).",
+                ];
+                continue;
+            }
+
+            $beneficiary = DistributionBeneficiary::create([
+                'planning_id' => $planning->id,
+                'full_name' => trim((string) $item['full_name']),
+                'phone' => $item['phone'] ?? null,
+                'cni' => $item['cni'] ?? null,
+                'address' => $item['address'] ?? null,
+                'category' => $item['category'] ?? 'general',
+                'is_vulnerable' => $item['is_vulnerable'] ?? false,
+                'is_pregnant' => $item['is_pregnant'] ?? false,
+                'is_elderly' => $item['is_elderly'] ?? false,
+                'is_disabled' => $item['is_disabled'] ?? false,
+                'quantity_kg' => $item['quantity_kg'],
+                'status' => DistributionBeneficiary::STATUS_PENDING,
+                'registered_by' => Auth::id(),
+            ]);
+
+            $created[] = $beneficiary;
+        }
+
+        return response()->json([
+            'success' => true,
+            'created_count' => count($created),
+            'skipped_count' => count($skipped),
+            'created' => $created,
+            'skipped' => $skipped,
+        ]);
+    }
+
     public function events(): JsonResponse
     {
         $events = DistributionEvent::where('status', 'active')

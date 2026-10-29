@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../services/sync_service.dart';
 import '../services/local_db_service.dart';
 import 'beneficiaire_form_screen.dart';
+import 'bulk_beneficiaries_screen.dart';
 import 'planning_beneficiaries_screen.dart';
 import 'tickets_history_screen.dart';
 
@@ -424,6 +425,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                   _refreshPendingCount();
                                   _loadPlannings();
                                 }),
+                                onQuickList: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => BulkBeneficiariesScreen(planning: p)),
+                                ).then((_) {
+                                  _refreshPendingCount();
+                                  _loadPlannings();
+                                }),
                                 onViewBeneficiaries: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => PlanningBeneficiariesScreen(planning: p)),
@@ -450,6 +458,7 @@ class _PlanningCard extends StatelessWidget {
   final int ticketsCount;
   final int collectedCount;
   final VoidCallback onRegister;
+  final VoidCallback onQuickList;
   final VoidCallback onViewBeneficiaries;
   final VoidCallback onViewTickets;
 
@@ -460,6 +469,7 @@ class _PlanningCard extends StatelessWidget {
     required this.ticketsCount,
     required this.collectedCount,
     required this.onRegister,
+    required this.onQuickList,
     required this.onViewBeneficiaries,
     required this.onViewTickets,
   });
@@ -570,6 +580,21 @@ class _PlanningCard extends StatelessWidget {
                   onPressed: onViewTickets,
                 ),
               ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFD84315),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              icon: const Icon(Icons.playlist_add, size: 18),
+              label: const Text('Saisie rapide (liste)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              onPressed: onQuickList,
+            ),
+          ),
             ],
           ),
         ],

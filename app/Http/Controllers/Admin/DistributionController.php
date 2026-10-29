@@ -9,6 +9,7 @@ use App\Models\DistributionBeneficiary;
 use App\Models\DistributionTicket;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -259,6 +260,123 @@ class DistributionController extends Controller
 
         return redirect()->route('admin.distribution.beneficiaries.index')
             ->with('success', 'Bénéficiaire ajouté.');
+    }
+
+    /**
+     * Import en masse : collage d'une liste ou envoi d'un fichier CSV.
+     * Format par ligne : nom;telephone;cni;quantite_kg  (tel, cni, quantite optionnels)
+     * Les doublons (nom exact, telephone ou CNI dans le meme planning) sont
+     * ignores et rapportes.
+     */
+    public function beneficiariesImport()
+    {
+        $plannings = DistributionPlanning::where('status', 'active')->pluck('name', 'id');
+        return view('admin.distribution.beneficiaries.import', compact('plannings'));
+    }
+
+    public function beneficiariesImportStore(Request $request)
+    {
+        $request->validate([
+            'planning_id' => 'required|exists:distribution_plannings,id',
+            'category' => 'nullable|string|max:100',
+            'default_quantity_kg' => 'nullable|numeric|min:0',
+            'list_text' => 'nullable|string',
+            'csv_file' => 'nullable|file|mimes:csv,txt|max:2048',
+        ]);
+
+        $planningId = (int) $request->planning_id;
+        $defaultQty = (float) ($request->default_quantity_kg ?? 0);
+        $category = $request->category ?: 'general';
+
+        $lines = [];
+        if ($request->filled('list_text')) {
+            $lines = preg_split('/\r\n|\r|\n/', $request->list_text);
+        }
+        if ($request->hasFile('csv_file')) {
+            $content = file_get_contents($request->file('csv_file')->getRealPath());
+            // Supporte UTF-8 BOM et encodage Windows Latin-1 courant sur Excel FR
+            $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
+            if (!mb_check_encoding($content, 'UTF-8')) {
+                $content = mb_convert_encoding($content, 'UTF-8', 'Windows-1252');
+            }
+            $lines = array_merge($lines, preg_split('/\r\n|\r|\n/', $content));
+        }
+
+        $lines = array_values(array_filter(array_map('trim', $lines), fn ($l) => $l !== ''));
+
+        if (empty($lines)) {
+            return redirect()->back()->withInput()
+                ->with('error', 'Aucune ligne à importer : collez une liste ou joignez un fichier CSV.');
+        }
+
+        $created = 0;
+        $skipped = [];
+
+        // Ignore la ligne d'en-tete si elle commence par "nom"
+        if (isset($lines[0]) && preg_match('/^(nom|name)\s*[;,]/iu', $lines[0])) {
+            array_shift($lines);
+        }
+
+        foreach ($lines as $num => $line) {
+            $parts = preg_split('/[;\t]/', $line);
+            if (count($parts) === 1) {
+                $parts = explode(',', $line);
+            }
+            $name = trim($parts[0] ?? '');
+            $phone = trim($parts[1] ?? '') ?: null;
+            $cni = trim($parts[2] ?? '') ?: null;
+            $qty = isset($parts[3]) && is_numeric(str_replace(',', '.', trim($parts[3])))
+                ? (float) str_replace(',', '.', trim($parts[3]))
+                : $defaultQty;
+
+            if ($name === '') {
+                $skipped[] = "Ligne " . ($num + 1) . " : nom vide.";
+                continue;
+            }
+            if ($qty <= 0) {
+                $skipped[] = "Ligne " . ($num + 1) . " ({$name}) : quantité manquante (ligne ou quantité par défaut).";
+                continue;
+            }
+
+            $dup = DistributionBeneficiary::where('planning_id', $planningId)
+                ->where(function ($q) use ($name, $phone, $cni) {
+                    $q->where('full_name', $name);
+                    if ($phone) {
+                        $q->orWhere('phone', $phone);
+                    }
+                    if ($cni) {
+                        $q->orWhere('cni', $cni);
+                    }
+                })->first();
+
+            if ($dup) {
+                $skipped[] = "Ligne " . ($num + 1) . " ({$name}) : doublon avec « {$dup->full_name} ».";
+                continue;
+            }
+
+            DistributionBeneficiary::create([
+                'planning_id' => $planningId,
+                'full_name' => $name,
+                'phone' => $phone,
+                'cni' => $cni,
+                'category' => $category,
+                'quantity_kg' => $qty,
+                'status' => 'pending',
+                'registered_by' => Auth::id(),
+            ]);
+            $created++;
+        }
+
+        $msg = "{$created} bénéficiaire(s) importé(s).";
+        if (count($skipped)) {
+            $msg .= ' ' . count($skipped) . ' ligne(s) ignorée(s) : ' . implode(' | ', array_slice($skipped, 0, 10));
+            if (count($skipped) > 10) {
+                $msg .= ' …';
+            }
+        }
+
+        return redirect()->route('admin.distribution.beneficiaries.index', ['planning_id' => $planningId])
+            ->with($created > 0 ? 'success' : 'error', $msg);
     }
 
     public function beneficiariesShow($id)

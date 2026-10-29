@@ -988,6 +988,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/beneficiaries', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesIndex'])->name('beneficiaries.index');
             Route::get('/beneficiaries/create', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesCreate'])->name('beneficiaries.create');
             Route::post('/beneficiaries', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesStore'])->name('beneficiaries.store');
+            Route::get('/beneficiaries/import', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesImport'])->name('beneficiaries.import');
+            Route::post('/beneficiaries/import', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesImportStore'])->name('beneficiaries.import.store');
             Route::get('/beneficiaries/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesShow'])->name('beneficiaries.show');
             Route::get('/beneficiaries/{id}/edit', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesEdit'])->name('beneficiaries.edit');
             Route::put('/beneficiaries/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesUpdate'])->name('beneficiaries.update');
