@@ -10,35 +10,59 @@ use App\Models\DistributionEvent;
 use App\Models\DistributionPlanning;
 use App\Models\DistributionBeneficiary;
 use App\Models\DistributionTicket;
+use App\Models\DistributionPlanningAgent;
+use App\Models\DistributionScanAttempt;
 use App\Models\DistributionScanLog;
 use App\Services\BeneficiaireDistributionService;
+use App\Services\Distribution\PlanningAccess;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class DistributionController extends Controller
 {
     /**
-     * Un admin/super_admin n'est pas limite aux plannings qui lui sont assignes.
+     * Un admin/super_admin n'est pas limite aux plannings qui lui sont affectes.
      */
     private function isAdminUser(): bool
     {
-        return in_array(optional(Auth::user())->role, ['admin', 'super_admin'], true);
+        return PlanningAccess::isAdmin(Auth::user());
     }
 
     /**
-     * Convention existante du controleur : un planning accessible est soit
-     * non assigne, soit assigne a l'agent authentifie (admin : toujours).
+     * Planning sur lequel l'agent est affecte comme DISTRIBUTEUR (ou admin).
+     * 404 si le planning n'existe pas ou n'est pas affecte a l'agent : on ne
+     * revele pas l'existence des plannings d'autres agents. Un planning sans
+     * agent affecte n'est accessible qu'a l'administrateur.
      */
-    private function canAccessDistributionPlanning(?DistributionPlanning $planning): bool
+    private function distributorPlanningOrFail(int $id): DistributionPlanning
     {
-        if ($this->isAdminUser() || !$planning || is_null($planning->assigned_to)) {
-            return true;
+        $planning = DistributionPlanning::find($id);
+
+        if (!PlanningAccess::canDistribute(Auth::user(), $planning)) {
+            throw new HttpResponseException(response()->json([
+                'success' => false,
+                'message' => 'Planning introuvable ou non autorisé.',
+            ], 404));
         }
-        return (int) $planning->assigned_to === (int) Auth::id();
+
+        return $planning;
+    }
+
+    /** Deconnexion serveur : revoque le jeton courant (les jetons ne sont plus orphelins). */
+    public function logout(Request $request): JsonResponse
+    {
+        $token = $request->user()?->currentAccessToken();
+        if ($token instanceof PersonalAccessToken) {
+            $token->delete();
+        }
+
+        return response()->json(['success' => true, 'message' => 'Déconnecté.']);
     }
 
     public function sync(): JsonResponse
@@ -244,11 +268,7 @@ class DistributionController extends Controller
             'quantity_kg' => 'required|numeric|min:0.01',
         ]);
 
-        $planning = DistributionPlanning::where('id', $validated['planning_id'])
-            ->where(function ($q) {
-                $q->where('assigned_to', Auth::id())->orWhereNull('assigned_to');
-            })
-            ->firstOrFail();
+        $this->distributorPlanningOrFail((int) $validated['planning_id']);
 
         $beneficiary = DistributionBeneficiary::create([
             'planning_id' => $validated['planning_id'],
@@ -300,7 +320,7 @@ class DistributionController extends Controller
 
         foreach ($request->input('beneficiaries') as $i => $item) {
             $planning = DistributionPlanning::find($item['planning_id']);
-            if (!$planning || !$this->canAccessDistributionPlanning($planning)) {
+            if (!PlanningAccess::canDistribute(Auth::user(), $planning)) {
                 $skipped[] = ['index' => $i, 'name' => $item['full_name'] ?? null, 'reason' => 'Planning non autorise.'];
                 continue;
             }
@@ -355,10 +375,10 @@ class DistributionController extends Controller
 
     public function events(): JsonResponse
     {
+        $uid = (int) Auth::id();
         $events = DistributionEvent::where('status', 'active')
-            ->with(['plannings' => function ($q) {
-                $q->where('assigned_to', Auth::id())->orWhereNull('assigned_to');
-            }])
+            ->whereHas('plannings', fn ($q) => $q->assignedTo($uid, DistributionPlanningAgent::TYPE_DISTRIBUTOR))
+            ->with(['plannings' => fn ($q) => $q->assignedTo($uid, DistributionPlanningAgent::TYPE_DISTRIBUTOR)])
             ->orderBy('start_date', 'desc')
             ->get();
 
@@ -373,9 +393,7 @@ class DistributionController extends Controller
         $event = DistributionEvent::findOrFail($id);
 
         $plannings = $event->plannings()
-            ->where(function ($q) {
-                $q->where('assigned_to', Auth::id())->orWhereNull('assigned_to');
-            })
+            ->assignedTo((int) Auth::id(), DistributionPlanningAgent::TYPE_DISTRIBUTOR)
             ->where('status', '!=', 'cancelled')
             ->withCount(['beneficiaries', 'tickets'])
             ->get();
@@ -389,7 +407,7 @@ class DistributionController extends Controller
 
     public function myPlannings(): JsonResponse
     {
-        $plannings = DistributionPlanning::where('assigned_to', Auth::id())
+        $plannings = DistributionPlanning::assignedTo((int) Auth::id(), DistributionPlanningAgent::TYPE_DISTRIBUTOR)
             ->where('status', 'active')
             ->with('event')
             ->withCount(['beneficiaries', 'tickets'])
@@ -412,11 +430,7 @@ class DistributionController extends Controller
 
     public function planningBeneficiaries(int $id, Request $request): JsonResponse
     {
-        $planning = DistributionPlanning::where('id', $id)
-            ->where(function ($q) {
-                $q->where('assigned_to', Auth::id())->orWhereNull('assigned_to');
-            })
-            ->firstOrFail();
+        $planning = $this->distributorPlanningOrFail($id);
 
         $query = $planning->beneficiaries()
             ->with(['tickets' => fn ($q) => $q->whereIn('status', ['issued', 'scanned', 'collected'])->latest()]);
@@ -462,11 +476,7 @@ class DistributionController extends Controller
     {
         $beneficiary = DistributionBeneficiary::findOrFail($id);
 
-        $planning = DistributionPlanning::where('id', $beneficiary->planning_id)
-            ->where(function ($q) {
-                $q->where('assigned_to', Auth::id())->orWhereNull('assigned_to');
-            })
-            ->firstOrFail();
+        $this->distributorPlanningOrFail((int) $beneficiary->planning_id);
 
         if ($beneficiary->status !== DistributionBeneficiary::STATUS_PENDING) {
             return response()->json([
@@ -492,11 +502,7 @@ class DistributionController extends Controller
     {
         $beneficiary = DistributionBeneficiary::findOrFail($id);
 
-        $planning = DistributionPlanning::where('id', $beneficiary->planning_id)
-            ->where(function ($q) {
-                $q->where('assigned_to', Auth::id())->orWhereNull('assigned_to');
-            })
-            ->firstOrFail();
+        $this->distributorPlanningOrFail((int) $beneficiary->planning_id);
 
         if (!in_array($beneficiary->status, [DistributionBeneficiary::STATUS_VALIDATED, DistributionBeneficiary::STATUS_TICKET_ISSUED])) {
             return response()->json([
@@ -534,6 +540,7 @@ class DistributionController extends Controller
                 'qr_token' => $qrToken,
                 'status' => DistributionTicket::STATUS_ISSUED,
                 'issued_at' => now(),
+                'issued_by' => Auth::id(),
             ]);
 
             $beneficiary->update(['status' => DistributionBeneficiary::STATUS_TICKET_ISSUED]);
@@ -548,7 +555,7 @@ class DistributionController extends Controller
 
     public function ticketsHistory(Request $request): JsonResponse
     {
-        $planningIds = DistributionPlanning::where('assigned_to', Auth::id())->pluck('id');
+        $planningIds = DistributionPlanning::assignedTo((int) Auth::id(), DistributionPlanningAgent::TYPE_DISTRIBUTOR)->pluck('id');
 
         $query = DistributionTicket::whereIn('planning_id', $planningIds)
             ->with(['beneficiary:id,full_name,phone,cni,quantity_kg,status', 'planning:id,name,location', 'scanner:id,name'])
@@ -591,6 +598,9 @@ class DistributionController extends Controller
             ->where('status', 'collected')
             ->with(['beneficiary:id,full_name,phone,cni,quantity_kg', 'planning:id,name,location,event_id', 'planning.event:id,name']);
 
+        if ($request->filled('planning_id')) {
+            $query->where('planning_id', (int) $request->planning_id);
+        }
         if ($search = trim((string) $request->query('search', ''))) {
             $query->where(function ($q) use ($search) {
                 $q->where('ticket_code', 'like', "%{$search}%")
@@ -615,73 +625,186 @@ class DistributionController extends Controller
         ]);
     }
 
+    // =====================================================================
+    // APK Scanner : plannings a controler, verification puis confirmation
+    // =====================================================================
+
+    /** Plannings sur lesquels l'agent est affecte comme SCANNER (jamais deduits de l'affectation distributeur). */
+    public function myScanPlannings(): JsonResponse
+    {
+        $plannings = DistributionPlanning::assignedTo((int) Auth::id(), DistributionPlanningAgent::TYPE_SCANNER)
+            ->where('status', 'active')
+            ->with('event:id,name')
+            ->orderBy('distribution_date', 'asc')
+            ->get()
+            ->map(fn (DistributionPlanning $p) => [
+                'id' => $p->id,
+                'name' => $p->name,
+                'location' => $p->location,
+                'distribution_date' => $p->distribution_date?->toDateString(),
+                'event' => $p->event ? ['id' => $p->event->id, 'name' => $p->event->name] : null,
+                'tickets_count' => $p->tickets()->whereIn('status', ['issued', 'scanned', 'collected'])->count(),
+                'collected_count' => $p->tickets()->where('status', 'collected')->count(),
+            ]);
+
+        return response()->json(['success' => true, 'data' => $plannings]);
+    }
+
+    /** Lecture seule : tickets d'un planning a controler (donnees minimales, utilisables en consultation hors ligne). */
+    public function scanPlanningTickets(int $id, Request $request): JsonResponse
+    {
+        $planning = DistributionPlanning::find($id);
+        if (!PlanningAccess::canScan(Auth::user(), $planning)) {
+            return response()->json(['success' => false, 'message' => 'Planning introuvable ou non autorisé.'], 404);
+        }
+
+        $query = $planning->tickets()
+            ->whereIn('status', ['issued', 'scanned', 'collected'])
+            ->with('beneficiary:id,full_name,quantity_kg');
+
+        if ($search = trim((string) $request->query('search', ''))) {
+            $query->where(function ($q) use ($search) {
+                $q->where('ticket_code', 'like', "%{$search}%")
+                    ->orWhereHas('beneficiary', fn ($b) => $b->where('full_name', 'like', "%{$search}%"));
+            });
+        }
+
+        $tickets = $query->orderBy('ticket_code')->limit(1000)->get()->map(fn (DistributionTicket $t) => [
+            'ticket_code' => $t->ticket_code,
+            'status' => $t->status,
+            'collected_at' => $t->collected_at?->toIso8601String(),
+            'beneficiary' => $t->beneficiary
+                ? ['full_name' => $t->beneficiary->full_name, 'quantity_kg' => $t->beneficiary->quantity_kg]
+                : null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'server_time' => now()->toIso8601String(),
+            'planning' => ['id' => $planning->id, 'name' => $planning->name],
+            'stats' => [
+                'issued' => $planning->tickets()->whereIn('status', ['issued', 'scanned'])->count(),
+                'collected' => $planning->tickets()->where('status', 'collected')->count(),
+            ],
+            'data' => $tickets,
+        ]);
+    }
+
+    /**
+     * Etape 1 : verification SANS effet de bord. Controle le ticket, le beneficiaire,
+     * le planning et le droit de scan de l'agent, puis renvoie l'apercu a confirmer.
+     */
+    public function verifyTicket(string $code, Request $request): JsonResponse
+    {
+        [$ticket, $error] = $this->inspectTicket($code);
+
+        if ($error) {
+            $this->logAttempt($request, DistributionScanAttempt::ACTION_VERIFY, $error['result'], $ticket, $code, $error['message']);
+            return response()->json(['success' => false, 'message' => $error['message']], $error['status']);
+        }
+
+        $this->logAttempt($request, DistributionScanAttempt::ACTION_VERIFY, DistributionScanAttempt::RESULT_OK, $ticket, $code);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Ticket valide : confirmez la remise du kit.',
+            'data' => [
+                'ticket_code' => $ticket->ticket_code,
+                'status' => $ticket->status,
+                'beneficiary' => [
+                    'full_name' => $ticket->beneficiary->full_name,
+                    'quantity_kg' => $ticket->beneficiary->quantity_kg,
+                    'category' => $ticket->beneficiary->category,
+                    'phone_masked' => $this->maskPhone($ticket->beneficiary->phone),
+                ],
+                'planning' => [
+                    'id' => $ticket->planning->id,
+                    'name' => $ticket->planning->name,
+                    'location' => $ticket->planning->location,
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Etape 2 : confirmation de la remise. Un ticket ne peut etre utilise qu'une seule
+     * fois, meme avec plusieurs scanners simultanes : l'utilisation est « reclamee » par
+     * un UPDATE conditionnel (statut encore emis) dont un seul appel peut sortir gagnant.
+     */
     public function collectKit(string $qrToken, Request $request): JsonResponse
     {
-        $ticket = DistributionTicket::where('qr_token', $qrToken)
-            ->orWhere('ticket_code', $qrToken)
-            ->with('beneficiary', 'planning')
-            ->first();
+        [$ticket, $error] = $this->inspectTicket($qrToken);
 
-        if (!$ticket) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ticket non trouvé.',
-            ], 404);
+        if ($error) {
+            $this->logAttempt($request, DistributionScanAttempt::ACTION_COLLECT, $error['result'], $ticket, $qrToken, $error['message']);
+            return response()->json(['success' => false, 'message' => $error['message']] + $error['extra'], $error['status']);
         }
 
-        if ($ticket->status === DistributionTicket::STATUS_COLLECTED) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Kit déjà récupéré.',
-                'data' => [
-                    'collected_at' => $ticket->collected_at?->toIso8601String(),
-                ],
-            ], 422);
-        }
+        $userId = (int) Auth::id();
+        $location = $request->input('location') ?: $request->input('scan_location');
 
-        if ($ticket->status === DistributionTicket::STATUS_CANCELLED) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Ticket annulé.',
-            ], 422);
-        }
+        try {
+            $claimed = DB::transaction(function () use ($ticket, $request, $userId, $location) {
+                $now = now();
 
-        // Cloisonnement : le planning du ticket doit etre assigne a l'agent
-        // (ou non assigne), sauf admin — meme convention que les autres
-        // endpoints distribution.
-        if (!$this->canAccessDistributionPlanning($ticket->planning)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Planning non autorisé.',
-            ], 403);
-        }
+                $won = DistributionTicket::where('id', $ticket->id)
+                    ->whereIn('status', [DistributionTicket::STATUS_ISSUED, DistributionTicket::STATUS_SCANNED])
+                    ->update([
+                        'status' => DistributionTicket::STATUS_COLLECTED,
+                        'scanned_at' => $now,
+                        'collected_at' => $now,
+                        'scanned_by' => $userId,
+                        'scan_location' => $location,
+                        'updated_at' => $now,
+                    ]);
 
-        DB::transaction(function () use ($ticket, $request) {
-            $ticket->update([
-                'status' => DistributionTicket::STATUS_COLLECTED,
-                'scanned_at' => now(),
-                'collected_at' => now(),
-                'scanned_by' => Auth::id(),
-                // scanner-app envoie 'scan_location', distribution-app 'location' : accepter les deux.
-                'scan_location' => $request->input('location') ?: $request->input('scan_location'),
-            ]);
+                if ($won !== 1) {
+                    return false;
+                }
 
-            $ticket->beneficiary->update([
-                'status' => DistributionBeneficiary::STATUS_KIT_COLLECTED,
-            ]);
+                // Un beneficiaire ne recoit qu'un seul kit : si un autre ticket l'a deja servi, on annule tout.
+                $served = DistributionBeneficiary::where('id', $ticket->beneficiary_id)
+                    ->where('status', '!=', DistributionBeneficiary::STATUS_KIT_COLLECTED)
+                    ->update(['status' => DistributionBeneficiary::STATUS_KIT_COLLECTED, 'updated_at' => $now]);
 
-            if ($ticket->planning) {
-                $ticket->planning->increment('executed_kg', (float) $ticket->beneficiary->quantity_kg);
+                if ($served !== 1) {
+                    throw new \RuntimeException('beneficiary_already_served');
+                }
+
+                DistributionPlanning::where('id', $ticket->planning_id)
+                    ->increment('executed_kg', (float) $ticket->beneficiary->quantity_kg);
+
+                DistributionScanLog::create([
+                    'ticket_id' => $ticket->id,
+                    'user_id' => $userId,
+                    'action' => DistributionScanLog::ACTION_COLLECT,
+                    'notes' => $request->input('notes'),
+                    'device_info' => $request->input('device_info'),
+                ]);
+
+                return true;
+            });
+        } catch (\RuntimeException $e) {
+            if ($e->getMessage() !== 'beneficiary_already_served') {
+                throw $e;
             }
+            $claimed = false;
+        }
 
-            DistributionScanLog::create([
-                'ticket_id' => $ticket->id,
-                'user_id' => Auth::id(),
-                'action' => DistributionScanLog::ACTION_COLLECT,
-                'notes' => $request->input('notes'),
-                'device_info' => $request->input('device_info'),
-            ]);
-        });
+        if (!$claimed) {
+            $current = $ticket->fresh();
+            $message = 'Kit déjà récupéré.';
+            $this->logAttempt($request, DistributionScanAttempt::ACTION_COLLECT, DistributionScanAttempt::RESULT_ALREADY_USED, $ticket, $qrToken, $message);
+
+            return response()->json([
+                'success' => false,
+                'message' => $message,
+                'data' => ['collected_at' => $current?->collected_at?->toIso8601String()],
+            ], 422);
+        }
+
+        $this->logAttempt($request, DistributionScanAttempt::ACTION_COLLECT, DistributionScanAttempt::RESULT_OK, $ticket, $qrToken);
+        $collectedAt = $ticket->fresh()->collected_at;
 
         return response()->json([
             'success' => true,
@@ -691,13 +814,95 @@ class DistributionController extends Controller
                 'beneficiaire' => [
                     'full_name' => $ticket->beneficiary->full_name,
                     'quantity_kg' => $ticket->beneficiary->quantity_kg,
-                    'phone' => $ticket->beneficiary->phone,
                 ],
-                'beneficiary' => $ticket->beneficiary,
-                'planning' => $ticket->planning,
-                'collected_at' => now()->toIso8601String(),
+                'beneficiary' => [
+                    'id' => $ticket->beneficiary->id,
+                    'full_name' => $ticket->beneficiary->full_name,
+                    'quantity_kg' => $ticket->beneficiary->quantity_kg,
+                ],
+                'planning' => ['id' => $ticket->planning->id, 'name' => $ticket->planning->name],
+                'collected_at' => $collectedAt?->toIso8601String(),
             ],
         ]);
+    }
+
+    /**
+     * Controles communs a la verification et a la remise, dans un ordre qui ne
+     * revele rien a un agent non autorise (droit de scan verifie avant le statut).
+     *
+     * @return array{0: ?DistributionTicket, 1: ?array{status:int,result:string,message:string,extra:array}}
+     */
+    private function inspectTicket(string $code): array
+    {
+        $code = trim($code);
+
+        $ticket = $code === '' ? null : DistributionTicket::where('qr_token', $code)
+            ->orWhere('ticket_code', $code)
+            ->with('beneficiary', 'planning.event')
+            ->first();
+
+        $fail = fn (int $status, string $result, string $message, array $extra = []) =>
+            [$ticket, compact('status', 'result', 'message', 'extra')];
+
+        if (!$ticket) {
+            return $fail(404, DistributionScanAttempt::RESULT_INVALID_CODE, 'Ticket non trouvé.');
+        }
+
+        if (!$ticket->beneficiary || !$ticket->planning || (int) $ticket->beneficiary->planning_id !== (int) $ticket->planning_id) {
+            return $fail(409, DistributionScanAttempt::RESULT_INCONSISTENT, 'Ticket incohérent : contactez l\'administration.');
+        }
+
+        if (!PlanningAccess::canScan(Auth::user(), $ticket->planning)) {
+            return $fail(403, DistributionScanAttempt::RESULT_FORBIDDEN, 'Planning non autorisé : vous n\'êtes pas affecté comme scanner sur ce planning.');
+        }
+
+        if ($ticket->planning->status !== 'active') {
+            return $fail(422, DistributionScanAttempt::RESULT_PLANNING_INACTIVE, 'Ce planning n\'est pas actif.');
+        }
+
+        if ($ticket->status === DistributionTicket::STATUS_CANCELLED) {
+            return $fail(422, DistributionScanAttempt::RESULT_CANCELLED, 'Ticket annulé.');
+        }
+
+        if ($ticket->status === DistributionTicket::STATUS_COLLECTED
+            || $ticket->beneficiary->status === DistributionBeneficiary::STATUS_KIT_COLLECTED) {
+            return $fail(422, DistributionScanAttempt::RESULT_ALREADY_USED, 'Kit déjà récupéré.', [
+                'data' => ['collected_at' => $ticket->collected_at?->toIso8601String()],
+            ]);
+        }
+
+        return [$ticket, null];
+    }
+
+    /** Audit : journalise toute tentative (succes comme refus). Ne doit jamais faire echouer la requete. */
+    private function logAttempt(Request $request, string $action, string $result, ?DistributionTicket $ticket, string $code, ?string $message = null): void
+    {
+        try {
+            DistributionScanAttempt::create([
+                'user_id' => Auth::id(),
+                'ticket_id' => $ticket?->id,
+                'planning_id' => $ticket?->planning_id,
+                'beneficiary_id' => $ticket?->beneficiary_id,
+                'action' => $action,
+                'result' => $result,
+                'code' => Str::limit($ticket?->ticket_code ?? $code, 100, ''),
+                'message' => $message ? Str::limit($message, 250, '') : null,
+                'device_info' => $request->input('device_info') ? Str::limit((string) $request->input('device_info'), 250, '') : null,
+                'ip' => $request->ip(),
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    private function maskPhone(?string $phone): ?string
+    {
+        if (!$phone) {
+            return null;
+        }
+        $digits = preg_replace('/\D+/', '', $phone);
+
+        return strlen($digits) >= 3 ? str_repeat('•', max(0, strlen($digits) - 3)) . substr($digits, -3) : $digits;
     }
 
     public function checkDuplicate(Request $request): JsonResponse
@@ -712,7 +917,7 @@ class DistributionController extends Controller
         // Cloisonnement : l'agent ne peut interroger que son planning
         // (ou un planning non assigne), sauf admin.
         $planning = DistributionPlanning::findOrFail($request->planning_id);
-        if (!$this->canAccessDistributionPlanning($planning)) {
+        if (!PlanningAccess::canDistribute(Auth::user(), $planning)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Planning non autorisé.',

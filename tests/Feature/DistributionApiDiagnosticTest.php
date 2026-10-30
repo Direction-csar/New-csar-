@@ -43,7 +43,7 @@ class DistributionApiDiagnosticTest extends TestCase
 
     private function createSchema(): void
     {
-        foreach (['personal_access_tokens', 'distribution_scan_logs', 'distribution_tickets', 'distribution_beneficiaries', 'distribution_plannings', 'distribution_events', 'users', 'roles'] as $t) {
+        foreach (['personal_access_tokens', 'distribution_scan_attempts', 'distribution_planning_agents', 'distribution_scan_logs', 'distribution_tickets', 'distribution_beneficiaries', 'distribution_plannings', 'distribution_events', 'users', 'roles'] as $t) {
             Schema::dropIfExists($t);
         }
 
@@ -150,6 +150,7 @@ class DistributionApiDiagnosticTest extends TestCase
             $t->datetime('scanned_at')->nullable();
             $t->datetime('collected_at')->nullable();
             $t->foreignId('scanned_by')->nullable();
+            $t->foreignId('issued_by')->nullable();
             $t->string('scan_location')->nullable();
             $t->timestamps();
         });
@@ -161,6 +162,31 @@ class DistributionApiDiagnosticTest extends TestCase
             $t->enum('action', ['scan', 'collect', 'cancel'])->default('scan');
             $t->text('notes')->nullable();
             $t->string('device_info')->nullable();
+            $t->timestamps();
+        });
+
+        Schema::create('distribution_planning_agents', function (Blueprint $t) {
+            $t->id();
+            $t->foreignId('planning_id');
+            $t->foreignId('user_id');
+            $t->string('type', 20);
+            $t->foreignId('assigned_by')->nullable();
+            $t->timestamps();
+            $t->unique(['planning_id', 'user_id', 'type']);
+        });
+
+        Schema::create('distribution_scan_attempts', function (Blueprint $t) {
+            $t->id();
+            $t->foreignId('user_id')->nullable();
+            $t->foreignId('ticket_id')->nullable();
+            $t->foreignId('planning_id')->nullable();
+            $t->foreignId('beneficiary_id')->nullable();
+            $t->string('action', 20);
+            $t->string('result', 40);
+            $t->string('code', 100)->nullable();
+            $t->string('message')->nullable();
+            $t->string('device_info')->nullable();
+            $t->string('ip', 45)->nullable();
             $t->timestamps();
         });
     }
@@ -178,13 +204,26 @@ class DistributionApiDiagnosticTest extends TestCase
 
     private function makePlanning(DistributionEvent $event, array $attrs = []): DistributionPlanning
     {
-        return DistributionPlanning::create(array_merge([
+        $asScanner = $attrs['also_scanner'] ?? false;
+        unset($attrs['also_scanner']);
+
+        $planning = DistributionPlanning::create(array_merge([
             'event_id' => $event->id,
             'name' => 'Site ' . substr(md5(uniqid()), 0, 6),
             'planned_quota_kg' => 1000,
             'status' => 'active',
             'assigned_to' => $this->agent->id,
         ], $attrs));
+
+        // La source de verite des droits est la table d affectations (assigned_to est historique).
+        if ($planning->assigned_to) {
+            $planning->syncAgents('distributor', [$planning->assigned_to]);
+        }
+        if ($asScanner) {
+            $planning->syncAgents('scanner', [$this->agent->id]);
+        }
+
+        return $planning;
     }
 
     // ===== E1 : compte agent =====
@@ -304,7 +343,7 @@ class DistributionApiDiagnosticTest extends TestCase
 
     public function test_collect_ignores_scan_location_key_sent_by_apk(): void
     {
-        $planning = $this->makePlanning($this->makeEvent());
+        $planning = $this->makePlanning($this->makeEvent(), ['also_scanner' => true]);
         $b = DistributionBeneficiary::create([
             'planning_id' => $planning->id, 'full_name' => 'B', 'status' => 'ticket_issued',
         ]);

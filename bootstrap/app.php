@@ -53,6 +53,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'enforce.2fa' => \App\Http\Middleware\EnforceTwoFactor::class,
             'collector-tracking' => \App\Http\Middleware\CollectorTrackingAuth::class,
             'sim.collector' => \App\Http\Middleware\EnsureActiveSimCollector::class,
+            'distribution.user' => \App\Http\Middleware\EnsureDistributionUser::class,
             'http-cache' => \App\Http\Middleware\HttpCache::class,
             'workflow.role' => \App\Http\Middleware\CheckWorkflowRole::class,
             'direction' => \App\Http\Middleware\DirectionPortalMiddleware::class,

@@ -42,6 +42,35 @@ class ApiService {
     return _decode(response);
   }
 
+  /// Revocation du jeton cote serveur (best effort).
+  static Future<void> logout(String token) async {
+    try {
+      await http.post(Uri.parse('$distBaseUrl/logout'), headers: _headers(token));
+    } catch (_) {}
+  }
+
+  /// True si le jeton est refuse/expire (deconnexion requise).
+  static bool isAuthError(Map<String, dynamic> res) =>
+      res['http_status'] == 401 || res['http_status'] == 403;
+
+  /// Plannings auxquels l'agent est affecte pour les operations de controle.
+  static Future<Map<String, dynamic>> getScanPlannings(String token) async {
+    final response = await http.get(
+      Uri.parse('$distBaseUrl/scan/plannings'),
+      headers: _headers(token),
+    );
+    return _decode(response);
+  }
+
+  /// Verification SANS effet de bord : apercu avant confirmation de remise.
+  static Future<Map<String, dynamic>> verifyTicket(String token, String ticketCode) async {
+    final response = await http.post(
+      Uri.parse('$distBaseUrl/tickets/$ticketCode/verify'),
+      headers: _headers(token),
+    );
+    return _decode(response);
+  }
+
   static Future<Map<String, dynamic>> collectKit(String token, String ticketCode, {String? scanLocation}) async {
     final response = await http.post(
       Uri.parse('$distBaseUrl/tickets/$ticketCode/collect'),
@@ -51,8 +80,9 @@ class ApiService {
     return _decode(response);
   }
 
-  static Future<Map<String, dynamic>> getScanHistory(String token, {String? search, String? date}) async {
+  static Future<Map<String, dynamic>> getScanHistory(String token, {String? search, String? date, dynamic planningId}) async {
     final params = <String, String>{};
+    if (planningId != null) params['planning_id'] = '$planningId';
     if (search != null && search.isNotEmpty) params['search'] = search;
     if (date != null && date.isNotEmpty) params['date'] = date;
     final uri = Uri.parse('$distBaseUrl/scans/history').replace(queryParameters: params.isEmpty ? null : params);

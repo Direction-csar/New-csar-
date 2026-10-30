@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
-import 'screens/scan_screen.dart';
+import 'screens/plannings_screen.dart';
 
 void main() {
   runApp(
@@ -68,6 +68,6 @@ class _AuthWrapperState extends State<AuthWrapper> {
         body: Center(child: CircularProgressIndicator(color: Color(0xFF1565C0))),
       );
     }
-    return auth.isAuthenticated ? const ScanScreen() : const LoginScreen();
+    return auth.isAuthenticated ? const PlanningsScreen() : const LoginScreen();
   }
 }

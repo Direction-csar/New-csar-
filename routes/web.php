@@ -990,6 +990,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/beneficiaries', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesStore'])->name('beneficiaries.store');
             Route::get('/beneficiaries/import', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesImport'])->name('beneficiaries.import');
             Route::post('/beneficiaries/import', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesImportStore'])->name('beneficiaries.import.store');
+            Route::post('/beneficiaries/import/confirm', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesImportConfirm'])->name('beneficiaries.import.confirm');
+            Route::get('/beneficiaries/import/template', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesImportTemplate'])->name('beneficiaries.import.template');
             Route::post('/plannings/{id}/activate', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsActivate'])->name('plannings.activate');
             Route::get('/beneficiaries/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesShow'])->name('beneficiaries.show');
             Route::post('/beneficiaries/{id}/validate', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesValidate'])->name('beneficiaries.validate');

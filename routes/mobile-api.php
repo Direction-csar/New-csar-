@@ -39,7 +39,9 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
         });
 
         // Distribution (aide alimentaire / bons-matière)
-        Route::prefix('distribution')->group(function () {
+        // distribution.user : jeton d'un membre du personnel actif et non expiré (jamais un collecteur SIM).
+        Route::prefix('distribution')->middleware('distribution.user')->group(function () {
+            Route::post('/logout', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'logout']);
             Route::get('/sync', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'sync']);
             Route::post('/beneficiaires', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'storeBeneficiaire']);
             Route::post('/beneficiaries', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'storeBeneficiaryV2']);
@@ -58,7 +60,12 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
             Route::get('/plannings/{id}/beneficiaries', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'planningBeneficiaries']);
             Route::post('/beneficiaries/{id}/validate', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'validateBeneficiary']);
             Route::post('/beneficiaries/{id}/generate-ticket', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'generateTicket']);
+            Route::post('/tickets/{code}/verify', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'verifyTicket']);
             Route::post('/tickets/{qrToken}/collect', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'collectKit']);
+
+            // APK Scanner : plannings affectes comme scanner (indépendant de l'affectation distributeur)
+            Route::get('/scan/plannings', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'myScanPlannings']);
+            Route::get('/scan/plannings/{id}/tickets', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scanPlanningTickets']);
             Route::post('/check-duplicate', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'checkDuplicate']);
         });
     });

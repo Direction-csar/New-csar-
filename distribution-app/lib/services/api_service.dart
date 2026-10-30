@@ -43,6 +43,20 @@ class ApiService {
     return _decode(response);
   }
 
+  /// Revocation du jeton cote serveur (best effort : le nettoyage local a lieu quand meme).
+  static Future<void> logout(String token) async {
+    try {
+      await http.post(
+        Uri.parse('$distBaseUrl/logout'),
+        headers: _headers(token),
+      );
+    } catch (_) {}
+  }
+
+  /// True si la reponse indique un jeton refuse/expire (deconnexion requise).
+  static bool isAuthError(Map<String, dynamic> res) =>
+      res['http_status'] == 401 || res['http_status'] == 403;
+
   static Future<Map<String, dynamic>> sync(String token) async {
     final response = await http.get(
       Uri.parse('$distBaseUrl/sync'),

@@ -36,15 +36,15 @@
                         <select name="planning_id" class="form-select form-select-sm" required>
                             <option value="">— Choisir un planning —</option>
                             @foreach($plannings as $id => $name)
-                                <option value="{{ $id }}" {{ old('planning_id') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                                <option value="{{ $id }}" {{ old('planning_id', request('planning_id')) == $id ? 'selected' : '' }}>{{ $name }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label small fw-bold">Catégorie (par défaut : general)</label>
-                            <input type="text" name="category" class="form-control form-control-sm" value="{{ old('category') }}" placeholder="ex: famille, veuve...">
+                            <label class="form-label small fw-bold">Catégorie par défaut (general)</label>
+                            <input type="text" name="category" class="form-control form-control-sm" value="{{ old('category') }}" placeholder="ex: famille, veuve... (utilisée si la colonne est vide)">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Quantité par défaut (kg)</label>
@@ -53,29 +53,35 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Coller la liste</label>
-                        <textarea name="list_text" class="form-control form-control-sm font-monospace" rows="12"
-                            placeholder="Une ligne par bénéficiaire :&#10;Nom complet;téléphone;CNI;quantité_kg&#10;&#10;Exemple :&#10;Moussa Diop;771234567;1234567890123;50&#10;Fatou Ndiaye;;50">{{ old('list_text') }}</textarea>
+                        <label class="form-label small fw-bold">Fichier Excel ou CSV</label>
+                        <input type="file" name="import_file" class="form-control form-control-sm" accept=".xlsx,.xls,.csv,.txt">
                         <div class="form-text">
-                            Séparateurs acceptés : <code>;</code>, tabulation ou <code>,</code>.
-                            Téléphone, CNI et quantité sont optionnels (la quantité par défaut s'applique sinon).
+                            Formats : <strong>.xlsx, .xls</strong>, .csv. Maximum 5 Mo et {{ number_format(\App\Services\Distribution\BeneficiaryImportService::MAX_ROWS, 0, ',', ' ') }} lignes.
+                            Première feuille uniquement, première ligne = en-têtes.
+                            <a href="{{ route('admin.distribution.beneficiaries.import.template') }}"><i class="fas fa-download me-1"></i>Télécharger le modèle Excel</a>
+                        </div>
+                        <div class="form-text">
+                            Colonnes reconnues : <code>Nom</code> (obligatoire), <code>Prénom</code>, <code>Téléphone</code>, <code>CNI</code>,
+                            <code>Quantité</code>, <code>Catégorie</code>, <code>Adresse</code>.
                         </div>
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">— ou — Fichier CSV</label>
-                        <input type="file" name="csv_file" class="form-control form-control-sm" accept=".csv,.txt">
-                        <div class="form-text">Même format. Export Excel « CSV (séparateur point-virgule) » supporté.</div>
+                        <label class="form-label small fw-bold">— ou — Coller la liste</label>
+                        <textarea name="list_text" class="form-control form-control-sm font-monospace" rows="8"
+                            placeholder="Nom complet;téléphone;CNI;quantité_kg&#10;Exemple Fictif Un;771234567;1234567890123;50&#10;Exemple Fictif Deux;;;50">{{ old('list_text') }}</textarea>
+                        <div class="form-text">Séparateurs acceptés : <code>;</code>, tabulation ou <code>,</code>. Utilisez soit le fichier, soit la liste collée.</div>
                     </div>
 
                     <div class="alert alert-info small py-2 mb-3">
                         <i class="fas fa-info-circle me-1"></i>
-                        Les doublons (même nom, téléphone ou CNI déjà présent dans ce planning) sont ignorés et listés dans le rapport d'import.
+                        Rien n'est enregistré à cette étape : un <strong>aperçu</strong> vous montre les lignes valides, les doublons
+                        (même nom, téléphone ou CNI, dans le fichier ou déjà dans ce planning) et les erreurs avant l'import définitif.
                     </div>
 
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="fas fa-upload me-1"></i>Importer
+                            <i class="fas fa-search me-1"></i>Analyser et prévisualiser
                         </button>
                     </div>
                 </form>

@@ -45,6 +45,11 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    final oldToken = _token;
+    if (oldToken != null) {
+      // Revocation serveur du jeton : sans reponse, on purge quand meme.
+      await ApiService.logout(oldToken).timeout(const Duration(seconds: 5), onTimeout: () {});
+    }
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
     await prefs.remove('auth_user');

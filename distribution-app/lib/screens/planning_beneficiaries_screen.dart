@@ -45,9 +45,23 @@ class _PlanningBeneficiariesScreenState extends State<PlanningBeneficiariesScree
           _beneficiaries = raw is List ? raw : (raw?['data'] ?? []);
           _stats = Map<String, dynamic>.from(res['stats'] ?? {});
         });
+      } else if (ApiService.isAuthError(res) && mounted) {
+        await _sessionExpired();
+        return;
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _sessionExpired() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Session expirée ou compte désactivé : reconnectez-vous.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    await context.read<AuthService>().logout();
   }
 
   List<dynamic> get _filtered {

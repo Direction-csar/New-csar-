@@ -119,9 +119,25 @@ class _HomeScreenState extends State<HomeScreen> {
       final res = await ApiService.getMyPlannings(token);
       if (res['success'] == true) {
         setState(() => _plannings = res['data'] ?? []);
+      } else if (ApiService.isAuthError(res)) {
+        await _sessionExpired();
+        return;
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
+  }
+
+  /// Jeton refuse ou expire cote serveur : purge locale + message + retour au login.
+  Future<void> _sessionExpired() async {
+    if (!mounted) return;
+    setState(() => _loading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Session expirée ou compte désactivé : reconnectez-vous.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    await context.read<AuthService>().logout();
   }
 
   Future<void> _sync({bool silent = false}) async {
