@@ -202,24 +202,31 @@ class _ScanScreenState extends State<ScanScreen> {
       if (!mounted) return;
 
       if (ApiService.isAuthError(res)) {
+        if (mounted) setState(() => _processing = false);
         await _sessionExpired();
         return;
       }
       if (res['success'] == true) {
         final beneficiary = res['data']?['beneficiaire']?['full_name'] ?? res['data']?['beneficiaire'] ?? 'N/A';
-        final qty = res['data']?['beneficiaire']?['quantity_kg'] ?? res['data']?['quantite_kg'] ?? '?';
+        final qtyRaw = res['data']?['beneficiaire']?['quantity_kg'] ?? res['data']?['quantite_kg'] ?? 0;
+        final kg = int.tryParse(qtyRaw.toString()) ?? 0;
+        // Mise a jour immediate des compteurs : pas de rechargement complet
+        // du tableau de bord, qui ralentissait la confirmation.
         setState(() {
           _scanCount++;
           _successCount++;
-          _recentScans.insert(0, '[$_time] OK - $beneficiary ($qty kg)');
+          _totalCollected++;
+          _todayCollected++;
+          _totalKg += kg;
+          _dashLoading = false;
+          _recentScans.insert(0, '[$_time] OK - $beneficiary ($qtyRaw kg)');
           if (_recentScans.length > 10) _recentScans.removeLast();
         });
-        _loadDashboard();
         _showResultDialog(
           success: true,
           title: 'Kit recupere!',
           beneficiaire: beneficiary,
-          quantite: qty,
+          quantite: qtyRaw,
           ticketCode: res['data']?['ticket_code'] ?? code,
         );
       } else {

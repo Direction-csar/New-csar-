@@ -21,6 +21,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<dynamic> _plannings = [];
   bool _loading = true;
+  String? _loadError;
   bool _syncing = false;
   int _pendingCount = 0;
   String _search = '';
@@ -104,12 +105,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _refreshPendingCount() async {
-    final count = await LocalDbService.countPendingBeneficiaires();
-    if (mounted) setState(() => _pendingCount = count);
+    try {
+      final count = await LocalDbService.countPendingBeneficiaires();
+      if (mounted) setState(() => _pendingCount = count);
+    } catch (_) {} // base locale indisponible : l'ecran reste utilisable
   }
 
   Future<void> _loadPlannings() async {
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
     final token = context.read<AuthService>().token;
     if (token == null) {
       if (mounted) setState(() => _loading = false);
@@ -118,12 +124,22 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final res = await ApiService.getMyPlannings(token);
       if (res['success'] == true) {
-        setState(() => _plannings = res['data'] ?? []);
+        final data = res['data'];
+        setState(() {
+          _plannings = data is List ? data : [];
+          _loadError = data is List ? null : 'Format de réponse inattendu du serveur';
+        });
       } else if (ApiService.isAuthError(res)) {
         await _sessionExpired();
         return;
+      } else {
+        setState(() => _loadError = res['message'] ?? 'Le serveur a refusé la demande');
       }
-    } catch (_) {}
+    } catch (e) {
+      if (mounted) {
+        setState(() => _loadError = 'Impossible de joindre le serveur. Vérifiez la connexion.');
+      }
+    }
     if (mounted) setState(() => _loading = false);
   }
 
@@ -332,7 +348,24 @@ class _HomeScreenState extends State<HomeScreen> {
         onRefresh: _loadPlannings,
         child: _loading
             ? const Center(child: CircularProgressIndicator(color: Color(0xFFD84315)))
-            : ListView(
+            : _loadError != null
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.cloud_off, size: 56, color: Colors.grey),
+                        const SizedBox(height: 12),
+                        Text(_loadError!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
+                        const SizedBox(height: 14),
+                        ElevatedButton.icon(
+                          onPressed: _loadPlannings,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Réessayer'),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
                   Container(
