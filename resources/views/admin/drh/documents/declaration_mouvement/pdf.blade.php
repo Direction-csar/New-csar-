@@ -117,67 +117,79 @@ $formatDate = function ($d) {
     <div class="section-title">Concernant le travailleur</div>
     <table class="border">
         <tr>
-            <td class="border p-1" style="width:18%;">Nom : <span class="field">{{ $lim($val('nom'), 60) }}</span></td>
-            <td class="border p-1" style="width:30%;">Prénoms : <span class="field">{{ $lim($val('prenoms'), 80) }}</span></td>
-            <td class="border p-1" style="width:12%;">Sexe : <span class="field">{{ $lim($val('sexe'), 60) }}</span></td>
-            <td class="border p-1" style="width:20%;">Pays : <span class="field">{{ $lim($val('pays'), 60) }}</span></td>
-            <td class="border p-1" style="width:20%;">Nationalité : <span class="field">{{ $lim($val('nationalite'), 60) }}</span></td>
+            <td class="border p-1" style="width:25%;">Nom : <span class="field">{{ $lim($val('nom'), 60) }}</span></td>
+            <td class="border p-1" style="width:50%;">Prénoms : <span class="field">{{ $lim($val('prenoms'), 80) }}</span></td>
+            <td class="border p-1" style="width:25%;">Sexe : <span class="field">{{ $lim($val('sexe'), 60) }}</span></td>
         </tr>
         <tr>
-            <td class="border p-1" colspan="2">Né le : <span class="field">{{ $formatDate($val('date_naissance')) }}</span> à : <span class="field">{{ $lim($val('lieu_naissance'), 60) }}</span></td>
-            <td class="border p-1" colspan="2">Fils de (père) : <span class="field">{{ $lim($val('pere'), 70) }}</span></td>
+            <td class="border p-1">Né le : <span class="field">{{ $formatDate($val('date_naissance')) }}</span></td>
+            <td class="border p-1">à : <span class="field">{{ $lim($val('lieu_naissance'), 60) }}</span></td>
+            <td class="border p-1">Pays : <span class="field">{{ $lim($val('pays'), 60) }}</span></td>
+            <td class="border p-1">Nationalité : <span class="field">{{ $lim($val('nationalite'), 60) }}</span></td>
+        </tr>
+        <tr>
+            <td class="border p-1">Fils de (père) : <span class="field">{{ $lim($val('pere'), 70) }}</span></td>
             <td class="border p-1">Et de (mère) : <span class="field">{{ $lim($val('mere'), 70) }}</span></td>
+            <td class="border p-1" colspan="2">Groupe ethnique : <span class="field">{{ $lim($val('groupe_ethnique'), 60) }}</span></td>
         </tr>
         <tr>
-            <td class="border p-1" colspan="2">Groupe ethnique : <span class="field">{{ $lim($val('groupe_ethnique'), 60) }}</span></td>
-            <td class="border p-1" colspan="3">Adresse (très précise) : <span class="field">{{ $lim($val('adresse'), 70) }}</span></td>
+            <td class="border p-1" colspan="4">Adresse (très précise) : <span class="field">{{ $lim($val('adresse'), 90) }}</span></td>
         </tr>
         <tr>
             <td class="border p-1" colspan="2">Carte d'identité n° : <span class="field">{{ $lim($val('carte_identite_numero'), 40) }}</span></td>
             <td class="border p-1" colspan="2">délivrée à Dakar : <span class="field">{{ $lim($val('carte_identite_delivree_a'), 60) }}</span></td>
-            <td class="border p-1">Par : <span class="field">{{ $lim($val('carte_identite_par'), 60) }}</span></td>
         </tr>
         <tr>
-            <td class="border p-1" colspan="3">N° d'immatriculation à la C.C.P.F. - A.T. : <span class="field">{{ $lim($val('numero_cfp_at'), 40) }}</span></td>
+            <td class="border p-1" colspan="4">Par : <span class="field">{{ $lim($val('carte_identite_par'), 60) }}</span></td>
+        </tr>
+        <tr>
+            <td class="border p-1" colspan="2">N° d'immatriculation à la C.C.P.F. - A.T. : <span class="field">{{ $lim($val('numero_cfp_at'), 40) }}</span></td>
             <td class="border p-1" colspan="2">N° d'immatriculation à l'A.G.R.O.M. : <span class="field">{{ $lim($val('numero_agrom'), 40) }}</span></td>
         </tr>
         <tr>
-            <td class="border p-1" colspan="3">Situation de famille (marié, divorcé, veuf) : <span class="field">{{ $lim($val('situation_famille'), 40) }}</span></td>
-            <td class="border p-1">Nombre d'épouses : <span class="field">{{ $lim($val('nombre_epouses'), 60) }}</span></td>
-            <td class="border p-1">Nom des épouses : <span class="field">{{ $lim($val('noms_epouses'), 70) }}</span></td>
+            <td class="border p-1" colspan="2">Situation de famille (marié, divorcé, veuf) : <span class="field">{{ $lim($val('situation_famille'), 40) }}</span></td>
+            <td class="border p-1" colspan="2">Nombre d'épouses : <span class="field">{{ $lim($val('nombre_epouses'), 60) }}</span></td>
+        </tr>
+        <tr>
+            <td class="border p-1" colspan="4">Nom des épouses : <span class="field">{{ $lim($val('noms_epouses'), 90) }}</span></td>
         </tr>
         <tr>
             <td class="border p-1" colspan="2">Nombre d'enfants à charge : <span class="field">{{ $lim($val('nombre_enfants'), 60) }}</span></td>
-            <td class="border p-1" colspan="3">Noms des enfants à charge : <span class="field">{{ $lim($val('noms_enfants'), 70) }}</span></td>
+            <td class="border p-1" colspan="2">Noms des enfants à charge : <span class="field">{{ $lim($val('noms_enfants'), 70) }}</span></td>
         </tr>
     </table>
 
     <div class="section-title">Emploi dans l'entreprise</div>
     <table class="border">
         <tr>
-            <td class="border p-1" style="width:30%;">Date d'entrée à l'établissement : <span class="field">{{ $formatDate($val('date_entree')) }}</span></td>
-            <td class="border p-1" colspan="2">N° et date de la déclaration d'embauche effectuée lors de l'engagement : <span class="field">{{ $lim($val('date_declaration_embauche'), 70) }}</span></td>
+            <td class="border p-1" colspan="2">Date d'entrée à l'établissement : <span class="field">{{ $formatDate($val('date_entree')) }}</span></td>
         </tr>
         <tr>
-            <td class="border p-1">Profession : <span class="field">{{ $lim($val('profession'), 60) }}</span></td>
+            <td class="border p-1" colspan="2">N° et date de la déclaration d'embauche effectuée lors de l'engagement : <span class="field">{{ $lim($val('date_declaration_embauche'), 80) }}</span></td>
+        </tr>
+        <tr>
+            <td class="border p-1" style="width:50%;">Profession : <span class="field">{{ $lim($val('profession'), 60) }}</span></td>
             <td class="border p-1">Emploi dans l'entreprise : <span class="field">{{ $lim($val('emploi_dans_entreprise'), 60) }}</span></td>
+        </tr>
+        <tr>
+            <td class="border p-1" style="width:60%;">Convention collective : <span class="field">{{ $val('convention_collective') !== '' ? $lim($val('convention_collective'), 50) : 'du commerce et grille salariale CSAR' }}</span></td>
             <td class="border p-1">Catégorie : <span class="field">{{ $lim($val('categorie'), 40) }}</span></td>
         </tr>
         <tr>
-            <td class="border p-1" colspan="3">Convention collective : <span class="field">{{ $lim($val('convention_collective'), 70) }}</span></td>
+            <td class="border p-1" colspan="2">Eventuellement date du contrat : <span class="field">{{ $formatDate($val('date_contrat')) }}</span></td>
         </tr>
         <tr>
-            <td class="border p-1">Eventuellement date du contrat : <span class="field">{{ $formatDate($val('date_contrat')) }}</span></td>
             <td class="border p-1" colspan="2">N° et date du visa d'approbation par l'inspection du travail et de la sécurité sociale : <span class="field">{{ $lim($val('visa_approbation_numero_date'), 70) }}</span></td>
         </tr>
         <tr>
-            <td class="border p-1" colspan="3">N° et date du visa d'enregistrement à la section locale de : <span class="field">{{ $lim($val('visa_enregistrement_numero_date'), 70) }}</span> du service de la main-d'œuvre</td>
+            <td class="border p-1">N° et date du visa d'enregistrement à la section locale de : <span class="field">{{ $lim($val('visa_enregistrement_numero_date'), 40) }}</span></td>
+            <td class="border p-1">du service de la main-d'œuvre</td>
         </tr>
         <tr>
-            <td class="border p-1" colspan="3">Raison sociale et adresse précise de l'établissement de l'employeur : <span class="field">{{ $lim($val('raison_sociale_employeur'), 70) }}</span></td>
+            <td class="border p-1" colspan="2">Raison sociale et adresse précise de l'établissement de l'employeur : <span class="field">{{ $lim($val('raison_sociale_employeur'), 100) }}</span></td>
         </tr>
         <tr>
-            <td class="border p-1" colspan="3">Activité de l'établissement : <span class="field">{{ $lim($val('activite_etablissement'), 70) }}</span></td>
+            <td class="border p-1" colspan="2">Activité de l'établissement : <span class="field">{{ $lim($val('activite_etablissement'), 90) }}</span></td>
         </tr>
     </table>
 
@@ -226,18 +238,18 @@ $formatDate = function ($d) {
         </tr>
     </table>
 
-    <div class="section-title" style="font-size: 9.5pt; margin-top: 12px;">Dispositions particulières concernant l'engagement :</div>
+    <div class="section-title" style="font-size: 9.5pt; margin-top: 8px;">Dispositions particulières concernant l'engagement :</div>
     <div style="font-size: 8.5pt;">(Auxquelles les parties ont expressément souscrit)</div>
-    <table class="border keep" style="margin-top: 5px;">
+    <table class="border keep" style="margin-top: 3px;">
         <tr>
-            <td class="border" style="height: 90px; padding: 5px;">{{ $lim($val('dispositions_particulieres'), 350) }}</td>
+            <td class="border" style="height: 70px; padding: 4px;">{{ $lim($val('dispositions_particulieres'), 350) }}</td>
         </tr>
     </table>
 
-    <div class="keep" style="margin-top: 12px;">
+    <div class="keep" style="margin-top: 8px;">
         <div>1) - Le salaire du travailleur sera celui fixé pour la même catégorie de la Convention Collective Du Commerce 9<sup>ème</sup> A<br>
         en fonction d'un horaire de travail hebdomadaire de :</div>
-        <div style="margin-top: 3px; margin-left: 35px;">
+        <div style="margin-top: 3px; margin-left: 30px;">
             @foreach(['40' => '40 Heures', '41' => '41 heures', '44' => '44 heures', '48' => '48 heures', '60' => '60 heures'] as $h => $label)
             <div style="padding: 1px 6px;">{{ $label }} {!! $is('horaire_hebdomadaire', $h) ? '<strong>x</strong>' : '' !!}</div>
             @endforeach
@@ -247,7 +259,7 @@ $formatDate = function ($d) {
         </div>
     </div>
 
-    <table style="margin-top: 8px;">
+    <table style="margin-top: 4px;">
         <tr>
             <td style="width:50%; padding: 4px 4px;">Soit : Salaire de base,</td>
             <td class="text-right" style="padding: 4px 4px;">= <span class="field">{{ $lim($val('salaire_base'), 60) }}</span></td>
@@ -270,25 +282,25 @@ $formatDate = function ($d) {
         </tr>
     </table>
 
-    <div class="keep" style="margin-top: 16px;">
+    <div class="keep" style="margin-top: 8px;">
         <table>
             <tr>
                 <td style="width:50%; padding: 4px; vertical-align: top;">
                     <div style="font-size: 9pt;">Signature du travailleur :</div>
                     <div style="font-size: 8pt; margin-top: 3px;">(Précédée de la mention manuscrite : pour accord)</div>
-                    <div style="height: 55px; margin-top: 5px;"></div>
+                    <div style="height: 45px; margin-top: 4px;"></div>
                     <div style="font-size: 8.5pt; margin-top: 3px;">{{ $lim($val('signature_travailleur'), 60) }}</div>
                 </td>
                 <td style="padding: 4px; vertical-align: top; text-align: right;">
                     <div style="font-size: 9pt;">Signature de l'employeur :</div>
-                    <div style="height: 55px; margin-top: 5px;"></div>
+                    <div style="height: 45px; margin-top: 4px;"></div>
                     <div style="font-size: 8.5pt; margin-top: 3px; text-align: left;">{{ $lim($val('signature_employeur'), 60) }}</div>
                 </td>
             </tr>
         </table>
     </div>
 
-    <div class="keep" style="font-size: 8pt; margin-top: 14px; line-height: 1.3; border-top: 1px solid #000; padding-top: 6px;">
+    <div class="keep" style="font-size: 8pt; margin-top: 8px; line-height: 1.3; border-top: 1px solid #000; padding-top: 6px;">
         P.S. - N.B. : 1) La déclaration de mouvement de travailleur est à établir en trois exemplaires dûment signés par l'employeur et le travailleur.<br>
         Un exemplaire est remis au travailleur. Le second est conservé par l'employeur. Le troisième est déposé :<br>
         dans l'intérieur : à la Section locale du Service de la Main-d'œuvre, à l'Inspection régionale du Travail et de la Sécurité sociale du ressort ;<br>

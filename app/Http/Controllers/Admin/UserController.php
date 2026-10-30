@@ -192,7 +192,7 @@ class UserController extends Controller
             'email' => 'required|email|max:255|unique:users,email,' . $id,
             'phone' => 'required|string|max:20',
             'role' => 'required|string|in:admin,dg,drh,entrepot,responsable,agent,magasinier,distributeur,scanner,dtl,cpm,dpse,inspecteur,comptable,superviseur,ctc',
-            'is_active' => 'required|boolean'
+            'status' => 'required|string|in:actif,inactif'
         ]);
 
         try {
@@ -203,7 +203,8 @@ class UserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'is_active' => $request->is_active
+                'status' => $request->status,
+                'is_active' => $request->status === 'actif' ? 1 : 0
             ]);
             $user->role = $request->role;
             $user->role_id = $this->getRoleIdFromRoleName($request->role);
