@@ -19,7 +19,7 @@ class PublicRequestPolicy
 {
     public function before(User $user, string $ability): ?bool
     {
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() && $ability !== 'approve') {
             return true;
         }
         return null;
@@ -36,8 +36,8 @@ class PublicRequestPolicy
             return true;
         }
 
-        return $request->assigned_to === $user->id
-            || $request->requester_id === $user->id;
+        // requester_id is an anti-duplicate fingerprint, not a user foreign key.
+        return $request->assigned_to === $user->id;
     }
 
     public function create(User $user): bool
@@ -63,7 +63,7 @@ class PublicRequestPolicy
 
     public function approve(User $user, PublicRequest $request): bool
     {
-        return in_array($user->role, ['admin', 'dg'], true);
+        return in_array($user->role, ['dg', 'directeur_general'], true);
     }
 
     public function restore(User $user, PublicRequest $request): bool

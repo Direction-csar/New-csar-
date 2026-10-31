@@ -16,9 +16,11 @@ Route::redirect('/about', '/a-propos', 302);
 Route::get('/demande', [\App\Http\Controllers\Public\DemandeController::class, 'create'])->name('demande.create.direct');
 Route::post('/demande', [\App\Http\Controllers\Public\DemandeController::class, 'store'])->name('demande.store.direct');
 // Route directe pour /suivi et PDF (sans préfixe de locale)
-Route::get('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'index'])->name('suivi.direct');
-Route::post('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'track'])->name('suivi.track.direct');
-Route::get('/telecharger-pdf/{code}', [\App\Http\Controllers\Public\TrackController::class, 'download'])->where('code', '[A-Za-z0-9\-]+')->name('track.download.direct')->middleware('throttle:10,1');
+Route::middleware([\App\Http\Middleware\PrivateRequestTracking::class, 'throttle:request-tracking'])->group(function () {
+    Route::get('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'index'])->name('suivi.direct');
+    Route::post('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'track'])->name('suivi.track.direct');
+    Route::get('/telecharger-pdf/{code}', [\App\Http\Controllers\Public\TrackController::class, 'download'])->where('code', '[A-Za-z0-9\-]+')->name('track.download.direct');
+});
 Route::get('/missions', [\App\Http\Controllers\Public\GalleryController::class, 'missions'])->name('missions_static');
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\AboutController;
@@ -259,10 +261,12 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     Route::post('/effectuer-une-action', [ActionController::class, 'submit'])->name('request.submit');
 
     // Track routes
-    Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
-    Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request')->middleware('throttle:10,1');
-    Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download')->middleware('throttle:10,1');
-    Route::get('/verifier/{code}', [TrackController::class, 'verify'])->name('track.verify')->middleware('throttle:10,1');
+    Route::middleware([\App\Http\Middleware\PrivateRequestTracking::class, 'throttle:request-tracking'])->group(function () {
+        Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
+        Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
+        Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
+        Route::get('/verifier/{code}', [TrackController::class, 'verify'])->name('track.verify');
+    });
 
     // Gallery routes
     Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
@@ -1422,7 +1426,46 @@ Route::prefix('comptable')->name('comptable.')->group(function () {
 Route::middleware(['direction:comptable'])->prefix('comptable')->name('comptable.')->group(function () {
     Route::get('/', [\App\Http\Controllers\Comptable\PortailController::class, 'dashboard'])->name('dashboard');
     Route::get('/stocks', [\App\Http\Controllers\Comptable\PortailController::class, 'stocks'])->name('stocks');
-    Route::get('/carburant', [\App\Http\Controllers\Comptable\PortailController::class, 'carburant'])->name('carburant');
+    Route::get('/carburant', [\App\Http\Controllers\Comptable\FuelController::class, 'index'])->name('carburant');
+
+// Gestion du carburant (entrées / sorties / remboursements / justificatifs)
+Route::prefix('carburant')->name('carburant.')->group(function () {
+    Route::get('/entrees', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesIndex'])->name('entries.index');
+    Route::get('/entrees/create', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesCreate'])->name('entries.create');
+    Route::post('/entrees', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesStore'])->name('entries.store');
+    Route::get('/entrees/{id}', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesShow'])->name('entries.show');
+    Route::post('/entrees/{id}/valider', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesValidate'])->name('entries.validate');
+    Route::post('/entrees/{id}/rejeter', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesReject'])->name('entries.reject');
+
+    Route::get('/sorties', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsIndex'])->name('exits.index');
+    Route::get('/sorties/create', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsCreate'])->name('exits.create');
+    Route::post('/sorties', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsStore'])->name('exits.store');
+    Route::get('/sorties/{id}', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsShow'])->name('exits.show');
+    Route::post('/sorties/{id}/autoriser', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsAuthorize'])->name('exits.authorize');
+    Route::post('/sorties/{id}/valider', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsValidate'])->name('exits.validate');
+    Route::post('/sorties/{id}/rejeter', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsReject'])->name('exits.reject');
+
+    Route::get('/remboursements', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsIndex'])->name('reimbs.index');
+    Route::get('/remboursements/create', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsCreate'])->name('reimbs.create');
+    Route::post('/remboursements', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsStore'])->name('reimbs.store');
+    Route::get('/remboursements/{id}', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsShow'])->name('reimbs.show');
+    Route::post('/remboursements/{id}/soumettre', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsSubmit'])->name('reimbs.submit');
+    Route::post('/remboursements/{id}/instruction', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsReview'])->name('reimbs.review');
+    Route::post('/remboursements/{id}/approuver', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsApprove'])->name('reimbs.approve');
+    Route::post('/remboursements/{id}/rejeter', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsReject'])->name('reimbs.reject');
+    Route::post('/remboursements/{id}/payer', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsPay'])->name('reimbs.pay');
+    Route::post('/remboursements/{id}/cloturer', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsClose'])->name('reimbs.close');
+
+    Route::post('/{type}/{id}/pieces', [\App\Http\Controllers\Comptable\FuelController::class, 'attachmentStore'])
+        ->where('type', 'entry|exit|reimb')->name('attachments.store');
+    Route::get('/pieces/{id}/telecharger', [\App\Http\Controllers\Comptable\FuelController::class, 'attachmentDownload'])->name('attachments.download');
+    Route::delete('/pieces/{id}', [\App\Http\Controllers\Comptable\FuelController::class, 'attachmentDelete'])->name('attachments.delete');
+
+    Route::get('/{type}/{id}/pdf', [\App\Http\Controllers\Comptable\FuelController::class, 'pdf'])
+        ->where('type', 'entry|exit|reimb')->name('pdf');
+    Route::get('/export/{type}.csv', [\App\Http\Controllers\Comptable\FuelController::class, 'exportCsv'])
+        ->where('type', 'entry|exit|reimb')->name('export');
+});
     Route::get('/materiel', [\App\Http\Controllers\Comptable\PortailController::class, 'materiel'])->name('materiel');
     Route::post('/materiel', [\App\Http\Controllers\Comptable\PortailController::class, 'storeMateriel'])->name('materiel.store');
     Route::post('/materiel/{id}/cloturer', [\App\Http\Controllers\Comptable\PortailController::class, 'cloturerMateriel'])->name('materiel.cloturer');
@@ -1483,5 +1526,4 @@ Route::prefix('linkedin')->name('linkedin.')->group(function () {
     Route::get('/posts',    [LinkedInController::class, 'posts'])->name('posts');
     Route::post('/refresh', [LinkedInController::class, 'refresh'])->name('refresh');
 });
-
 

@@ -7,10 +7,15 @@ use App\Models\PublicRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
 
-#[Group('legacy')]
 class PublicRequestSubmissionTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\Mail::fake();
+    }
 
     /**
      * Test que le formulaire de demande peut être soumis avec succès
@@ -71,7 +76,8 @@ class PublicRequestSubmissionTest extends TestCase
             'telephone' => '+221775554433',
             'objet' => 'Aide matérielle',
             'description' => 'Besoin urgent de matériel pour ma famille.',
-            'type_demande' => 'aide_materielle',
+            'type_demande' => 'autre',
+            'type_demande_autre' => 'Aide matérielle',
             'region' => 'Thiès',
         ];
 
@@ -183,7 +189,6 @@ class PublicRequestSubmissionTest extends TestCase
         $this->assertNotNull($publicRequest->user_agent);
     }
 }
-
 
 
 

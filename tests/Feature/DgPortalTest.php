@@ -196,7 +196,7 @@ class DgPortalTest extends TestCase
 
         $this->putJson(route('dg.demandes.update', $demande->id), [
             'statut' => 'rejetee',
-            'commentaire_admin' => 'Pièces insuffisantes',
+            'public_comment' => 'Pièces insuffisantes',
         ])->assertOk()->assertJson(['success' => true]);
 
         $this->assertSame('rejetee', $demande->fresh()->workflow_status);

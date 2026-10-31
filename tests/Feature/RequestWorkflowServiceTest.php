@@ -81,7 +81,7 @@ class RequestWorkflowServiceTest extends TestCase
         $this->assertSame('en_revue', $demande->workflow_status);
         $this->assertSame('pending', $demande->status);
 
-        $demande = $svc->advance($demande, 'document_attente', 'Dossier prêt pour signature', $admin);
+        $demande = $svc->advance($demande, 'document_attente', 'Dossier prêt pour signature', $admin, 'Merci de compléter les pièces.');
 
         // signee exige le fichier de signature, posé par le signataire/DG
         $demande->update(['dg_signature_file' => 'demandes/signatures/doc.pdf']);
@@ -179,7 +179,7 @@ class RequestWorkflowServiceTest extends TestCase
         $demande = $this->makeRequest('en_revue');
         $admin = $this->makeUser('admin');
 
-        $demande = $this->service()->advance($demande, 'rejetee', 'Dossier manifestement irrecevable', $admin);
+        $demande = $this->service()->advance($demande, 'rejetee', 'Note interne', $admin, 'Dossier manifestement irrecevable');
 
         $this->assertSame('rejetee', $demande->workflow_status);
         $this->assertSame('rejected', $demande->status);
@@ -201,7 +201,7 @@ class RequestWorkflowServiceTest extends TestCase
         $demande = $this->makeRequest('scannee');
         $dg = $this->makeUser('dg');
 
-        $demande = $this->service()->advance($demande, 'rejetee', 'Rejet décidé par la Direction', $dg);
+        $demande = $this->service()->advance($demande, 'rejetee', 'Note interne', $dg, 'Rejet décidé par la Direction');
 
         $this->assertSame('rejetee', $demande->workflow_status);
     }

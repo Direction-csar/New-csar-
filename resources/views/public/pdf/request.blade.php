@@ -343,9 +343,9 @@
             'rejected'   => 'REJETÉE',
             'completed'  => 'CLÔTURÉE',
         ];
-        $statutLabel = $statutLabels[$request->status] ?? strtoupper($request->status ?? 'Non défini');
-        $statutClass = in_array($request->status, ['approved','completed']) ? 'status-approved'
-            : (in_array($request->status, ['rejected']) ? 'status-rejected'
+        $statutLabel = $request->status_label;
+        $statutClass = in_array($request->status, ['approuvee','cloturee']) ? 'status-approved'
+            : (in_array($request->status, ['rejetee']) ? 'status-rejected'
             : 'status-pending');
         $verifyUrl = url('/fr/verifier/' . $request->tracking_code);
         if (class_exists('SimpleSoftwareIO\QrCode\Facades\QrCode')) {
@@ -428,14 +428,23 @@
     </div>
     @endif
 
-    @if($request->admin_comment)
+    @if($request->public_reason)
     <div class="info-section">
-        <div class="section-title">Réponse / Commentaire administratif</div>
+        <div class="section-title">Réponse destinée au demandeur</div>
         <div class="description-box" style="background: #fef3c7; border-color: #f59e0b;">
-            {!! nl2br(e($request->admin_comment)) !!}
+            {!! nl2br(e($request->public_reason)) !!}
         </div>
     </div>
     @endif
+
+    <div class="info-section">
+        <div class="section-title">Historique de la demande</div>
+        @foreach($request->timeline as $step)
+            <p>{{ \Carbon\Carbon::parse($step['timestamp'])->format('d/m/Y H:i') }} — {{ $step['label'] }}
+                @if($step['reason'])<br>{{ $step['reason'] }}@endif
+            </p>
+        @endforeach
+    </div>
 
     @if($qrBase64)
     <div class="info-section" style="margin-top: 20px;">
@@ -446,7 +455,7 @@
             <div style="display: table-cell; vertical-align: middle; padding-left: 20px;">
                 <div style="font-weight: bold; font-size: 12px; color: #1f2937; margin-bottom: 6px;">VÉRIFICATION D'AUTHENTICITÉ</div>
                 <div style="font-size: 10px; color: #374151; line-height: 1.5;">
-                    Scannez ce QR code pour vérifier l'authenticité de ce document sur le site officiel du CSAR.<br>
+                    Scannez ce QR code pour accéder au suivi sécurisé. Une vérification par email est nécessaire.<br>
                     URL : {{ $verifyUrl }}
                 </div>
             </div>

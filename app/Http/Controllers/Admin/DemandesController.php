@@ -134,6 +134,7 @@ class DemandesController extends Controller
         $request->validate([
             'status' => 'nullable|string|in:pending,approved,rejected,completed',
             'admin_comment' => 'nullable|string',
+            'public_comment' => 'nullable|string|max:2000',
             'assigned_to' => 'nullable|exists:users,id'
         ]);
 
@@ -171,7 +172,7 @@ class DemandesController extends Controller
                         ]);
                     }
                     $needsComment = in_array($target, \App\Services\RequestWorkflowService::COMMENT_REQUIRED, true);
-                    $comment = $request->admin_comment;
+                    $comment = $request->input('public_comment');
                     if ($needsComment && empty(trim((string) $comment))) {
                         throw ValidationException::withMessages([
                             'admin_comment' => 'Un motif est obligatoire pour rejeter une demande ou demander des pièces.',
@@ -186,7 +187,8 @@ class DemandesController extends Controller
                             in_array($step, \App\Services\RequestWorkflowService::COMMENT_REQUIRED, true)
                                 ? ($comment ? "Motif : {$comment}" : $stepComment)
                                 : null,
-                            $actor
+                            $actor,
+                            $request->input('public_comment')
                         );
                     }
                 }
@@ -265,11 +267,7 @@ class DemandesController extends Controller
             DB::beginTransaction();
 
             $demande = PublicRequest::findOrFail($id);
-            $demande->update([
-                'status' => 'approved',
-                'processed_date' => now(),
-                'updated_at' => now()
-            ]);
+            app(\App\Services\RequestWorkflowService::class)->dgValidate($demande, true, null, auth()->user());
 
             // Créer une notification
             Notification::create([
@@ -349,11 +347,9 @@ class DemandesController extends Controller
             DB::beginTransaction();
 
             $demande = PublicRequest::findOrFail($id);
-            $demande->update([
-                'status' => 'rejected',
-                'processed_date' => now(),
-                'updated_at' => now()
-            ]);
+            app(\App\Services\RequestWorkflowService::class)->advance(
+                $demande, 'rejetee', null, auth()->user(), request()->input('public_comment')
+            );
 
             // Créer une notification
             Notification::create([
@@ -1028,6 +1024,7 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
         $request->validate([
             'workflow_status' => 'required|string|in:soumise,en_revue,document_attente,signee,scannee,validee_dg,approuvee,rejetee,cloturee',
             'comment' => 'nullable|string|max:2000',
+            'public_comment' => 'required_if:workflow_status,rejetee,document_attente|nullable|string|max:2000',
         ]);
 
         try {
@@ -1036,39 +1033,7 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
             $newStatus = $request->workflow_status;
 
             app(\App\Services\RequestWorkflowService::class)
-                ->advance($demande, $newStatus, $request->comment, auth()->user());
-
-            // Notifier le demandeur du changement de statut
-            try {
-                \App\Services\RequestNotificationService::notifyWorkflowUpdate($demande, $oldStatus, $newStatus);
-            } catch (\Exception $e) {
-                Log::error('Erreur notification workflow: ' . $e->getMessage());
-            }
-
-            // Notifications par rôle selon le nouveau statut
-            if ($newStatus === 'document_attente') {
-                try {
-                    \App\Services\RequestNotificationService::notifySignataires($demande);
-                } catch (\Exception $e) {
-                    Log::error('Erreur notification signataires: ' . $e->getMessage());
-                }
-            }
-
-            if ($newStatus === 'signee') {
-                try {
-                    \App\Services\RequestNotificationService::notifyScanneurs($demande);
-                } catch (\Exception $e) {
-                    Log::error('Erreur notification scanneurs: ' . $e->getMessage());
-                }
-            }
-
-            if ($newStatus === 'scannee') {
-                try {
-                    \App\Services\RequestNotificationService::notifyDgForApproval($demande);
-                } catch (\Exception $e) {
-                    Log::error('Erreur notification DG: ' . $e->getMessage());
-                }
-            }
+                ->advance($demande, $newStatus, $request->comment, auth()->user(), $request->input('public_comment'));
 
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
@@ -1213,6 +1178,7 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
         $request->validate([
             'dg_approved' => 'required|boolean',
             'dg_comment' => 'nullable|string|max:2000',
+            'public_comment' => 'required_if:dg_approved,0|nullable|string|max:2000',
         ]);
 
         try {
@@ -1221,16 +1187,9 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
             $approved = $request->boolean('dg_approved');
 
             $demande = app(\App\Services\RequestWorkflowService::class)
-                ->dgValidate($demande, $approved, $request->dg_comment, auth()->user());
+                ->dgValidate($demande, $approved, $request->dg_comment, auth()->user(), $request->input('public_comment'));
 
             $message = $approved ? 'Demande validée par la Directrice' : 'Demande rejetée par la Directrice';
-
-            // Notifier le demandeur
-            try {
-                \App\Services\RequestNotificationService::notifyWorkflowUpdate($demande, $oldStatus, $demande->workflow_status);
-            } catch (\Exception $e) {
-                Log::error('Erreur notification DG validation: ' . $e->getMessage());
-            }
 
             return redirect()->back()->with('success', $message);
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -1255,15 +1214,8 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
             $demande = PublicRequest::findOrFail($id);
             $original = PublicRequest::findOrFail($request->original_id);
 
-            $demande->update([
-                'is_duplicate' => true,
-                'duplicate_of' => $request->original_id,
-                'status' => 'rejected',
-                'workflow_status' => 'rejetee',
-                'admin_comment' => ($request->comment ?? '') . ' [Doublon de ' . $original->tracking_code . ']',
-            ]);
-
-            $demande->logWorkflowAction('Marquée comme doublon', 'Fusionnée avec ' . $original->tracking_code);
+            app(\App\Services\RequestWorkflowService::class)
+                ->markDuplicate($demande, $original, $request->comment, auth()->user());
 
             return redirect()->back()->with('success', 'Demande marquée comme doublon et fusionnée avec ' . $original->tracking_code);
         } catch (\Exception $e) {
@@ -1350,6 +1302,7 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
                 'ids' => 'required|array',
                 'ids.*' => 'integer|exists:public_requests,id',
                 'status' => 'required|string|in:soumise,en_revue,document_attente,signee,scannee,validee_dg,approuvee,rejetee,cloturee',
+                'public_comment' => 'required_if:status,rejetee,document_attente|nullable|string|max:2000',
             ]);
 
             $ids = $request->input('ids', []);
@@ -1367,18 +1320,11 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
                 $oldStatus = $demande->workflow_status;
 
                 try {
-                    $service->advance($demande, $newStatus, $request->input('comment'), $actor);
+                    $service->advance($demande, $newStatus, $request->input('comment'), $actor, $request->input('public_comment'));
                 } catch (\Illuminate\Validation\ValidationException $e) {
                     $failed++;
                     $errors[] = $demande->tracking_code . ': ' . (collect($e->errors())->flatten()->first() ?? 'transition refusée');
                     continue;
-                }
-
-                // Notification au demandeur
-                try {
-                    \App\Services\RequestNotificationService::notifyWorkflowUpdate($demande, $oldStatus, $newStatus);
-                } catch (\Exception $e) {
-                    Log::error('Notification workflow bulk failed: ' . $e->getMessage());
                 }
 
                 $updated++;

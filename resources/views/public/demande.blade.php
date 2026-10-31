@@ -971,10 +971,10 @@ function showConfirmationPopup(data) {
                     <i class="fas fa-mobile-alt"></i> Suivi par SMS
                 </h3>
                 <p style="color:#92400e;margin:0;font-size:0.95rem;">
-                    Un message de confirmation a été envoyé sur votre numéro de téléphone.
+                    Le suivi par SMS n’est pas disponible. Consultez votre demande grâce à la vérification par email.
                 </p>
                 <div style="margin-top:8px;color:#059669;font-size:0.9rem;">
-                    <i class="fas fa-check"></i> SMS envoyé avec succès
+                    Aucun SMS envoyé
                 </div>
             </div>
         `;
@@ -1078,7 +1078,7 @@ function closePopup() {
 
 // Fonction pour aller au suivi
 function goToTracking(trackingCode) {
-    window.location.href = `/suivre-ma-demande?code=${trackingCode}`;
+    window.location.href = `/suivi?code=${encodeURIComponent(trackingCode)}`;
 }
 
 </script>

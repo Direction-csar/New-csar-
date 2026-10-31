@@ -21,15 +21,22 @@ class DemandeController extends Controller
 
     public function store(Request $request)
     {
+        if (is_string($request->input('telephone'))) {
+            $request->merge(['telephone' => PublicRequest::normalizePhone($request->input('telephone'))]);
+        }
+        if (is_string($request->input('email'))) {
+            $request->merge(['email' => strtolower(trim($request->input('email')))]);
+        }
         // Validation des données
         $request->validate([
             'nom'                => 'required|string|max:255',
             'prenom'             => 'required|string|max:255',
             'email'              => 'required|email|max:255',
-            'telephone'          => 'required|string|max:30',
+            'telephone'          => ['required', 'string', 'regex:/^\+[1-9][0-9]{7,14}$/'],
+            'attachment'         => 'prohibited',
             'objet'              => 'required|string|max:255',
             'description'        => 'required|string|max:2000',
-            'type_demande'       => 'required|string|max:255',
+            'type_demande'       => 'required|string|in:aide_alimentaire,demande_audience,information_generale,autre',
             'type_demande_autre' => 'required_if:type_demande,autre|nullable|string|max:255',
             'region'             => 'required_if:type_demande,aide_alimentaire|nullable|string|max:255',
             'adresse'            => 'nullable|string|max:500',
@@ -50,8 +57,7 @@ class DemandeController extends Controller
             ], 24);
 
             if ($duplicate) {
-                $msg = 'Une demande similaire a déjà été soumise récemment (code: ' . $duplicate->tracking_code . '). '
-                     . 'Veuillez patienter le traitement ou contactez-nous si nécessaire.';
+                $msg = 'Cette soumission ne peut pas être enregistrée. Utilisez le suivi sécurisé ou contactez le CSAR.';
                 if ($request->ajax() || $request->wantsJson()) {
                     return response()->json(['success' => false, 'message' => $msg], 409);
                 }
@@ -66,7 +72,7 @@ class DemandeController extends Controller
             ]);
 
             // Préparer l'adresse (combiner région et adresse si fournie)
-            $address = $request->adresse ?: $request->region;
+            $address = $request->adresse ?: ($request->region ?? '');
             if ($request->adresse && $request->region) {
                 $address = $request->adresse . ', ' . $request->region;
             }
@@ -76,7 +82,7 @@ class DemandeController extends Controller
                 'name' => $request->nom,
                 'full_name' => $request->nom . ' ' . $request->prenom,
                 'email' => $request->email,
-                'phone' => $request->telephone,
+                'phone' => PublicRequest::normalizePhone($request->telephone),
                 'subject' => $request->objet,
                 'type' => $request->type_demande ?? 'aide_alimentaire',
                 'address' => $address,
@@ -86,7 +92,7 @@ class DemandeController extends Controller
                 'workflow_status' => 'soumise',
                 'requester_id' => $requesterId,
                 'request_date' => now()->toDateString(),
-                'region' => $request->region,
+                'region' => $request->region ?? '',
                 'latitude' => $request->latitude,
                 'longitude' => $request->longitude,
                 'ip_address' => $request->ip(),
@@ -105,7 +111,7 @@ class DemandeController extends Controller
                 event(new \App\Events\DemandeCreated($publicRequest));
             } catch (\Exception $e) {
                 // Log l'erreur mais ne pas faire échouer la soumission
-                \Log::error('Erreur événement DemandeCreated: ' . $e->getMessage());
+                \Log::error('Erreur événement DemandeCreated', ['exception_type' => get_class($e)]);
             }
 
             // Créer une notification pour l'admin
@@ -113,7 +119,7 @@ class DemandeController extends Controller
                 \App\Services\NotificationService::notifyNewRequest($publicRequest);
             } catch (\Exception $e) {
                 // Log l'erreur mais ne pas faire échouer la soumission
-                \Log::error('Erreur notification admin: ' . $e->getMessage());
+                \Log::error('Erreur notification admin', ['exception_type' => get_class($e)]);
             }
 
             // Email de confirmation à l'utilisateur
@@ -126,7 +132,7 @@ class DemandeController extends Controller
                     'objet'         => $request->objet,
                 ]);
             } catch (\Exception $e) {
-                \Log::error('Erreur envoi email confirmation demande: ' . $e->getMessage());
+                \Log::error('Erreur envoi email confirmation demande', ['exception_type' => get_class($e)]);
             }
 
             // Email notification admin
@@ -134,7 +140,7 @@ class DemandeController extends Controller
                 $emailService = new \App\Services\AdminEmailService();
                 $emailService->sendRequestNotification($publicRequest);
             } catch (\Exception $e) {
-                \Log::error('Erreur envoi email notification demande admin: ' . $e->getMessage());
+                \Log::error('Erreur envoi email notification demande admin', ['exception_type' => get_class($e)]);
             }
 
             // Message de succès
@@ -158,11 +164,9 @@ class DemandeController extends Controller
             ]);
 
         } catch (\Exception $e) {
-            // Logger l'erreur détaillée
+            // Do not log submitted personal data, SQL bindings or provider payloads.
             \Log::error('Erreur lors de la création de la demande', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'data' => $request->except(['_token'])
+                'exception_type' => get_class($e),
             ]);
 
             // Vérifier si c'est une requête AJAX
@@ -170,7 +174,6 @@ class DemandeController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Une erreur est survenue lors de la soumission de votre demande. Veuillez réessayer.',
-                    'error_details' => config('app.debug') ? $e->getMessage() : null
                 ], 500);
             }
 

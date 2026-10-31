@@ -38,14 +38,12 @@ class SendDemandeNotification implements ShouldQueue
 
             Log::info('Notification créée pour nouvelle demande', [
                 'demande_id' => $demande->id,
-                'nom' => $demande->nom_complet
             ]);
         } catch (\Exception $e) {
             Log::error('Erreur lors de la création de notification pour demande', [
-                'error' => $e->getMessage(),
+                'exception_type' => get_class($e),
                 'demande_id' => $event->demande->id
             ]);
         }
     }
 }
-

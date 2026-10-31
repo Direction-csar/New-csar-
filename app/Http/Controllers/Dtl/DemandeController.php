@@ -95,6 +95,8 @@ class DemandeController extends Controller
 
         try {
             DB::transaction(function () use ($demande, $request, $assignee) {
+                $demande = PublicRequest::whereKey($demande->id)->lockForUpdate()->firstOrFail();
+                abort_unless($demande->workflow_status === 'approuvee', 409, 'Le dossier ne permet plus de nouvelle mission.');
                 $mission = RequestMission::create([
                     'public_request_id' => $demande->id,
                     'type' => $request->type,

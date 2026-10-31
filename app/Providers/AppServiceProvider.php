@@ -36,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\RateLimiter::for('request-tracking', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute($request->isMethod('GET') ? 60 : 10)
+                ->by('tracking:'.$request->ip().':'.($request->isMethod('GET') ? 'read' : 'write'));
+        });
         Mail::extend('brevo-api', function () {
             return new BrevoApiTransport();
         });

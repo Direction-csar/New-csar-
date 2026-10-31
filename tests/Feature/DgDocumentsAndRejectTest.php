@@ -220,7 +220,7 @@ class DgDocumentsAndRejectTest extends TestCase
         $reason = 'Pièces justificatives insuffisantes pour ce dossier';
 
         $this->actingAs($dg, 'dg')
-            ->putJson(route('dg.demandes.update', $demande->id), ['statut' => 'rejetee', 'commentaire_admin' => $reason])
+            ->putJson(route('dg.demandes.update', $demande->id), ['statut' => 'rejetee', 'public_comment' => $reason, 'commentaire_admin' => 'Note interne'])
             ->assertOk()
             ->assertJsonPath('success', true);
 

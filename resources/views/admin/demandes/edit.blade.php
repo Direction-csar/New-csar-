@@ -167,9 +167,11 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="admin_comment" class="form-label small fw-bold">Commentaire administrateur</label>
+                        <label for="admin_comment" class="form-label small fw-bold">Commentaire administrateur (interne)</label>
                         <textarea class="form-control form-control-sm" id="admin_comment" name="admin_comment" rows="3"
                                   placeholder="Ajoutez un commentaire...">{{ $demande->admin_comment ?? '' }}</textarea>
+                        <label class="form-label small fw-bold mt-2">Motif public en cas de rejet</label>
+                        <textarea class="form-control form-control-sm" name="public_comment" maxlength="2000"></textarea>
                     </div>
 
                     <div class="d-flex gap-2">
@@ -213,8 +215,10 @@
                         @endif
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Commentaire</label>
+                        <label class="form-label small fw-bold">Note interne (non communiquée)</label>
                         <textarea class="form-control form-control-sm" name="comment" rows="2" placeholder="Commentaire sur cette transition..."></textarea>
+                        <label class="form-label small fw-bold mt-2">Motif public (obligatoire pour un rejet ou un complément)</label>
+                        <textarea class="form-control form-control-sm" name="public_comment" rows="2" maxlength="2000" placeholder="Ce texte sera visible par le demandeur."></textarea>
                     </div>
                     <button type="submit" class="btn btn-success btn-sm">
                         <i class="fas fa-forward me-1"></i>Avancer le workflow
@@ -292,6 +296,8 @@
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Commentaire DG</label>
                         <textarea class="form-control form-control-sm" name="dg_comment" rows="3" placeholder="Commentaire de la Direction Générale..."></textarea>
+                        <label class="form-label small fw-bold mt-2">Motif public du rejet</label>
+                        <textarea class="form-control form-control-sm" name="public_comment" rows="2" maxlength="2000" placeholder="Ce texte sera visible par le demandeur."></textarea>
                     </div>
                 </form>
             </div>

@@ -61,6 +61,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontFlash(['current_password', 'password', 'password_confirmation', 'verification_code']);
         // Intégration Sentry (capture des exceptions en production)
         // Activée uniquement si le DSN est configuré dans .env (SENTRY_LARAVEL_DSN)
         if (app()->bound('sentry') && config('sentry.dsn')) {

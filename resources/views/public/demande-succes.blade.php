@@ -26,18 +26,9 @@
                         <i class="fas fa-mobile-alt"></i> Suivi par SMS
                     </h3>
                     <p style="color:#92400e;margin:0;font-size:0.95rem;">
-                        Un message de confirmation a été envoyé sur votre numéro de téléphone. 
-                        Vous recevrez des mises à jour sur l'évolution de votre demande d'aide.
+                        Le suivi par SMS n’est pas disponible. Consultez votre demande grâce à la vérification par email.
                     </p>
-                    @if(session('sms_sent'))
-                        <div style="margin-top:8px;color:#059669;font-size:0.9rem;">
-                            <i class="fas fa-check"></i> SMS envoyé avec succès
-                        </div>
-                    @else
-                        <div style="margin-top:8px;color:#dc2626;font-size:0.9rem;">
-                            <i class="fas fa-exclamation-triangle"></i> SMS en cours d'envoi
-                        </div>
-                    @endif
+                    <p>Aucun SMS envoyé.</p>
                 </div>
             @endif
             
@@ -422,7 +413,6 @@ function copyTrackingCode() {
 </script>
 
 @endsection
-
 
 
 

@@ -524,7 +524,7 @@ rejectForm.addEventListener('submit', function (event) {
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
         },
-        body: JSON.stringify({ statut: 'rejetee', commentaire_admin: reason })
+        body: JSON.stringify({ statut: 'rejetee', public_comment: reason })
     })
     .then(response => response.json().catch(() => ({})).then(data => ({ ok: response.ok, data })))
     .then(({ ok, data }) => {
@@ -552,7 +552,6 @@ document.querySelectorAll('form.doc-form').forEach(form => {
 });
 </script>
 @endsection
-
 
 
 

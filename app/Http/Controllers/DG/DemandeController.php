@@ -123,7 +123,8 @@ class DemandeController extends Controller
 
             $request->validate([
                 "statut" => "required|in:en_attente,en_cours,approuvee,rejetee,terminee",
-                "commentaire_admin" => $request->input('statut') === 'rejetee'
+                "commentaire_admin" => 'nullable|string|max:1000',
+                "public_comment" => $request->input('statut') === 'rejetee'
                     ? 'required|string|min:10|max:1000'
                     : 'nullable|string|max:1000',
             ]);
@@ -139,12 +140,7 @@ class DemandeController extends Controller
                     $demande = $service->dgValidate($demande, true, $comment, $actor);
                     break;
                 case 'rejetee':
-                    if (empty(trim((string) $comment))) {
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            'commentaire_admin' => 'Un motif est obligatoire pour rejeter une demande.',
-                        ]);
-                    }
-                    $demande = $service->dgValidate($demande, false, $comment, $actor);
+                    $demande = $service->dgValidate($demande, false, $comment, $actor, $request->input('public_comment'));
                     break;
                 case 'en_cours':
                 case 'en_attente':

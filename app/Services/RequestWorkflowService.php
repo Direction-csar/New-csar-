@@ -117,7 +117,21 @@ class RequestWorkflowService
      * @throws ValidationException si la transition, le rôle, le motif ou les
      *                             pièces justificatives requises manquent.
      */
-    public function advance(PublicRequest $demande, string $to, ?string $comment, ?User $actor): PublicRequest
+    public function advance(PublicRequest $demande, string $to, ?string $comment, ?User $actor, ?string $publicComment = null): PublicRequest
+    {
+        return DB::transaction(function () use ($demande, $to, $comment, $actor, $publicComment) {
+            $locked = PublicRequest::whereKey($demande->id)->lockForUpdate()->firstOrFail();
+            if ($locked->workflow_status !== $demande->getOriginal('workflow_status')
+                || $locked->getRawOriginal('workflow_history') !== $demande->getRawOriginal('workflow_history')) {
+                throw ValidationException::withMessages(['workflow_status' => 'Le dossier a changé depuis son chargement. Rechargez-le avant de décider.']);
+            }
+            $result = $this->applyTransition($locked, $to, $comment, $actor, $publicComment);
+            $demande->setRawAttributes($result->getAttributes(), true);
+            return $result;
+        });
+    }
+
+    private function applyTransition(PublicRequest $demande, string $to, ?string $comment, ?User $actor, ?string $publicComment): PublicRequest
     {
         $from = $demande->workflow_status ?? 'soumise';
         $comment = $comment !== null ? trim($comment) : null;
@@ -149,9 +163,9 @@ class RequestWorkflowService
             ]);
         }
 
-        if (in_array($to, self::COMMENT_REQUIRED, true) && empty($comment)) {
+        if (in_array($to, self::COMMENT_REQUIRED, true) && empty(trim((string) $publicComment))) {
             throw ValidationException::withMessages([
-                'comment' => 'Un motif/commentaire est obligatoire pour cette transition.',
+                'public_comment' => 'Un motif destiné au demandeur est obligatoire pour cette transition.',
             ]);
         }
 
@@ -180,7 +194,7 @@ class RequestWorkflowService
             }
         }
 
-        return DB::transaction(function () use ($demande, $from, $to, $comment, $actor) {
+        return DB::transaction(function () use ($demande, $from, $to, $comment, $actor, $publicComment) {
             $demande->workflow_status = $to;
             $demande->status = self::LEGACY_MAP[$to] ?? $demande->status;
             if (in_array($to, ['validee_dg', 'approuvee', 'rejetee', 'cloturee'], true) && empty($demande->processed_date)) {
@@ -188,7 +202,11 @@ class RequestWorkflowService
             }
             $demande->save();
 
-            $demande->logWorkflowAction("Transition: {$from} → {$to}", $comment, $actor?->id);
+            $eventId = (string) \Illuminate\Support\Str::uuid();
+            $demande->logWorkflowAction("Transition: {$from} → {$to}", $comment, $actor?->id, [
+                'id' => $eventId, 'from_status' => $from, 'to_status' => $to,
+                'public_comment' => in_array($to, self::COMMENT_REQUIRED, true) ? trim($publicComment) : null,
+            ]);
 
             // Transmission officielle au DTL dès que la demande est approuvée
             if ($to === 'approuvee' && empty($demande->dtl_transmitted_at)) {
@@ -197,13 +215,9 @@ class RequestWorkflowService
                     'dtl_transmitted_by' => $actor?->id,
                 ]);
                 $demande->logWorkflowAction('Transmise au DTL', 'Dossier approuvé transmis à la Direction Technique et Logistique', $actor?->id);
-                try {
-                    \App\Services\RequestNotificationService::notifyDtl($demande);
-                } catch (\Throwable $e) {
-                    Log::warning('Notification DTL échouée: ' . $e->getMessage());
-                }
             }
 
+            RequestNotificationService::prepare($demande, $eventId, $from, $to);
             return $demande->fresh();
         });
     }
@@ -212,7 +226,12 @@ class RequestWorkflowService
      * Décision de la Directrice : valide (scannee → validee_dg) ou rejette
      * (motif obligatoire). La validation exige le préalable signature + scan.
      */
-    public function dgValidate(PublicRequest $demande, bool $approved, ?string $comment, ?User $actor): PublicRequest
+    public function dgValidate(PublicRequest $demande, bool $approved, ?string $comment, ?User $actor, ?string $publicComment = null): PublicRequest
+    {
+        return DB::transaction(fn () => $this->applyDgDecision($demande, $approved, $comment, $actor, $publicComment));
+    }
+
+    private function applyDgDecision(PublicRequest $demande, bool $approved, ?string $comment, ?User $actor, ?string $publicComment): PublicRequest
     {
         if ($approved) {
             $demande = $this->advance($demande, 'validee_dg', $comment ?: 'Validée par la Direction Générale', $actor);
@@ -229,13 +248,29 @@ class RequestWorkflowService
             return $demande;
         }
 
-        if (empty(trim((string) $comment))) {
+        if (empty(trim((string) $publicComment))) {
             throw ValidationException::withMessages([
                 'dg_comment' => 'Un motif est obligatoire pour rejeter la demande.',
             ]);
         }
 
-        return $this->advance($demande, 'rejetee', $comment, $actor);
+        return $this->advance($demande, 'rejetee', $comment, $actor, $publicComment);
+    }
+
+    public function markDuplicate(PublicRequest $demande, PublicRequest $original, ?string $comment, ?User $actor): PublicRequest
+    {
+        if ($demande->id === $original->id) {
+            throw ValidationException::withMessages(['original_id' => 'Une demande ne peut pas être son propre doublon.']);
+        }
+        if (!in_array('rejetee', $this->transitionsFrom($demande->workflow_status), true)) {
+            throw ValidationException::withMessages(['workflow_status' => 'Ce dossier ne peut plus être rejeté comme doublon.']);
+        }
+        return DB::transaction(function () use ($demande, $original, $comment, $actor) {
+            $demande = $this->advance($demande, 'rejetee', $comment, $actor, 'Une demande équivalente est déjà en cours de traitement. Contactez le CSAR si nécessaire.');
+            $demande->update(['is_duplicate' => true, 'duplicate_of' => $original->id]);
+            $demande->logWorkflowAction('Marquée comme doublon', $comment, $actor?->id);
+            return $demande;
+        });
     }
 
     /**
