@@ -69,8 +69,8 @@
                                 1
                             </div>
                             <div>
-                                <strong>Réception du SMS</strong>
-                                <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Vous recevrez un SMS de confirmation dans les minutes qui suivent</p>
+                                <strong>Accusé de réception</strong>
+                                <p style="margin: 5px 0 0 0; color: #6b7280; font-size: 14px;">Un e-mail de confirmation vous est envoyé si le service de messagerie est disponible — conservez votre code de suivi</p>
                             </div>
                         </div>
                         
@@ -126,9 +126,9 @@
                 </div>
                 <h3>Contactez-nous</h3>
                 <p>Appelez notre service client pour toute question</p>
-                <a href="tel:+221331234567" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                <a href="tel:+221776459242" class="btn btn-primary" style="width: 100%; justify-content: center;">
                     <i class="fas fa-phone"></i>
-                    +221 33 123 45 67
+                    +221 77 645 92 42
                 </a>
             </div>
             

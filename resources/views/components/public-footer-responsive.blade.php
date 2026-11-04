@@ -109,7 +109,7 @@
                     </li>
                     <li class="footer-contact-item">
                         <i class="fas fa-phone"></i>
-                        <span>+221 33 123 45 67</span>
+                        <span>+221 77 645 92 42</span>
                     </li>
                     <li class="footer-contact-item">
                         <i class="fas fa-map-marker-alt"></i>

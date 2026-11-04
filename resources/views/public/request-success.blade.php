@@ -563,7 +563,7 @@
                     </div>
                     <h4>Appeler le service client</h4>
                     <p>Obtenez une assistance immédiate par téléphone</p>
-                    <a href="tel:+221331234567" class="assistance-btn">+221 33 123 45 67</a>
+                    <a href="tel:+221776459242" class="assistance-btn">+221 77 645 92 42</a>
                 </div>
 
                 <div class="assistance-card">
@@ -624,7 +624,7 @@
             Conservez ce reçu pour le suivi de votre demande.
 
             Contact: contact@csar.sn
-            Téléphone: +221 33 123 45 67
+            Téléphone: +221 77 645 92 42
         `;
 
         // Créer et télécharger le fichier

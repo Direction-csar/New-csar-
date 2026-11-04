@@ -30,7 +30,7 @@
                     
                     <div class="mb-3">
                         <strong>Téléphone</strong><br>
-                        <a href="tel:+221331234567" class="text-decoration-none">+221 33 123 45 67</a>
+                        <a href="tel:+221776459242" class="text-decoration-none">+221 77 645 92 42</a>
                     </div>
                     
                     <div class="mb-3">

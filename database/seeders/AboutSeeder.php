@@ -18,7 +18,7 @@ class AboutSeeder extends Seeder
             'acronym' => 'CSAR',
             'founded_year' => 2010,
             'headquarters' => 'Dakar, Sénégal',
-            'phone' => '+221 33 123 45 67',
+            'phone' => '+221 77 645 92 42',
             'email' => 'contact@csar.sn',
             'website' => 'https://www.csar.sn',
             'mission' => 'Le CSAR s\'engage à fournir une assistance humanitaire d\'urgence et des services de secours aux réfugiés et aux populations vulnérables au Sénégal et dans la région. Notre mission est de sauver des vies, d\'atténuer les souffrances et de protéger la dignité humaine dans les situations de crise.',

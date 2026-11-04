@@ -417,7 +417,7 @@ class AboutController extends Controller
                 'creation_date' => $generalInfo->get('creation_date')?->value ?? '15 Mars 2010',
                 'legal_status' => $generalInfo->get('legal_status')?->value ?? 'Organisation Non Gouvernementale (ONG)',
                 'headquarters' => $generalInfo->get('headquarters')?->value ?? 'Dakar, Sénégal',
-                'phone' => $generalInfo->get('phone')?->value ?? '+221 33 123 45 67',
+                'phone' => $generalInfo->get('phone')?->value ?? '+221 77 645 92 42',
                 'email' => $generalInfo->get('email')?->value ?? 'contact@csar.sn',
                 'website' => $generalInfo->get('website')?->value ?? 'www.csar.sn'
             ];
@@ -535,7 +535,7 @@ private function getPartners()
             'creation_date' => '15 Mars 2010',
             'legal_status' => 'Organisation Non Gouvernementale (ONG)',
             'headquarters' => 'Dakar, Sénégal',
-            'phone' => '+221 33 123 45 67',
+            'phone' => '+221 77 645 92 42',
             'email' => 'contact@csar.sn',
             'website' => 'www.csar.sn'
         ];

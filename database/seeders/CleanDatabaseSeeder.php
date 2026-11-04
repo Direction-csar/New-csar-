@@ -84,7 +84,7 @@ class CleanDatabaseSeeder extends Seeder
             
             // Contact
             ['section' => 'contact', 'key_name' => 'email', 'value' => 'contact@csar.sn', 'type' => 'email'],
-            ['section' => 'contact', 'key_name' => 'phone', 'value' => '+221 33 123 45 67', 'type' => 'phone'],
+            ['section' => 'contact', 'key_name' => 'phone', 'value' => '+221 77 645 92 42', 'type' => 'phone'],
             ['section' => 'contact', 'key_name' => 'address', 'value' => 'Dakar, Sénégal', 'type' => 'text'],
             ['section' => 'contact', 'key_name' => 'hours', 'value' => 'Lun-Ven: 8h-17h', 'type' => 'text'],
         ];

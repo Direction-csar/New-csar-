@@ -58,7 +58,7 @@ class About extends Model
             'acronym' => $this->acronym ?? 'CSAR',
             'founded_year' => $this->founded_year ?? 2010,
             'headquarters' => $this->headquarters ?? 'Dakar, Sénégal',
-            'phone' => $this->phone ?? '+221 33 123 45 67',
+            'phone' => $this->phone ?? '+221 77 645 92 42',
             'email' => $this->email ?? 'contact@csar.sn',
             'website' => $this->website ?? 'https://www.csar.sn'
         ];

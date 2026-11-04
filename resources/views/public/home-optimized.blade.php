@@ -173,7 +173,7 @@
                 <a href="{{ route('demande.create') }}">Effectuer une demande</a>
                 <a href="{{ route('contact.simple') }}">Nous contacter</a>
                 <p>contact@csar.sn</p>
-                <p>+221 33 123 45 67</p>
+                <p>+221 77 645 92 42</p>
                 <p>Dakar, Sénégal</p>
             </div>
         </div>

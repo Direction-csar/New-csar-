@@ -41,7 +41,7 @@
         
         <div class="footer">
             <p>CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience<br>
-            📧 contact@csar.sn | 📞 +221 33 123 45 67<br>
+            📧 contact@csar.sn | 📞 +221 77 645 92 42<br>
             🌐 www.csar.sn</p>
         </div>
     </div>
