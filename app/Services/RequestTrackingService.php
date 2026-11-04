@@ -11,23 +11,62 @@ use Illuminate\Support\Str;
 
 class RequestTrackingService
 {
-    public const MESSAGE = 'Si les informations correspondent à un dossier, un code sera envoyé à son adresse email. Vérifiez également vos courriers indésirables.';
+    public const MESSAGE = 'Si l\'adresse correspond au dossier, un code de vérification va lui être envoyé. Vérifiez également vos courriers indésirables.';
+    public const UNAVAILABLE = 'La vérification par e-mail est temporairement indisponible. Réessayez plus tard ou contactez le CSAR au +221 77 645 92 42 (contact@csar.sn).';
 
     public static function digest(string $value): string
     {
         return hash_hmac('sha256', $value, config('app.key'));
     }
 
-    public function issue(Request $http, string $reference, string $email): void
+    /** Retire espaces, espaces insécables et caractères invisibles d'une référence collée. */
+    public static function normalizeReference(string $reference): string
     {
-        if (!app()->environment('testing') && config('request_tracking.queue_connection') === 'sync') {
-            \Illuminate\Support\Facades\Log::warning('request_tracking_requires_async_queue');
-            return;
+        return strtoupper((string) preg_replace('/[\s\x{00A0}\x{200B}-\x{200D}\x{2060}\x{FEFF}]+/u', '', $reference));
+    }
+
+    /**
+     * Le canal e-mail n'est réputé disponible que si un vrai transport est configuré
+     * (jamais « log » ou « array ») et qu'une file asynchrone traite les envois.
+     */
+    public static function mailChannelAvailable(): bool
+    {
+        $transport = config('mail.mailers.'.config('mail.default').'.transport');
+        // En test, « array » sert de transport capturable ; il reste inactif partout ailleurs.
+        $inactive = app()->environment('testing') ? [null, 'log'] : [null, 'log', 'array'];
+        return !in_array($transport, $inactive, true)
+            && (app()->environment('testing') || config('request_tracking.queue_connection') !== 'sync');
+    }
+
+    /**
+     * État présentable au visiteur, sans révéler si l'adresse correspond au dossier :
+     * « skipped » (aucune correspondance) est rendu comme une remise réussie conditionnelle.
+     */
+    public function deliveryState(Request $http): ?string
+    {
+        $id = $http->session()->get('request_tracking_challenge');
+        $challenge = $id ? DB::table('request_tracking_challenges')->where('id', $id)->first() : null;
+        if (!$challenge || !hash_equals($challenge->session_hash, self::digest((string) $http->session()->get('request_tracking_binding')))) {
+            return null;
         }
-        $reference = strtoupper(trim($reference));
+        return match ($challenge->delivery_status) {
+            'accepted', 'skipped' => 'sent',
+            'failed' => 'failed',
+            'unavailable' => 'unavailable',
+            default => now()->diffInSeconds($challenge->created_at, true) > 60 ? 'delayed' : 'pending',
+        };
+    }
+
+    public function issue(Request $http, string $reference, string $email): string
+    {
+        if (!self::mailChannelAvailable()) {
+            \Illuminate\Support\Facades\Log::warning('request_tracking_mail_channel_unavailable');
+            return 'unavailable';
+        }
+        $reference = self::normalizeReference($reference);
         $key = 'request-otp:'.self::digest($reference);
         if (RateLimiter::tooManyAttempts($key, 3)) {
-            return;
+            return 'throttled';
         }
         RateLimiter::hit($key, 3600);
         $email = strtolower(trim($email));
@@ -45,6 +84,7 @@ class RequestTrackingService
             'session_hash' => self::digest($http->session()->get('request_tracking_binding')),
             'code_hash' => self::digest($id.':'.$code),
             'expires_at' => now()->addMinutes(10),
+            'delivery_status' => 'queued',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -52,9 +92,12 @@ class RequestTrackingService
         // Queue a job even for absent dossiers; never send to a caller-supplied address.
         try {
             SendRequestTrackingCode::dispatch($id, $code)->onConnection(config('request_tracking.queue_connection'));
-        } catch (\Throwable) {
-            \Illuminate\Support\Facades\Log::warning('request_tracking_queue_failed');
+        } catch (\Throwable $e) {
+            DB::table('request_tracking_challenges')->where('id', $id)
+                ->update(['delivery_status' => 'failed', 'delivery_error' => 'queue:'.class_basename($e), 'updated_at' => now()]);
+            \Illuminate\Support\Facades\Log::warning('request_tracking_queue_failed', ['reason' => class_basename($e)]);
         }
+        return 'issued';
     }
 
     public function confirm(Request $http, string $code): ?PublicRequest

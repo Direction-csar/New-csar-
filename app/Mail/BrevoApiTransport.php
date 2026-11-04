@@ -99,20 +99,30 @@ class BrevoApiTransport implements TransportInterface
             $payload['attachment'] = $attachments;
         }
 
-        $response = Http::withHeaders([
-            'api-key' => $this->apiKey,
-            'Content-Type' => 'application/json',
-            'accept' => 'application/json',
-        ])->post($this->baseUrl . '/smtp/email', $payload);
-
-        if (!$response->successful()) {
-            $error = $response->json()['message'] ?? $response->body();
-            throw new \Exception('Brevo API Transport: ' . $error);
+        if ($this->apiKey === '') {
+            throw new BrevoTransportException('missing_api_key', 0);
         }
 
-        $messageId = $response->json()['messageId'] ?? null;
+        try {
+            $response = Http::withHeaders([
+                'api-key' => $this->apiKey,
+                'Content-Type' => 'application/json',
+                'accept' => 'application/json',
+            ])->connectTimeout(5)->timeout(15)->post($this->baseUrl . '/smtp/email', $payload);
+        } catch (\Illuminate\Http\Client\ConnectionException) {
+            throw new BrevoTransportException('connection_failed', 0);
+        }
+
+        // Brevo n'accepte le message que sur 2xx ; tout le reste est un refus du fournisseur.
+        if (!$response->successful()) {
+            $code = preg_replace('/[^a-z0-9_]/i', '', substr((string) ($response->json('code') ?? ''), 0, 60));
+            throw new BrevoTransportException($code !== '' ? $code : 'http_error', $response->status());
+        }
 
         $sentMessage = new SentMessage($message, $envelope ?? Envelope::create($message));
+        if ($messageId = $response->json('messageId')) {
+            $sentMessage->setMessageId((string) $messageId);
+        }
         return $sentMessage;
     }
 

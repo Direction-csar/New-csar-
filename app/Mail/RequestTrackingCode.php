@@ -13,6 +13,7 @@ class RequestTrackingCode extends Mailable
     public function build(): static
     {
         return $this->subject('Code de vérification de votre demande CSAR')
+            ->view('emails.request-tracking-code-html')
             ->text('emails.request-tracking-code');
     }
 }

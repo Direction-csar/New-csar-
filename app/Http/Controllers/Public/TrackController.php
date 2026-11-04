@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Models\PublicRequest;
 use App\Services\RequestTrackingService;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -17,7 +18,18 @@ class TrackController extends Controller
     {
         $reference = (string) $request->query('code', '');
         $dossier = $this->tracking->authorized($request, $reference);
-        return view('public.track', ['reference' => $reference, 'dossier' => $dossier?->publicSummary()]);
+        return view('public.track', [
+            'reference' => $reference,
+            'dossier' => $dossier?->publicSummary(),
+            'mailAvailable' => RequestTrackingService::mailChannelAvailable(),
+            'deliveryState' => $this->tracking->deliveryState($request),
+        ]);
+    }
+
+    /** État d'envoi du code (JSON neutre) pour l'écran de saisie du code. */
+    public function deliveryState(Request $request)
+    {
+        return response()->json(['state' => $this->tracking->deliveryState($request)]);
     }
 
     public function track(Request $request)
@@ -31,9 +43,30 @@ class TrackController extends Controller
             return redirect()->route('suivi.direct', ['code' => $dossier->tracking_code]);
         }
 
+        if ($request->input('action') === 'lookup') {
+            $request->validate(['tracking_code' => 'required|string|max:40']);
+            $reference = RequestTrackingService::normalizeReference((string) $request->input('tracking_code'));
+            if (!PublicRequest::where('tracking_code', $reference)->exists()) {
+                return back()->with('tracking_error', 'Référence introuvable. Vérifiez le numéro indiqué sur votre récépissé.')
+                    ->withInput(['tracking_code' => $reference]);
+            }
+            if (!RequestTrackingService::mailChannelAvailable()) {
+                return back()->with('tracking_error', RequestTrackingService::UNAVAILABLE)->withInput(['tracking_code' => $reference]);
+            }
+            // Nouvelle saisie d'adresse : l'ancien défi est abandonné pour revenir à l'écran de l'adresse.
+            $request->session()->forget(['request_tracking_challenge', 'request_tracking_reference']);
+            return back()->with('tracking_verify', true)->withInput(['tracking_code' => $reference]);
+        }
+
         $request->validate(['tracking_code' => 'required|string|max:40', 'email' => 'required|email|max:255']);
-        $this->tracking->issue($request, $request->input('tracking_code'), $request->input('email'));
-        return back()->with('tracking_message', RequestTrackingService::MESSAGE)->with('tracking_prompt', true);
+        $reference = RequestTrackingService::normalizeReference((string) $request->input('tracking_code'));
+        $request->session()->put('request_tracking_reference', $reference);
+        return match ($this->tracking->issue($request, $reference, $request->input('email'))) {
+            'unavailable' => back()->with('tracking_error', RequestTrackingService::UNAVAILABLE),
+            'throttled' => back()->with('tracking_error', 'Trop de demandes de code pour cette référence. Réessayez dans une heure.')
+                ->with('tracking_verify', true)->withInput(['tracking_code' => $reference]),
+            default => back()->with('tracking_prompt', true)->with('tracking_message', RequestTrackingService::MESSAGE),
+        };
     }
 
     public function verify(Request $request, $locale, $code = null)
