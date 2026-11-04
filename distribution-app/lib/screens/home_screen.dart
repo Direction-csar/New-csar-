@@ -7,6 +7,7 @@ import '../utils/json_num.dart';
 import '../services/api_service.dart';
 import '../services/sync_service.dart';
 import '../services/local_db_service.dart';
+import '../services/diagnostics.dart';
 import 'beneficiaire_form_screen.dart';
 import 'bulk_beneficiaries_screen.dart';
 import 'planning_beneficiaries_screen.dart';
@@ -19,7 +20,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<dynamic> _plannings = [];
   bool _loading = true;
   String? _loadError;
@@ -30,13 +31,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _pollTimer;
   String? _lastCheck;
   int _newCollections = 0;
+  bool _loadingPlannings = false;
+  bool _polling = false;
+  bool _active = true;
 
   Future<void> _pollCollections() async {
+    if (!mounted || !_active || _polling || _loadingPlannings) return;
     final token = context.read<AuthService>().token;
     if (token == null) return;
+    _polling = true;
     try {
       final res = await ApiService.getTicketsHistory(token, collectedSince: _lastCheck);
-      if (res['success'] != true || !mounted) return;
+      if (!mounted || context.read<AuthService>().token != token) return;
+      if (ApiService.isAuthError(res)) {
+        await _sessionExpired();
+        return;
+      }
+      if (res['success'] != true) return;
       final serverTime = res['server_time']?.toString();
       if (_lastCheck != null) {
         final List items = res['data'] ?? [];
@@ -61,7 +72,11 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
       if (serverTime != null) _lastCheck = serverTime;
-    } catch (_) {}
+    } catch (error, stack) {
+      Diagnostics.error('poll-collections', error, stack);
+    } finally {
+      _polling = false;
+    }
   }
 
   void _openHistory() {
@@ -85,21 +100,34 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _loadPlannings();
       _refreshPendingCount();
-      _pollCollections();
       _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _pollCollections());
     });
     _connectivitySub = Connectivity().onConnectivityChanged.listen((result) {
-      if (result != ConnectivityResult.none) {
+      if (mounted && _active && result != ConnectivityResult.none) {
         _sync(silent: true);
       }
+    }, onError: (Object error, StackTrace stack) {
+      Diagnostics.error('connectivity', error, stack);
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _active = state == AppLifecycleState.resumed;
+    if (_active) {
+      _loadPlannings();
+      _refreshPendingCount();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _connectivitySub?.cancel();
     _pollTimer?.cancel();
     super.dispose();
@@ -113,24 +141,36 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadPlannings() async {
-    if (!mounted) return;
+    if (!mounted || _loadingPlannings) return;
+    _loadingPlannings = true;
     setState(() {
       _loading = true;
       _loadError = null;
     });
     final token = context.read<AuthService>().token;
     if (token == null) {
-      setState(() => _loading = false);
+      _loadingPlannings = false;
+      setState(() {
+        _loading = false;
+        _loadError = 'Session expirée. Reconnectez-vous.';
+      });
       return;
     }
     try {
-      final res = await ApiService.getMyPlannings(token).timeout(ApiService.requestTimeout);
-      if (!mounted) return;
+      final res = await ApiService.getMyPlannings(token);
+      if (!mounted || context.read<AuthService>().token != token) return;
       if (res['success'] == true) {
         final data = res['data'];
+        // Valider avant setState : une exception dans build() échappe au
+        // try/catch de la requête et produit l'écran gris en release.
+        if (data is! List || data.any((p) =>
+            p is! Map<String, dynamic> ||
+            p['id'] is! int ||
+            (p['event'] != null && p['event'] is! Map<String, dynamic>))) {
+          throw const FormatException('planning-shape');
+        }
         setState(() {
-          _plannings = data is List ? data : [];
-          _loadError = data is List ? null : 'Format de réponse inattendu du serveur';
+          _plannings = data;
         });
       } else if (ApiService.isAuthError(res)) {
         await _sessionExpired();
@@ -141,17 +181,25 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } on TimeoutException {
       if (mounted) setState(() => _loadError = 'Le serveur ne répond pas. Réessayez dans un instant.');
-    } catch (e) {
+    } on FormatException catch (error, stack) {
+      Diagnostics.error('planning-data', error, stack);
+      if (mounted) setState(() => _loadError = 'Format de réponse inattendu du serveur');
+    } catch (error, stack) {
+      Diagnostics.error('load-plannings', error, stack);
       if (mounted) {
         setState(() => _loadError = 'Impossible de joindre le serveur. Vérifiez la connexion.');
       }
+    } finally {
+      _loadingPlannings = false;
+      if (mounted) setState(() => _loading = false);
     }
-    if (mounted) setState(() => _loading = false);
+    if (mounted && _loadError == null) unawaited(_pollCollections());
   }
 
   /// Jeton refuse ou expire cote serveur : purge locale + message + retour au login.
   Future<void> _sessionExpired() async {
     if (!mounted) return;
+    final navigator = Navigator.of(context);
     setState(() => _loading = false);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -159,44 +207,57 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.red,
       ),
     );
-    await context.read<AuthService>().logout();
+    await context.read<AuthService>().clearSession();
+    if (navigator.mounted) navigator.popUntil((route) => route.isFirst);
   }
 
   Future<void> _sync({bool silent = false}) async {
-    if (_syncing) return;
+    if (!mounted || _syncing) return;
     final token = context.read<AuthService>().token;
     if (token == null) return;
 
-    final connectivity = await Connectivity().checkConnectivity();
-    if (connectivity == ConnectivityResult.none) {
-      if (!silent && mounted) {
+    setState(() => _syncing = true);
+    try {
+      final connectivity = await Connectivity().checkConnectivity().timeout(ApiService.requestTimeout);
+      if (!mounted || context.read<AuthService>().token != token) return;
+      if (connectivity == ConnectivityResult.none) {
+        if (!silent) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Aucune connexion reseau'), backgroundColor: Colors.orange),
+          );
+        }
+        return;
+      }
+
+      final result = await SyncService.syncPendingBeneficiaires(token);
+      if (!mounted || context.read<AuthService>().token != token) return;
+      setState(() {
+        _pendingCount = result.remaining;
+      });
+      if (result.synced > 0) await _loadPlannings();
+
+      if (!mounted) return;
+      if (result.synced > 0 || !silent) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Aucune connexion reseau'), backgroundColor: Colors.orange),
+          SnackBar(
+            content: Text(
+              result.synced > 0
+                  ? '${result.synced} beneficiaire(s) synchronise(s)${result.remaining > 0 ? ', ${result.remaining} restant(s)' : ''}'
+                  : (result.remaining > 0 ? '${result.remaining} en attente' : 'Aucun element a synchroniser'),
+            ),
+            backgroundColor: result.synced > 0 ? Colors.green : Colors.blueGrey,
+          ),
         );
       }
-      return;
-    }
-
-    setState(() => _syncing = true);
-    final result = await SyncService.syncPendingBeneficiaires(token);
-    setState(() {
-      _syncing = false;
-      _pendingCount = result.remaining;
-    });
-    await _loadPlannings();
-
-    if (!mounted) return;
-    if (result.synced > 0 || !silent) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result.synced > 0
-                ? '${result.synced} beneficiaire(s) synchronise(s)${result.remaining > 0 ? ', ${result.remaining} restant(s)' : ''}'
-                : (result.remaining > 0 ? '${result.remaining} en attente' : 'Aucun element a synchroniser'),
-          ),
-          backgroundColor: result.synced > 0 ? Colors.green : Colors.blueGrey,
-        ),
-      );
+    } catch (error, stack) {
+      Diagnostics.error('sync', error, stack);
+      if (mounted && !silent) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Synchronisation impossible. Les saisies en attente sont conservées. Réessayez.'),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
     }
   }
 
@@ -494,7 +555,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ).then((_) => _loadPlannings()),
                                 onViewTickets: () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => TicketsHistoryScreen(planningId: p['id'], planningName: p['name'])),
+                                  MaterialPageRoute(builder: (_) => TicketsHistoryScreen(planningId: p['id'], planningName: p['name']?.toString())),
                                 ).then((_) => _loadPlannings()),
                               )),
                           const SizedBox(height: 10),
@@ -548,6 +609,7 @@ class _PlanningCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final event = planning['event'];
+    final date = DateTime.tryParse(planning['distribution_date']?.toString() ?? '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -562,15 +624,15 @@ class _PlanningCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            planning['name'] ?? event?['name'] ?? 'Planning #${planning['id']}',
+            (planning['name'] ?? event?['name'] ?? 'Planning #${planning['id']}').toString(),
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
           ),
           if (planning['location'] != null) ...[
             const SizedBox(height: 4),
             Text('Lieu : ${planning['location']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
           ],
-          if (planning['distribution_date'] != null)
-            Text('Date : ${planning['distribution_date'].toString().substring(0, 10)}',
+          if (date != null)
+            Text('Date : ${date.toIso8601String().split('T').first}',
                 style: const TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 8),
           ClipRRect(

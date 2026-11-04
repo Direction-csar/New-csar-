@@ -1,0 +1,12 @@
+Analyzing distribution-app...
+
+   info - Unnecessary braces in a string interpolation - lib\screens\home_screen.dart:93:25 - unnecessary_brace_in_string_interps
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\home_screen.dart:597:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\planning_beneficiaries_screen.dart:99:32 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\planning_beneficiaries_screen.dart:101:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\planning_beneficiaries_screen.dart:289:74 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\planning_beneficiaries_screen.dart:305:65 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\screens\tickets_history_screen.dart:155:45 - deprecated_member_use
+   info - Unnecessary use of multiple underscores - test\login_flow_test.dart:57:44 - unnecessary_underscores
+
+8 issues found. (ran in 15.9s)

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'diagnostics.dart';
 
 class ApiService {
   /// URL du serveur, configurable au build :
@@ -15,6 +16,27 @@ class ApiService {
   static const Duration requestTimeout = Duration(seconds: 25);
   static const String distBaseUrl = '$serverUrl/mobile/v1/distribution';
 
+  static Future<Map<String, dynamic>> _request(
+    String operation,
+    Future<http.Response> Function(http.Client) send, {
+    Duration timeout = requestTimeout,
+  }) async {
+    final client = http.Client();
+    final watch = Stopwatch()..start();
+    try {
+      final response = await send(client).timeout(timeout);
+      Diagnostics.event(operation,
+          'http=${response.statusCode} elapsed_ms=${watch.elapsedMilliseconds}');
+      return _decode(response);
+    } catch (error, stack) {
+      Diagnostics.error(operation, error, stack);
+      rethrow;
+    } finally {
+      // Ferme aussi la connexion lorsque le délai expire.
+      client.close();
+    }
+  }
+
   /// Décode la réponse JSON en remontant le message d'erreur du serveur
   /// sur les codes HTTP >= 400 (401/403/404/422/500), au lieu de laisser
   /// jsonDecode échouer silencieusement sur du HTML ou un corps vide.
@@ -25,40 +47,59 @@ class ApiService {
     } catch (_) {
       return {
         'success': false,
-        'message': 'Erreur serveur (HTTP ${response.statusCode})',
+        'http_status': response.statusCode,
+        'message': _httpError(response.statusCode),
       };
     }
-    final map = body is Map<String, dynamic> ? body : <String, dynamic>{};
+    if (body is! Map<String, dynamic>) {
+      return {
+        'success': false,
+        'http_status': response.statusCode,
+        'message': 'Format de réponse inattendu du serveur (HTTP ${response.statusCode})',
+      };
+    }
+    final map = body;
+    map['http_status'] = response.statusCode;
     if (response.statusCode >= 400) {
       map['success'] = false;
-      map['message'] ??= 'Erreur serveur (HTTP ${response.statusCode})';
-      map['http_status'] = response.statusCode;
+      if ([403, 404, 419].contains(response.statusCode) ||
+          response.statusCode >= 500 ||
+          map['message'] is! String) {
+        map['message'] = _httpError(response.statusCode);
+      }
     }
     return map;
   }
 
-  static Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await http.post(
+  static String _httpError(int status) => switch (status) {
+    401 => 'Session expirée ou identifiants invalides (HTTP 401). Reconnectez-vous.',
+    403 => 'Accès refusé (HTTP 403). Vérifiez les permissions Distribution auprès de l’administrateur.',
+    404 => 'Service Distribution introuvable (HTTP 404). Contactez l’administrateur.',
+    419 => 'Session expirée (HTTP 419). Reconnectez-vous.',
+    >= 500 => 'Serveur indisponible (HTTP $status). Réessayez dans un instant.',
+    _ => 'Réponse serveur invalide (HTTP $status)',
+  };
+
+  static Future<Map<String, dynamic>> login(String email, String password) =>
+    _request('login', (client) => client.post(
       Uri.parse('$apiBaseUrl/login'),
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
-    );
-    return _decode(response);
-  }
+    ));
 
   /// Revocation du jeton cote serveur (best effort : le nettoyage local a lieu quand meme).
   static Future<void> logout(String token) async {
     try {
-      await http.post(
+      await _request('logout', (client) => client.post(
         Uri.parse('$distBaseUrl/logout'),
         headers: _headers(token),
-      );
+      ), timeout: const Duration(seconds: 5));
     } catch (_) {}
   }
 
   /// True si la reponse indique un jeton refuse/expire (deconnexion requise).
   static bool isAuthError(Map<String, dynamic> res) =>
-      res['http_status'] == 401 || res['http_status'] == 403;
+      res['http_status'] == 401 || res['http_status'] == 419;
 
   static Future<Map<String, dynamic>> sync(String token) async {
     final response = await http.get(
@@ -76,13 +117,11 @@ class ApiService {
     return _decode(response);
   }
 
-  static Future<Map<String, dynamic>> getMyPlannings(String token) async {
-    final response = await http.get(
+  static Future<Map<String, dynamic>> getMyPlannings(String token) =>
+    _request('my-plannings', (client) => client.get(
       Uri.parse('$distBaseUrl/my-plannings'),
       headers: _headers(token),
-    );
-    return _decode(response);
-  }
+    ));
 
   static Future<Map<String, dynamic>> getPlanningBeneficiaries(String token, int planningId) async {
     final response = await http.get(
@@ -192,8 +231,7 @@ class ApiService {
     if (search != null && search.isNotEmpty) params['search'] = search;
     if (collectedSince != null && collectedSince.isNotEmpty) params['collected_since'] = collectedSince;
     final uri = Uri.parse('$distBaseUrl/tickets/history').replace(queryParameters: params.isEmpty ? null : params);
-    final response = await http.get(uri, headers: _headers(token));
-    return _decode(response);
+    return _request('tickets-history', (client) => client.get(uri, headers: _headers(token)));
   }
 
   static Future<Map<String, dynamic>> getTicket(String token, String code) async {

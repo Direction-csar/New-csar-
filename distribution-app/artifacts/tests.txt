@@ -1,0 +1,162 @@
+00:00 +0: loading C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart
+00:00 +0: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: connexion réussie → tableau de bord affiché (quotas décimaux en chaînes)
+00:00 +1: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: connexion réussie → tableau de bord affiché (quotas décimaux en chaînes)
+[Distribution] login http=200 elapsed_ms=13
+[Distribution] my-plannings http=200 elapsed_ms=4
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:01 +2: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: quotas numériques, nuls ou absents ne cassent pas l'écran
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=4
+[Distribution] tickets-history http=200 elapsed_ms=0
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=5
+[Distribution] tickets-history http=200 elapsed_ms=0
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:02 +3: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: compteurs reçus en chaînes ou décimaux ne cassent pas l'écran
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:02 +4: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: planning sans événement ni lieu : écran affiché
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:02 +5: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: aucun planning assigné : tableau de bord vide, pas d'écran blanc
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:02 +6: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: identifiants incorrects : message explicite, reste sur la connexion
+[Distribution] login http=401 elapsed_ms=0
+00:02 +7: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: API indisponible : message réseau explicite
+[Distribution] login error=ClientException
+#6      ApiService._request (package:csar_distribution/services/api_service.dart:27:24)
+#7      AuthService.login (package:csar_distribution/services/auth_service.dart:52:13)
+#8      _LoginScreenState._login (package:csar_distribution/screens/login_screen.dart:29:19)
+00:02 +8: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: réponse de connexion invalide (HTML) : message explicite
+[Distribution] login http=502 elapsed_ms=2
+00:03 +9: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: connexion « réussie » sans jeton : message explicite, pas d'écran blanc
+[Distribution] login http=200 elapsed_ms=0
+00:03 +10: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: connexion « réussie » sans utilisateur : tableau de bord affiché
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:03 +11: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: jeton expiré (401) après connexion : retour à la connexion avec message
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=401 elapsed_ms=1
+00:03 +12: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: serveur en erreur 500 sur les plannings : message + bouton Réessayer
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=500 elapsed_ms=0
+00:03 +13: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: format de plannings inattendu : message, pas d'écran blanc
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] planning-data error=FormatException
+#0      _HomeScreenState._loadPlannings (package:csar_distribution/screens/home_screen.dart:170:11)
+00:03 +14: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: date courte : le planning reste affichable
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:03 +15: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: nombre non fini : aucune exception de construction
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:03 +16: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: élément planning malformé : erreur récupérable
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] planning-data error=FormatException
+#0      _HomeScreenState._loadPlannings (package:csar_distribution/screens/home_screen.dart:170:11)
+00:04 +17: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: 401 HTML : purge de la session et retour connexion
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=401 elapsed_ms=1
+00:04 +18: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: 403 : accès refusé explicite sans invalider le jeton
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=403 elapsed_ms=1
+00:04 +19: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: historique bloqué : délai borné et bouton de reprise
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=0
+[Distribution] tickets-history error=TimeoutException
+#1      ApiService._request (package:csar_distribution/services/api_service.dart:27:24)
+#2      _HomeScreenState._pollCollections (package:csar_distribution/screens/home_screen.dart:44:19)
+[Distribution] poll-collections error=TimeoutException
+#1      ApiService._request (package:csar_distribution/services/api_service.dart:27:24)
+#2      _HomeScreenState._pollCollections (package:csar_distribution/screens/home_screen.dart:44:19)
+[Distribution] tickets-history error=TimeoutException
+#1      ApiService._request (package:csar_distribution/services/api_service.dart:27:24)
+#2      _TicketsHistoryScreenState._load (package:csar_distribution/screens/tickets_history_screen.dart:56:19)
+[Distribution] load-history error=TimeoutException
+#1      ApiService._request (package:csar_distribution/services/api_service.dart:27:24)
+#2      _TicketsHistoryScreenState._load (package:csar_distribution/screens/tickets_history_screen.dart:56:19)
+00:04 +20: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: les erreurs HTTP conservent leur statut même sans JSON
+[Distribution] my-plannings http=401 elapsed_ms=0
+[Distribution] my-plannings http=403 elapsed_ms=0
+[Distribution] my-plannings http=404 elapsed_ms=0
+[Distribution] my-plannings http=419 elapsed_ms=0
+[Distribution] my-plannings http=500 elapsed_ms=0
+00:04 +21: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: tableau bloqué : Réessayer réussit et ignore la réponse tardive
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings error=TimeoutException
+#1      ApiService._request (package:csar_distribution/services/api_service.dart:27:24)
+#2      _HomeScreenState._loadPlannings (package:csar_distribution/screens/home_screen.dart:160:19)
+[Distribution] my-plannings http=200 elapsed_ms=0
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:04 +22: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: réseau lent : succès après dix secondes avec Bearer et Accept JSON
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=12
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:04 +23: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: serveur inaccessible après connexion : erreur puis reprise
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings error=ClientException
+#6      ApiService._request (package:csar_distribution/services/api_service.dart:27:24)
+#7      _HomeScreenState._loadPlannings (package:csar_distribution/screens/home_screen.dart:160:19)
+[Distribution] load-plannings error=ClientException
+#6      ApiService._request (package:csar_distribution/services/api_service.dart:27:24)
+#7      _HomeScreenState._loadPlannings (package:csar_distribution/screens/home_screen.dart:160:19)
+[Distribution] my-plannings http=200 elapsed_ms=0
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:04 +24: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: déconnexion avec serveur lent puis reconnexion
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=0
+[Distribution] tickets-history http=200 elapsed_ms=0
+[Distribution] logout error=TimeoutException
+#1      ApiService._request (package:csar_distribution/services/api_service.dart:27:24)
+#2      ApiService.logout (package:csar_distribution/services/api_service.dart:93:7)
+00:05 +25: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: historique : navigation, données et retour au tableau
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=0
+[Distribution] tickets-history http=200 elapsed_ms=0
+[Distribution] tickets-history http=200 elapsed_ms=35
+[Distribution] my-plannings http=200 elapsed_ms=0
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:05 +26: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: expiration dans historique : ferme la route protégée
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+[Distribution] tickets-history http=419 elapsed_ms=35
+00:05 +27: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: historique 500 : erreur visible puis Réessayer
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=500 elapsed_ms=0
+[Distribution] tickets-history http=500 elapsed_ms=41
+[Distribution] tickets-history http=200 elapsed_ms=1
+00:05 +28: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: application en arrière-plan : polling suspendu et reprise
+[Distribution] login http=200 elapsed_ms=1
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=1
+[Distribution] tickets-history http=200 elapsed_ms=0
+00:06 +29: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: réponse tardive après fermeture : aucun setState après dispose
+[Distribution] login http=200 elapsed_ms=0
+[Distribution] my-plannings http=200 elapsed_ms=17
+00:06 +30: C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart: profil local corrompu : démarrage récupérable
+[Distribution] restore-session error=FormatException
+#6      AuthService.loadToken (package:csar_distribution/services/auth_service.dart:35:49)
+00:06 +31: All tests passed!

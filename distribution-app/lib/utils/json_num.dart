@@ -3,9 +3,12 @@
 /// type. Un cast strict (`as int?`) lèverait une exception de construction,
 /// qui laisse un écran blanc en version release.
 num jsonNum(dynamic value, [num fallback = 0]) {
-  if (value is num) return value;
-  if (value is String) return num.tryParse(value.trim().replaceAll(',', '.')) ?? fallback;
-  return fallback;
+  final parsed = value is num
+      ? value
+      : value is String
+          ? num.tryParse(value.trim().replaceAll(',', '.'))
+          : null;
+  return parsed != null && parsed.isFinite ? parsed : fallback;
 }
 
 int jsonInt(dynamic value, [int fallback = 0]) => jsonNum(value, fallback).round();

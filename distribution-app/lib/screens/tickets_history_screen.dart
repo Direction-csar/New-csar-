@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../services/diagnostics.dart';
 import 'qr_ticket_screen.dart';
 
 class TicketsHistoryScreen extends StatefulWidget {
@@ -19,6 +21,8 @@ class _TicketsHistoryScreenState extends State<TicketsHistoryScreen> with Single
   List<dynamic> _all = [];
   Map<String, dynamic> _stats = {};
   bool _loading = true;
+  String? _error;
+  int _requestId = 0;
   String _search = '';
   final _searchCtrl = TextEditingController();
 
@@ -37,33 +41,68 @@ class _TicketsHistoryScreenState extends State<TicketsHistoryScreen> with Single
   }
 
   Future<void> _load() async {
-    setState(() => _loading = true);
+    if (!mounted) return;
+    final requestId = ++_requestId;
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     final token = context.read<AuthService>().token;
-    if (token == null) return;
     try {
-      final res = await ApiService.getTicketsHistory(token, planningId: widget.planningId, search: _search);
-      if (res['success'] == true && mounted) {
-        setState(() {
-          _all = res['data'] ?? [];
-          _stats = Map<String, dynamic>.from(res['stats'] ?? {});
-        });
-      } else if (ApiService.isAuthError(res) && mounted) {
-        await _sessionExpired();
+      if (token == null) {
+        _error = 'Session expirée. Reconnectez-vous.';
         return;
       }
-    } catch (_) {}
-    if (mounted) setState(() => _loading = false);
+      final res = await ApiService.getTicketsHistory(token, planningId: widget.planningId, search: _search);
+      if (!mounted || requestId != _requestId ||
+          context.read<AuthService>().token != token) {
+        return;
+      }
+      if (res['success'] == true) {
+        final data = res['data'];
+        if (data is! List || data.any((t) =>
+            t is! Map<String, dynamic> ||
+            ['beneficiary', 'planning', 'scanner'].any((key) =>
+              t[key] != null && t[key] is! Map<String, dynamic>)) ||
+            (res['stats'] != null && res['stats'] is! Map<String, dynamic>)) {
+          throw const FormatException('history-shape');
+        }
+        setState(() {
+          _all = data;
+          _stats = Map<String, dynamic>.from(res['stats'] ?? {});
+        });
+      } else if (ApiService.isAuthError(res)) {
+        await _sessionExpired();
+      } else {
+        _error = res['message'] is String ? res['message'] : 'Impossible de charger l’historique.';
+      }
+    } catch (error, stack) {
+      Diagnostics.error('load-history', error, stack);
+      if (mounted && requestId == _requestId) {
+        _error = error is TimeoutException
+            ? 'Le serveur ne répond pas. Réessayez dans un instant.'
+            : error is FormatException
+                ? 'Format de réponse inattendu du serveur'
+                : 'Impossible de joindre le serveur. Vérifiez la connexion.';
+      }
+    } finally {
+      if (mounted && requestId == _requestId) {
+        setState(() => _loading = false);
+      }
+    }
   }
 
   Future<void> _sessionExpired() async {
     if (!mounted) return;
+    final navigator = Navigator.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Session expirée ou compte désactivé : reconnectez-vous.'),
         backgroundColor: Colors.red,
       ),
     );
-    await context.read<AuthService>().logout();
+    await context.read<AuthService>().clearSession();
+    if (navigator.mounted) navigator.popUntil((route) => route.isFirst);
   }
 
   List<dynamic> get _issued => _all.where((t) => t['status'] != 'collected').toList();
@@ -78,6 +117,21 @@ class _TicketsHistoryScreenState extends State<TicketsHistoryScreen> with Single
 
   Widget _list(List<dynamic> items, bool collected) {
     if (_loading) return const Center(child: CircularProgressIndicator(color: Color(0xFFD84315)));
+    if (_error != null) {
+      return ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          const SizedBox(height: 60),
+          Text(_error!, textAlign: TextAlign.center),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: _load,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Réessayer'),
+          ),
+        ],
+      );
+    }
     if (items.isEmpty) {
       return ListView(children: [
         const SizedBox(height: 100),
@@ -108,11 +162,11 @@ class _TicketsHistoryScreenState extends State<TicketsHistoryScreen> with Single
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(b['full_name'] ?? 'N/A', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text((b['full_name'] ?? 'N/A').toString(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                     Text('${t['ticket_code']}  |  ${b['quantity_kg'] ?? 0} kg  |  Tel: ${b['phone'] ?? '-'}',
                         style: const TextStyle(fontSize: 11, color: Colors.grey)),
                     if (widget.planningId == null)
-                      Text(p['name'] ?? '', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      Text((p['name'] ?? '').toString(), style: const TextStyle(fontSize: 11, color: Colors.grey)),
                     Text('Ticket emis le ${_fmt(t['issued_at'])}', style: const TextStyle(fontSize: 11, color: Colors.orange)),
                     if (collected)
                       Text('Don recupere le ${_fmt(t['collected_at'])}${t['scanner'] != null ? ' (scanne par ${t['scanner']['name']})' : ''}',

@@ -2,6 +2,7 @@ import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
+import 'services/diagnostics.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 
@@ -9,7 +10,7 @@ import 'screens/home_screen.dart';
 /// écran s'affiche en blanc (ou en gris) en version release, sans aucune
 /// explication. L'agent voit ici un message clair, et le détail reste dans les logs.
 Widget _errorScreen(FlutterErrorDetails details) {
-  debugPrint('Erreur d\'affichage : ${details.exceptionAsString()}');
+  Diagnostics.error('widget', details.exception, details.stack ?? StackTrace.current);
   return Directionality(
     textDirection: TextDirection.ltr,
     child: Container(
@@ -28,11 +29,10 @@ Widget _errorScreen(FlutterErrorDetails details) {
 void main() {
   ErrorWidget.builder = _errorScreen;
   FlutterError.onError = (details) {
-    FlutterError.presentError(details);
-    debugPrint('FlutterError : ${details.exceptionAsString()}');
+    Diagnostics.error('flutter', details.exception, details.stack ?? StackTrace.current);
   };
   PlatformDispatcher.instance.onError = (error, stack) {
-    debugPrint('Erreur non interceptée : $error');
+    Diagnostics.error('async', error, stack);
     return true;
   };
   runApp(
