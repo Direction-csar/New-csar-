@@ -132,7 +132,7 @@
             html: '<p><strong>Demande d\'aide – guide en 3 étapes</strong></p>' +
                 '<ol style="margin:8px 0 0 0; padding-left:20px; font-size:0.9rem;">' +
                 '<li>Remplir le formulaire en ligne (coordonnées, type d\'aide, situation).</li>' +
-                '<li>Recevoir un <strong>code de suivi</strong> par email/SMS.</li>' +
+                '<li>Recevoir un <strong>code de suivi</strong> par email.</li>' +
                 '<li>Suivre l\'avancement avec ce code dans « Suivre ma demande ».</li></ol>' +
                 '<p style="margin-top:12px;">Vous pouvez déposer une demande d\'assistance alimentaire ou une demande de partenariat.</p>' +
                 '<p><a href="' + routes.demande + '">→ Aller au formulaire de demande d\'aide</a></p>'

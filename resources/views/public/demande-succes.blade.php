@@ -40,11 +40,12 @@
                 <div class="tracking-info">
                     <h3><i class="fas fa-barcode"></i> Code de suivi</h3>
                     <div class="tracking-code">
-                        <span class="code">{{ session('tracking_code') }}</span>
-                        <button onclick="copyTrackingCode()" class="copy-btn" title="Copier le code">
+                        <span class="code" id="trackingCodeValue" data-code="{{ session('tracking_code') }}">{{ session('tracking_code') }}</span>
+                        <button type="button" id="copyTrackingBtn" class="copy-btn" title="Copier le code" aria-label="Copier le code de suivi">
                             <i class="fas fa-copy"></i>
                         </button>
                     </div>
+                    <p id="copyFeedback" class="copy-feedback" role="status" aria-live="polite"></p>
                     <p class="tracking-note">
                         <i class="fas fa-info-circle"></i>
                         Conservez ce code pour suivre l'état de votre demande
@@ -87,11 +88,11 @@
                 <div class="contact-info">
                     <div class="contact-item">
                         <i class="fas fa-phone"></i>
-                        <span>+221 33 123 45 67</span>
+                        <span>+221 77 645 92 42</span>
                     </div>
                     <div class="contact-item">
                         <i class="fas fa-envelope"></i>
-                        <span>urgence@csar.sn</span>
+                        <span>contact@csar.sn</span>
                     </div>
                 </div>
             </div>
@@ -393,23 +394,68 @@
 }
 </style>
 
+<style>
+.copy-feedback{min-height:1.3em;margin:8px 0 0;font-size:.88rem;font-weight:600;text-align:center}
+.copy-feedback.ok{color:#059669}.copy-feedback.ko{color:#b45309}
+</style>
 <script>
-function copyTrackingCode() {
-    const code = document.querySelector('.code').textContent;
-    navigator.clipboard.writeText(code).then(function() {
-        const btn = document.querySelector('.copy-btn');
-        const originalIcon = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i>';
-        btn.style.background = '#10b981';
-        
-        setTimeout(function() {
-            btn.innerHTML = originalIcon;
-            btn.style.background = '#0ea5e9';
-        }, 2000);
-    }).catch(function(err) {
-        console.error('Erreur lors de la copie: ', err);
+(function () {
+    const btn = document.getElementById('copyTrackingBtn');
+    const el = document.getElementById('trackingCodeValue');
+    const feedback = document.getElementById('copyFeedback');
+    if (!btn || !el) return;
+    const icon = btn.innerHTML;
+
+    // Repli : sélection d'un champ temporaire + execCommand (navigateurs sans API ou contexte non sécurisé).
+    function legacyCopy(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, text.length);
+        let ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        document.body.removeChild(ta);
+        return ok;
+    }
+
+    function selectCode() {
+        const range = document.createRange();
+        range.selectNodeContents(el);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+    function report(ok) {
+        feedback.className = 'copy-feedback ' + (ok ? 'ok' : 'ko');
+        if (ok) {
+            feedback.textContent = 'Code copié !';
+            btn.innerHTML = '<i class="fas fa-check"></i>';
+            btn.style.background = '#10b981';
+        } else {
+            selectCode();
+            feedback.textContent = 'Copie automatique impossible : le code est sélectionné, copiez-le manuellement.';
+        }
+        setTimeout(function () {
+            btn.innerHTML = icon;
+            btn.style.background = '';
+            if (ok) feedback.textContent = '';
+        }, 2500);
+    }
+
+    btn.addEventListener('click', function () {
+        const code = (el.dataset.code || el.textContent).trim();
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code).then(function () { report(true); }, function () { report(legacyCopy(code)); });
+        } else {
+            report(legacyCopy(code));
+        }
     });
-}
+})();
 </script>
 
 @endsection

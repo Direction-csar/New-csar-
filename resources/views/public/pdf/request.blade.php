@@ -409,11 +409,6 @@
             </div>
             @endif
         </div>
-        @if($request->latitude && $request->longitude)
-        <div class="coordinates-info">
-            Coordonnées GPS : Lat. {{ number_format($request->latitude, 6) }}° / Lon. {{ number_format($request->longitude, 6) }}°
-        </div>
-        @endif
     </div>
 
     @if($request->description)
@@ -475,7 +470,7 @@
         <div class="footer-republic">République du Sénégal • Un Peuple, Un But, Une Foi</div>
         
         <div class="contact-info">
-            Site web : www.csar.sn • Email : contact@csar.gouv.sn • Téléphone : +221 33 123 45 67 • Dakar, Sénégal
+            Site web : www.csar.sn • Email : contact@csar.sn • Téléphone : +221 77 645 92 42 • Dakar, Sénégal
         </div>
         
         <div class="document-info">

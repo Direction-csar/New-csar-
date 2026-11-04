@@ -27,7 +27,8 @@ class PublicFormsTest extends TestCase
             'nom' => 'Fictif', 'prenom' => 'Demandeur', 'email' => 'demandeur@example.test',
             'telephone' => '77 123 45 67', 'type_demande' => 'aide_alimentaire',
             'objet' => 'Assistance fictive', 'description' => 'Description fictive pour audit.',
-            'region' => 'Dakar', 'latitude' => 14.7167, 'longitude' => -17.4677,
+            'region' => 'Dakar', 'departement' => 'Dakar', 'latitude' => 14.7167, 'longitude' => -17.4677,
+            'demandeur_type' => 'particulier',  'exactitude' => '1',
         ], $changes);
     }
 
@@ -45,18 +46,18 @@ class PublicFormsTest extends TestCase
         foreach (['aide_alimentaire', 'demande_audience', 'information_generale', 'autre'] as $type) {
             $this->postJson('/demande', $this->payload([
                 'prenom' => $type, 'type_demande' => $type, 'type_demande_autre' => 'Sujet spécifique',
-                'region' => $type === 'aide_alimentaire' ? 'Dakar' : null, 'adresse' => null,
+                'adresse' => null,
             ]))->assertOk()->assertJsonPath('success', true);
         }
         $this->assertDatabaseCount('public_requests', 4);
-        $this->assertDatabaseHas('public_requests', ['type' => 'information_generale', 'address' => '', 'region' => '']);
+        $this->assertDatabaseHas('public_requests', ['type' => 'information_generale', 'region' => 'Dakar']);
         $this->postJson('/demande', $this->payload(['type_demande' => 'type_invente']))->assertUnprocessable();
     }
 
     public function test_request_requires_mandatory_fields(): void
     {
         $this->post('/fr/demande', ['nom' => 'Test'])
-            ->assertSessionHasErrors(['prenom', 'email', 'telephone', 'type_demande', 'objet', 'description']);
+            ->assertSessionHasErrors(['prenom', 'email', 'telephone', 'type_demande', 'objet', 'description', 'demandeur_type', 'latitude', 'exactitude']);
     }
 
     public function test_can_submit_contact_message(): void

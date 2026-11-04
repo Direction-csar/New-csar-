@@ -73,7 +73,13 @@ class ActionController extends Controller
         // Créer une notification automatique pour l'admin
         NotificationService::notifyNewRequest($publicRequest);
 
+        $message = '✅ Votre demande a été envoyée avec succès !';
+        if ($smsSent) {
+            $message .= ' Un SMS de confirmation vous a été envoyé.';
+        } else {
+            $message .= ' Conservez votre code de suivi : consultez votre demande depuis la page de suivi sécurisé.';
+        }
         return redirect()->route('demande.success', ['code' => $publicRequest->tracking_code])
-            ->with('success', '✅ Votre demande a été envoyée avec succès ! Un SMS de confirmation vous a été envoyé.');
+            ->with('success', $message);
     }
 }

@@ -72,3 +72,10 @@ distribution-app/.dart_tool/
 # Fichiers temporaires locaux (dumps SQL, logs, sorties de test)
 /storage/tmp/
 /storage/app/reports
+
+# Artefacts de livraison (APK, PDF générés)
+/deliverables/
+
+# Contenu applicatif uploadé en runtime (pièces des demandeurs, archives) — données personnelles, jamais dans Git
+/storage/app/private/
+/storage/app/public/
