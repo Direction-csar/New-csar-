@@ -154,7 +154,7 @@
                                 <td><small>{{ $req->updated_at->format('d/m/Y') }}</small></td>
                                 <td>
                                     @if($req->dg_signature_file)
-                                    <a href="{{ asset('storage/' . $req->dg_signature_file) }}" target="_blank" class="btn btn-outline-primary btn-sm me-1">
+                                    <a href="{{ route('admin.demandes.document', [$req->id, 'signature']) }}" target="_blank" class="btn btn-outline-primary btn-sm me-1">
                                         <i class="fas fa-eye me-1"></i>Voir doc
                                     </a>
                                     @endif
@@ -202,7 +202,7 @@
                                 <td>{{ Str::limit($req->subject, 40) }}</td>
                                 <td>
                                     @if($req->scan_file)
-                                    <a href="{{ asset('storage/' . $req->scan_file) }}" target="_blank" class="btn btn-outline-info btn-xs">
+                                    <a href="{{ route('admin.demandes.document', [$req->id, 'scan']) }}" target="_blank" class="btn btn-outline-info btn-xs">
                                         <i class="fas fa-file-pdf"></i>
                                     </a>
                                     @else

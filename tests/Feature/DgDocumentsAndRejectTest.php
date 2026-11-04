@@ -21,6 +21,7 @@ class DgDocumentsAndRejectTest extends TestCase
     {
         parent::setUp();
         Storage::fake('public');
+        Storage::fake('local');
     }
 
     private function makeUser(string $role): User
@@ -80,7 +81,7 @@ class DgDocumentsAndRejectTest extends TestCase
         $demande->refresh();
         $this->assertSame('signee', $demande->workflow_status);
         $this->assertNotNull($demande->dg_signature_file);
-        Storage::disk('public')->assertExists($demande->dg_signature_file);
+        Storage::disk('local')->assertExists($demande->dg_signature_file);
     }
 
     public function test_dg_scan_upload_after_signature_advances_request_to_scannee(): void
@@ -94,7 +95,7 @@ class DgDocumentsAndRejectTest extends TestCase
 
         $demande->refresh();
         $this->assertSame('scannee', $demande->workflow_status);
-        Storage::disk('public')->assertExists($demande->scan_file);
+        Storage::disk('local')->assertExists($demande->scan_file);
     }
 
     public function test_scan_without_signature_is_refused_and_leaves_no_file(): void
@@ -109,7 +110,7 @@ class DgDocumentsAndRejectTest extends TestCase
         $demande->refresh();
         $this->assertSame('en_revue', $demande->workflow_status);
         $this->assertNull($demande->scan_file);
-        $this->assertSame([], Storage::disk('public')->allFiles('demandes/scans'));
+        $this->assertSame([], Storage::disk('local')->allFiles('demandes/scans'));
     }
 
     public function test_document_upload_rejects_unsupported_file_type(): void
@@ -166,7 +167,7 @@ class DgDocumentsAndRejectTest extends TestCase
         $demande->refresh();
         $this->assertSame('en_revue', $demande->workflow_status);
         $this->assertNull($demande->dg_signature_file);
-        $this->assertSame([], Storage::disk('public')->allFiles('demandes/signatures'));
+        $this->assertSame([], Storage::disk('local')->allFiles('demandes/signatures'));
     }
 
     public function test_signataire_cannot_upload_scan_through_admin_route_and_no_file_is_stored(): void
@@ -182,7 +183,7 @@ class DgDocumentsAndRejectTest extends TestCase
         $demande->refresh();
         $this->assertSame('signee', $demande->workflow_status);
         $this->assertNull($demande->scan_file);
-        $this->assertSame([], Storage::disk('public')->allFiles('demandes/scans'));
+        $this->assertSame([], Storage::disk('local')->allFiles('demandes/scans'));
     }
 
     public function test_signataire_role_can_still_sign_through_admin_route(): void

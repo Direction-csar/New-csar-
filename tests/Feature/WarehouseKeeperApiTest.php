@@ -163,6 +163,7 @@ class WarehouseKeeperApiTest extends TestCase
             $t->string('workflow_status')->default('soumise');
             $t->text('workflow_history')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
 
         Schema::create('request_missions', function (Blueprint $t) {

@@ -102,6 +102,7 @@ class StockPageRenderTest extends TestCase
             $t->string('status')->default('pending');
             $t->string('workflow_status')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
         Schema::create('notifications', function (Blueprint $t) {
             $t->id();

@@ -49,32 +49,39 @@
                     ];
                     $currentWf = $demande->workflow_status ?? 'soumise';
                     $wfKeys = array_keys($workflowSteps);
-                    $currentIndex = array_search($currentWf, $wfKeys);
-                    if ($currentIndex === false) $currentIndex = 0;
+                    // Étapes réellement franchies, reconstruites depuis
+                    // l'historique — pas depuis la position dans la liste.
+                    $reachedSteps = ['soumise' => true];
+                    foreach (($demande->workflow_history ?? []) as $historyEntry) {
+                        $toStatus = $historyEntry['to_status'] ?? null;
+                        if ($toStatus && isset($workflowSteps[$toStatus])) {
+                            $reachedSteps[$toStatus] = true;
+                        }
+                    }
+                    $reachedSteps[$currentWf] = true;
                 @endphp
                 <div class="d-flex justify-content-between align-items-center position-relative" style="gap: 4px;">
                     @foreach($workflowSteps as $key => $step)
                         @php
                             $stepIndex = array_search($key, $wfKeys);
-                            $isCompleted = $stepIndex < $currentIndex && $currentWf !== 'rejetee';
+                            $isReached = isset($reachedSteps[$key]);
                             $isCurrent = $key === $currentWf;
-                            $isRejected = $currentWf === 'rejetee' && $key === 'rejetee';
                         @endphp
                         <div class="text-center flex-fill" style="position: relative; z-index: 2;">
                             <div class="mx-auto d-flex align-items-center justify-content-center rounded-circle mb-1"
                                  style="width: 36px; height: 36px; font-size: 0.75rem;
-                                 background: {{ $isCompleted || $isCurrent || $isRejected ? 'linear-gradient(135deg, var(--bs-' . $step['color'] . '), var(--bs-' . $step['color'] . '-dark, var(--bs-' . $step['color'] . ')))' : '#e2e8f0' }};
-                                 color: {{ $isCompleted || $isCurrent || $isRejected ? '#fff' : '#94a3b8' }};
+                                 background: {{ $isReached ? 'linear-gradient(135deg, var(--bs-' . $step['color'] . '), var(--bs-' . $step['color'] . '-dark, var(--bs-' . $step['color'] . ')))' : '#e2e8f0' }};
+                                 color: {{ $isReached ? '#fff' : '#94a3b8' }};
                                  box-shadow: {{ $isCurrent ? '0 0 0 4px rgba(59,130,246,0.2)' : 'none' }};
                                  transition: all 0.3s ease;">
                                 <i class="fas {{ $step['icon'] }}"></i>
                             </div>
-                            <div class="small fw-bold {{ $isCurrent ? 'text-primary' : ($isCompleted || $isRejected ? 'text-' . $step['color'] : 'text-muted') }}" style="font-size: 0.65rem;">
+                            <div class="small fw-bold {{ $isCurrent ? 'text-primary' : ($isReached ? 'text-' . $step['color'] : 'text-muted') }}" style="font-size: 0.65rem;">
                                 {{ $step['label'] }}
                             </div>
                         </div>
                         @if(!$loop->last)
-                        <div class="flex-fill align-self-start" style="height: 3px; background: {{ $stepIndex < $currentIndex ? 'linear-gradient(90deg, var(--bs-' . $workflowSteps[$wfKeys[$stepIndex]]['color'] . '), var(--bs-' . $workflowSteps[$wfKeys[$stepIndex + 1]]['color'] . '))' : '#e2e8f0' }}; margin-top: 16px; border-radius: 2px;"></div>
+                        <div class="flex-fill align-self-start" style="height: 3px; background: {{ isset($reachedSteps[$wfKeys[$stepIndex + 1]]) ? 'linear-gradient(90deg, var(--bs-' . $workflowSteps[$wfKeys[$stepIndex]]['color'] . '), var(--bs-' . $workflowSteps[$wfKeys[$stepIndex + 1]]['color'] . '))' : '#e2e8f0' }}; margin-top: 16px; border-radius: 2px;"></div>
                         @endif
                     @endforeach
                 </div>
@@ -95,7 +102,15 @@
                         <p><strong>Demandeur:</strong> {{ $demande->full_name }}</p>
                         <p><strong>Email:</strong> {{ $demande->email }}</p>
                         <p><strong>Téléphone:</strong> {{ $demande->phone }}</p>
-                        <p><strong>Région:</strong> {{ $demande->region }}</p>
+                        <p><strong>Région:</strong> {{ $demande->region ?: '—' }}</p>
+                        @if($demande->latitude && $demande->longitude)
+                        <p><strong>Position GPS:</strong>
+                            {{ number_format((float) $demande->latitude, 6) }}, {{ number_format((float) $demande->longitude, 6) }}
+                            <a href="https://www.openstreetmap.org/?mlat={{ (float) $demande->latitude }}&mlon={{ (float) $demande->longitude }}#map=16/{{ (float) $demande->latitude }}/{{ (float) $demande->longitude }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary ms-1">
+                                <i class="fas fa-map-location-dot"></i> Voir sur la carte
+                            </a>
+                        </p>
+                        @endif
                     </div>
                     <div class="col-md-6">
                         <p><strong>Type:</strong> {{ ucfirst($demande->type) }}</p>
@@ -110,6 +125,58 @@
                         @endif
                     </div>
                 </div>
+                @if($demande->depot_mode || $demande->demandeur_type || $demande->departement || $demande->commune || $demande->letter_path || $demande->attachments)
+                <div class="row mt-2 pt-2 border-top">
+                    <div class="col-md-6">
+                        @if($demande->depot_mode)
+                        <p><strong>Mode de dépôt:</strong> {{ $demande->depot_mode === 'lettre' ? 'Lettre téléversée' : 'Formulaire en ligne' }}</p>
+                        @endif
+                        @if($demande->demandeur_type)
+                        <p><strong>Type de demandeur:</strong> {{ config('demande.demandeur_types')[$demande->demandeur_type] ?? $demande->demandeur_type }}</p>
+                        @endif
+                        @if($demande->structure_name)
+                        <p><strong>Structure:</strong> {{ $demande->structure_name }}</p>
+                        @endif
+                        @if($demande->event_date || $demande->event_location || $demande->event_participants)
+                        <p><strong>Événement:</strong>
+                            {{ optional($demande->event_date)->format('d/m/Y') }}
+                            {{ $demande->event_location ? '— '.$demande->event_location : '' }}
+                            {{ $demande->event_participants ? '— '.$demande->event_participants.' pers.' : '' }}
+                        </p>
+                        @endif
+                        @if($demande->cni)
+                        <p><strong>CNI:</strong> <span class="text-muted">{{ $demande->cni }}</span> <span class="badge bg-secondary">confidentiel</span></p>
+                        @endif
+                        @if($demande->ninea)
+                        <p><strong>NINEA / identifiant:</strong> {{ $demande->ninea }}</p>
+                        @endif
+                    </div>
+                    <div class="col-md-6">
+                        @if($demande->departement)
+                        <p><strong>Département:</strong> {{ $demande->departement }}</p>
+                        @endif
+                        @if($demande->commune)
+                        <p><strong>Commune:</strong> {{ $demande->commune }}</p>
+                        @endif
+                        @if($demande->letter_path)
+                        <p><strong>Lettre déposée:</strong>
+                            <a href="{{ route('admin.demandes.lettre', $demande->id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-file-arrow-down"></i> Télécharger la lettre
+                            </a>
+                        </p>
+                        @endif
+                        @if($demande->attachments)
+                        <p><strong>Pièces justificatives:</strong>
+                            @foreach($demande->attachments as $i => $att)
+                            <a href="{{ route('admin.demandes.piece', [$demande->id, $i]) }}" class="btn btn-sm btn-outline-secondary me-1">
+                                <i class="fas fa-paperclip"></i> Pièce {{ $i + 1 }}
+                            </a>
+                            @endforeach
+                        </p>
+                        @endif
+                    </div>
+                </div>
+                @endif
                 @if($demande->description)
                 <div class="mt-3">
                     <p><strong>Description:</strong></p>
@@ -311,7 +378,7 @@
                     <div class="small">
                         <i class="fas fa-signature text-primary me-1"></i>Document signé
                     </div>
-                    <a href="{{ asset('storage/' . $demande->dg_signature_file) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <a href="{{ route('admin.demandes.document', [$demande->id, 'signature']) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                         <i class="fas fa-eye"></i>
                     </a>
                 </div>
@@ -321,7 +388,7 @@
                     <div class="small">
                         <i class="fas fa-file-pdf text-info me-1"></i>Scan
                     </div>
-                    <a href="{{ asset('storage/' . $demande->scan_file) }}" target="_blank" class="btn btn-sm btn-outline-info">
+                    <a href="{{ route('admin.demandes.document', [$demande->id, 'scan']) }}" target="_blank" class="btn btn-sm btn-outline-info">
                         <i class="fas fa-eye"></i>
                     </a>
                 </div>

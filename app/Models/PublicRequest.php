@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class PublicRequest extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'name',
@@ -52,6 +53,18 @@ class PublicRequest extends Model
         'dtl_transmitted_at',
         'dtl_transmitted_by',
         'dtl_instructions',
+        'depot_mode',
+        'demandeur_type',
+        'cni',
+        'ninea',
+        'structure_name',
+        'event_date',
+        'event_location',
+        'event_participants',
+        'departement',
+        'commune',
+        'letter_path',
+        'attachments',
     ];
 
     protected $casts = [
@@ -66,6 +79,8 @@ class PublicRequest extends Model
         'courier_date' => 'date',
         'is_duplicate' => 'boolean',
         'workflow_history' => 'array',
+        'attachments' => 'array',
+        'event_date' => 'date',
     ];
 
     /**
@@ -194,6 +209,10 @@ class PublicRequest extends Model
         if (str_starts_with($digits, '00')) {
             $digits = substr($digits, 2);
         }
+        // Indicatif saisi deux fois (ex. « +221 221 77… ») : on n'en garde qu'un.
+        if (strlen($digits) === 15 && str_starts_with($digits, '221221')) {
+            $digits = substr($digits, 3);
+        }
         if (strlen($digits) === 9) {
             $digits = '221'.$digits;
         }
@@ -257,7 +276,6 @@ class PublicRequest extends Model
             'address' => $this->address, 'region' => $this->region,
             'description' => $this->description, 'created_at' => $this->created_at,
             'date_traitement' => $this->processed_date,
-            'latitude' => $this->latitude, 'longitude' => $this->longitude,
             'status' => $this->workflow_status, 'status_label' => self::publicStatusLabel($this->workflow_status),
             'public_reason' => $reason, 'timeline' => $timeline,
         ];

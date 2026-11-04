@@ -197,6 +197,12 @@ class RequestWorkflowService
         return DB::transaction(function () use ($demande, $from, $to, $comment, $actor, $publicComment) {
             $demande->workflow_status = $to;
             $demande->status = self::LEGACY_MAP[$to] ?? $demande->status;
+            // La validation DG doit toujours être tracée, quel que soit le
+            // chemin emprunté (dgValidate ou transition directe).
+            if ($to === 'validee_dg') {
+                $demande->dg_approved_by = $demande->dg_approved_by ?? $actor?->id;
+                $demande->dg_approved_at = $demande->dg_approved_at ?? now();
+            }
             if (in_array($to, ['validee_dg', 'approuvee', 'rejetee', 'cloturee'], true) && empty($demande->processed_date)) {
                 $demande->processed_date = now()->toDateString();
             }

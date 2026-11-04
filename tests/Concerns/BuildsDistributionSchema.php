@@ -176,6 +176,7 @@ trait BuildsDistributionSchema
             $t->id();
             $t->string('workflow_status')->default('soumise');
             $t->timestamps();
+            $t->softDeletes();
         });
     }
 

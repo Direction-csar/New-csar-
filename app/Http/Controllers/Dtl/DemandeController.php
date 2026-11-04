@@ -188,6 +188,30 @@ class DemandeController extends Controller
         return redirect()->back()->with('success', 'Correction demandée à l\'agent.');
     }
 
+    /**
+     * Clôturer un dossier approuvé une fois les missions achevées.
+     * La transition passe par le service métier : rôle « dtl », graphe
+     * (approuvee → cloturee) et blocage si une mission reste active.
+     */
+    public function cloture(Request $request, $id)
+    {
+        $request->validate(['comment' => 'nullable|string|max:2000']);
+
+        $demande = PublicRequest::whereNotNull('dtl_transmitted_at')->findOrFail($id);
+
+        try {
+            app(\App\Services\RequestWorkflowService::class)
+                ->advance($demande, 'cloturee', $request->input('comment'), Auth::user());
+
+            return redirect()->back()->with('success', 'Dossier clôturé.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->with('error', collect($e->errors())->flatten()->first() ?? 'Clôture impossible.');
+        } catch (\Exception $e) {
+            Log::error('Erreur clôture DTL: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de la clôture du dossier.');
+        }
+    }
+
     /** Notification interne à l'agent affecté (best effort) */
     private function notifyAssignee(RequestMission $mission, string $title, string $message): void
     {

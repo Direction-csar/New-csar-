@@ -10,6 +10,7 @@ use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
@@ -106,6 +107,75 @@ class DemandesController extends Controller
             Log::error('Erreur lors de la génération du PDF: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Erreur lors de la génération du PDF.');
         }
+    }
+
+    /**
+     * Lettre de demande déposée — fichier privé, réservé aux agents.
+     */
+    public function lettre($id)
+    {
+        $demande = PublicRequest::findOrFail($id);
+        return $this->streamPrivateFile($demande->letter_path, 'lettre_demande');
+    }
+
+    /**
+     * Pièce justificative n°{index} — fichier privé, réservé aux agents.
+     */
+    public function piece($id, $index)
+    {
+        $demande = PublicRequest::findOrFail($id);
+        $attachments = $demande->attachments ?? [];
+        $path = $attachments[(int) $index] ?? null;
+        return $this->streamPrivateFile($path, 'piece_jointe_' . ((int) $index + 1));
+    }
+
+    private function streamPrivateFile(?string $path, string $downloadName)
+    {
+        $disk = Storage::disk(config('demande.upload.disk'));
+        if (!$path || !preg_match('/^demandes\/(lettres|justificatifs)\/[A-Za-z0-9]+\.[a-z]+$/', $path)
+            || !$disk->exists($path)) {
+            abort(404);
+        }
+        return $disk->response($path, $downloadName . '.' . pathinfo($path, PATHINFO_EXTENSION), [
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ]);
+    }
+
+    /**
+     * Document de workflow (signature ou scan) — réservé aux agents connectés.
+     * Les nouveaux fichiers sont sur le disque privé ; les fichiers déposés
+     * avant la migration du stockage restent servis depuis le disque public.
+     */
+    public function document($id, string $type)
+    {
+        $columns = [
+            'signature' => 'dg_signature_file',
+            'scan' => 'scan_file',
+        ];
+
+        abort_unless(isset($columns[$type]), 404);
+
+        $demande = PublicRequest::findOrFail($id);
+        $path = $demande->{$columns[$type]};
+
+        abort_unless($path && preg_match('/^demandes\/(signatures|scans)\//', $path), 404);
+
+        $name = $type . '_' . ($demande->tracking_code ?? $demande->id) . '.' . pathinfo($path, PATHINFO_EXTENSION);
+        $headers = [
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-store',
+        ];
+
+        $private = Storage::disk(config('demande.upload.disk'));
+        if ($private->exists($path)) {
+            return $private->response($path, $name, $headers);
+        }
+
+        $public = Storage::disk('public');
+        abort_unless($public->exists($path), 404);
+
+        return $public->response($path, $name, $headers);
     }
 
     /**
@@ -227,7 +297,37 @@ class DemandesController extends Controller
     }
 
     /**
-     * Supprimer une demande
+     * Rôles habilités à supprimer (archiver) une demande.
+     */
+    private const DELETE_ROLES = ['admin', 'super_admin'];
+
+    /**
+     * Statuts dont la suppression est interdite : le dossier est signé,
+     * en décision, décidé ou clôturé — il relève de l'archive institutionnelle.
+     */
+    private const DELETE_PROTECTED_STATUSES = ['signee', 'scannee', 'validee_dg', 'approuvee', 'cloturee'];
+
+    /**
+     * Un dossier peut-il être supprimé par cet utilisateur ?
+     * Retourne le motif de refus, ou null si la suppression est permise.
+     */
+    private function deletionBlockReason(PublicRequest $demande, ?\App\Models\User $user): ?string
+    {
+        if (!in_array($user?->role, self::DELETE_ROLES, true)) {
+            return 'Votre rôle ne permet pas de supprimer une demande.';
+        }
+        if (in_array($demande->workflow_status, self::DELETE_PROTECTED_STATUSES, true)) {
+            return 'Ce dossier est signé, décidé ou clôturé : il ne peut pas être supprimé.';
+        }
+        if ($demande->missions()->exists()) {
+            return 'Ce dossier a des missions associées : il ne peut pas être supprimé.';
+        }
+        return null;
+    }
+
+    /**
+     * Supprimer une demande (suppression douce : le dossier est archivé,
+     * les données et l'historique sont conservés en base).
      */
     public function destroy($id)
     {
@@ -235,7 +335,13 @@ class DemandesController extends Controller
             DB::beginTransaction();
 
             $demande = PublicRequest::findOrFail($id);
+            if ($reason = $this->deletionBlockReason($demande, auth()->user())) {
+                DB::rollBack();
+                return redirect()->back()->with('error', $reason);
+            }
+
             $codeSuivi = $demande->tracking_code ?? "ID-{$id}";
+            $demande->logWorkflowAction('Dossier supprimé', 'Archivage du dossier par ' . (auth()->user()?->name ?? 'agent'), auth()->id());
             $demande->delete();
 
             // Créer une notification
@@ -263,6 +369,11 @@ class DemandesController extends Controller
      */
     public function approve($id)
     {
+        if (!in_array(auth()->user()?->role, ['dg', 'directeur_general'], true)) {
+            return redirect()->back()
+                ->with('error', 'Seule la Direction Générale peut approuver une demande.');
+        }
+
         try {
             DB::beginTransaction();
 
@@ -307,13 +418,23 @@ class DemandesController extends Controller
             'demande_ids.*' => 'exists:public_requests,id'
         ]);
 
+        $user = auth()->user();
+        if (!in_array($user?->role, self::DELETE_ROLES, true)) {
+            return redirect()->back()->with('error', 'Votre rôle ne permet pas de supprimer des demandes.');
+        }
+
         try {
             DB::beginTransaction();
 
             $deletedCount = 0;
+            $skippedCount = 0;
             foreach ($request->demande_ids as $id) {
                 $demande = PublicRequest::findOrFail($id);
-                $codeSuivi = $demande->tracking_code ?? "ID-{$id}";
+                if ($this->deletionBlockReason($demande, $user) !== null) {
+                    $skippedCount++;
+                    continue;
+                }
+                $demande->logWorkflowAction('Dossier supprimé', 'Archivage du dossier par ' . ($user->name ?? 'agent'), $user->id);
                 $demande->delete();
                 $deletedCount++;
             }
@@ -328,8 +449,11 @@ class DemandesController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin.demandes.index')
-                ->with('success', "{$deletedCount} demande(s) supprimée(s) avec succès.");
+            $message = "{$deletedCount} demande(s) supprimée(s) avec succès.";
+            if ($skippedCount > 0) {
+                $message .= " {$skippedCount} dossier(s) conservé(s) : signés, décidés, clôturés ou avec missions.";
+            }
+            return redirect()->route('admin.demandes.index')->with('success', $message);
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Erreur lors de la suppression en masse: ' . $e->getMessage());
@@ -1073,52 +1197,92 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
             'comment' => 'nullable|string|max:2000',
         ]);
 
+        return $this->recordWorkflowDocument(
+            $request,
+            (int) $id,
+            'signature_file',
+            'signee',
+            'dg_signature_file',
+            'demandes/signatures',
+            'Document signé enregistré avec succès',
+            [
+                'processed_by' => auth()->id(),
+                'courier_reference' => $request->input('courier_reference'),
+                'courier_date' => $request->input('courier_date'),
+            ]
+        );
+    }
+
+    /**
+     * Dépose une pièce de workflow (signature ou scan) et fait avancer le
+     * dossier vers l'étape cible.
+     *
+     * Règles appliquées AVANT d'écrire le fichier : rôle autorisé pour la
+     * cible, chemin de transition possible depuis le statut actuel, et rôle
+     * autorisé pour chaque étape intermédiaire. Le fichier est ensuite
+     * enregistré sur le disque privé et la transition se fait dans une même
+     * transaction — en cas de refus, le fichier déposé est supprimé.
+     */
+    private function recordWorkflowDocument(Request $request, int $id, string $input, string $target, string $column, string $directory, string $successMessage, array $extraFields = [])
+    {
+        $actor = auth()->user();
+        $service = app(\App\Services\RequestWorkflowService::class);
+        $disk = Storage::disk(config('demande.upload.disk'));
+
+        if (!$service->canPerform($actor, $target)) {
+            return redirect()->back()->with('error', "Votre rôle ne permet pas cette action ({$target}).");
+        }
+
+        $demande = PublicRequest::findOrFail($id);
+
+        // Un dossier décidé ou clôturé ne peut plus recevoir de pièce.
+        $path = $service->findPath($demande->workflow_status, $target);
+        if ($path === null) {
+            return redirect()->back()->with('error', 'Impossible de déposer ce document : le dossier est déjà décidé, clôturé ou a dépassé cette étape.');
+        }
+        foreach ($path as $step) {
+            if (!$service->canPerform($actor, $step)) {
+                return redirect()->back()->with('error', "Votre rôle ne permet pas l'étape « {$step} » requise pour atteindre « {$target} ».");
+            }
+        }
+
+        $stored = $request->file($input)->store($directory, config('demande.upload.disk'));
+        $oldFile = $demande->{$column};
+        $comment = 'Document déposé par ' . ($actor->name ?? 'agent')
+            . ($request->filled('comment') ? ' — ' . $request->comment : '');
+
         try {
-            $demande = PublicRequest::findOrFail($id);
-
-            if (!app(\App\Services\RequestWorkflowService::class)->canPerform(auth()->user(), 'signee')) {
-                return redirect()->back()->with('error', 'Votre rôle ne permet pas de signer cette demande.');
-            }
-
-            if ($request->hasFile('signature_file')) {
-                $path = $request->file('signature_file')->store('demandes/signatures', 'public');
-                $demande->update(['dg_signature_file' => $path]);
-            }
-
-            $updateData = ['processed_by' => auth()->id()];
-            if ($request->filled('courier_reference')) {
-                $updateData['courier_reference'] = $request->courier_reference;
-            }
-            if ($request->filled('courier_date')) {
-                $updateData['courier_date'] = $request->courier_date;
-            }
-            if ($request->filled('comment')) {
-                $updateData['document_notes'] = $request->comment;
-            }
-            $demande->update($updateData);
-
-            // Avancer automatiquement si pas encore signée (via le service métier)
-            if (!in_array($demande->workflow_status, ['signee', 'scannee', 'validee_dg', 'approuvee', 'cloturee'], true)) {
-                $signComment = 'Document signé uploadé par ' . auth()->user()->name
-                    . ($request->filled('comment') ? ' — ' . $request->comment : '');
-                $service = app(\App\Services\RequestWorkflowService::class);
-                // Passer par les étapes intermédiaires si nécessaire
-                $path = $service->findPath($demande->workflow_status, 'signee');
-                if ($path === null) {
-                    throw new \RuntimeException('Impossible de marquer cette demande comme signée depuis son statut actuel.');
+            DB::transaction(function () use (&$demande, $service, $actor, $column, $stored, $path, $target, $comment, $extraFields, $request) {
+                $updateData = [$column => $stored];
+                foreach ($extraFields as $field => $value) {
+                    if ($value !== null) {
+                        $updateData[$field] = $value;
+                    }
                 }
+                if ($request->filled('comment')) {
+                    $updateData['document_notes'] = $request->comment;
+                }
+                $demande->update($updateData);
                 foreach ($path as $step) {
-                    $demande = $service->advance($demande, $step, $step === 'signee' ? $signComment : null, auth()->user());
+                    $demande = $service->advance($demande, $step, $step === $target ? $comment : null, $actor);
                 }
-            }
-
-            return redirect()->back()->with('success', 'Document signé enregistré avec succès');
+            });
         } catch (\Illuminate\Validation\ValidationException $e) {
+            $disk->delete($stored);
             return redirect()->back()->with('error', collect($e->errors())->flatten()->first() ?? 'Transition non autorisée');
         } catch (\Exception $e) {
-            Log::error('Erreur upload signature: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Erreur lors de l\'enregistrement du document signé');
+            $disk->delete($stored);
+            Log::error("Erreur dépôt document workflow ({$target}): " . $e->getMessage());
+            return redirect()->back()->with('error', 'Erreur lors de l\'enregistrement du document');
         }
+
+        // Remplacement : l'ancien fichier est retiré pour éviter les orphelins.
+        if ($oldFile && $oldFile !== $stored) {
+            $disk->delete($oldFile);
+            Storage::disk('public')->delete($oldFile);
+        }
+
+        return redirect()->back()->with('success', $successMessage);
     }
 
     /**
@@ -1131,43 +1295,15 @@ Document généré le " . now()->format('d/m/Y à H:i') . "
             'comment' => 'nullable|string|max:2000',
         ]);
 
-        try {
-            $demande = PublicRequest::findOrFail($id);
-
-            if (!app(\App\Services\RequestWorkflowService::class)->canPerform(auth()->user(), 'scannee')) {
-                return redirect()->back()->with('error', 'Votre rôle ne permet pas de scanner cette demande.');
-            }
-
-            if ($request->hasFile('scan_file')) {
-                $path = $request->file('scan_file')->store('demandes/scans', 'public');
-                $demande->update(['scan_file' => $path]);
-            }
-
-            if ($request->filled('comment')) {
-                $demande->update(['document_notes' => $request->comment]);
-            }
-
-            // Avancer automatiquement si pas encore scannée (via le service métier)
-            if (!in_array($demande->workflow_status, ['scannee', 'validee_dg', 'approuvee', 'cloturee'], true)) {
-                $scanComment = 'Scan uploadé par ' . auth()->user()->name
-                    . ($request->filled('comment') ? ' — ' . $request->comment : '');
-                $service = app(\App\Services\RequestWorkflowService::class);
-                $path = $service->findPath($demande->workflow_status, 'scannee');
-                if ($path === null) {
-                    throw new \RuntimeException('Impossible de marquer cette demande comme scannée depuis son statut actuel.');
-                }
-                foreach ($path as $step) {
-                    $demande = $service->advance($demande, $step, $step === 'scannee' ? $scanComment : null, auth()->user());
-                }
-            }
-
-            return redirect()->back()->with('success', 'Scan enregistré avec succès');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return redirect()->back()->with('error', collect($e->errors())->flatten()->first() ?? 'Transition non autorisée');
-        } catch (\Exception $e) {
-            Log::error('Erreur upload scan: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Erreur lors de l\'enregistrement du scan');
-        }
+        return $this->recordWorkflowDocument(
+            $request,
+            (int) $id,
+            'scan_file',
+            'scannee',
+            'scan_file',
+            'demandes/scans',
+            'Scan enregistré avec succès'
+        );
     }
 
     /**

@@ -113,6 +113,7 @@ class InspecteurMissionsTest extends TestCase
             $t->unsignedBigInteger('dtl_transmitted_by')->nullable();
             $t->text('workflow_history')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
 
         Schema::create('request_missions', function (Blueprint $t) {

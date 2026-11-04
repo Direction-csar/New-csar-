@@ -208,7 +208,16 @@ class DemandeController extends Controller
         $demande = PublicRequest::findOrFail($id);
         $path = $demande->{$columns[$type]};
 
-        abort_unless($path && Storage::disk('public')->exists($path), 404);
+        abort_unless($path, 404);
+
+        // Nouveaux fichiers : disque privé. Anciens fichiers (avant la
+        // migration du stockage) : disque public en repli.
+        $private = Storage::disk(config('demande.upload.disk'));
+        if ($private->exists($path)) {
+            return $private->response($path);
+        }
+
+        abort_unless(Storage::disk('public')->exists($path), 404);
 
         return Storage::disk('public')->response($path);
     }
@@ -255,7 +264,8 @@ class DemandeController extends Controller
             return redirect()->back()->with('error', 'Impossible de passer cette demande au statut requis depuis son statut actuel.');
         }
 
-        $stored = $request->file($input)->store($directory, 'public');
+        $stored = $request->file($input)->store($directory, config('demande.upload.disk'));
+        $oldFile = $demande->{$column};
         $comment = $request->filled('comment') ? trim((string) $request->comment) : $defaultComment;
 
         try {
@@ -266,12 +276,18 @@ class DemandeController extends Controller
                 }
             });
         } catch (ValidationException $e) {
-            Storage::disk('public')->delete($stored);
+            Storage::disk(config('demande.upload.disk'))->delete($stored);
 
             return redirect()->back()->with('error', collect($e->errors())->flatten()->first() ?? 'Action impossible');
         } catch (\Throwable $e) {
-            Storage::disk('public')->delete($stored);
+            Storage::disk(config('demande.upload.disk'))->delete($stored);
             throw $e;
+        }
+
+        // Remplacement : l'ancien fichier est retiré pour éviter les orphelins.
+        if ($oldFile && $oldFile !== $stored) {
+            Storage::disk(config('demande.upload.disk'))->delete($oldFile);
+            Storage::disk('public')->delete($oldFile);
         }
 
         Log::info('Pièce DG enregistrée', ['demande_id' => $id, 'column' => $column, 'dg_id' => $actor->id]);

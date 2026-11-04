@@ -57,12 +57,12 @@
                     </div>
                     <div class="d-flex gap-2">
                         @if($demande->dg_signature_file)
-                        <a href="{{ asset('storage/' . $demande->dg_signature_file) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                        <a href="{{ route('admin.demandes.document', [$demande->id, 'signature']) }}" target="_blank" class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-signature me-1"></i>Signé
                         </a>
                         @endif
                         @if($demande->scan_file)
-                        <a href="{{ asset('storage/' . $demande->scan_file) }}" target="_blank" class="btn btn-outline-info btn-sm">
+                        <a href="{{ route('admin.demandes.document', [$demande->id, 'scan']) }}" target="_blank" class="btn btn-outline-info btn-sm">
                             <i class="fas fa-file-pdf me-1"></i>Scan
                         </a>
                         @endif
@@ -352,14 +352,14 @@
                 <h6 class="fw-bold mb-3"><i class="fas fa-folder-open me-2 text-warning"></i>Documents</h6>
                 @if($demande->dg_signature_file)
                 <div class="mb-2">
-                    <a href="{{ asset('storage/' . $demande->dg_signature_file) }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
+                    <a href="{{ route('admin.demandes.document', [$demande->id, 'signature']) }}" target="_blank" class="btn btn-outline-primary btn-sm w-100">
                         <i class="fas fa-signature me-1"></i>Voir le document signé
                     </a>
                 </div>
                 @endif
                 @if($demande->scan_file)
                 <div class="mb-2">
-                    <a href="{{ asset('storage/' . $demande->scan_file) }}" target="_blank" class="btn btn-outline-info btn-sm w-100">
+                    <a href="{{ route('admin.demandes.document', [$demande->id, 'scan']) }}" target="_blank" class="btn btn-outline-info btn-sm w-100">
                         <i class="fas fa-file-pdf me-1"></i>Voir le scan
                     </a>
                 </div>

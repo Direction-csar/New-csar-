@@ -15,10 +15,12 @@ Route::redirect('/about', '/a-propos', 302);
 // Route directe pour /demande (sans préfixe de locale) - utilise directement le contrôleur
 Route::get('/demande', [\App\Http\Controllers\Public\DemandeController::class, 'create'])->name('demande.create.direct');
 Route::post('/demande', [\App\Http\Controllers\Public\DemandeController::class, 'store'])->name('demande.store.direct');
+Route::post('/demande/lettre', [\App\Http\Controllers\Public\DemandeController::class, 'storeLettre'])->name('demande.store.lettre');
 // Route directe pour /suivi et PDF (sans préfixe de locale)
 Route::middleware([\App\Http\Middleware\PrivateRequestTracking::class, 'throttle:request-tracking'])->group(function () {
     Route::get('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'index'])->name('suivi.direct');
     Route::post('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'track'])->name('suivi.track.direct');
+    Route::get('/suivi/etat-envoi', [\App\Http\Controllers\Public\TrackController::class, 'deliveryState'])->name('suivi.delivery');
     Route::get('/telecharger-pdf/{code}', [\App\Http\Controllers\Public\TrackController::class, 'download'])->where('code', '[A-Za-z0-9\-]+')->name('track.download.direct');
 });
 Route::get('/missions', [\App\Http\Controllers\Public\GalleryController::class, 'missions'])->name('missions_static');
@@ -379,6 +381,7 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     // Public Routes - Formulaire de demande
     Route::get('/demande', [DemandeController::class, 'create'])->name('demande.create');
     Route::post('/demande', [DemandeController::class, 'store'])->name('demande.store');
+    Route::post('/demande/lettre', [DemandeController::class, 'storeLettre'])->name('demande.lettre.store');
     Route::get('/demande-succes', [DemandeController::class, 'success'])->name('demande.success');
 
     // Alias pour les routes requests (compatibilité avec la navigation)
@@ -599,6 +602,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/carte-demandes', [\App\Http\Controllers\Admin\CarteDemandesController::class, 'index'])->name('carte-demandes.index');
         Route::get('/carte-demandes/api', [\App\Http\Controllers\Admin\CarteDemandesController::class, 'getMapData'])->name('carte-demandes.api');
         Route::get('/demandes/{id}/pdf', [DemandesController::class, 'downloadPdf'])->name('demandes.pdf');
+        Route::get('/demandes/{id}/lettre', [DemandesController::class, 'lettre'])->name('demandes.lettre');
+        Route::get('/demandes/{id}/piece/{index}', [DemandesController::class, 'piece'])->name('demandes.piece');
+        Route::get('/demandes/{id}/document/{type}', [DemandesController::class, 'document'])->name('demandes.document');
         Route::post('/demandes/export', [DemandesController::class, 'export'])->name('demandes.export');
         Route::post('/demandes/bulk-delete', [DemandesController::class, 'bulkDelete'])->name('demandes.bulk-delete');
 
@@ -1409,8 +1415,10 @@ foreach (['cpm', 'dpse', 'dtl'] as $directionSlug) {
 Route::middleware(['direction:dtl'])->prefix('dtl')->name('dtl.')->group(function () {
     Route::get('/demandes', [\App\Http\Controllers\Dtl\DemandeController::class, 'index'])->name('demandes.index');
     Route::get('/demandes/{id}', [\App\Http\Controllers\Dtl\DemandeController::class, 'show'])->name('demandes.show');
+    Route::get('/demandes/{id}/document/{type}', [\App\Http\Controllers\Admin\DemandesController::class, 'document'])->name('demandes.document');
     Route::post('/demandes/{id}/instruct', [\App\Http\Controllers\Dtl\DemandeController::class, 'instruct'])->name('demandes.instruct');
     Route::post('/demandes/{id}/missions', [\App\Http\Controllers\Dtl\DemandeController::class, 'storeMission'])->name('demandes.missions.store');
+    Route::post('/demandes/{id}/cloture', [\App\Http\Controllers\Dtl\DemandeController::class, 'cloture'])->name('demandes.cloture');
     Route::post('/missions/{missionId}/cancel', [\App\Http\Controllers\Dtl\DemandeController::class, 'cancelMission'])->name('missions.cancel');
     Route::post('/missions/{missionId}/validate', [\App\Http\Controllers\Dtl\DemandeController::class, 'validateMission'])->name('missions.validate');
     Route::post('/missions/{missionId}/correct', [\App\Http\Controllers\Dtl\DemandeController::class, 'requestCorrection'])->name('missions.correct');

@@ -102,6 +102,7 @@ class DirectionPortalAccessTest extends TestCase
             $t->id();
             $t->string('workflow_status')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
     }
 

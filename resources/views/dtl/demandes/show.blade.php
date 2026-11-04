@@ -26,11 +26,11 @@
                 @if($demande->description)
                 <hr><p class="small mb-0">{{ $demande->description }}</p>@endif
                 @if($demande->dg_signature_file)
-                <hr><a href="{{ asset('storage/' . $demande->dg_signature_file) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                <hr><a href="{{ route('dtl.demandes.document', [$demande->id, 'signature']) }}" target="_blank" class="btn btn-outline-primary btn-sm">
                     <i class="fas fa-signature me-1"></i>Document signé
                 </a>@endif
                 @if($demande->scan_file)
-                <a href="{{ asset('storage/' . $demande->scan_file) }}" target="_blank" class="btn btn-outline-info btn-sm">
+                <a href="{{ route('dtl.demandes.document', [$demande->id, 'scan']) }}" target="_blank" class="btn btn-outline-info btn-sm">
                     <i class="fas fa-file-pdf me-1"></i>Scan
                 </a>@endif
             </div>
@@ -88,6 +88,33 @@
                 @endif
             </div>
         </div>
+
+        @if($demande->workflow_status === 'approuvee')
+        @php
+            $activeMissions = $demande->missions->whereNotIn('status', ['terminee', 'annulee']);
+        @endphp
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header bg-white fw-bold"><i class="fas fa-archive me-2 text-dark"></i>Clôture du dossier</div>
+            <div class="card-body">
+                @if($activeMissions->isEmpty())
+                <form method="POST" action="{{ route('dtl.demandes.cloture', $demande->id) }}"
+                      onsubmit="return confirm('Clôturer définitivement ce dossier ? Cette action est enregistrée dans l\'historique.')">
+                    @csrf
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Note de clôture (facultatif)</label>
+                        <textarea name="comment" class="form-control form-control-sm" rows="2"
+                                  placeholder="Observations finales..."></textarea>
+                    </div>
+                    <button class="btn btn-dark btn-sm"><i class="fas fa-archive me-1"></i>Clôturer le dossier</button>
+                </form>
+                @else
+                    <div class="alert alert-warning mb-0 small">
+                        Clôture impossible : {{ $activeMissions->count() }} mission(s) encore active(s). Terminez ou annulez toutes les missions avant de clôturer.
+                    </div>
+                @endif
+            </div>
+        </div>
+        @endif
 
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white fw-bold"><i class="fas fa-list me-2 text-info"></i>Missions ({{ $demande->missions->count() }})</div>
