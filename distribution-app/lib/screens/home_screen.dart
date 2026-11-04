@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/auth_service.dart';
+import '../utils/json_num.dart';
 import '../services/api_service.dart';
 import '../services/sync_service.dart';
 import '../services/local_db_service.dart';
@@ -112,17 +113,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadPlannings() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _loadError = null;
     });
     final token = context.read<AuthService>().token;
     if (token == null) {
-      if (mounted) setState(() => _loading = false);
+      setState(() => _loading = false);
       return;
     }
     try {
-      final res = await ApiService.getMyPlannings(token);
+      final res = await ApiService.getMyPlannings(token).timeout(ApiService.requestTimeout);
+      if (!mounted) return;
       if (res['success'] == true) {
         final data = res['data'];
         setState(() {
@@ -133,8 +136,11 @@ class _HomeScreenState extends State<HomeScreen> {
         await _sessionExpired();
         return;
       } else {
-        setState(() => _loadError = res['message'] ?? 'Le serveur a refusé la demande');
+        final message = res['message'];
+        setState(() => _loadError = message is String && message.isNotEmpty ? message : 'Le serveur a refusé la demande');
       }
+    } on TimeoutException {
+      if (mounted) setState(() => _loadError = 'Le serveur ne répond pas. Réessayez dans un instant.');
     } catch (e) {
       if (mounted) {
         setState(() => _loadError = 'Impossible de joindre le serveur. Vérifiez la connexion.');
@@ -195,19 +201,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   int _beneficiaireCount(dynamic planning) {
-    return planning['beneficiaries_count'] as int? ?? (planning['beneficiaires'] as List<dynamic>?)?.length ?? 0;
+    final list = planning['beneficiaires'];
+    return jsonInt(planning['beneficiaries_count'], list is List ? list.length : 0);
   }
 
   int _validatedCount(dynamic planning) {
-    return planning['validated_count'] as int? ?? 0;
+    return jsonInt(planning['validated_count']);
   }
 
   int _ticketsCount(dynamic planning) {
-    return planning['tickets_count'] as int? ?? 0;
+    return jsonInt(planning['tickets_count']);
   }
 
   int _collectedCount(dynamic planning) {
-    return planning['collected_count'] as int? ?? 0;
+    return jsonInt(planning['collected_count']);
   }
 
   Widget _buildDashboard() {
@@ -218,8 +225,8 @@ class _HomeScreenState extends State<HomeScreen> {
       totalValidated += _validatedCount(p);
       totalTickets += _ticketsCount(p);
       totalCollected += _collectedCount(p);
-      plannedKg += (p['planned_quota_kg'] as int?) ?? 0;
-      executedKg += (p['executed_kg'] as int?) ?? 0;
+      plannedKg += jsonInt(p['planned_quota_kg']);
+      executedKg += jsonInt(p['executed_kg']);
     }
     final collectRate = totalTickets > 0 ? (totalCollected / totalTickets * 100).round() : 0;
     final execRate = plannedKg > 0 ? (executedKg / plannedKg * 100).round() : 0;
@@ -601,7 +608,7 @@ class _PlanningCard extends StatelessWidget {
                     side: const BorderSide(color: Color(0xFFD84315)),
                   ),
                   icon: const Icon(Icons.person_add_alt_1),
-                  label: const Text('Beneficiaire'),
+                  label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Beneficiaire')),
                   onPressed: onRegister,
                 ),
               ),
@@ -613,7 +620,7 @@ class _PlanningCard extends StatelessWidget {
                     side: BorderSide(color: Colors.blue.shade700),
                   ),
                   icon: const Icon(Icons.list_alt),
-                  label: const Text('Liste'),
+                  label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Liste')),
                   onPressed: onViewBeneficiaries,
                 ),
               ),
@@ -625,10 +632,12 @@ class _PlanningCard extends StatelessWidget {
                     side: BorderSide(color: Colors.teal.shade700),
                   ),
                   icon: const Icon(Icons.confirmation_number_outlined),
-                  label: const Text('Tickets'),
+                  label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Tickets')),
                   onPressed: onViewTickets,
                 ),
               ),
+            ],
+          ),
           const SizedBox(height: 6),
           Align(
             alignment: Alignment.centerRight,
@@ -643,8 +652,6 @@ class _PlanningCard extends StatelessWidget {
               label: const Text('Saisie rapide (liste)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
               onPressed: onQuickList,
             ),
-          ),
-            ],
           ),
         ],
       ),

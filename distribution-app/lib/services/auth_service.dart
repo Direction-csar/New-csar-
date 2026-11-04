@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,22 +27,40 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Retourne null en cas de succès, sinon un message à afficher à l'agent.
   Future<String?> login(String email, String password) async {
+    final Map<String, dynamic> res;
     try {
-      final res = await ApiService.login(email, password);
-      if (res['success'] == true) {
-        _token = res['token'];
-        _user = Map<String, dynamic>.from(res['user'] ?? {});
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('auth_token', _token!);
-        await prefs.setString('auth_user', jsonEncode(_user));
-        notifyListeners();
-        return null;
-      }
-      return res['message'] ?? 'Erreur de connexion';
-    } catch (e) {
+      res = await ApiService.login(email, password).timeout(ApiService.requestTimeout);
+    } on TimeoutException {
+      return 'Le serveur ne répond pas. Réessayez dans un instant.';
+    } catch (_) {
       return 'Erreur réseau : vérifiez votre connexion';
     }
+
+    if (res['success'] != true) {
+      final message = res['message'];
+      return message is String && message.isNotEmpty ? message : 'Erreur de connexion';
+    }
+
+    final token = res['token'];
+    if (token is! String || token.isEmpty) {
+      return 'Réponse du serveur invalide (jeton manquant). Contactez l\'administrateur.';
+    }
+    final rawUser = res['user'];
+    final user = rawUser is Map ? Map<String, dynamic>.from(rawUser) : <String, dynamic>{};
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('auth_token', token);
+      await prefs.setString('auth_user', jsonEncode(user));
+    } catch (_) {
+      // Stockage local indisponible : la session reste valable jusqu'à la fermeture de l'application.
+    }
+    _token = token;
+    _user = user;
+    notifyListeners();
+    return null;
   }
 
   Future<void> logout() async {

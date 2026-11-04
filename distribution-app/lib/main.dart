@@ -1,10 +1,40 @@
+import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 
+/// Filet de sécurité : sans lui, une exception pendant la construction d'un
+/// écran s'affiche en blanc (ou en gris) en version release, sans aucune
+/// explication. L'agent voit ici un message clair, et le détail reste dans les logs.
+Widget _errorScreen(FlutterErrorDetails details) {
+  debugPrint('Erreur d\'affichage : ${details.exceptionAsString()}');
+  return Directionality(
+    textDirection: TextDirection.ltr,
+    child: Container(
+      color: const Color(0xFFFBE9E7),
+      padding: const EdgeInsets.all(24),
+      alignment: Alignment.center,
+      child: const Text(
+        'Une erreur d\'affichage est survenue.\nRetournez en arrière, ou déconnectez-vous puis reconnectez-vous.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Color(0xFFD84315), fontSize: 15, fontWeight: FontWeight.w600, decoration: TextDecoration.none),
+      ),
+    ),
+  );
+}
+
 void main() {
+  ErrorWidget.builder = _errorScreen;
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('FlutterError : ${details.exceptionAsString()}');
+  };
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('Erreur non interceptée : $error');
+    return true;
+  };
   runApp(
     ChangeNotifierProvider(
       create: (_) => AuthService(),

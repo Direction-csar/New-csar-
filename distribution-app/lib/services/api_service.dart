@@ -10,6 +10,9 @@ class ApiService {
     defaultValue: 'https://www.csar.sn',
   );
   static const String apiBaseUrl = '$serverUrl/api';
+
+  /// Délai maximal d'une requête : au-delà, l'agent voit un message plutôt qu'un chargement sans fin.
+  static const Duration requestTimeout = Duration(seconds: 25);
   static const String distBaseUrl = '$serverUrl/mobile/v1/distribution';
 
   /// Décode la réponse JSON en remontant le message d'erreur du serveur

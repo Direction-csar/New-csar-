@@ -419,6 +419,7 @@ class _QrTicketScreenState extends State<QrTicketScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: ok ? Colors.green.shade50 : Colors.orange.shade50,
+        
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: ok ? Colors.green.shade300 : Colors.orange.shade300,

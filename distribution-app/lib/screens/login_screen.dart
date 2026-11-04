@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import 'home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -25,22 +24,20 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_loading || !_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     final error = await context.read<AuthService>().login(
       _emailCtrl.text.trim(),
       _passwordCtrl.text,
     );
-    setState(() => _loading = false);
+    // Succès : AuthService a notifié, AuthWrapper a déjà remplacé cet écran par
+    // le tableau de bord (aucune navigation manuelle : elle sortirait l'écran
+    // principal d'AuthWrapper et casserait déconnexion / expiration du jeton).
     if (!mounted) return;
+    setState(() => _loading = false);
     if (error != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error), backgroundColor: Colors.red),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
       );
     }
   }
