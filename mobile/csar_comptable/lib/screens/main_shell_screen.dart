@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'movements_screen.dart';
 import 'materials_screen.dart';
+import 'fuel/fuel_screen.dart';
 
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
@@ -16,6 +17,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   final _screens = const [
     DashboardScreen(),
     MovementsScreen(),
+    FuelScreen(),
     MaterialsScreen(),
   ];
 
@@ -36,6 +38,11 @@ class _MainShellScreenState extends State<MainShellScreen> {
             icon: Icon(Icons.swap_vert_outlined),
             selectedIcon: Icon(Icons.swap_vert),
             label: 'Mouvements',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.local_gas_station_outlined),
+            selectedIcon: Icon(Icons.local_gas_station),
+            label: 'Carburant',
           ),
           NavigationDestination(
             icon: Icon(Icons.handyman_outlined),

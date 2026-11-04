@@ -4,6 +4,48 @@
 @section('page-title', 'Suivi du carburant (soldes en litres)')
 
 @section('content')
+@include('comptable.carburant._nav', ['tab' => 'dashboard'])
+
+@if(session('success'))<div class="alert alert-success py-2">{{ session('success') }}</div>@endif
+@if(session('error'))<div class="alert alert-danger py-2">{{ session('error') }}</div>@endif
+
+@isset($pending)
+<div class="row g-2 mb-3">
+    <div class="col-6 col-md-3">
+        <a href="{{ route('comptable.carburant.entries.index', ['status' => 'draft']) }}" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-2">
+                <div class="fs-4 fw-bold text-warning">{{ $pending['entries'] }}</div>
+                <small class="text-muted">Entrées à valider</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{{ route('comptable.carburant.exits.index', ['status' => 'draft']) }}" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-2">
+                <div class="fs-4 fw-bold text-warning">{{ $pending['exits_draft'] }}</div>
+                <small class="text-muted">Sorties à autoriser</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{{ route('comptable.carburant.exits.index', ['status' => 'authorized']) }}" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-2">
+                <div class="fs-4 fw-bold text-info">{{ $pending['exits_authorized'] }}</div>
+                <small class="text-muted">Livraisons à valider</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{{ route('comptable.carburant.reimbs.index') }}" class="text-decoration-none">
+            <div class="card border-0 shadow-sm text-center p-2">
+                <div class="fs-4 fw-bold text-primary">{{ $pending['reimbursements'] }}</div>
+                <small class="text-muted">Remboursements en cours</small>
+            </div>
+        </a>
+    </div>
+</div>
+@endisset
+
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white">
         <strong>Soldes carburant par produit et magasin</strong>
@@ -46,4 +88,39 @@
         </div>
     </div>
 </div>
+
+@isset($stockValue)
+<div class="card border-0 shadow-sm mt-3">
+    <div class="card-header bg-white">
+        <strong>Valorisation du stock</strong>
+        <small class="text-muted d-block">Coût moyen pondéré des entrées validées.</small>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Produit</th>
+                        <th class="text-end">Solde (L)</th>
+                        <th class="text-end">Coût moyen (FCFA/L)</th>
+                        <th class="text-end">Valeur stock (FCFA)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($stockValue as $v)
+                    <tr>
+                        <td>{{ $v['produit'] }}</td>
+                        <td class="text-end">{{ number_format($v['balance'], 0, ',', ' ') }}</td>
+                        <td class="text-end">{{ number_format($v['avg_unit_cost'], 0, ',', ' ') }}</td>
+                        <td class="text-end"><strong>{{ number_format($v['stock_value'], 0, ',', ' ') }}</strong></td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="4" class="text-center text-muted py-3">Aucune valeur — pas encore d'entrée validée.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endisset
 @endsection

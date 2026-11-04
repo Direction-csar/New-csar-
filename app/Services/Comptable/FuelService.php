@@ -8,7 +8,9 @@ use App\Models\FuelEntry;
 use App\Models\FuelExit;
 use App\Models\FuelReimbursement;
 use App\Models\FuelStatusLog;
+use App\Models\Stock;
 use App\Models\StockMovement;
+use App\Models\StockType;
 use App\Models\User;
 use App\Models\Warehouse;
 use Illuminate\Database\Eloquent\Model;
@@ -128,9 +130,15 @@ class FuelService
             }
 
             $produit = 'Carburant — ' . $locked->fuelLabel();
+            $stock = $this->fuelStock($locked->warehouse_id, $produit);
+            $before = (float) $stock->quantity;
+
             $movement = StockMovement::create([
+                'stock_id'     => $stock->id,
                 'warehouse_id' => $locked->warehouse_id,
                 'type'         => 'entry',
+                'quantity_before' => $before,
+                'quantity_after'  => $before + (float) $locked->quantity,
                 'produit'      => $produit,
                 'unite'        => 'L',
                 'quantity'     => $locked->quantity,
@@ -149,6 +157,7 @@ class FuelService
                 'validated_at' => now(),
                 'metadata'     => json_encode(['fuel_entry_id' => $locked->id]),
             ]);
+            $stock->increment('quantity', $locked->quantity);
 
             $locked->update([
                 'status'             => FuelEntry::STATUS_VALIDATED,
@@ -334,10 +343,17 @@ class FuelService
                 )];
             }
 
+            $produit = 'Carburant — ' . $locked->fuelLabel();
+            $stock = $this->fuelStock($locked->warehouse_id, $produit);
+            $before = (float) $stock->quantity;
+
             $movement = StockMovement::create([
+                'stock_id'     => $stock->id,
                 'warehouse_id' => $locked->warehouse_id,
                 'type'         => 'exit',
-                'produit'      => 'Carburant — ' . $locked->fuelLabel(),
+                'produit'      => $produit,
+                'quantity_before' => $before,
+                'quantity_after'  => $before - $delivered,
                 'unite'        => 'L',
                 'quantity'     => $delivered,
                 'reference'    => $locked->exit_number,
@@ -355,6 +371,8 @@ class FuelService
                     'mission'       => $locked->mission_number,
                 ]),
             ]);
+
+            $stock->decrement('quantity', $delivered);
 
             $locked->update([
                 'quantity_delivered' => $delivered,
@@ -722,6 +740,27 @@ class FuelService
                 FuelReimbursement::STATUS_SUBMITTED, FuelReimbursement::STATUS_IN_REVIEW,
             ])->count(),
         ];
+    }
+
+    /**
+     * Ligne stocks de référence pour un carburant dans un magasin
+     * (stock_movements.stock_id est NOT NULL dans certains schémas).
+     */
+    private function fuelStock(int $warehouseId, string $produit): Stock
+    {
+        $type = StockType::firstOrCreate(
+            ['name' => 'carburant'],
+            [
+                'display_name' => 'Carburant',
+                'unit' => 'L',
+                'description' => 'Carburants : essence, gasoil, pétrole',
+            ]
+        );
+
+        return Stock::firstOrCreate(
+            ['warehouse_id' => $warehouseId, 'item_name' => $produit],
+            ['stock_type_id' => $type->id, 'quantity' => 0]
+        );
     }
 
     /* ===================== JOURNAL / AUDIT ===================== */

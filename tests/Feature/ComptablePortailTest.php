@@ -120,6 +120,7 @@ class ComptablePortailTest extends TestCase
             $t->decimal('quantity', 15, 2)->default(0);
             $t->decimal('quantity_before', 15, 2)->nullable();
             $t->decimal('quantity_after', 15, 2)->nullable();
+            $t->decimal('total', 15, 2)->nullable();
             $t->string('reason')->nullable();
             $t->string('reference')->nullable();
             $t->string('produit')->nullable();
@@ -152,6 +153,16 @@ class ComptablePortailTest extends TestCase
             $t->text('return_note')->nullable();
             $t->timestamps();
         });
+
+        // Tables du suivi carburant — colonnes minimales lues par le tableau
+        // de bord (compteurs de statuts).
+        foreach (['fuel_entries', 'fuel_exits', 'fuel_reimbursements'] as $fuelTable) {
+            Schema::create($fuelTable, function (Blueprint $t) {
+                $t->id();
+                $t->string('status')->default('draft');
+                $t->timestamps();
+            });
+        }
     }
 
     // ===== Tableau de bord =====

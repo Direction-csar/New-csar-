@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
 import '../models/movement.dart';
+import '../models/fuel.dart';
 import '../models/warehouse.dart';
 import '../models/equipment.dart';
 
@@ -304,5 +305,192 @@ class ApiService {
       return (data as List).map((e) => Warehouse.fromJson(e)).toList();
     }
     throw Exception('Erreur chargement des magasins (${response.statusCode})');
+  }
+
+  /* ==================== CARBURANT ==================== */
+
+  /// Tableau de bord carburant : soldes, valorisation, dossiers en attente.
+  static Future<Map<String, dynamic>> getFuelDashboard() async {
+    final token = await getToken();
+    final response = await _get(
+      Uri.parse('$baseUrl/fuel/dashboard'),
+      headers: _headers(token),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Erreur tableau de bord carburant (${response.statusCode})');
+  }
+
+  /// Liste paginée d'un flux carburant (entries|exits|reimbursements).
+  static Future<List<Map<String, dynamic>>> _fuelList(
+    String path, {
+    String? status,
+    int? warehouseId,
+    String? query,
+  }) async {
+    final token = await getToken();
+    final params = <String, String>{};
+    if (status != null && status.isNotEmpty) params['status'] = status;
+    if (warehouseId != null) params['warehouse_id'] = '$warehouseId';
+    if (query != null && query.isNotEmpty) params['q'] = query;
+    final uri = Uri.parse('$baseUrl/fuel/$path')
+        .replace(queryParameters: params.isEmpty ? null : params);
+    final response = await _get(uri, headers: _headers(token));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return ((data['data'] as List?) ?? [])
+          .cast<Map<String, dynamic>>();
+    }
+    throw Exception('Erreur chargement $path (${response.statusCode})');
+  }
+
+  static Future<List<FuelEntry>> getFuelEntries(
+          {String? status, int? warehouseId, String? query}) async =>
+      (await _fuelList('entries',
+              status: status, warehouseId: warehouseId, query: query))
+          .map(FuelEntry.fromJson)
+          .toList();
+
+  static Future<List<FuelExit>> getFuelExits(
+          {String? status, int? warehouseId, String? query}) async =>
+      (await _fuelList('exits',
+              status: status, warehouseId: warehouseId, query: query))
+          .map(FuelExit.fromJson)
+          .toList();
+
+  static Future<List<FuelReimbursement>> getFuelReimbursements(
+          {String? status, String? query}) async =>
+      (await _fuelList('reimbursements', status: status, query: query))
+          .map(FuelReimbursement.fromJson)
+          .toList();
+
+  /// Détail d'un dossier (renvoie la clé métier + données annexes).
+  static Future<Map<String, dynamic>> getFuelDetail(String path, int id) async {
+    final token = await getToken();
+    final response = await _get(
+      Uri.parse('$baseUrl/fuel/$path/$id'),
+      headers: _headers(token),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    }
+    throw Exception('Erreur chargement du dossier (${response.statusCode})');
+  }
+
+  /// POST générique vers un flux (create) ou une transition (action).
+  /// Décodage standard : 200/201 = succès, 422 = erreur métier ou validation.
+  static Future<Map<String, dynamic>> _fuelPost(
+    String path,
+    int? id,
+    String action,
+    Map<String, dynamic> body,
+  ) async {
+    final token = await getToken();
+    final uri = id == null
+        ? Uri.parse('$baseUrl/fuel/$path')
+        : Uri.parse('$baseUrl/fuel/$path/$id/$action');
+    final response = await _post(
+      uri,
+      headers: _headers(token),
+      body: jsonEncode(body),
+    );
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 422 && data['errors'] != null) {
+      final errors = data['errors'] as Map<String, dynamic>;
+      return {'success': false, 'message': (errors.values.first as List).first};
+    }
+    return {
+      'success': response.statusCode == 200 || response.statusCode == 201,
+      'message': data['message'] ?? 'Erreur (${response.statusCode})',
+      if (data['entry'] != null) 'entry': data['entry'],
+      if (data['exit'] != null) 'exit': data['exit'],
+      if (data['reimbursement'] != null) 'reimbursement': data['reimbursement'],
+    };
+  }
+
+  static Future<Map<String, dynamic>> createFuelEntry(
+          Map<String, dynamic> data) =>
+      _fuelPost('entries', null, '', data);
+
+  static Future<Map<String, dynamic>> fuelEntryAction(
+          int id, String action, Map<String, dynamic> body) =>
+      _fuelPost('entries', id, action, body);
+
+  static Future<Map<String, dynamic>> createFuelExit(
+          Map<String, dynamic> data) =>
+      _fuelPost('exits', null, '', data);
+
+  static Future<Map<String, dynamic>> fuelExitAction(
+          int id, String action, Map<String, dynamic> body) =>
+      _fuelPost('exits', id, action, body);
+
+  static Future<Map<String, dynamic>> createFuelReimbursement(
+          Map<String, dynamic> data) =>
+      _fuelPost('reimbursements', null, '', data);
+
+  static Future<Map<String, dynamic>> fuelReimbAction(
+          int id, String action, Map<String, dynamic> body) =>
+      _fuelPost('reimbursements', id, action, body);
+
+  /// Upload d'un justificatif (multipart). type : entry|exit|reimb.
+  static Future<Map<String, dynamic>> uploadFuelAttachment({
+    required String type,
+    required int subjectId,
+    required String filePath,
+    String? kind,
+  }) async {
+    final token = await getToken();
+    final uri = Uri.parse('$baseUrl/fuel/$type/$subjectId/attachments');
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = 'Bearer $token'
+      ..headers['Accept'] = 'application/json'
+      ..files.add(await http.MultipartFile.fromPath('file', filePath));
+    if (kind != null) request.fields['kind'] = kind;
+
+    final streamed = await request.send().timeout(_timeout);
+    final response = await http.Response.fromStream(streamed);
+    final data = jsonDecode(response.body);
+    return {
+      'success': response.statusCode == 201,
+      'message': data['message'] ?? 'Erreur (${response.statusCode})',
+    };
+  }
+
+  /// Suppression d'un justificatif.
+  static Future<Map<String, dynamic>> deleteFuelAttachment(int id) async {
+    final token = await getToken();
+    final response = await http
+        .delete(
+          Uri.parse('$baseUrl/fuel/attachments/$id'),
+          headers: _headers(token),
+        )
+        .timeout(_timeout);
+    final data = jsonDecode(response.body);
+    return {
+      'success': response.statusCode == 200,
+      'message': data['message'] ?? 'Erreur (${response.statusCode})',
+    };
+  }
+
+  /// Téléchargement d'un justificatif — octets (écriture locale par l'appelant).
+  static Future<List<int>?> downloadFuelAttachment(int id) async {
+    final token = await getToken();
+    final response = await _get(
+      Uri.parse('$baseUrl/fuel/attachments/$id/download'),
+      headers: _headers(token),
+    );
+    return response.statusCode == 200 ? response.bodyBytes : null;
+  }
+
+  /// Téléchargement du PDF d'un dossier (type : entry|exit|reimb).
+  static Future<List<int>?> downloadFuelPdf(String type, int id) async {
+    final token = await getToken();
+    final response = await _get(
+      Uri.parse('$baseUrl/fuel/$type/$id/pdf'),
+      headers: _headers(token),
+    );
+    return response.statusCode == 200 ? response.bodyBytes : null;
   }
 }
