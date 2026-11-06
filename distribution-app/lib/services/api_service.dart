@@ -101,21 +101,17 @@ class ApiService {
   static bool isAuthError(Map<String, dynamic> res) =>
       res['http_status'] == 401 || res['http_status'] == 419;
 
-  static Future<Map<String, dynamic>> sync(String token) async {
-    final response = await http.get(
+  static Future<Map<String, dynamic>> sync(String token) =>
+    _request('sync', (client) => client.get(
       Uri.parse('$distBaseUrl/sync'),
       headers: _headers(token),
-    );
-    return _decode(response);
-  }
+    ));
 
-  static Future<Map<String, dynamic>> getEvents(String token) async {
-    final response = await http.get(
+  static Future<Map<String, dynamic>> getEvents(String token) =>
+    _request('events', (client) => client.get(
       Uri.parse('$distBaseUrl/events'),
       headers: _headers(token),
-    );
-    return _decode(response);
-  }
+    ));
 
   static Future<Map<String, dynamic>> getMyPlannings(String token) =>
     _request('my-plannings', (client) => client.get(
@@ -123,16 +119,14 @@ class ApiService {
       headers: _headers(token),
     ));
 
-  static Future<Map<String, dynamic>> getPlanningBeneficiaries(String token, int planningId) async {
-    final response = await http.get(
+  static Future<Map<String, dynamic>> getPlanningBeneficiaries(String token, int planningId) =>
+    _request('planning-beneficiaries', (client) => client.get(
       Uri.parse('$distBaseUrl/plannings/$planningId/beneficiaries'),
       headers: _headers(token),
-    );
-    return _decode(response);
-  }
+    ));
 
-  static Future<Map<String, dynamic>> checkDuplicate(String token, int planningId, String? phone, String? cni, String fullName) async {
-    final response = await http.post(
+  static Future<Map<String, dynamic>> checkDuplicate(String token, int planningId, String? phone, String? cni, String fullName) =>
+    _request('check-duplicate', (client) => client.post(
       Uri.parse('$distBaseUrl/check-duplicate'),
       headers: _headers(token),
       body: jsonEncode({
@@ -141,82 +135,64 @@ class ApiService {
         'cni': cni,
         'full_name': fullName,
       }),
-    );
-    return _decode(response);
-  }
+    ));
 
-  static Future<Map<String, dynamic>> validateBeneficiary(String token, int beneficiaryId) async {
-    final response = await http.post(
+  static Future<Map<String, dynamic>> validateBeneficiary(String token, int beneficiaryId) =>
+    _request('validate-beneficiary', (client) => client.post(
       Uri.parse('$distBaseUrl/beneficiaries/$beneficiaryId/validate'),
       headers: _headers(token),
-    );
-    return _decode(response);
-  }
+    ));
 
-  static Future<Map<String, dynamic>> generateTicket(String token, int beneficiaryId) async {
-    final response = await http.post(
+  static Future<Map<String, dynamic>> generateTicket(String token, int beneficiaryId) =>
+    _request('generate-ticket', (client) => client.post(
       Uri.parse('$distBaseUrl/beneficiaries/$beneficiaryId/generate-ticket'),
       headers: _headers(token),
-    );
-    return _decode(response);
-  }
+    ));
 
-  static Future<Map<String, dynamic>> collectKit(String token, String ticketCode, {String? scanLocation}) async {
-    final response = await http.post(
+  static Future<Map<String, dynamic>> collectKit(String token, String ticketCode, {String? scanLocation}) =>
+    _request('collect-kit', (client) => client.post(
       Uri.parse('$distBaseUrl/tickets/$ticketCode/collect'),
       headers: _headers(token),
       // 'location' est la clé lue par le backend (scan_location accepté aussi).
       body: jsonEncode({'location': scanLocation}),
-    );
-    return _decode(response);
-  }
+    ));
 
-  static Future<Map<String, dynamic>> storeBeneficiaire(String token, Map<String, dynamic> data) async {
-    final response = await http.post(
+  static Future<Map<String, dynamic>> storeBeneficiaire(String token, Map<String, dynamic> data) =>
+    _request('store-beneficiaire', (client) => client.post(
       Uri.parse('$distBaseUrl/beneficiaries'),
       headers: _headers(token),
       body: jsonEncode(data),
-    );
-    return _decode(response);
-  }
+    ));
 
-  static Future<Map<String, dynamic>> batch(String token, List<Map<String, dynamic>> beneficiaires) async {
-    final response = await http.post(
+  static Future<Map<String, dynamic>> batch(String token, List<Map<String, dynamic>> beneficiaires) =>
+    _request('beneficiaires-batch', (client) => client.post(
       Uri.parse('$distBaseUrl/beneficiaires/batch'),
       headers: _headers(token),
       body: jsonEncode({'beneficiaires': beneficiaires}),
-    );
-    return _decode(response);
-  }
+    ));
 
   /// Import en masse V2 : cree des DistributionBeneficiary (statut pending).
   /// Chaque item : planning_id, full_name, phone?, cni?, address?, category?,
   /// quantity_kg, is_vulnerable?, is_pregnant?, is_elderly?, is_disabled?
-  static Future<Map<String, dynamic>> batchBeneficiaries(String token, List<Map<String, dynamic>> beneficiaries) async {
-    final response = await http.post(
-      Uri.parse('$distBaseUrl/beneficiaries/batch'),
+  static Future<Map<String, dynamic>> batchBeneficiaries(String token, List<Map<String, dynamic>> beneficiaries) =>
+    _request('beneficiaires-batch-v2', (client) => client.post(
+      Uri.parse('$distBaseUrl/beneficiaires/batch'),
       headers: _headers(token),
       body: jsonEncode({'beneficiaries': beneficiaries}),
-    );
-    return _decode(response);
-  }
+    ));
 
-  static Future<Map<String, dynamic>> scan(String token, String code) async {
-    final response = await http.post(
+  static Future<Map<String, dynamic>> scan(String token, String code) =>
+    _request('scan', (client) => client.post(
       Uri.parse('$distBaseUrl/scan'),
       headers: _headers(token),
       body: jsonEncode({'code': code}),
-    );
-    return _decode(response);
-  }
+    ));
 
-  static Future<Map<String, dynamic>> getTicketByCode(String token, String code) async {
-    final response = await http.get(
+  static Future<Map<String, dynamic>> getTicketByCode(String token, String code) =>
+    _request('ticket-by-code', (client) => client.get(
       Uri.parse('$distBaseUrl/tickets/$code'),
       headers: _headers(token),
-    );
-    return _decode(response);
-  }
+    ));
 
   static Future<Map<String, dynamic>> getTicketsHistory(
     String token, {
@@ -234,13 +210,11 @@ class ApiService {
     return _request('tickets-history', (client) => client.get(uri, headers: _headers(token)));
   }
 
-  static Future<Map<String, dynamic>> getTicket(String token, String code) async {
-    final response = await http.get(
+  static Future<Map<String, dynamic>> getTicket(String token, String code) =>
+    _request('ticket', (client) => client.get(
       Uri.parse('$distBaseUrl/tickets/$code'),
       headers: _headers(token),
-    );
-    return _decode(response);
-  }
+    ));
 
   static Map<String, String> _headers(String token) => {
     'Content-Type': 'application/json',
