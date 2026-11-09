@@ -19,7 +19,18 @@ $hasAgent = $agent !== null;
         @if($hasAgent)
             <p class="text-muted mb-0">Agent : <strong>{{ $agent->prenoms_nom }}</strong></p>
         @else
-            <p class="text-muted mb-0">Aucun agent sélectionné. <a href="{{ route('admin.drh.documents') }}">Choisir un agent</a></p>
+            <form action="{{ route('admin.drh.documents.form', $type) }}" method="GET" class="d-flex align-items-end gap-2 mb-0">
+                <div>
+                    <label class="form-label small mb-1 text-muted">Agent (remplit automatiquement le formulaire)</label>
+                    <select name="personnel_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="">-- Choisir un agent --</option>
+                        @foreach(($agents ?? []) as $a)
+                            <option value="{{ $a->id }}">{{ $a->prenoms_nom }} — {{ $a->poste_actuel ?? 'Sans poste' }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <a href="{{ route('admin.drh.documents') }}" class="btn btn-outline-primary btn-sm">Choisir un agent</a>
+            </form>
         @endif
     </div>
     <a href="{{ route('admin.drh.documents') }}" class="btn btn-outline-secondary btn-sm">
@@ -31,6 +42,19 @@ $hasAgent = $agent !== null;
     <div class="card-body p-4">
         @if(session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+
+        @if($hasAgent)
+            <form action="{{ route('admin.drh.documents.form', $type) }}" method="GET" class="row g-2 align-items-end mb-3">
+                <div class="col-md-8">
+                    <label class="form-label small mb-1 text-muted">Changer d'agent</label>
+                    <select name="personnel_id" class="form-select form-select-sm" onchange="this.form.submit()">
+                        @foreach(($agents ?? []) as $a)
+                            <option value="{{ $a->id }}" {{ $agent->id === $a->id ? 'selected' : '' }}>{{ $a->prenoms_nom }} — {{ $a->poste_actuel ?? 'Sans poste' }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </form>
         @endif
 
         <form action="{{ route('admin.drh.documents.save', $type) }}" method="POST">

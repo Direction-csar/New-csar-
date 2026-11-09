@@ -49,6 +49,12 @@ $formatDate = function ($d) {
     try { return \Carbon\Carbon::parse($d)->format('d/m/Y'); }
     catch (\Throwable $e) { return \Illuminate\Support\Str::limit((string) $d, 20, '…'); }
 };
+// Montant sans virgules ni décimales inutiles : "1,270,000.00" ou "1270000.696" → "1 270 000" / "848 579"
+$mt = function ($v) {
+    if ($v === null || $v === '') { return ''; }
+    $n = (float) str_replace([',', ' ', "\xc2\xa0"], '', (string) $v);
+    return number_format($n, 0, ',', ' ');
+};
 @endphp
 
 <div class="page">
@@ -260,23 +266,23 @@ $formatDate = function ($d) {
     <table style="margin-top: 14px;">
         <tr>
             <td style="width:55%; padding: 6px 4px;">Soit : Salaire de base,</td>
-            <td style="padding: 6px 4px;">= <span class="field">{{ $lim($val('salaire_base'), 60) }}</span></td>
+            <td style="padding: 6px 4px;">= <span class="field">{{ $mt($val('salaire_base')) }} F</span></td>
         </tr>
         <tr>
             <td style="padding: 6px 4px;">2) Sursalaire</td>
-            <td style="padding: 6px 4px;">= <span class="field">{{ $lim($val('sursalaire'), 60) }}</span></td>
+            <td style="padding: 6px 4px;">= <span class="field">{{ $mt($val('sursalaire')) }} F</span></td>
         </tr>
         <tr>
             <td style="padding: 6px 4px;">3) Indemnité de transport</td>
-            <td style="padding: 6px 4px;">= <span class="field">{{ $lim($val('indemnite_transport'), 60) }}</span></td>
+            <td style="padding: 6px 4px;">= <span class="field">{{ $mt($val('indemnite_transport')) }} F</span></td>
         </tr>
         <tr>
             <td style="padding: 6px 4px;">4) Indemnité de fonction</td>
-            <td style="padding: 6px 4px;">= <span class="field">{{ $lim($val('indemnite_fonction'), 60) }}</span></td>
+            <td style="padding: 6px 4px;">= <span class="field">{{ $mt($val('indemnite_fonction')) }} F</span></td>
         </tr>
         <tr>
-            <td style="padding: 6px 4px;">4) Salaire brut global</td>
-            <td style="padding: 6px 4px;">= <span class="field">{{ $lim($val('salaire_brut_global'), 60) }}</span></td>
+            <td style="padding: 6px 4px;">5) Salaire brut global</td>
+            <td style="padding: 6px 4px;">= <span class="field">{{ $mt($val('salaire_brut_global')) }} F</span></td>
         </tr>
     </table>
 

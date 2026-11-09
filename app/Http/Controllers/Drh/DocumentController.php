@@ -81,7 +81,14 @@ class DocumentController extends Controller
             'numero_immatriculation' => $agent->matricule,
             'nom'                    => $noms['nom'] ?? '',
             'prenoms'                => $noms['prenoms'] ?? '',
-            'sexe'                   => $agent->sexe,
+            'sexe'                   => in_array($agent->sexe, ['Feminin', 'Féminin', 'F'], true) ? 'F' : ($agent->sexe ? 'M' : ''),
+            'pays'                   => 'Sénégal',
+            'pere'                   => $this->splitFiliation($agent->filiation)['pere'],
+            'mere'                   => $this->splitFiliation($agent->filiation)['mere'],
+            'date'                   => now()->format('Y-m-d'),
+            'horaire_hebdomadaire'   => '40',
+            'duree_contrat_type'     => $agent->type_contrat === 'CDD' ? 'determinee' : 'indeterminee',
+            'signature_employeur'    => 'Madame le Directeur Général',
             'date_naissance'         => $agent->date_naissance?->format('Y-m-d'),
             'lieu_naissance'         => $agent->lieu_naissance,
             'nationalite'            => $agent->nationalite,
@@ -112,11 +119,22 @@ class DocumentController extends Controller
         if (!$fullName) {
             return ['nom' => '', 'prenoms' => ''];
         }
-        $parts = explode(' ', $fullName, 2);
+        // La fiche stocke « Prénoms NOM » : le nom est le dernier mot.
+        $parts = preg_split('/\s+/u', trim($fullName));
         return [
-            'nom' => $parts[0] ?? '',
-            'prenoms' => $parts[1] ?? '',
+            'nom' => array_pop($parts) ?? '',
+            'prenoms' => implode(' ', $parts),
         ];
+    }
+
+    /** Filiation « De (père) et (mère) » → ['père', 'mère']. */
+    private function splitFiliation(?string $filiation): array
+    {
+        $filiation = trim((string) $filiation);
+        if (preg_match('/^(?:De|Fils de)\s+(.+?)\s+et\s+(.+)$/iu', $filiation, $m)) {
+            return ['pere' => trim($m[1]), 'mere' => trim($m[2])];
+        }
+        return ['pere' => '', 'mere' => ''];
     }
 
     private function pdf(string $view, array $data, string $filename)
@@ -168,6 +186,7 @@ class DocumentController extends Controller
                 'type'      => $type,
                 'docInfo'   => $types[$type],
                 'agent'     => $agent,
+                'agents'    => Personnel::orderBy('prenoms_nom')->get(['id', 'prenoms_nom', 'poste_actuel']),
                 'savedDocument' => $savedDocument,
                 'savedData' => $savedData,
                 'defaults'  => $this->contractDefaults($agent),
