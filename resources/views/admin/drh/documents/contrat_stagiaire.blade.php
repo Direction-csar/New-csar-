@@ -106,7 +106,7 @@
     <div class="parties-title">I. L'Organisme d'accueil</div>
     <p class="intro" style="margin-bottom:4px;">
         Le <strong>Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)</strong>, établissement public
-        sis 2 Rue Amadou Assane Ndiaye X Bretagne Ferrand à Dakar, représenté par son Directeur Général,
+        sis 2 Rue Amadou Assane Ndiaye X Bretagne Ferrand à Dakar, représenté par Madame le Directeur Général,
         ci-après dénommé <strong>« l'Organisme d'accueil »</strong>,
     </p>
     <p class="intro" style="margin-bottom:4px;">D'une part,</p>
@@ -200,7 +200,7 @@
             </td>
             <td>
                 <div class="sig-role">L'Organisme d'accueil</div>
-                <div class="sig-note">Le Directeur Général du CSAR</div>
+                <div class="sig-note">Madame le Directeur Général du CSAR</div>
                 <div class="sig-line">{{ $directeur_general ?? '' }}</div>
             </td>
         </tr>

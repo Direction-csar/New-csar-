@@ -206,45 +206,50 @@ class PersonnelController extends Controller
     {
         $personnel = Personnel::findOrFail($id);
 
+        // Les fiches importées portent « Non renseigné » : on le traite comme vide
+        // plutôt que d'obliger l'utilisateur à ressaisir chaque champ.
+        $request->merge(collect($request->except(['logiciels_maitrises', 'langues_parlees']))
+            ->map(fn ($v) => is_string($v) && in_array(mb_strtolower(trim($v)), ['non renseigné', 'non renseignée', 'n/a'], true) ? null : $v)
+            ->all());
+
         $validatedData = $request->validate([
-            // Same validation rules as store
             'prenoms_nom' => 'required|string|max:255',
-            'date_naissance' => 'required|date',
-            'lieu_naissance' => 'required|string|max:255',
-            'tranche_age' => 'required|in:18-25,26-35,36-45,46-55,56-60',
-            'nationalite' => 'required|string|max:255',
-            'numero_cni' => 'required|string|max:255',
-            'sexe' => 'required|in:Masculin,Féminin',
-            'situation_matrimoniale' => 'required|in:Célibataire,Marié (e),Divorcé (e),Veuf,Veuve',
-            'nombre_enfants' => 'required|integer|min:0|max:10',
-            'contact_telephonique' => 'required|string|max:20',
-            'email' => 'required|email|unique:personnel,email,' . $personnel->id,
-            'groupe_sanguin' => 'required|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
-            'adresse_complete' => 'required|string',
+            'date_naissance' => 'nullable|date',
+            'lieu_naissance' => 'nullable|string|max:255',
+            'tranche_age' => 'nullable|in:18-25,26-35,36-45,46-55,56-60',
+            'nationalite' => 'nullable|string|max:255',
+            'numero_cni' => 'nullable|string|max:255',
+            'sexe' => 'nullable|in:Masculin,Féminin',
+            'situation_matrimoniale' => 'nullable|in:Célibataire,Marié (e),Divorcé (e),Veuf,Veuve',
+            'nombre_enfants' => 'nullable|integer|min:0|max:20',
+            'contact_telephonique' => 'nullable|string|max:20',
+            'email' => 'nullable|email|unique:personnel,email,' . $personnel->id,
+            'groupe_sanguin' => 'nullable|in:A+,A-,B+,B-,AB+,AB-,O+,O-',
+            'adresse_complete' => 'nullable|string',
             'matricule' => 'required|string|unique:personnel,matricule,' . $personnel->id,
-            'date_recrutement_csar' => 'required|date',
-            'date_prise_service_csar' => 'required|date',
-            'statut' => 'required|string',
+            'date_recrutement_csar' => 'nullable|date',
+            'date_prise_service_csar' => 'nullable|date',
+            'statut' => 'nullable|string',
             'type_contrat' => 'nullable|in:CDI,CDD',
             'date_debut_contrat' => 'nullable|date',
             'date_fin_contrat' => 'nullable|date|after_or_equal:date_debut_contrat',
             'poste_actuel' => 'required|string',
             'direction_service' => 'required|string',
             'localisation_region' => 'nullable|string',
-            'dernier_poste_avant_csar' => 'required|string',
-            'formations_professionnelles' => 'required|string',
-            'diplome_academique' => 'required|string',
+            'dernier_poste_avant_csar' => 'nullable|string',
+            'formations_professionnelles' => 'nullable|string',
+            'diplome_academique' => 'nullable|string',
             'autres_diplomes_certifications' => 'nullable|string',
-            'logiciels_maitrises' => 'required|array',
-            'langues_parlees' => 'required|array',
+            'logiciels_maitrises' => 'nullable|array',
+            'langues_parlees' => 'nullable|array',
             'autres_aptitudes' => 'nullable|string',
-            'aspirations_professionnelles' => 'required|string',
-            'interet_nouvelles_responsabilites' => 'required|in:Oui,Non,Neutre',
+            'aspirations_professionnelles' => 'nullable|string',
+            'interet_nouvelles_responsabilites' => 'nullable|in:Oui,Non,Neutre',
             'photo_personnelle' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240',
-            'taille_vetements' => 'required|string',
-            'contact_urgence_nom' => 'required|string|max:255',
-            'contact_urgence_telephone' => 'required|string|max:20',
-            'contact_urgence_lien_parente' => 'required|string|max:255',
+            'taille_vetements' => 'nullable|string',
+            'contact_urgence_nom' => 'nullable|string|max:255',
+            'contact_urgence_telephone' => 'nullable|string|max:20',
+            'contact_urgence_lien_parente' => 'nullable|string|max:255',
             'observations_personnelles' => 'nullable|string',
         ]);
 
@@ -261,9 +266,12 @@ class PersonnelController extends Controller
             $validatedData['photo_personnelle'] = $photoName;
         }
 
-        // Convertir les arrays en JSON
-        $validatedData['logiciels_maitrises'] = json_encode($validatedData['logiciels_maitrises']);
-        $validatedData['langues_parlees'] = json_encode($validatedData['langues_parlees']);
+        // Convertir les arrays en JSON (seulement si le formulaire les a envoyés)
+        foreach (['logiciels_maitrises', 'langues_parlees'] as $arr) {
+            if (array_key_exists($arr, $validatedData)) {
+                $validatedData[$arr] = json_encode($validatedData[$arr] ?? []);
+            }
+        }
 
         // Gérer les aspirations professionnelles (peut être un array de checkboxes)
         if (isset($validatedData['aspirations_professionnelles'])) {

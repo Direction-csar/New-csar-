@@ -49,7 +49,7 @@
     <p style="text-align: justify;">
         <strong>Le Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</strong> sis au
         2 Rue Amadou Assane NDOYE X Bérenger Ferraud, Dakar représenté par
-        <strong>Madame Mame Ndeye SENE, en sa qualité de Directrice générale ;</strong>
+        <strong>Madame Mame Ndeye SENE, en sa qualité de Directeur Général ;</strong>
     </p>
 
     <p class="right">D'UNE PART</p>
@@ -130,7 +130,7 @@
         <li>Code du travail et décret d'application</li>
         <li>Convention collective nationale interprofessionnelle</li>
         <li>Convention collective du commerce</li>
-        <li>Eventuellement grille interne du CSAR</li>
+        <li>Grille salariale du CSAR</li>
     </ul>
 
     <div class="article-title">ARTICLE 8 :</div>
@@ -143,7 +143,7 @@
         <tr>
             <td style="width: 40%; vertical-align: top;"><strong>Le Travailleur</strong></td>
             <td style="width: 60%; text-align: center; vertical-align: top;">
-                <strong>La Directrice générale<br>
+                <strong>Madame le Directeur Général<br>
                 du Commissariat à la Sécurité Alimentaire et à la Résilience<br>
                 Mame Ndeye SENE</strong>
             </td>

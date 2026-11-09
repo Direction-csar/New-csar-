@@ -5,7 +5,7 @@
 @section('titre', 'Certificat de Travail')
 
 @section('corps')
-    <p>Je soussignée, <strong>Madame Mame Ndeye SENE</strong>, Directrice générale du
+    <p>Je soussignée, <strong>Madame Mame Ndeye SENE</strong>, Directeur Général du
         Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR), atteste que
         <strong>Monsieur / Madame {{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
         né(e) le <strong>{{ optional($personnel?->date_naissance)->format('d/m/Y') ?? '__________' }}</strong>

@@ -346,6 +346,21 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertSame(2, RhDocument::count());
         $this->actingAs($this->drh, 'drh')->get(route('admin.drh.documents'))->assertOk()->assertSee('Générer tous les contrats');
     }
+    public function test_personnel_update_accepts_placeholder_values(): void
+    {
+        $agent = $this->agent('202610', 'Awa FICTIF');
+
+        $res = $this->actingAs($this->drh, 'drh')->put(route('admin.drh.personnel.update', $agent->id), [
+            'prenoms_nom' => 'Awa CORRIGEE',
+            'matricule' => '202610',
+            'poste_actuel' => 'Conseiller Technique',
+            'direction_service' => 'DIRECTION GENERALE',
+            'adresse_complete' => 'Non renseigné',
+        ]);
+
+        $res->assertSessionDoesntHaveErrors();
+        $this->assertSame('Awa CORRIGEE', $agent->fresh()->prenoms_nom);
+    }
 
     public function test_contract_interface_generate_preview_download_zip(): void
     {
