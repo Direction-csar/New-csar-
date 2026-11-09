@@ -14,6 +14,7 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Tests\Concerns\BuildsDistributionSchema;
 use Tests\TestCase;
 
@@ -93,6 +94,12 @@ class DrhSalaryImportAndContractsTest extends TestCase
 
         $this->drh = $this->makeUser('Agent DRH Fictif', 'drh');
         $this->drh->forceFill(['two_factor_enabled' => true, 'two_factor_secret' => encrypt('JBSWY3DPEHPK3PXP')])->save();
+    }
+
+    private function assertZipResponse(mixed $response): void
+    {
+        $this->assertInstanceOf(BinaryFileResponse::class, $response);
+        $this->assertStringStartsWith('PK', file_get_contents($response->getFile()->getPathname()));
     }
 
     private function agent(string $matricule, string $nom, array $extra = []): Personnel
@@ -335,7 +342,7 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $res = $this->actingAs($this->drh, 'drh')->post(route('admin.drh.contrats.generate-all'));
 
         $res->assertOk();
-        $this->assertStringStartsWith('PK', file_get_contents($res->baseResponse->getFile()->getPathname()));
+        $this->assertZipResponse($res->baseResponse);
         $this->assertSame(2, RhDocument::count());
         $this->actingAs($this->drh, 'drh')->get(route('admin.drh.documents'))->assertOk()->assertSee('Générer tous les contrats');
     }
@@ -364,6 +371,6 @@ class DrhSalaryImportAndContractsTest extends TestCase
 
         $zip = $as->post(route('admin.drh.contrats.zip'));
         $zip->assertOk();
-        $this->assertStringStartsWith('PK', file_get_contents($zip->baseResponse->getFile()->getPathname()));
+        $this->assertZipResponse($zip->baseResponse);
     }
 }
