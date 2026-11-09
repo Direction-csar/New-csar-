@@ -1269,6 +1269,7 @@ Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access', 'enfor
     // Contrats de travail versionnés (génération en lot, aperçu, ZIP, signature, avenants)
     Route::get('/contrats',                        [\App\Http\Controllers\Drh\ContractBatchController::class, 'index'])->name('contrats.index');
     Route::post('/contrats/generer',               [\App\Http\Controllers\Drh\ContractBatchController::class, 'generate'])->name('contrats.generate');
+    Route::post('/contrats/tout-generer',          [\App\Http\Controllers\Drh\ContractBatchController::class, 'generateAllZip'])->name('contrats.generate-all');
     Route::post('/contrats/zip',                   [\App\Http\Controllers\Drh\ContractBatchController::class, 'zip'])->name('contrats.zip');
     Route::get('/contrats/apercu/{personnel}',     [\App\Http\Controllers\Drh\ContractBatchController::class, 'preview'])->whereNumber('personnel')->name('contrats.preview');
     Route::get('/contrats/{document}/pdf',         [\App\Http\Controllers\Drh\ContractBatchController::class, 'download'])->whereNumber('document')->name('contrats.download');

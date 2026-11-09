@@ -71,7 +71,7 @@ class AgentsImportSeeder extends Seeder
         $this->command->info("Agents ignorés : $skipped");
     }
 
-    private function mapRow(array $cols): ?array
+    protected function mapRow(array $cols): ?array
     {
         if (count($cols) < 17) {
             return null;

@@ -19,9 +19,18 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4><i class="fas fa-file-alt me-2 text-primary"></i>Générer un document RH</h4>
-    <a href="{{ route('admin.drh.documents.historique') }}" class="btn btn-outline-primary btn-sm">
-        <i class="fas fa-history me-1"></i> Historique
-    </a>
+    <div class="d-flex gap-2">
+        <form action="{{ route('admin.drh.contrats.generate-all') }}" method="POST"
+              onsubmit="return confirm('Générer les contrats de tous les agents et télécharger l\'archive ZIP ? Cela peut prendre une à deux minutes.');">
+            @csrf
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="fas fa-file-archive me-1"></i> Générer tous les contrats (ZIP)
+            </button>
+        </form>
+        <a href="{{ route('admin.drh.documents.historique') }}" class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-history me-1"></i> Historique
+        </a>
+    </div>
 </div>
 
 {{-- Sélection agent --}}

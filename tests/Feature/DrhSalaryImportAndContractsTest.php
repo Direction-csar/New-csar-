@@ -287,6 +287,59 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertSame('Généré', $v3->fresh()->statut);
     }
 
+    public function test_remunerations_2026_seeder_updates_salary_only_and_creates_recruits(): void
+    {
+        Schema::table('personnel', function (Blueprint $t) {
+            foreach (['tranche_age', 'contact_telephonique', 'email', 'groupe_sanguin', 'date_prise_service_csar', 'statut',
+                'net_a_payer_x', 'localisation_region', 'dernier_poste_avant_csar', 'autres_diplomes_certifications',
+                'logiciels_maitrises', 'langues_parlees', 'autres_aptitudes', 'aspirations_professionnelles',
+                'interet_nouvelles_responsabilites', 'photo_personnelle', 'taille_vetements', 'contact_urgence_nom',
+                'contact_urgence_telephone', 'contact_urgence_lien_parente', 'observations_personnelles', 'statut_validation'] as $c) {
+                $t->string($c)->nullable();
+            }
+        });
+        $awa = $this->agent('099001', 'Awa FICTIF', ['contact_telephonique' => '77 000 00 00', 'numero_cni' => 'CNI-REELLE']);
+
+        $row = fn (string $mat, string $prenom, string $nom, int $base, int $sursal, string $fonct) => implode(';', [
+            1, 'DIRECTION GENERALE', $prenom, $nom, $mat, 'Poste 2026', 'Licence', 'C3', 'Cadre', 'Adresse fictive', 'CNI-FICHIER',
+            '01/01/1990 à Dakar', 'De X et Y', '02/11/2026', 'Marié', 1, $base + $sursal + (int) $fonct, $base, $sursal, $fonct, 26000,
+            1, 0, 0, 0, 0, 0, 0, 0, 26000, 0, 999999.5,
+        ]);
+        $csv = tempnam(sys_get_temp_dir(), 'remu') ;
+        file_put_contents($csv, "entete\n" . $row('099001', 'Awa', 'FICTIF', 180816, 939184, '150000') . "\n"
+            . $row('202608', 'Recrue', 'FICTIVE', 100454, 303355, '') . "\n");
+
+        $seeder = new \Database\Seeders\Remunerations2026Seeder();
+        $seeder->csvPath = $csv;
+        $seeder->run();
+        @unlink($csv);
+
+        $awa->refresh();
+        $this->assertEquals(1270000, $awa->salaire_brut);
+        $this->assertEquals(150000, $awa->indemnite_fonction);
+        $this->assertSame('Poste 2026', $awa->poste_actuel);
+        $this->assertSame('CNI-REELLE', $awa->numero_cni, 'Données personnelles existantes conservées');
+        $this->assertSame('77 000 00 00', $awa->contact_telephonique);
+
+        $recrue = Personnel::where('matricule', '202608')->firstOrFail();
+        $this->assertEquals(403809, $recrue->salaire_brut);
+        $this->assertEquals(0, $recrue->indemnite_fonction);
+        $this->assertSame('Recrue FICTIVE', $recrue->prenoms_nom);
+    }
+
+    public function test_generate_all_contracts_downloads_zip_in_one_click(): void
+    {
+        $this->agent('099001', 'Awa FICTIF');
+        $this->agent('099002', 'Moussa EXEMPLE', ['type_contrat' => 'CDD']);
+
+        $res = $this->actingAs($this->drh, 'drh')->post(route('admin.drh.contrats.generate-all'));
+
+        $res->assertOk();
+        $this->assertStringStartsWith('PK', file_get_contents($res->baseResponse->getFile()->getPathname()));
+        $this->assertSame(2, RhDocument::count());
+        $this->actingAs($this->drh, 'drh')->get(route('admin.drh.documents'))->assertOk()->assertSee('Générer tous les contrats');
+    }
+
     public function test_contract_interface_generate_preview_download_zip(): void
     {
         $a = $this->agent('099001', 'Awa FICTIF');

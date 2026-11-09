@@ -60,6 +60,24 @@ class ContractBatchController extends Controller
             ->with('error', $s['errors'] ? implode(' ; ', $s['errors']) : null);
     }
 
+    /** En un clic : contrats de tous les agents (à jour) puis archive ZIP téléchargée. */
+    public function generateAllZip()
+    {
+        @set_time_limit(900);
+        $s = $this->contracts->generateMany(Personnel::orderBy('prenoms_nom')->get(), 'all', Auth::id());
+
+        $documents = RhDocument::contracts()->current()
+            ->where('statut', '!=', RhDocument::STATUT_A_VALIDER)
+            ->with('personnel')->get();
+        if ($documents->isEmpty()) {
+            return back()->with('error', 'Aucun contrat n\'a pu être généré.' . ($s['errors'] ? ' ' . implode(' ; ', $s['errors']) : ''));
+        }
+
+        return response()->download($this->contracts->zip($documents), 'contrats-csar-' . now()->format('Ymd-His') . '.zip', [
+            'Content-Type' => 'application/zip',
+        ])->deleteFileAfterSend();
+    }
+
     public function preview(Personnel $personnel)
     {
         return response($this->contracts->preview($personnel), 200, [
