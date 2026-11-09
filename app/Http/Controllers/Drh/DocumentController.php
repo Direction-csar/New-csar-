@@ -386,6 +386,11 @@ class DocumentController extends Controller
 
     public function destroyDocument(RhDocument $document)
     {
+        if ($document->isContract() && ($document->isSigned() || $document->superseded_at)) {
+            return redirect()->route('admin.drh.documents.historique')
+                ->with('error', 'Un contrat signé ou une version archivée ne peut pas être supprimé.');
+        }
+
         $document->delete();
 
         return redirect()->route('admin.drh.documents.historique')
@@ -394,10 +399,15 @@ class DocumentController extends Controller
 
     public function destroyAllDocuments()
     {
-        RhDocument::query()->delete();
+        // Les contrats signés et les versions archivées sont conservés.
+        RhDocument::query()->where(fn ($q) => $q
+            ->whereNotIn('type', RhDocument::CONTRACT_TYPES)
+            ->orWhere(fn ($c) => $c->whereNull('signed_at')->whereNull('superseded_at')
+                ->where('statut', '!=', RhDocument::STATUT_A_VALIDER)))
+            ->delete();
 
         return redirect()->route('admin.drh.documents.historique')
-            ->with('success', 'Tout l\'historique des documents RH a été supprimé.');
+            ->with('success', 'Historique supprimé (les contrats signés et les versions archivées sont conservés).');
     }
 
     public function exportDocument(RhDocument $document)
@@ -430,7 +440,8 @@ class DocumentController extends Controller
         $view = $viewMap[$document->type] ?? abort(404);
         $filename = str_replace(' ', '-', strtolower($document->label)) . '-' . $document->id . '.pdf';
 
-        $document->update([
+        $keepStatut = $document->isContract() && ($document->isSigned() || $document->isPendingValidation() || $document->superseded_at);
+        $document->update($keepStatut ? ['exported_at' => now()] : [
             'statut' => 'Exporté',
             'exported_at' => now(),
         ]);

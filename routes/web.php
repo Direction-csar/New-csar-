@@ -1260,6 +1260,21 @@ Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access', 'enfor
     Route::get('/recrutement', [\App\Http\Controllers\Drh\RessourcesHumainesController::class, 'recrutement'])->name('recrutement');
     Route::get('/relations',   [\App\Http\Controllers\Drh\RessourcesHumainesController::class, 'relations'])->name('relations');
 
+    // Actualisation des rémunérations (import TXT avec prévisualisation obligatoire)
+    Route::get('/remunerations',                  [\App\Http\Controllers\Drh\SalaryImportController::class, 'index'])->name('remunerations.index');
+    Route::post('/remunerations',                 [\App\Http\Controllers\Drh\SalaryImportController::class, 'store'])->name('remunerations.store');
+    Route::get('/remunerations/{import}',         [\App\Http\Controllers\Drh\SalaryImportController::class, 'show'])->whereNumber('import')->name('remunerations.show');
+    Route::post('/remunerations/{import}/valider', [\App\Http\Controllers\Drh\SalaryImportController::class, 'apply'])->whereNumber('import')->name('remunerations.apply');
+
+    // Contrats de travail versionnés (génération en lot, aperçu, ZIP, signature, avenants)
+    Route::get('/contrats',                        [\App\Http\Controllers\Drh\ContractBatchController::class, 'index'])->name('contrats.index');
+    Route::post('/contrats/generer',               [\App\Http\Controllers\Drh\ContractBatchController::class, 'generate'])->name('contrats.generate');
+    Route::post('/contrats/zip',                   [\App\Http\Controllers\Drh\ContractBatchController::class, 'zip'])->name('contrats.zip');
+    Route::get('/contrats/apercu/{personnel}',     [\App\Http\Controllers\Drh\ContractBatchController::class, 'preview'])->whereNumber('personnel')->name('contrats.preview');
+    Route::get('/contrats/{document}/pdf',         [\App\Http\Controllers\Drh\ContractBatchController::class, 'download'])->whereNumber('document')->name('contrats.download');
+    Route::post('/contrats/{document}/signer',     [\App\Http\Controllers\Drh\ContractBatchController::class, 'sign'])->whereNumber('document')->name('contrats.sign');
+    Route::post('/contrats/{document}/valider',    [\App\Http\Controllers\Drh\ContractBatchController::class, 'validateAvenant'])->whereNumber('document')->name('contrats.validate');
+
     // �📝 Documents RH
     Route::get('/documents',                    [\App\Http\Controllers\Drh\DocumentController::class, 'selection'])->name('documents');
     Route::get('/documents/{type}/form',       [\App\Http\Controllers\Drh\DocumentController::class, 'showForm'])->name('documents.form');

@@ -291,6 +291,16 @@ $currentRoute = $currentRoute ?? request()->route()?->getName() ?? '';
             <span class="menu-text">Documents RH</span>
         </a>
 
+        <a href="{{ route('admin.drh.remunerations.index') }}" class="menu-link {{ str_contains($currentRoute, 'drh.remunerations') ? 'active' : '' }}">
+            <i class="fas fa-money-check-alt"></i>
+            <span class="menu-text">Actualisation salaires</span>
+        </a>
+
+        <a href="{{ route('admin.drh.contrats.index') }}" class="menu-link {{ str_contains($currentRoute, 'drh.contrats') ? 'active' : '' }}">
+            <i class="fas fa-file-signature"></i>
+            <span class="menu-text">Contrats de travail</span>
+        </a>
+
         <a href="{{ route('archives.drh.index') }}" class="menu-link {{ str_contains($currentRoute, 'archives.drh') ? 'active' : '' }}">
             <i class="fas fa-archive"></i>
             <span class="menu-text">Archives DRH</span>
