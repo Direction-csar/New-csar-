@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Actualisation 2026 depuis le « Tableau comparatif des rémunérations » :
- * - agent existant (même matricule) : seuls poste, catégorie et rémunération sont mis à jour ;
+ * - agent existant (même matricule) : seuls direction (organigramme), poste, catégorie et rémunération sont mis à jour ;
  * - agent absent (les 3 recrues 202608, 202609, 202610) : fiche créée avec les données du tableau.
  * Les autres informations des fiches existantes ne sont jamais modifiées.
  */
@@ -16,7 +16,7 @@ class Remunerations2026Seeder extends AgentsImportSeeder
     public string $csvPath = '';
 
     private const UPDATED_FIELDS = [
-        'poste_actuel', 'categorie', 'salaire_base', 'sursalaire',
+        'direction_service', 'poste_actuel', 'categorie', 'salaire_base', 'sursalaire',
         'indemnite_fonction', 'indemnite_transport', 'salaire_brut', 'net_a_payer',
     ];
 
@@ -30,10 +30,12 @@ class Remunerations2026Seeder extends AgentsImportSeeder
 
         DB::transaction(function () use ($lines, $existing, &$updated, &$created, &$unchanged) {
             foreach ($lines as $line) {
-                $data = $this->mapRow(str_getcsv($line, ';'));
+                $cols = str_getcsv($line, ';');
+                $data = $this->mapRow($cols);
                 if (!$data) {
                     continue;
                 }
+                $data['direction_service'] = config('organigramme')[mb_strtoupper(trim($cols[1] ?? ''))] ?? $data['direction_service'];
                 $data['indemnite_fonction'] ??= 0;
                 $data['indemnite_transport'] ??= 0;
 

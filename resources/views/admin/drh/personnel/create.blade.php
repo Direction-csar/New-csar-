@@ -277,20 +277,9 @@
                                     <label class="form-label">Direction / Service d'affectation <span class="text-danger">*</span></label>
                                     <select name="direction_service" class="form-select @error('direction_service') is-invalid @enderror" required>
                                         <option value="">Sélectionner...</option>
-                                        <option value="Conseil d'administration">Conseil d'administration</option>
-                                        <option value="Direction Générale">Direction Générale</option>
-                                        <option value="Secrétariat général">Secrétariat général</option>
-                                        <option value="DSAR">DSAR</option>
-                                        <option value="DFC">DFC</option>
-                                        <option value="DPSE">DPSE</option>
-                                        <option value="DRH">DRH</option>
-                                        <option value="DTL">DTL</option>
-                                        <option value="CCG">CCG</option>
-                                        <option value="CPM">CPM</option>
-                                        <option value="CI">CI</option>
-                                        <option value="CIA">CIA</option>
-                                        <option value="AC">AC</option>
-                                        <option value="IR">IR</option>
+                                        @foreach(config('organigramme') as $entite)
+                                            <option value="{{ $entite }}" {{ old('direction_service') === $entite ? 'selected' : '' }}>{{ $entite }}</option>
+                                        @endforeach
                                     </select>
                                     @error('direction_service')
                                         <div class="invalid-feedback">{{ $message }}</div>

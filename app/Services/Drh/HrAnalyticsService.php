@@ -615,11 +615,16 @@ class HrAnalyticsService
             ->groupBy('personnel.poste_actuel')->orderByDesc('c')->orderBy('poste')->get();
     }
 
+    /** Effectif par entité, dans l'ordre de l'organigramme (entités hors organigramme à la fin). */
     public function departements(): Collection
     {
+        $ordre = array_flip(array_values(config('organigramme', [])));
+
         return $this->base()->whereNotNull('direction_service')
             ->selectRaw('direction_service as nom, COUNT(*) as c')
-            ->groupBy('direction_service')->orderBy('nom')->get();
+            ->groupBy('direction_service')->get()
+            ->sortBy(fn ($d) => [$ordre[$d->nom] ?? PHP_INT_MAX, $d->nom])
+            ->values();
     }
 
     public function services(): Collection

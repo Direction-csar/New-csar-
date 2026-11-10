@@ -325,6 +325,7 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertEquals(1270000, $awa->salaire_brut);
         $this->assertEquals(150000, $awa->indemnite_fonction);
         $this->assertSame('Poste 2026', $awa->poste_actuel);
+        $this->assertSame('Direction Générale', $awa->direction_service, 'Direction selon l\'organigramme officiel');
         $this->assertSame('CNI-REELLE', $awa->numero_cni, 'Données personnelles existantes conservées');
         $this->assertSame('77 000 00 00', $awa->contact_telephonique);
 
