@@ -63,7 +63,7 @@
         <p>N° Identification Nationale : {{ $numero_identification ?? ($personnel->numero_cni ?? '') }}</p>
         <p>Domicile actuel : {{ $domicile_actuel ?? ($personnel->adresse_complete ?? '') }}</p>
         <p>Nationalité : {{ $personnel->nationalite ?? 'Sénégalaise' }}</p>
-        <p>Situation de Famille : {{ $situation_famille ?? ($personnel->situation_matrimoniale ?? '') }}</p>
+        <p>Situation de Famille : {{ \App\Models\Personnel::libelleSituation($situation_famille ?? ($personnel->situation_matrimoniale ?? ''), $personnel->sexe ?? null) }}</p>
         <p>Nombre d'épouses : {{ $nombre_epouses ?? '' }}</p>
         <p>Nombre d'enfants : {{ $personnel->nombre_enfants ?? '' }}</p>
     </div>
@@ -75,7 +75,7 @@
     <div class="article-title">ARTICLE 1 :</div>
     <p style="text-align: justify;">
         {{ $civilite }} <strong>{{ $nomComplet }}</strong>, titulaire {{ !empty($diplome) ? 'd\'un(e) ' . $diplome : '……………………………' }}, est
-        engagé pour servir en qualité de {{ $posteLibelle }} au Commissariat à
+        engagé pour servir en qualité de {{ $posteLibelle }} du Commissariat à
         la Sécurité Alimentaire et à la Résilience pour une durée indéterminée depuis le {{ $fmt($date_embauche ?? null) }}.
     </p>
     <p>Il sera classé à la catégorie {{ $categorie ?? '………' }} conformément à la grille salariale du CSAR</p>
@@ -105,8 +105,8 @@
 
     <div class="article-title">ARTICLE 4 :</div>
     <p style="text-align: justify;">
-        Le lieu d'exécution du présent contrat de travail est situé à : Dakar, 22 Rue
-        Amadou Assane NDOYE x Bérenger Ferraud
+        Le lieu d'exécution du présent contrat de travail est situé à :
+        {{ \App\Models\Personnel::lieuAffectation($direction ?? ($personnel->direction_service ?? null), $personnel->localisation_region ?? null) }}
     </p>
 
     <div class="article-title">ARTICLE 5 :</div>

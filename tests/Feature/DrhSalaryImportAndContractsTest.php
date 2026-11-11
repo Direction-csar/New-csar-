@@ -363,6 +363,29 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertSame('Awa CORRIGEE', $agent->fresh()->prenoms_nom);
     }
 
+    public function test_contract_text_uses_affectation_and_accented_situation(): void
+    {
+        $this->assertSame('Mariée', Personnel::libelleSituation('Marie', 'Feminin'));
+        $this->assertSame('Marié', Personnel::libelleSituation('Marié (e)', 'Masculin'));
+        $this->assertSame('Célibataire', Personnel::libelleSituation('Celibataire', 'Masculin'));
+        $this->assertSame('Divorcée', Personnel::libelleSituation('Divorce', 'Féminin'));
+        $this->assertSame('Kaolack, Inspection régionale du CSAR', Personnel::lieuAffectation('Inspection régionale de Kaolack'));
+        $this->assertStringStartsWith('Dakar, 2 Rue', Personnel::lieuAffectation('Cellule Informatique'));
+        $this->assertSame('Thies, Inspection régionale du CSAR', Personnel::lieuAffectation('IR', 'Thies'));
+
+        $agent = new Personnel([
+            'prenoms_nom' => 'Awa FICTIVE', 'sexe' => 'Feminin', 'situation_matrimoniale' => 'Marie',
+            'direction_service' => 'Inspection régionale de Kaolack', 'poste_actuel' => 'Secrétaire',
+        ]);
+        foreach (['contrat_cdi', 'contrat_cdd'] as $view) {
+            $html = view("admin.drh.documents.$view", ['personnel' => $agent])->render();
+            $this->assertStringContainsString('Secrétaire du Commissariat à', $html, $view);
+            $this->assertStringContainsString('Kaolack, Inspection régionale du CSAR', $html, $view);
+            $this->assertStringContainsString('Situation de Famille : Mariée', $html, $view);
+            $this->assertStringNotContainsString('22 Rue', $html, $view);
+        }
+    }
+
     public function test_contract_interface_generate_preview_download_zip(): void
     {
         $a = $this->agent('099001', 'Awa FICTIF');

@@ -119,6 +119,40 @@ class Personnel extends Model
         return $query->where('localisation_region', $region);
     }
 
+    /** Libellé accentué et accordé : « Marie » / « Marié (e) » → « Marié » ou « Mariée » selon le sexe. */
+    public static function libelleSituation(?string $valeur, ?string $sexe = null): string
+    {
+        $v = mb_strtolower(trim((string) $valeur));
+        if ($v === '') {
+            return '';
+        }
+        $f = in_array(mb_strtolower((string) $sexe), ['f', 'feminin', 'féminin'], true);
+        $accord = fn (string $m) => $m . ($f ? 'e' : '');
+
+        return match (true) {
+            str_starts_with($v, 'mari') => $accord('Marié'),
+            str_starts_with($v, 'c') => 'Célibataire',
+            str_starts_with($v, 'divor') => $accord('Divorcé'),
+            $v === 'veuve' => 'Veuve',
+            str_starts_with($v, 'veuf') => $f ? 'Veuve' : 'Veuf',
+            default => trim((string) $valeur),
+        };
+    }
+
+    /** Lieu d'exécution du contrat selon l'affectation (inspection régionale ou siège). */
+    public static function lieuAffectation(?string $direction, ?string $region = null): string
+    {
+        $siege = 'Dakar, 2 Rue Amadou Assane NDOYE x Bérenger Ferraud';
+        if (preg_match('/^Inspection r[ée]gionale de\s+(.+)$/iu', trim((string) $direction), $m)) {
+            return trim($m[1]) . ', Inspection régionale du CSAR';
+        }
+        if (strtoupper(trim((string) $direction)) === 'IR' && $region && strcasecmp($region, 'Dakar') !== 0) {
+            return $region . ', Inspection régionale du CSAR';
+        }
+
+        return $siege;
+    }
+
     // Accesseurs
     public function getAgeAttribute()
     {

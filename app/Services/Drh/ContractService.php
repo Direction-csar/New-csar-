@@ -27,6 +27,9 @@ class ContractService
 {
     public const DISK = 'local';
 
+    /** À incrémenter à chaque correction du texte des contrats : force la régénération des PDF. */
+    public const MODELE = '2026-11-10';
+
     private const VIEWS = [
         'contrat-cdi' => 'admin.drh.documents.contrat_cdi',
         'contrat-cdd' => 'admin.drh.documents.contrat_cdd',
@@ -48,6 +51,7 @@ class ContractService
         $date = fn ($v) => $v ? Carbon::parse($v)->format('Y-m-d') : null;
 
         return [
+            'modele' => self::MODELE,
             'date_embauche' => $date($agent->date_recrutement_csar),
             'date_debut' => $date($agent->date_debut_contrat ?? $agent->date_recrutement_csar),
             'date_fin' => $this->typeFor($agent) === 'contrat-cdd'
