@@ -412,4 +412,58 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $zip->assertOk();
         $this->assertZipResponse($zip->baseResponse);
     }
+
+    public function test_fiches_2026_seeder_updates_diploma_and_sexe(): void
+    {
+        Schema::table('personnel', function (Blueprint $t) {
+            foreach (['tranche_age', 'contact_telephonique', 'email', 'groupe_sanguin', 'date_prise_service_csar', 'statut',
+                'localisation_region', 'dernier_poste_avant_csar', 'autres_diplomes_certifications',
+                'logiciels_maitrises', 'langues_parlees', 'autres_aptitudes', 'aspirations_professionnelles',
+                'interet_nouvelles_responsabilites', 'photo_personnelle', 'taille_vetements', 'contact_urgence_nom',
+                'contact_urgence_telephone', 'contact_urgence_lien_parente', 'observations_personnelles', 'statut_validation'] as $c) {
+                $t->string($c)->nullable();
+            }
+        });
+
+        // Fiches existantes avec les anciennes valeurs erronées.
+        $this->agent('202503', 'Lamine Séye DANFA', [
+            'formations_professionnelles' => "d'un Brevet de Fin d'Études Moyennes (BFEM)",
+            'diplome_academique' => 'BFEM', 'sexe' => 'Feminin',
+        ]);
+        $this->agent('202301', 'Mame Libass Laye FAYE', ['sexe' => 'Feminin']);
+        $this->agent('202204', 'AIDA DIEYE', ['sexe' => 'Masculin']);
+        $this->agent('020146', 'Modou Astou Djeumb MBOW', ['sexe' => 'Feminin']);
+
+        // Extrait les lignes réelles du tableau 2026 pour ces 4 agents.
+        $lines = file(database_path('seeders/fiches_2026.csv'));
+        $keep = ['202503', '202301', '202204', '020146'];
+        $csv = tempnam(sys_get_temp_dir(), 'fiches');
+        file_put_contents($csv, $lines[0] . implode('', array_filter(
+            array_slice($lines, 1),
+            fn ($l) => in_array(str_getcsv($l, ';')[4] ?? '', $keep, true)
+        )));
+
+        $seeder = new \Database\Seeders\FichesAgents2026Seeder();
+        $seeder->csvPath = $csv;
+        $seeder->run();
+        @unlink($csv);
+
+        $danfa = Personnel::where('matricule', '202503')->firstOrFail();
+        $this->assertStringContainsString('Baccalauréat', $danfa->formations_professionnelles);
+        $this->assertSame('Baccalaureat', $danfa->diplome_academique);
+        $this->assertSame('Masculin', $danfa->sexe, 'Lamine Séye DANFA est un homme');
+        $this->assertSame('Cellule Communication', $danfa->direction_service);
+
+        // Le sexe est déduit du premier prénom : « Mame », « Sadio », « Modou Astou » sont masculins,
+        // « AIDA » féminin même si le tableau dit « Célibataire ».
+        $this->assertSame('Masculin', Personnel::where('matricule', '202301')->firstOrFail()->sexe);
+        $this->assertSame('Masculin', Personnel::where('matricule', '020146')->firstOrFail()->sexe);
+        $this->assertSame('Feminin', Personnel::where('matricule', '202204')->firstOrFail()->sexe);
+
+        $html = view('admin.drh.documents.contrat_cdi', [
+            'personnel' => $danfa, 'diplome' => $danfa->formations_professionnelles,
+        ])->render();
+        $this->assertStringContainsString('Baccalauréat', $html);
+        $this->assertStringContainsString('Monsieur', $html);
+    }
 }

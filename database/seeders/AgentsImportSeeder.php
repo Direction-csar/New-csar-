@@ -237,8 +237,8 @@ class AgentsImportSeeder extends Seeder
             'DIOURBEL' => 'Diourbel',
             'FATICK' => 'Fatick',
             'KAFFRINE' => 'Kaffrine',
-            'KOLDA' => 'Kolda Sedhiou',
-            'SEDHIOU' => 'Kolda Sedhiou',
+            'KOLDA' => 'Kolda',
+            'SEDHIOU' => 'Sédhiou',
             'ZIGUINCHOR' => 'Ziguinchor',
         ];
 
@@ -291,26 +291,23 @@ class AgentsImportSeeder extends Seeder
 
     private function detectSexe(string $prenom, string $situation): string
     {
-        $prenomLower = mb_strtolower(trim($prenom));
         $situationLower = mb_strtolower($situation);
-
-        $femaleNames = [
-            'awa', 'bineta', 'coumba', 'khoudia', 'ndéye', 'ndeye', 'ndèye', 'fatou', 'mame', 'marie',
-            'souadou', 'khady', 'aïssatou', 'aissatou', 'sadio', 'sophiatou', 'khadissatou', 'adama',
-            'maty', 'yandé', 'dieynaba', 'marème', 'maryame', 'mereme', 'adji', 'adicke', 'astou', 'mariama',
-        ];
 
         if (str_contains($situationLower, 'mariée') || str_contains($situationLower, 'veuve')) {
             return 'Feminin';
         }
 
-        foreach ($femaleNames as $name) {
-            if (str_contains($prenomLower, $name)) {
-                return 'Feminin';
-            }
-        }
+        // Seul le premier prénom est significatif : « Modou Astou Djeumb » est un homme,
+        // « Mame Libass Laye » et « Sadio DIALLO » aussi (prénoms masculins du tableau).
+        $firstName = mb_strtolower(trim(preg_split('/\s+/u', trim($prenom))[0] ?? ''));
+        $femaleNames = [
+            'awa', 'bineta', 'coumba', 'khoudia', 'ndéye', 'ndeye', 'ndèye', 'fatou', 'marie',
+            'souadou', 'khady', 'khadissatou', 'aïssatou', 'aissatou', 'sophiatou', 'maty',
+            'dieynaba', 'marème', 'maryame', 'mereme', 'astou', 'mariama', 'hawa', 'aida',
+            'adji', 'adicke',
+        ];
 
-        return 'Masculin';
+        return in_array($firstName, $femaleNames, true) ? 'Feminin' : 'Masculin';
     }
 
     private function calculateTrancheAge(?string $dateNaissance): string
