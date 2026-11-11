@@ -298,10 +298,10 @@ class AgentsImportSeeder extends Seeder
         $firstName = mb_strtolower(trim(preg_split('/\s+/u', trim($prenom))[0] ?? ''));
 
         // Prénoms masculins du tableau 2026. Le tableau écrit « Mariée » pour
-        // Yandé NDIAYE et Baboucar COLY (coquilles) : le prénom masculin prime
-        // sur la situation familiale.
+        // Baboucar COLY (coquille) : le prénom masculin prime sur la situation
+        // familiale. « Yandé » n'y figure pas : Yandé NDIAYE (DAF) est une femme.
         $maleNames = [
-            'yandé', 'baboucar', 'babou', 'aliou', 'alioune', 'ibrahima', 'ousmane', 'oumar',
+            'baboucar', 'babou', 'aliou', 'alioune', 'ibrahima', 'ousmane', 'oumar',
             'moussa', 'lamine', 'modou', 'mamadou', 'mouhamed', 'mohamed', 'moustapha', 'soumaïla',
             'sidate', 'bassirou', 'cheikhou', 'cheikh', 'djiby', 'djimis', 'saliou', 'thierno',
             'demba', 'abdou', 'abdoulaye', 'el', 'insa', 'sohibou', 'ernest', 'waly', 'issac',
