@@ -12,6 +12,12 @@
     $prenoms = implode(' ', $parts);
     $civilite = isset($personnel) && $personnel && str_starts_with($personnel->sexe ?? '', 'F') ? 'Madame' : 'Monsieur';
     $posteLibelle = $poste ?? ($personnel->poste_actuel ?? '..........................');
+    // Le libellé du tableau commence souvent par « d'un… » : ne pas le préfixer deux fois.
+    $diplomeTexte = '';
+    if (!empty($diplome)) {
+        $d = trim($diplome);
+        $diplomeTexte = preg_match("/^d['’]|^d[eu]s?\s/iu", $d) ? $d : "d'un(e) $d";
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="fr">
@@ -74,7 +80,7 @@
 
     <div class="article-title">ARTICLE 1 :</div>
     <p style="text-align: justify;">
-        {{ $civilite }} <strong>{{ $nomComplet }}</strong>, titulaire {{ !empty($diplome) ? 'd\'un(e) ' . $diplome : '……………………………' }}, est
+        {{ $civilite }} <strong>{{ $nomComplet }}</strong>, titulaire {{ $diplomeTexte !== '' ? $diplomeTexte : '……………………………' }}, est
         engagé pour servir en qualité de {{ $posteLibelle }} du Commissariat à
         la Sécurité Alimentaire et à la Résilience pour une durée indéterminée depuis le {{ $fmt($date_embauche ?? null) }}.
     </p>

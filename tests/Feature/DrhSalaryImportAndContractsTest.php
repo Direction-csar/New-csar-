@@ -465,5 +465,12 @@ class DrhSalaryImportAndContractsTest extends TestCase
         ])->render();
         $this->assertStringContainsString('Baccalauréat', $html);
         $this->assertStringContainsString('Monsieur', $html);
+        $this->assertStringNotContainsString("d&#039;un(e) d&#039;un", $html, 'Pas de double préfixe devant « d\'un Baccalauréat »');
+        $this->assertStringContainsString('titulaire d&#039;un Baccalauréat', $html);
+
+        // Un diplôme sans article (« Gardien ») reçoit toujours « d'un(e) ».
+        $gardien = new Personnel(['prenoms_nom' => 'Aliou BA', 'sexe' => 'Masculin']);
+        $html = view('admin.drh.documents.contrat_cdi', ['personnel' => $gardien, 'diplome' => 'Gardien'])->render();
+        $this->assertStringContainsString("titulaire d&#039;un(e) Gardien", $html);
     }
 }
