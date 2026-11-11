@@ -433,10 +433,13 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->agent('202301', 'Mame Libass Laye FAYE', ['sexe' => 'Feminin']);
         $this->agent('202204', 'AIDA DIEYE', ['sexe' => 'Masculin']);
         $this->agent('020146', 'Modou Astou Djeumb MBOW', ['sexe' => 'Feminin']);
+        // Le tableau écrit « Mariée » pour ces deux hommes (coquilles du fichier source).
+        $this->agent('020078', 'Yandé NDIAYE', ['sexe' => 'Feminin']);
+        $this->agent('098705', 'Baboucar COLY', ['sexe' => 'Feminin']);
 
-        // Extrait les lignes réelles du tableau 2026 pour ces 4 agents.
+        // Extrait les lignes réelles du tableau 2026 pour ces agents.
         $lines = file(database_path('seeders/fiches_2026.csv'));
-        $keep = ['202503', '202301', '202204', '020146'];
+        $keep = ['202503', '202301', '202204', '020146', '020078', '098705'];
         $csv = tempnam(sys_get_temp_dir(), 'fiches');
         file_put_contents($csv, $lines[0] . implode('', array_filter(
             array_slice($lines, 1),
@@ -459,6 +462,8 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertSame('Masculin', Personnel::where('matricule', '202301')->firstOrFail()->sexe);
         $this->assertSame('Masculin', Personnel::where('matricule', '020146')->firstOrFail()->sexe);
         $this->assertSame('Feminin', Personnel::where('matricule', '202204')->firstOrFail()->sexe);
+        $this->assertSame('Masculin', Personnel::where('matricule', '020078')->firstOrFail()->sexe, 'Yandé NDIAYE (DAF) est un homme malgré « Mariée »');
+        $this->assertSame('Masculin', Personnel::where('matricule', '098705')->firstOrFail()->sexe, 'Baboucar COLY est un homme malgré « Mariée »');
 
         $html = view('admin.drh.documents.contrat_cdi', [
             'personnel' => $danfa, 'diplome' => $danfa->formations_professionnelles,

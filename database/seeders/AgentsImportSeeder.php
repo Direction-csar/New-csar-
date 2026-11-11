@@ -293,13 +293,22 @@ class AgentsImportSeeder extends Seeder
     {
         $situationLower = mb_strtolower($situation);
 
-        if (str_contains($situationLower, 'mariée') || str_contains($situationLower, 'veuve')) {
-            return 'Feminin';
-        }
-
         // Seul le premier prénom est significatif : « Modou Astou Djeumb » est un homme,
         // « Mame Libass Laye » et « Sadio DIALLO » aussi (prénoms masculins du tableau).
         $firstName = mb_strtolower(trim(preg_split('/\s+/u', trim($prenom))[0] ?? ''));
+
+        // Prénoms masculins du tableau 2026. Le tableau écrit « Mariée » pour
+        // Yandé NDIAYE et Baboucar COLY (coquilles) : le prénom masculin prime
+        // sur la situation familiale.
+        $maleNames = [
+            'yandé', 'baboucar', 'babou', 'aliou', 'alioune', 'ibrahima', 'ousmane', 'oumar',
+            'moussa', 'lamine', 'modou', 'mamadou', 'mouhamed', 'mohamed', 'moustapha', 'soumaïla',
+            'sidate', 'bassirou', 'cheikhou', 'cheikh', 'djiby', 'djimis', 'saliou', 'thierno',
+            'demba', 'abdou', 'abdoulaye', 'el', 'insa', 'sohibou', 'ernest', 'waly', 'issac',
+            'issa', 'joseph', 'seyni', 'tidiane', 'boubacar', 'youssouph', 'souleymane', 'serigne',
+            'gade', 'papa', 'mame', 'sadio', 'adama', 'daour', 'iba', 'inadone', 'abou', 'bidji',
+            'asse', 'dame',
+        ];
         $femaleNames = [
             'awa', 'bineta', 'coumba', 'khoudia', 'ndéye', 'ndeye', 'ndèye', 'fatou', 'marie',
             'souadou', 'khady', 'khadissatou', 'aïssatou', 'aissatou', 'sophiatou', 'maty',
@@ -307,7 +316,18 @@ class AgentsImportSeeder extends Seeder
             'adji', 'adicke',
         ];
 
-        return in_array($firstName, $femaleNames, true) ? 'Feminin' : 'Masculin';
+        if (in_array($firstName, $maleNames, true)) {
+            return 'Masculin';
+        }
+        if (in_array($firstName, $femaleNames, true)) {
+            return 'Feminin';
+        }
+
+        if (str_contains($situationLower, 'mariée') || str_contains($situationLower, 'veuve')) {
+            return 'Feminin';
+        }
+
+        return 'Masculin';
     }
 
     private function calculateTrancheAge(?string $dateNaissance): string
