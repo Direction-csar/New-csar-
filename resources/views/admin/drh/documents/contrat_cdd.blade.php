@@ -27,7 +27,7 @@
     } elseif (str_contains($posteLower, 'magasinier')) {
         $rolePhrase = 'en qualité de magasinier au Commissariat à la Sécurité Alimentaire et à la Résilience';
     } else {
-        $rolePhrase = 'pour servir en qualité de ' . $posteLibelle . ' du Commissariat à la Sécurité Alimentaire et à\n        la Résilience';
+        $rolePhrase = 'pour servir en qualité de ' . $posteLibelle . ' du Commissariat à la Sécurité Alimentaire et à la Résilience';
     }
     // Le libellé du tableau commence souvent par « d'un… » : ne pas le préfixer deux fois.
     $diplomeTexte = '';
