@@ -124,7 +124,7 @@
     <div class="article-title">ARTICLE 4 :</div>
     <p style="text-align: justify;">
         Le lieu d'exécution du présent contrat de travail est situé à :
-        {{ ($personnel->matricule ?? null) === '020076' ? 'au Commissariat à la Sécurité Alimentaire et à la Résilience' : \App\Models\Personnel::lieuAffectation($direction ?? ($personnel->direction_service ?? null), $personnel->localisation_region ?? null) }}
+        {{ ($personnel->matricule ?? null) === '020075' ? 'au Commissariat à la Sécurité Alimentaire et à la Résilience' : \App\Models\Personnel::lieuAffectation($direction ?? ($personnel->direction_service ?? null), $personnel->localisation_region ?? null) }}
     </p>
 
     <div class="article-title">ARTICLE 5 :</div>
