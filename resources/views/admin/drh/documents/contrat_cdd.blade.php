@@ -23,6 +23,7 @@
     $posteLower = mb_strtolower((string) $posteLibelle);
     if (str_contains($posteLower, 'gardien')) {
         $rolePhrase = 'comme gardien au Commissariat à la Sécurité Alimentaire et à la Résilience';
+        $sansDiplome = true;
     } elseif (str_contains($posteLower, 'magasinier')) {
         $rolePhrase = 'en qualité de magasinier au Commissariat à la Sécurité Alimentaire et à la Résilience';
     } else {
@@ -96,7 +97,7 @@
 
     <div class="article-title">ARTICLE 1 :</div>
     <p style="text-align: justify;">
-        {{ $civilite }} <strong>{{ $nomComplet }}</strong>, titulaire {{ $diplomeTexte !== '' ? $diplomeTexte : '……………………………' }},
+        {{ $civilite }} <strong>{{ $nomComplet }}</strong>{{ empty($sansDiplome) ? ', titulaire ' . ($diplomeTexte !== '' ? $diplomeTexte : '……………………………') : '' }},
         est {{ $engage }} {!! $rolePhrase !!} pour une durée déterminée à compter du {{ $fmt($date_debut ?? null) }} au
         {{ $fmt($date_fin ?? null) }}.
     </p>
