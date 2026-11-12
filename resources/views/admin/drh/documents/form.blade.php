@@ -78,7 +78,11 @@
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-save me-2"></i>Enregistrer
                     </button>
-                    @if($agent)
+                    @if($savedDocument)
+                        <a href="{{ route('admin.drh.documents.export', $savedDocument) }}" class="btn btn-primary" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i>Générer PDF
+                        </a>
+                    @elseif($agent)
                         <a href="{{ route('admin.drh.documents.' . $type) }}" class="btn btn-primary" target="_blank">
                             <i class="fas fa-file-pdf me-2"></i>Générer PDF
                         </a>

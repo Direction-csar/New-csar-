@@ -89,7 +89,7 @@ class DocumentController extends Controller
             'date'                   => now()->format('Y-m-d'),
             'horaire_hebdomadaire'   => '40',
             'duree_contrat_type'     => $agent->type_contrat === 'CDD' ? 'determinee' : 'indeterminee',
-            'signature_employeur'    => 'Madame le Directeur Général',
+            'signature_employeur'    => '',
             'date_naissance'         => $agent->date_naissance?->format('Y-m-d'),
             'lieu_naissance'         => $agent->lieu_naissance,
             'nationalite'            => $agent->nationalite,
@@ -156,6 +156,12 @@ class DocumentController extends Controller
             } else {
                 $savedDocument = null;
             }
+        }
+
+        // L'agent choisi dans le formulaire devient l'agent de session :
+        // le bouton « Générer PDF » (routes directes) l'utilise aussi.
+        if ($request->filled('personnel_id')) {
+            session(['documents_personnel_id' => $request->input('personnel_id')]);
         }
 
         // En modification, l'agent du document est proposé par défaut.

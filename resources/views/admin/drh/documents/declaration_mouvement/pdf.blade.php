@@ -36,6 +36,9 @@
         .box { width: 22px; height: 22px; border: 1px solid #000; text-align: center; vertical-align: middle; font-weight: bold; font-size: 10pt; }
         .box-label { text-align: center; font-weight: bold; font-size: 9pt; }
         .keep { page-break-inside: avoid; }
+        /* Cadre continu de la page 1 : trait unique, sans barre horizontale en trop. */
+        .frame { border: 1px solid #000; padding: 9px 6px 7px; }
+        .hc { border-left: 1px solid #000; border-right: 1px solid #000; border-bottom: 1px solid #000; }
     </style>
 </head>
 <body>
@@ -67,9 +70,10 @@ $mt = function ($v) {
 @endphp
 
 <div class="page">
+    <div class="frame">
     <table>
         <tr>
-            <td style="width:58%;" class="border p-2">
+            <td style="width:58%;" class="hc p-2">
                 <div class="title">Déclaration de mouvement du travailleur</div>
                 <div class="small">N° ............................. Du .............................</div>
                 <div class="small mt-1"><span class="fw-bold">REFERENCES</span><br>
@@ -78,7 +82,7 @@ $mt = function ($v) {
                     Des déclarations de mouvements de travailleurs (J.O. 22 Juin 1963, p.825).</div>
                 <div class="small mt-1">N° d'immatriculation du travailleur au fichier Central de la main d'œuvre : <span class="field" style="width:160px;">{{ $lim($val('numero_immatriculation'), 60) }}</span></div>
             </td>
-            <td class="border p-2 text-center" style="width:42%;">
+            <td class="hc p-2 text-center" style="width:42%;">
                 <div class="small"><em>Cachet et raison social de<br>L'employeur</em></div>
                 <div style="min-height:42px;"></div>
             </td>
@@ -235,6 +239,7 @@ $mt = function ($v) {
             </td>
         </tr>
     </table>
+    </div>
 </div>
 
 <div class="page border" style="font-size: 9.5pt; line-height: 1.4; padding: 14px 12px;">
