@@ -280,7 +280,13 @@ class PersonnelController extends Controller
             }
         }
 
+        // Mémoriser la fiche avant modification pour propager les changements
+        // vers les documents RH non signés (contrats, déclarations…).
+        $avantModification = clone $personnel;
+
         $personnel->update($validatedData);
+
+        app(\App\Services\Drh\AgentDocumentSync::class)->sync($avantModification, $personnel);
 
         $redirectRoute = request()->routeIs('admin.drh.*') ? 'admin.drh.personnel.index' : 'admin.personnel.index';
         return redirect()->route($redirectRoute)->with('success', 'Personnel mis à jour avec succès.');

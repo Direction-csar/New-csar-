@@ -369,7 +369,7 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertSame('Marié', Personnel::libelleSituation('Marié (e)', 'Masculin'));
         $this->assertSame('Célibataire', Personnel::libelleSituation('Celibataire', 'Masculin'));
         $this->assertSame('Divorcée', Personnel::libelleSituation('Divorce', 'Féminin'));
-        $this->assertSame('Kaolack, Inspection régionale du CSAR', Personnel::lieuAffectation('Inspection régionale de Kaolack'));
+        $this->assertSame('Inspection régionale de Kaolack', Personnel::lieuAffectation('Inspection régionale de Kaolack'));
         $this->assertStringStartsWith('Dakar, 2 Rue', Personnel::lieuAffectation('Cellule Informatique'));
         $this->assertSame('Thies, Inspection régionale du CSAR', Personnel::lieuAffectation('IR', 'Thies'));
 
@@ -380,7 +380,7 @@ class DrhSalaryImportAndContractsTest extends TestCase
         foreach (['contrat_cdi', 'contrat_cdd'] as $view) {
             $html = view("admin.drh.documents.$view", ['personnel' => $agent])->render();
             $this->assertStringContainsString('Secrétaire du Commissariat à', $html, $view);
-            $this->assertStringContainsString('Kaolack, Inspection régionale du CSAR', $html, $view);
+            $this->assertStringContainsString('Inspection régionale de Kaolack', $html, $view);
             $this->assertStringContainsString('Situation de Famille : Mariée', $html, $view);
             $this->assertStringNotContainsString('22 Rue', $html, $view);
         }
@@ -515,5 +515,40 @@ class DrhSalaryImportAndContractsTest extends TestCase
             'document_id' => $doc->id, 'salaire_base' => 999999,
         ])->assertSessionHas('error');
         $this->assertEquals(200000, $doc->fresh()->data['salaire_base']);
+    }
+
+    public function test_personnel_update_syncs_unsigned_documents(): void
+    {
+        $agent = $this->agent('099001', 'Awa FICTIF', [
+            'poste_actuel' => 'Assistant', 'salaire_base' => 100000,
+        ]);
+        $defaults = app(\App\Services\Drh\AgentDocumentData::class)->defaults($agent);
+
+        // Contrat généré depuis la fiche + DMT avec une valeur saisie à la main.
+        RhDocument::create([
+            'type' => 'contrat-cdi', 'label' => 'Contrat CDI', 'personnel_id' => $agent->id,
+            'data' => $defaults,
+        ]);
+        $dmtData = array_merge($defaults, ['salaire_base' => 777777]); // saisie manuelle différente
+        $dmt = RhDocument::create([
+            'type' => 'declaration-mouvement-travailleur', 'label' => 'DMT',
+            'personnel_id' => $agent->id, 'data' => $dmtData,
+        ]);
+
+        $avant = clone $agent;
+        $agent->update(['poste_actuel' => 'Chef de service', 'salaire_base' => 200000]);
+
+        $updated = app(\App\Services\Drh\AgentDocumentSync::class)->sync($avant, $agent);
+
+        $this->assertSame(2, $updated);
+        $contrat = RhDocument::where('type', 'contrat-cdi')->firstOrFail();
+        $this->assertSame('Chef de service', $contrat->data['poste']);
+        $this->assertSame('Chef de service', $contrat->data['profession'] ?? 'Chef de service');
+        $this->assertEquals(200000, $contrat->data['salaire_base']);
+
+        // La valeur manuelle de la DMT est conservée.
+        $this->assertEquals(777777, $dmt->fresh()->data['salaire_base']);
+        // …mais les champs non modifiés à la main suivent la fiche.
+        $this->assertSame('Chef de service', $dmt->fresh()->data['profession']);
     }
 }

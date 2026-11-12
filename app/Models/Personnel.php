@@ -144,7 +144,7 @@ class Personnel extends Model
     {
         $siege = 'Dakar, 2 Rue Amadou Assane NDOYE x Bérenger Ferraud';
         if (preg_match('/^Inspection r[ée]gionale de\s+(.+)$/iu', trim((string) $direction), $m)) {
-            return trim($m[1]) . ', Inspection régionale du CSAR';
+            return 'Inspection régionale de ' . trim($m[1]);
         }
         if (strtoupper(trim((string) $direction)) === 'IR' && $region && strcasecmp($region, 'Dakar') !== 0) {
             return $region . ', Inspection régionale du CSAR';
