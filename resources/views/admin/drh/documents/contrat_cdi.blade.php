@@ -11,7 +11,19 @@
     $nomFamille = count($parts) > 1 ? array_pop($parts) : $nomComplet;
     $prenoms = implode(' ', $parts);
     $civilite = isset($personnel) && $personnel && str_starts_with($personnel->sexe ?? '', 'F') ? 'Madame' : 'Monsieur';
+    $feminin = isset($personnel) && $personnel && str_starts_with($personnel->sexe ?? '', 'F');
+    $engage = $feminin ? 'engagée' : 'engagé';
+    $appelle = $feminin ? 'appelée' : 'appelé';
     $posteLibelle = $poste ?? ($personnel->poste_actuel ?? '..........................');
+    // Gardiens et magasiniers : formulation directe demandée par la DRH.
+    $posteLower = mb_strtolower((string) $posteLibelle);
+    if (str_contains($posteLower, 'gardien')) {
+        $rolePhrase = 'comme gardien au Commissariat à la Sécurité Alimentaire et à la Résilience';
+    } elseif (str_contains($posteLower, 'magasinier')) {
+        $rolePhrase = 'en qualité de magasinier au Commissariat à la Sécurité Alimentaire et à la Résilience';
+    } else {
+        $rolePhrase = 'pour servir en qualité de ' . $posteLibelle . ' du Commissariat à\n        la Sécurité Alimentaire et à la Résilience';
+    }
     // Le libellé du tableau commence souvent par « d'un… » : ne pas le préfixer deux fois.
     $diplomeTexte = '';
     if (!empty($diplome)) {
@@ -81,8 +93,7 @@
     <div class="article-title">ARTICLE 1 :</div>
     <p style="text-align: justify;">
         {{ $civilite }} <strong>{{ $nomComplet }}</strong>, titulaire {{ $diplomeTexte !== '' ? $diplomeTexte : '……………………………' }}, est
-        engagé pour servir en qualité de {{ $posteLibelle }} du Commissariat à
-        la Sécurité Alimentaire et à la Résilience pour une durée indéterminée depuis le {{ $fmt($date_embauche ?? null) }}.
+        {{ $engage }} {!! $rolePhrase !!} pour une durée indéterminée depuis le {{ $fmt($date_embauche ?? null) }}.
     </p>
     <p>Il sera classé à la catégorie {{ $categorie ?? '………' }} conformément à la grille salariale du CSAR</p>
 
@@ -112,12 +123,12 @@
     <div class="article-title">ARTICLE 4 :</div>
     <p style="text-align: justify;">
         Le lieu d'exécution du présent contrat de travail est situé à :
-        {{ \App\Models\Personnel::lieuAffectation($direction ?? ($personnel->direction_service ?? null), $personnel->localisation_region ?? null) }}
+        {{ ($personnel->matricule ?? null) === '020076' ? 'au Commissariat à la Sécurité Alimentaire et à la Résilience' : \App\Models\Personnel::lieuAffectation($direction ?? ($personnel->direction_service ?? null), $personnel->localisation_region ?? null) }}
     </p>
 
     <div class="article-title">ARTICLE 5 :</div>
     <p style="text-align: justify;">
-        {{ $civilite }} <strong>{{ $nomComplet }}</strong> est appelé à servir dans tous les services du CSAR
+        {{ $civilite }} <strong>{{ $nomComplet }}</strong> est {{ $appelle }} à servir dans tous les services du CSAR
         partout où besoin sera.
     </p>
 

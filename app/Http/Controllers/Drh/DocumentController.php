@@ -44,7 +44,7 @@ class DocumentController extends Controller
 
     private function getPersonnel(Request $request): ?Personnel
     {
-        $id = $request->input('personnel_id') ?? session('documents_personnel_id');
+        $id = $request->input('personnel_id') ?: session('documents_personnel_id');
         if ($id) {
             return Personnel::find($id);
         }
@@ -361,6 +361,10 @@ class DocumentController extends Controller
         $data = $request->except(['_token', 'personnel_id', 'document_id']);
         $personnelId = $request->input('personnel_id') ?: session('documents_personnel_id');
 
+        if (!$personnelId) {
+            return back()->with('error', 'Sélectionnez d\'abord un agent.');
+        }
+
         // Modification d'un document existant : mise à jour en place (sauf signé/archivé).
         if ($request->filled('document_id')) {
             $document = RhDocument::findOrFail($request->input('document_id'));
@@ -468,7 +472,8 @@ class DocumentController extends Controller
 
     public function exportDocument(RhDocument $document)
     {
-        $agent = $document->personnel;
+        $agent = $document->personnel
+            ?? (session('documents_personnel_id') ? Personnel::find(session('documents_personnel_id')) : null);
         $data = array_merge(['personnel' => $agent], $document->data ?? []);
 
         $viewMap = [

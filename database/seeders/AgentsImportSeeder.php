@@ -242,8 +242,11 @@ class AgentsImportSeeder extends Seeder
             'ZIGUINCHOR' => 'Ziguinchor',
         ];
 
+        // Pour les inspections régionales, la région vient de la direction
+        // (l'adresse peut mentionner une autre ville, ex. « Grand standing Thies »).
+        $isInspection = str_contains($direction, 'INSPECTION');
         foreach ($regions as $key => $value) {
-            if (str_contains($direction, $key) || str_contains($adresse, $key)) {
+            if (str_contains($direction, $key) || (!$isInspection && str_contains($adresse, $key))) {
                 return $value;
             }
         }
