@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Drh;
 use App\Http\Controllers\Controller;
 use App\Models\Personnel;
 use App\Models\RhDocument;
+use App\Services\Drh\ContractService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -145,7 +146,6 @@ class DocumentController extends Controller
 
     public function showForm(Request $request, string $type)
     {
-        $agent = $this->getPersonnel($request);
         $savedDocument = null;
         $savedData = [];
 
@@ -153,8 +153,13 @@ class DocumentController extends Controller
             $savedDocument = RhDocument::find($request->input('document_id'));
             if ($savedDocument && $savedDocument->type === $type) {
                 $savedData = $savedDocument->data ?? [];
+            } else {
+                $savedDocument = null;
             }
         }
+
+        // En modification, l'agent du document est proposé par défaut.
+        $agent = $this->getPersonnel($request) ?? $savedDocument?->personnel;
 
         $types = [
             'contrat-cdi'              => ['label' => 'Contrat CDI', 'fields' => ['date_embauche', 'salaire_base', 'sursalaire', 'indemnite_transport', 'indemnite_fonction', 'salaire_brut', 'poste', 'categorie', 'diplome', 'filiation', 'numero_identification', 'date_delivrance_id', 'domicile_actuel', 'situation_famille', 'nombre_epouses']],
@@ -181,12 +186,14 @@ class DocumentController extends Controller
             abort(404);
         }
 
+        $agents = Personnel::orderBy('prenoms_nom')->get(['id', 'prenoms_nom', 'poste_actuel']);
+
         if ($type === 'declaration-mouvement-travailleur') {
             return view('admin.drh.documents.declaration_mouvement.form', [
                 'type'      => $type,
                 'docInfo'   => $types[$type],
                 'agent'     => $agent,
-                'agents'    => Personnel::orderBy('prenoms_nom')->get(['id', 'prenoms_nom', 'poste_actuel']),
+                'agents'    => $agents,
                 'savedDocument' => $savedDocument,
                 'savedData' => $savedData,
                 'defaults'  => $this->contractDefaults($agent),
@@ -198,6 +205,7 @@ class DocumentController extends Controller
             'docInfo'   => $types[$type],
             'fields'    => $types[$type]['fields'] ?? [],
             'agent'     => $agent,
+            'agents'    => $agents,
             'savedDocument' => $savedDocument,
             'savedData' => $savedData,
             'defaults'  => $this->contractDefaults($agent),
@@ -344,8 +352,31 @@ class DocumentController extends Controller
             abort(404);
         }
 
-        $data = $request->except(['_token', 'personnel_id']);
+        $data = $request->except(['_token', 'personnel_id', 'document_id']);
         $personnelId = $request->input('personnel_id') ?: session('documents_personnel_id');
+
+        // Modification d'un document existant : mise à jour en place (sauf signé/archivé).
+        if ($request->filled('document_id')) {
+            $document = RhDocument::findOrFail($request->input('document_id'));
+            abort_unless($document->type === $type, 404);
+            if ($document->isSigned() || $document->superseded_at) {
+                return redirect()->route('admin.drh.documents.form', ['type' => $type, 'document_id' => $document->id])
+                    ->with('error', 'Un document signé ou archivé ne peut pas être modifié.');
+            }
+
+            $document->fill([
+                'data' => $data,
+                'personnel_id' => $personnelId ?: $document->personnel_id,
+            ])->save();
+
+            // Contrat : régénérer le PDF archivé pour que les exports/ZIP reflètent les modifications.
+            if ($document->isContract()) {
+                app(ContractService::class)->refreshStoredPdf($document->fresh());
+            }
+
+            return redirect()->route('admin.drh.documents.form', ['type' => $type, 'document_id' => $document->id])
+                ->with('success', 'Document mis à jour.');
+        }
 
         $document = RhDocument::create([
             'personnel_id' => $personnelId ?: null,

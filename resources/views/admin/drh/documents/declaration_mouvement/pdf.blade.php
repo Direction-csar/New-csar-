@@ -43,6 +43,15 @@
 @php
 $val = fn($k) => $data[$k] ?? '';
 $lim = fn($v, $n = 100) => \Illuminate\Support\Str::limit((string) $v, $n, '…');
+// Texte long : jamais tronqué. Retour à la ligne automatique et police réduite
+// selon la longueur, pour que les intitulés de poste s'affichent en entier.
+$long = function ($v) {
+    $v = trim((string) $v);
+    if ($v === '') { return ''; }
+    $len = mb_strlen($v);
+    $size = $len > 140 ? '7pt' : ($len > 90 ? '8pt' : '9pt');
+    return '<div class="field" style="display:block; font-size:'.$size.'; word-wrap:break-word; overflow-wrap:break-word; line-height:1.25; margin-top:1px;">'.e($v).'</div>';
+};
 $is = fn($k, $v) => ($data[$k] ?? '') == $v;
 $formatDate = function ($d) {
     if (!$d) { return ''; }
@@ -139,7 +148,7 @@ $mt = function ($v) {
             <td class="p-1" colspan="2">Groupe ethnique : <span class="field">{{ $lim($val('groupe_ethnique'), 60) }}</span></td>
         </tr>
         <tr>
-            <td class="p-1" colspan="4">Adresse (très précise) : <span class="field">{{ $lim($val('adresse'), 90) }}</span></td>
+            <td class="p-1" colspan="4">Adresse (très précise) : {!! $long($val('adresse')) !!}</td>
         </tr>
         <tr>
             <td class="p-1" colspan="2">Carte d'identité n° : <span class="field">{{ $lim($val('carte_identite_numero'), 40) }}</span></td>
@@ -157,11 +166,11 @@ $mt = function ($v) {
             <td class="p-1" colspan="2">Nombre d'épouses : <span class="field">{{ $lim($val('nombre_epouses'), 60) }}</span></td>
         </tr>
         <tr>
-            <td class="p-1" colspan="4">Nom des épouses : <span class="field">{{ $lim($val('noms_epouses'), 90) }}</span></td>
+            <td class="p-1" colspan="4">Nom des épouses : {!! $long($val('noms_epouses')) !!}</td>
         </tr>
         <tr>
             <td class="p-1" colspan="2">Nombre d'enfants à charge : <span class="field">{{ $lim($val('nombre_enfants'), 60) }}</span></td>
-            <td class="p-1" colspan="2">Noms des enfants à charge : <span class="field">{{ $lim($val('noms_enfants'), 70) }}</span></td>
+            <td class="p-1" colspan="2">Noms des enfants à charge : {!! $long($val('noms_enfants')) !!}</td>
         </tr>
     </table>
 
@@ -170,11 +179,11 @@ $mt = function ($v) {
             <td class="p-1" colspan="2">Date d'entrée à l'établissement : <span class="field">{{ $formatDate($val('date_entree')) }}</span></td>
         </tr>
         <tr>
-            <td class="p-1" colspan="2">N° et date de la déclaration d'embauche effectuée lors de l'engagement : <span class="field">{{ $lim($val('date_declaration_embauche'), 80) }}</span></td>
+            <td class="p-1" colspan="2">N° et date de la déclaration d'embauche effectuée lors de l'engagement : {!! $long($val('date_declaration_embauche')) !!}</td>
         </tr>
         <tr>
-            <td class="p-1" style="width:50%;">Profession : <span class="field">{{ $lim($val('profession'), 60) }}</span></td>
-            <td class="p-1">Emploi dans l'entreprise : <span class="field">{{ $lim($val('emploi_dans_entreprise'), 60) }}</span></td>
+            <td class="p-1" style="width:50%;">Profession : {!! $long($val('profession')) !!}</td>
+            <td class="p-1">Emploi dans l'entreprise : {!! $long($val('emploi_dans_entreprise')) !!}</td>
         </tr>
         <tr>
             <td class="p-1" style="width:60%;">Convention collective : <span class="field">{{ $val('convention_collective') !== '' ? $lim($val('convention_collective'), 50) : 'du commerce et grille salariale CSAR' }}</span></td>
@@ -184,14 +193,14 @@ $mt = function ($v) {
             <td class="p-1" colspan="2">Eventuellement date du contrat : <span class="field">{{ $formatDate($val('date_contrat')) }}</span></td>
         </tr>
         <tr>
-            <td class="p-1" colspan="2">N° et date du visa d'approbation par l'inspection du travail et de la sécurité sociale : <span class="field">{{ $lim($val('visa_approbation_numero_date'), 70) }}</span></td>
+            <td class="p-1" colspan="2">N° et date du visa d'approbation par l'inspection du travail et de la sécurité sociale : {!! $long($val('visa_approbation_numero_date')) !!}</td>
         </tr>
         <tr>
             <td class="p-1">N° et date du visa d'enregistrement à la section locale de : <span class="field">{{ $lim($val('visa_enregistrement_numero_date'), 40) }}</span></td>
             <td class="p-1">du service de la main-d'œuvre</td>
         </tr>
         <tr>
-            <td class="p-1" colspan="2">Raison sociale et adresse précise de l'établissement de l'employeur : <span class="field">{{ $val('raison_sociale_employeur') !== '' ? $lim($val('raison_sociale_employeur'), 100) : 'Stocke de sécurité alimentaire, Régulation du marché céréalier, Gérer les risques à l\'insécurité alimentaire par des actions de résilience' }}</span></td>
+            <td class="p-1" colspan="2">Raison sociale et adresse précise de l'établissement de l'employeur : {!! $long($val('raison_sociale_employeur') !== '' ? $val('raison_sociale_employeur') : 'Stocks de sécurité alimentaire, Régulation du marché céréalier, Gérer les risques à l\'insécurité alimentaire par des actions de résilience') !!}</td>
         </tr>
         <tr>
             <td class="p-1" colspan="2">Activité de l'établissement : <span class="field">{{ $lim($val('activite_etablissement'), 90) }}</span></td>
@@ -217,7 +226,7 @@ $mt = function ($v) {
         <tr>
             <td class="border p-1" style="width:50%;">
                 <div class="fw-bold">Nom et adresse du précédent employeur :</div>
-                <div class="small">{{ $lim($val('precedent_employeur'), 70) }}</div>
+                <div>{!! $long($val('precedent_employeur')) !!}</div>
                 <div class="small mt-1">Si le travailleur bénéficie de l'article 107 du code du travail : <span class="field">{{ $lim($val('article_107'), 70) }}</span></div>
                 <div class="small mt-1">- Lieu de résidence habituelle du travailleur : <span class="field">{{ $lim($val('lieu_residence_habituelle'), 70) }}</span></div>
             </td>
@@ -248,7 +257,7 @@ $mt = function ($v) {
 
     <div class="section-title" style="font-size: 9.5pt; margin-top: 18px;">Dispositions particulières concernant l'engagement :</div>
     <div style="font-size: 8.5pt; margin-left: 18px; margin-top: 8px;">(Auxquelles les parties ont expressément souscrit)</div>
-    <div style="min-height: 30px; margin-left: 18px; margin-top: 4px;" class="field">{{ $lim($val('dispositions_particulieres'), 350) }}</div>
+    <div style="min-height: 30px; margin-left: 18px; margin-top: 4px;">{!! $long($val('dispositions_particulieres')) !!}</div>
 
     <div class="keep" style="margin-top: 14px;">
         <div>1) - Le salaire du travailleur sera celui fixé pour la même catégorie de la Convention Collective Du Commerce 9<sup>ème</sup> A<br>
@@ -286,18 +295,18 @@ $mt = function ($v) {
         </tr>
     </table>
 
-    <div class="keep" style="margin-top: 24px;">
+    <div class="keep" style="margin-top: 40px;">
         <table>
             <tr>
                 <td style="width:50%; padding: 4px; vertical-align: top; text-align: center;">
                     <div style="font-size: 9pt;">Signature du travailleur :</div>
                     <div style="font-size: 8pt; margin-top: 6px;">(Précédée de la mention manuscrite : pour accord&nbsp;&nbsp;&nbsp;&nbsp;)</div>
-                    <div style="height: 45px; margin-top: 4px;"></div>
+                    <div style="height: 60px; margin-top: 4px; border-bottom: 1px solid #000;"></div>
                     <div style="font-size: 8.5pt; margin-top: 3px; text-align: left;">{{ $lim($val('signature_travailleur'), 60) }}</div>
                 </td>
                 <td style="padding: 4px; vertical-align: top; text-align: center;">
                     <div style="font-size: 9pt;">Signature de l'employeur :</div>
-                    <div style="height: 45px; margin-top: 4px;"></div>
+                    <div style="height: 80px; margin-top: 4px; border-bottom: 1px solid #000;"></div>
                     <div style="font-size: 8.5pt; margin-top: 3px; text-align: left;">{{ $lim($val('signature_employeur'), 60) }}</div>
                 </td>
             </tr>

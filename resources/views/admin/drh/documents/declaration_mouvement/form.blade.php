@@ -59,6 +59,9 @@ $hasAgent = $agent !== null;
 
         <form action="{{ route('admin.drh.documents.save', $type) }}" method="POST">
             @csrf
+            @if($savedDocument ?? null)
+                <input type="hidden" name="document_id" value="{{ $savedDocument->id }}">
+            @endif
             @if($hasAgent)
                 <input type="hidden" name="personnel_id" value="{{ $agent->id }}">
             @endif

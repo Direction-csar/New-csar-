@@ -196,6 +196,26 @@ class ContractService
         return $this->render($doc->personnel ?? new Personnel(), $doc->type, $data);
     }
 
+    /**
+     * Régénère le PDF archivé d'un contrat après modification de ses données
+     * (ou changement d'agent) via le formulaire document. Le contrat doit être
+     * non signé et non archivé — cette méthode ne vérifie pas, l'appelant le fait.
+     */
+    public function refreshStoredPdf(RhDocument $doc): void
+    {
+        $agent = $doc->personnel;
+        if (!$agent || !$doc->isContract()) {
+            return;
+        }
+        $data = collect($doc->data ?? [])->except('personnel')->all();
+        $path = sprintf('rh/contrats/%d/%s-v%d-%s.pdf', $agent->id, $doc->type, $doc->version, now()->format('YmdHis'));
+        Storage::disk(self::DISK)->put($path, $this->render($agent, $doc->type, $data));
+        if ($doc->file_path && $doc->file_path !== $path) {
+            Storage::disk(self::DISK)->delete($doc->file_path);
+        }
+        $doc->forceFill(['file_path' => $path])->save();
+    }
+
     public function filenameFor(RhDocument $doc): string
     {
         $name = Str::slug($doc->personnel?->prenoms_nom ?? 'agent');

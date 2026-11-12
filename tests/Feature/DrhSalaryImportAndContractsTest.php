@@ -479,4 +479,41 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $html = view('admin.drh.documents.contrat_cdi', ['personnel' => $gardien, 'diplome' => 'Gardien'])->render();
         $this->assertStringContainsString("titulaire d&#039;un(e) Gardien", $html);
     }
+
+    public function test_document_edit_updates_in_place_and_changes_agent(): void
+    {
+        $a = $this->agent('099001', 'Awa FICTIF');
+        $b = $this->agent('099002', 'Moussa EXEMPLE');
+
+        $this->actingAs($this->drh, 'drh')->post(route('admin.drh.documents.save', 'contrat-cdi'), [
+            'personnel_id' => $a->id, 'date_embauche' => '2020-01-01', 'salaire_base' => 100000,
+        ])->assertRedirect();
+        $doc = RhDocument::firstOrFail();
+        $this->assertSame($a->id, $doc->personnel_id);
+
+        // Modification en place : pas de doublon, données et agent mis à jour.
+        $this->actingAs($this->drh, 'drh')->post(route('admin.drh.documents.save', 'contrat-cdi'), [
+            'document_id' => $doc->id, 'personnel_id' => $b->id,
+            'date_embauche' => '2021-05-05', 'salaire_base' => 200000,
+        ])->assertRedirect();
+
+        $this->assertSame(1, RhDocument::count());
+        $doc->refresh();
+        $this->assertSame($b->id, $doc->personnel_id, 'Agent modifié');
+        $this->assertSame('2021-05-05', $doc->data['date_embauche']);
+        $this->assertEquals(200000, $doc->data['salaire_base']);
+        $this->assertNotNull($doc->file_path, 'Le PDF du contrat est régénéré');
+        Storage::disk('local')->assertExists($doc->file_path);
+
+        // L'export reflète les modifications.
+        $pdf = $this->actingAs($this->drh, 'drh')->get(route('admin.drh.documents.export', $doc));
+        $pdf->assertOk();
+
+        // Un contrat signé n'est plus modifiable.
+        app(ContractService::class)->markSigned($doc->fresh(), $this->drh->id);
+        $this->actingAs($this->drh, 'drh')->post(route('admin.drh.documents.save', 'contrat-cdi'), [
+            'document_id' => $doc->id, 'salaire_base' => 999999,
+        ])->assertSessionHas('error');
+        $this->assertEquals(200000, $doc->fresh()->data['salaire_base']);
+    }
 }
