@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Personnel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 
@@ -360,7 +362,7 @@ class PersonnelController extends Controller
             $user = \App\Models\User::where('email', $personnel->email)->first();
 
             if ($user) {
-                $user->password = \Hash::make($newPassword);
+                $user->password = Hash::make($newPassword);
                 $user->save();
 
                 return response()->json([
@@ -375,7 +377,7 @@ class PersonnelController extends Controller
                 ], 404);
             }
         } catch (\Exception $e) {
-            \Log::error('Erreur lors de la réinitialisation du mot de passe: ' . $e->getMessage());
+            Log::error('Erreur lors de la réinitialisation du mot de passe: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Erreur lors de la réinitialisation du mot de passe.'
