@@ -379,7 +379,7 @@ class DrhSalaryImportAndContractsTest extends TestCase
         ]);
         foreach (['contrat_cdi', 'contrat_cdd'] as $view) {
             $html = view("admin.drh.documents.$view", ['personnel' => $agent])->render();
-            $this->assertStringContainsString('Secrétaire du Commissariat à', $html, $view);
+            $this->assertStringContainsString("à l'Inspection régionale de Kaolack du Commissariat à", $html, $view);
             $this->assertStringContainsString('Inspection régionale de Kaolack', $html, $view);
             $this->assertStringContainsString('Situation de Famille : Mariée', $html, $view);
             $this->assertStringNotContainsString('22 Rue', $html, $view);

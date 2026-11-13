@@ -15,16 +15,32 @@
     $engage = $feminin ? 'engagée' : 'engagé';
     $appelle = $feminin ? 'appelée' : 'appelé';
     $posteLibelle = $poste ?? ($personnel->poste_actuel ?? '..........................');
+    // Affectation : inspection régionale le cas échéant, siège sinon.
+    $dirAffect = $direction ?? ($personnel->direction_service ?? null);
+    $regAffect = $personnel->localisation_region ?? null;
+    $inspection = null;
+    if (preg_match('/^Inspection r[ée]gionale de\s+(.+)$/iu', trim((string) $dirAffect), $m)) {
+        $inspection = 'Inspection régionale de ' . trim($m[1]);
+    } elseif (strtoupper(trim((string) $dirAffect)) === 'IR' && $regAffect && strcasecmp($regAffect, 'Dakar') !== 0) {
+        $inspection = 'Inspection régionale de ' . $regAffect;
+    }
+    $estSiege = ($personnel->matricule ?? null) === '020075' || !$inspection;
+    $lieuEntite = $estSiege
+        ? 'au Commissariat à la Sécurité Alimentaire et à la Résilience'
+        : "à l'$inspection du Commissariat à la Sécurité Alimentaire et à la Résilience";
+    $orgEntite = $estSiege
+        ? 'du Commissariat à la Sécurité Alimentaire et à la Résilience'
+        : "à l'$inspection du Commissariat à la Sécurité Alimentaire et à la Résilience";
     // Gardiens et magasiniers : formulation directe demandée par la DRH.
     $posteLower = mb_strtolower((string) $posteLibelle);
     if (str_contains($posteLower, 'gardien')) {
-        $rolePhrase = 'en qualité de gardien au Commissariat à la Sécurité Alimentaire et à la Résilience';
+        $rolePhrase = 'en qualité de gardien ' . $lieuEntite;
         $sansDiplome = true;
     } elseif (str_contains($posteLower, 'magasinier')) {
-        $rolePhrase = 'en qualité de magasinier au Commissariat à la Sécurité Alimentaire et à la Résilience';
+        $rolePhrase = 'en qualité de magasinier ' . $lieuEntite;
     } else {
         $prep = preg_match('/^[aeiouyéèêàâîïôûh]/iu', $posteLibelle) ? "d'" : 'de ';
-        $rolePhrase = 'pour servir en qualité ' . $prep . $posteLibelle . ' du Commissariat à la Sécurité Alimentaire et à la Résilience';
+        $rolePhrase = 'pour servir en qualité ' . $prep . $posteLibelle . ' ' . $orgEntite;
     }
     // Le libellé du tableau commence souvent par « d'un… » : ne pas le préfixer deux fois.
     $diplomeTexte = '';
