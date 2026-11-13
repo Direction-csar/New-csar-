@@ -28,10 +28,10 @@
             </button>
         </form>
         <form action="{{ route('admin.drh.documents.dmt.generate-all') }}" method="POST"
-              onsubmit="return confirm('Générer les déclarations de mouvement de tous les agents et télécharger l\'archive ZIP ? Cela peut prendre une à deux minutes.');">
+              onsubmit="return confirm('Générer les déclarations de mouvement de tous les agents dans un seul PDF ? Cela peut prendre plusieurs minutes.');">
             @csrf
             <button type="submit" class="btn btn-info btn-sm">
-                <i class="fas fa-file-download me-1"></i> Générer toutes les DMT (ZIP)
+                <i class="fas fa-file-pdf me-1"></i> Générer toutes les DMT (PDF unique)
             </button>
         </form>
         <a href="{{ route('admin.drh.documents.historique') }}" class="btn btn-outline-primary btn-sm">

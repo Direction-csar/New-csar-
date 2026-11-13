@@ -423,12 +423,11 @@ class DocumentController extends Controller
             return back()->with('error', 'Aucune déclaration n\'a pu être générée.');
         }
 
-        $path = tempnam(sys_get_temp_dir(), 'csar-dmt-');
-        $zip = new \ZipArchive();
-        if ($zip->open($path, \ZipArchive::OVERWRITE) !== true) {
-            return back()->with('error', 'Impossible de créer l\'archive ZIP.');
-        }
-        $used = [];
+        // Un seul PDF pour toute la série : le HTML de chaque déclaration
+        // (2 pages `.page`) est concaténé, Dompdf gère les sauts de page.
+        @ini_set('memory_limit', '1024M');
+        $style = '';
+        $body = '';
         $count = 0;
         foreach ($documents as $doc) {
             $agent = $doc->personnel;
@@ -444,25 +443,31 @@ class DocumentController extends Controller
                 $doc->update(['data' => $docData]);
             }
             $data = array_merge(['personnel' => $agent], $docData);
-            $pdf = Pdf::loadView('admin.drh.documents.declaration_mouvement.pdf', ['data' => $data] + $data)
-                ->setPaper('a4', 'portrait')->output();
+            $html = view('admin.drh.documents.declaration_mouvement.pdf', ['data' => $data] + $data)->render();
 
-            $name = 'dmt-' . \Illuminate\Support\Str::slug($agent->prenoms_nom) . '-' . $doc->id . '.pdf';
-            $i = 1;
-            while (isset($used[$name])) {
-                $name = 'dmt-' . \Illuminate\Support\Str::slug($agent->prenoms_nom) . '-' . $doc->id . '-' . (++$i) . '.pdf';
+            if ($style === '' && preg_match('/<style>(.*?)<\/style>/s', $html, $sm)) {
+                $style = $sm[1];
             }
-            $used[$name] = true;
-            $zip->addFromString($name, $pdf);
-            $count++;
+            if (preg_match('/<body>(.*)<\/body>/s', $html, $bm)) {
+                $body .= $bm[1];
+                $count++;
+            }
         }
-        $zip->close();
 
-        session()->flash('success', "Déclarations de mouvement : {$created} créée(s), {$count} PDF dans le ZIP.");
+        if ($count === 0) {
+            return back()->with('error', 'Aucun PDF n\'a pu être généré.');
+        }
 
-        return response()->download($path, 'dmt-csar-' . now()->format('Ymd-His') . '.zip', [
-            'Content-Type' => 'application/zip',
-        ])->deleteFileAfterSend();
+        session()->flash('success', "Déclarations de mouvement : {$created} créée(s), {$count} document(s) dans le PDF.");
+
+        $pdf = Pdf::loadHTML('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $style . '</style></head><body>' . $body . '</body></html>')
+            ->setPaper('a4', 'portrait')
+            ->output();
+
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="dmt-csar-' . now()->format('Ymd-His') . '.pdf"',
+        ]);
     }
 
     public function exportDocument(RhDocument $document)
