@@ -1281,6 +1281,7 @@ Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access', 'enfor
     Route::get('/documents/{type}/form',       [\App\Http\Controllers\Drh\DocumentController::class, 'showForm'])->name('documents.form');
     Route::post('/documents/{type}/save',      [\App\Http\Controllers\Drh\DocumentController::class, 'saveDocument'])->name('documents.save');
     Route::post('/documents/declaration-mouvement-travailleur/generer-tous', [\App\Http\Controllers\Drh\DocumentController::class, 'generateAllDmt'])->name('documents.dmt.generate-all');
+    Route::post('/documents/{type}/generer-tous', [\App\Http\Controllers\Drh\DocumentController::class, 'generateAllDocuments'])->name('documents.generate-all');
     Route::get('/documents/historique',        [\App\Http\Controllers\Drh\DocumentController::class, 'historique'])->name('documents.historique');
     Route::delete('/documents/historique/{document}', [\App\Http\Controllers\Drh\DocumentController::class, 'destroyDocument'])->name('documents.destroy');
     Route::delete('/documents/historique', [\App\Http\Controllers\Drh\DocumentController::class, 'destroyAllDocuments'])->name('documents.destroyAll');

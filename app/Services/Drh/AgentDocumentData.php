@@ -74,6 +74,9 @@ class AgentDocumentData
             'indemnite_transport'    => $agent->indemnite_transport,
             'indemnite_fonction'     => $agent->indemnite_fonction,
             'salaire_brut_global'    => $agent->salaire_brut,
+            // Attestation de travail & salaire
+            'salaire_net'             => $agent->net_a_payer,
+            'periode'                 => now()->format('m/Y'),
         ];
     }
 

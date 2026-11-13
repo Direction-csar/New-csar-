@@ -15,7 +15,8 @@ class DocumentController extends Controller
 {
     public function selection(Request $request)
     {
-        if ($request->filled('personnel_id')) {
+        $tousAgents = $request->input('personnel_id') === '__all__';
+        if ($request->filled('personnel_id') && !$tousAgents) {
             session(['documents_personnel_id' => $request->input('personnel_id')]);
         }
         $agents = Personnel::select('id', 'prenoms_nom', 'poste_actuel')->orderBy('prenoms_nom')->get();
@@ -39,7 +40,7 @@ class DocumentController extends Controller
             ['label' => 'Bon de sortie',             'slug' => 'bon-sortie',             'icon' => 'fa-door-open', 'color' => '#6b7280'],
             ['label' => 'Déclaration de mouvement du travailleur', 'slug' => 'declaration-mouvement-travailleur', 'icon' => 'fa-file-signature', 'color' => '#1e40af'],
         ];
-        return view('admin.drh.documents.selection', compact('agents', 'types'));
+        return view('admin.drh.documents.selection', compact('agents', 'types', 'tousAgents'));
     }
 
     private function getPersonnel(Request $request): ?Personnel
@@ -467,6 +468,83 @@ class DocumentController extends Controller
         return response($pdf, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="dmt-csar-' . now()->format('Ymd-His') . '.pdf"',
+        ]);
+    }
+
+    /**
+     * Génération groupée d'un type de document simple pour tous les agents :
+     * crée les documents manquants puis retourne un PDF unique prêt à imprimer.
+     */
+    public function generateAllDocuments(string $type)
+    {
+        $allowed = [
+            'certificat-travail' => ['label' => 'Certificat de travail', 'view' => 'admin.drh.documents.certificat_travail'],
+            'attestation-travail' => ['label' => 'Attestation de travail', 'view' => 'admin.drh.documents.attestation_travail'],
+            'attestation-travail-salaire' => ['label' => 'Attestation travail & salaire', 'view' => 'admin.drh.documents.attestation_travail_salaire'],
+        ];
+        abort_unless(isset($allowed[$type]), 404);
+
+        @set_time_limit(900);
+        @ini_set('memory_limit', '1024M');
+
+        $defaults = app(\App\Services\Drh\AgentDocumentData::class);
+        $created = 0;
+        Personnel::orderBy('prenoms_nom')->get()->each(function (Personnel $agent) use ($allowed, $type, $defaults, &$created) {
+            $exists = RhDocument::where('type', $type)->where('personnel_id', $agent->id)
+                ->whereNull('superseded_at')->whereNull('signed_at')->exists();
+            if ($exists) {
+                return;
+            }
+            RhDocument::create([
+                'personnel_id' => $agent->id,
+                'type' => $type,
+                'label' => $allowed[$type]['label'],
+                'data' => $defaults->defaults($agent),
+                'statut' => 'Enregistré',
+                'created_by' => Auth::id(),
+            ]);
+            $created++;
+        });
+
+        $documents = RhDocument::where('type', $type)->whereNull('superseded_at')
+            ->whereNull('signed_at')->with('personnel')->orderBy('id')->get();
+        if ($documents->isEmpty()) {
+            return back()->with('error', 'Aucun document n\'a pu être généré.');
+        }
+
+        $style = '';
+        $body = '';
+        $count = 0;
+        foreach ($documents as $doc) {
+            $agent = $doc->personnel;
+            if (!$agent) {
+                continue;
+            }
+            $data = array_merge(['personnel' => $agent], $doc->data ?? []);
+            $html = view($allowed[$type]['view'], ['data' => $data] + $data)->render();
+
+            if ($style === '' && preg_match('/<style>(.*?)<\/style>/s', $html, $sm)) {
+                $style = $sm[1];
+            }
+            if (preg_match('/<body>(.*)<\/body>/s', $html, $bm)) {
+                $body .= '<div style="page-break-after: always;">' . $bm[1] . '</div>';
+                $count++;
+            }
+        }
+
+        if ($count === 0) {
+            return back()->with('error', 'Aucun PDF n\'a pu être généré.');
+        }
+
+        session()->flash('success', "{$allowed[$type]['label']} : {$created} créé(s), {$count} document(s) dans le PDF.");
+
+        $pdf = Pdf::loadHTML('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $style . '</style></head><body>' . $body . '</body></html>')
+            ->setPaper('a4', 'portrait')
+            ->output();
+
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . \Illuminate\Support\Str::slug($allowed[$type]['label']) . '-csar-' . now()->format('Ymd-His') . '.pdf"',
         ]);
     }
 

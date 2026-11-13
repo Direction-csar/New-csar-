@@ -48,6 +48,7 @@
                 <label class="form-label fw-semibold">Sélectionner un agent</label>
                 <select name="personnel_id" class="form-select" onchange="this.form.submit()">
                     <option value="">-- Choisir un agent --</option>
+                    <option value="__all__" {{ ($tousAgents ?? false) ? 'selected' : '' }}>-- Tous les agents --</option>
                     @foreach($agents as $a)
                         <option value="{{ $a->id }}" {{ session('documents_personnel_id') == $a->id ? 'selected' : '' }}>
                             {{ $a->prenoms_nom }} — {{ $a->poste_actuel ?? 'Sans poste' }}
@@ -68,6 +69,35 @@
     </div>
 @endif
 
+@if($tousAgents ?? false)
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-users me-2"></i><strong>Tous les agents</strong> — génération groupée : chaque document est créé pour chaque agent (les existants sont conservés) puis un <strong>PDF unique</strong> est téléchargé pour impression.
+    </div>
+    <div class="doc-grid mb-4">
+        @foreach([
+            ['slug' => 'certificat-travail', 'label' => 'Certificat de travail', 'icon' => 'fa-file-check', 'color' => '#2f6fed'],
+            ['slug' => 'attestation-travail', 'label' => 'Attestation de travail', 'icon' => 'fa-file-lines', 'color' => '#0b7f81'],
+            ['slug' => 'attestation-travail-salaire', 'label' => 'Attestation travail & salaire', 'icon' => 'fa-file-invoice-dollar', 'color' => '#0b7f81'],
+        ] as $t)
+            <form action="{{ route('admin.drh.documents.generate-all', $t['slug']) }}" method="POST" class="doc-card" style="cursor:pointer;"
+                  onsubmit="return confirm('Générer « {{ $t['label'] }} » pour TOUS les agents dans un seul PDF ? Cela peut prendre plusieurs minutes.');">
+                @csrf
+                <button type="submit" class="btn btn-link p-0 text-decoration-none w-100" style="color:#1e293b;">
+                    <i class="fas {{ $t['icon'] }}" style="color:{{ $t['color'] }}"></i>
+                    <div class="doc-label">{{ $t['label'] }}<br><small class="text-muted">(tous les agents)</small></div>
+                </button>
+            </form>
+        @endforeach
+        <form action="{{ route('admin.drh.documents.dmt.generate-all') }}" method="POST" class="doc-card" style="cursor:pointer;"
+              onsubmit="return confirm('Générer les déclarations de mouvement de TOUS les agents dans un seul PDF ? Cela peut prendre plusieurs minutes.');">
+            @csrf
+            <button type="submit" class="btn btn-link p-0 text-decoration-none w-100" style="color:#1e293b;">
+                <i class="fas fa-file-signature" style="color:#1e40af"></i>
+                <div class="doc-label">Déclaration de mouvement<br><small class="text-muted">(tous les agents)</small></div>
+            </button>
+        </form>
+    </div>
+@else
 {{-- Grille des documents --}}
 <div class="doc-grid">
     @foreach($types as $type)
@@ -77,5 +107,6 @@
         </a>
     @endforeach
 </div>
+@endif
 
 @endsection
