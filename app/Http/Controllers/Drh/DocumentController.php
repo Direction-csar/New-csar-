@@ -435,7 +435,15 @@ class DocumentController extends Controller
             if (!$agent) {
                 continue;
             }
-            $data = array_merge(['personnel' => $agent], $doc->data ?? []);
+            // Les immatriculations C.C.P.F.-A.T. et A.G.R.O.M. doivent rester
+            // vides : purge des anciennes valeurs (ex. CIN pré-rempli).
+            $docData = $doc->data ?? [];
+            if (($docData['numero_cfp_at'] ?? '') !== '' || ($docData['numero_agrom'] ?? '') !== '') {
+                $docData['numero_cfp_at'] = '';
+                $docData['numero_agrom'] = '';
+                $doc->update(['data' => $docData]);
+            }
+            $data = array_merge(['personnel' => $agent], $docData);
             $pdf = Pdf::loadView('admin.drh.documents.declaration_mouvement.pdf', ['data' => $data] + $data)
                 ->setPaper('a4', 'portrait')->output();
 
