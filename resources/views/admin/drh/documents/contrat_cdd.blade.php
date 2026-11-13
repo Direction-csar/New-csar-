@@ -22,7 +22,7 @@
     // Gardiens et magasiniers : formulation directe demandée par la DRH.
     $posteLower = mb_strtolower((string) $posteLibelle);
     if (str_contains($posteLower, 'gardien')) {
-        $rolePhrase = 'comme gardien au Commissariat à la Sécurité Alimentaire et à la Résilience';
+        $rolePhrase = 'en qualité de gardien au Commissariat à la Sécurité Alimentaire et à la Résilience';
         $sansDiplome = true;
     } elseif (str_contains($posteLower, 'magasinier')) {
         $rolePhrase = 'en qualité de magasinier au Commissariat à la Sécurité Alimentaire et à la Résilience';
