@@ -69,7 +69,7 @@
         $orgFinal = $mentionneInspection
             ? 'du Commissariat à la Sécurité Alimentaire et à la Résilience'
             : $orgEntite;
-        if (str_contains($fold($posteRole), 'chauffeur')) {
+        if (!$mentionneInspection && str_contains($fold($posteRole), 'chauffeur')) {
             $orgFinal = $lieuEntite;
         }
         $rolePhrase = 'pour servir en qualité ' . $prep . $posteRole . ' ' . $orgFinal;
