@@ -306,18 +306,17 @@ class AgentsImportSeeder extends Seeder
         $maleNames = [
             'baboucar', 'babou', 'aliou', 'alioune', 'ibrahima', 'ousmane', 'oumar',
             'moussa', 'lamine', 'modou', 'mamadou', 'mouhamed', 'mohamed', 'moustapha', 'soumaïla',
-            'bassirou', 'cheikhou', 'cheikh', 'djiby', 'djimis', 'saliou', 'thierno',
+            'sidate', 'bassirou', 'cheikhou', 'cheikh', 'djiby', 'djimis', 'saliou', 'thierno',
             'demba', 'abdou', 'abdoulaye', 'el', 'insa', 'sohibou', 'ernest', 'waly', 'issac',
             'issa', 'joseph', 'seyni', 'tidiane', 'boubacar', 'youssouph', 'souleymane', 'serigne',
             'gade', 'papa', 'mame', 'sadio', 'adama', 'daour', 'iba', 'inadone', 'abou', 'bidji',
             'asse', 'dame',
         ];
-        // « Sidate » (Sidate BABOU, gardienne de Thiès) est un prénom féminin.
         $femaleNames = [
             'awa', 'bineta', 'coumba', 'khoudia', 'ndéye', 'ndeye', 'ndèye', 'fatou', 'marie',
             'souadou', 'khady', 'khadissatou', 'aïssatou', 'aissatou', 'sophiatou', 'maty',
             'dieynaba', 'marème', 'maryame', 'mereme', 'astou', 'mariama', 'hawa', 'aida',
-            'adji', 'adicke', 'sidate',
+            'adji', 'adicke',
         ];
 
         if (in_array($firstName, $maleNames, true)) {
