@@ -54,9 +54,11 @@ class AgentDocumentData
             'lieu_naissance'         => $agent->lieu_naissance,
             'nationalite'            => $agent->nationalite,
             'adresse'                => $agent->adresse_complete,
-            'carte_identite_numero'  => $agent->numero_cni,
+            // Le CIN ne doit pas apparaître dans la déclaration de mouvement :
+            // ces champs restent vides (saisissables manuellement si besoin).
+            'carte_identite_numero'  => '',
             'date_delivrance_id'     => $agent->date_delivrance_id?->format('Y-m-d'),
-            'numero_cfp_at'          => $agent->numero_cni,
+            'numero_cfp_at'          => '',
             'nombre_enfants'         => $agent->nombre_enfants,
             'date_entree'            => $agent->date_recrutement_csar?->format('Y-m-d'),
             'profession'             => $agent->poste_actuel,
