@@ -418,8 +418,23 @@ class DocumentController extends Controller
             $created++;
         });
 
+        // Une seule déclaration par agent : la plus récente est conservée,
+        // les doublons non signés sont archivés (superseded_at).
         $documents = RhDocument::where('type', $type)->whereNull('superseded_at')
-            ->whereNull('signed_at')->with('personnel')->orderBy('id')->get();
+            ->whereNull('signed_at')->with('personnel')->orderByDesc('id')->get();
+        $seen = [];
+        $duplicates = [];
+        $documents = $documents->filter(function (RhDocument $doc) use (&$seen, &$duplicates) {
+            if (!$doc->personnel_id || isset($seen[$doc->personnel_id])) {
+                $duplicates[] = $doc->id;
+                return false;
+            }
+            $seen[$doc->personnel_id] = true;
+            return true;
+        })->sortBy('id')->values();
+        if ($duplicates) {
+            RhDocument::whereIn('id', $duplicates)->update(['superseded_at' => now()]);
+        }
         if ($documents->isEmpty()) {
             return back()->with('error', 'Aucune déclaration n\'a pu être générée.');
         }
@@ -506,8 +521,10 @@ class DocumentController extends Controller
             $created++;
         });
 
+        // Une seule déclaration par agent dans le PDF (plus récente conservée).
         $documents = RhDocument::where('type', $type)->whereNull('superseded_at')
-            ->whereNull('signed_at')->with('personnel')->orderBy('id')->get();
+            ->whereNull('signed_at')->with('personnel')->orderByDesc('id')->get()
+            ->unique('personnel_id')->sortBy('id')->values();
         if ($documents->isEmpty()) {
             return back()->with('error', 'Aucun document n\'a pu être généré.');
         }
