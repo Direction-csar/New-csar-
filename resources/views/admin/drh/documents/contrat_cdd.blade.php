@@ -102,7 +102,7 @@
         est {{ $engage }} {!! $rolePhrase !!} pour une durée déterminée à compter du {{ $fmt($date_debut ?? null) }} au
         {{ $fmt($date_fin ?? null) }}.
     </p>
-    <p>Il sera classé à la catégorie {{ $categorie ?? '………' }} conformément à la grille salariale du CSAR</p>
+    <p>{{ $feminin ? 'Elle sera classée' : 'Il sera classé' }} à la catégorie {{ $categorie ?? '………' }} conformément à la grille salariale du CSAR</p>
 
     <div class="article-title">ARTICLE 2 :</div>
     <p style="margin-bottom: 2px;">Rémunération :</p>
@@ -160,7 +160,7 @@
     <div class="article-title">ARTICLE 8 :</div>
     <p style="text-align: justify;">
         Toute modification aux dispositions du présent contrat de travail fera l'objet
-        d'un avenant qui sera notifié à l'intéressée.
+        d'un avenant qui sera notifié à l'{{ $feminin ? 'intéressée' : 'intéressé' }}.
     </p>
 
     <table class="signatures">
