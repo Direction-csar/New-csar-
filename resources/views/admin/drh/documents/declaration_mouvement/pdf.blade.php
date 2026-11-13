@@ -306,12 +306,12 @@ $mt = function ($v) {
                 <td style="width:50%; padding: 4px; vertical-align: top; text-align: center;">
                     <div style="font-size: 9pt;">Signature du travailleur :</div>
                     <div style="font-size: 8pt; margin-top: 6px;">(Précédée de la mention manuscrite : pour accord&nbsp;&nbsp;&nbsp;&nbsp;)</div>
-                    <div style="height: 60px; margin-top: 4px; border-bottom: 1px solid #000;"></div>
+                    <div style="height: 60px; margin-top: 4px;"></div>
                     <div style="font-size: 8.5pt; margin-top: 3px; text-align: left;">{{ $lim($val('signature_travailleur'), 60) }}</div>
                 </td>
                 <td style="padding: 4px; vertical-align: top; text-align: center;">
                     <div style="font-size: 9pt;">Signature de l'employeur :</div>
-                    <div style="height: 80px; margin-top: 4px; border-bottom: 1px solid #000;"></div>
+                    <div style="height: 80px; margin-top: 4px;"></div>
                     <div style="font-size: 8.5pt; margin-top: 3px; text-align: left;">{{ $lim($val('signature_employeur'), 60) }}</div>
                 </td>
             </tr>

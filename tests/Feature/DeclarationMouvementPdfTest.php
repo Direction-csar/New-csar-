@@ -41,7 +41,6 @@ class DeclarationMouvementPdfTest extends TestCase
             ],
             'created_by' => $drh->id,
         ]);
-
         $res = $this->actingAs($drh, 'drh')->get("/admin/drh/documents/{$doc->id}/export");
         $res->assertOk();
         $content = $res->getContent();
