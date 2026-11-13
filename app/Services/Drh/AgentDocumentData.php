@@ -54,10 +54,10 @@ class AgentDocumentData
             'lieu_naissance'         => $agent->lieu_naissance,
             'nationalite'            => $agent->nationalite,
             'adresse'                => $agent->adresse_complete,
-            // Le CIN ne doit pas apparaître dans la déclaration de mouvement :
-            // ces champs restent vides (saisissables manuellement si besoin).
-            'carte_identite_numero'  => '',
+            'carte_identite_numero'  => $agent->numero_cni,
             'date_delivrance_id'     => $agent->date_delivrance_id?->format('Y-m-d'),
+            // Les numéros d'immatriculation C.C.P.F.-A.T. et A.G.R.O.M. restent
+            // vides : ils ne correspondent pas au CIN.
             'numero_cfp_at'          => '',
             'nombre_enfants'         => $agent->nombre_enfants,
             'date_entree'            => $agent->date_recrutement_csar?->format('Y-m-d'),

@@ -388,6 +388,75 @@ class DocumentController extends Controller
             ->with('success', 'Historique supprimé (les contrats signés et les versions archivées sont conservés).');
     }
 
+    /**
+     * Génération groupée des déclarations de mouvement : crée les documents
+     * manquants pour tous les agents puis télécharge un ZIP de tous les PDF.
+     */
+    public function generateAllDmt()
+    {
+        @set_time_limit(900);
+        $type = 'declaration-mouvement-travailleur';
+
+        $existing = RhDocument::where('type', $type)->whereNull('superseded_at')
+            ->whereNull('signed_at')->pluck('personnel_id')->all();
+
+        $defaults = app(\App\Services\Drh\AgentDocumentData::class);
+        $created = 0;
+        Personnel::orderBy('prenoms_nom')->get()->each(function (Personnel $agent) use ($existing, $defaults, $type, &$created) {
+            if (in_array($agent->id, $existing, true)) {
+                return;
+            }
+            RhDocument::create([
+                'personnel_id' => $agent->id,
+                'type' => $type,
+                'label' => 'Déclaration de mouvement du travailleur',
+                'data' => $defaults->defaults($agent),
+                'statut' => 'Enregistré',
+                'created_by' => Auth::id(),
+            ]);
+            $created++;
+        });
+
+        $documents = RhDocument::where('type', $type)->whereNull('superseded_at')
+            ->whereNull('signed_at')->with('personnel')->orderBy('id')->get();
+        if ($documents->isEmpty()) {
+            return back()->with('error', 'Aucune déclaration n\'a pu être générée.');
+        }
+
+        $path = tempnam(sys_get_temp_dir(), 'csar-dmt-');
+        $zip = new \ZipArchive();
+        if ($zip->open($path, \ZipArchive::OVERWRITE) !== true) {
+            return back()->with('error', 'Impossible de créer l\'archive ZIP.');
+        }
+        $used = [];
+        $count = 0;
+        foreach ($documents as $doc) {
+            $agent = $doc->personnel;
+            if (!$agent) {
+                continue;
+            }
+            $data = array_merge(['personnel' => $agent], $doc->data ?? []);
+            $pdf = Pdf::loadView('admin.drh.documents.declaration_mouvement.pdf', ['data' => $data] + $data)
+                ->setPaper('a4', 'portrait')->output();
+
+            $name = 'dmt-' . \Illuminate\Support\Str::slug($agent->prenoms_nom) . '-' . $doc->id . '.pdf';
+            $i = 1;
+            while (isset($used[$name])) {
+                $name = 'dmt-' . \Illuminate\Support\Str::slug($agent->prenoms_nom) . '-' . $doc->id . '-' . (++$i) . '.pdf';
+            }
+            $used[$name] = true;
+            $zip->addFromString($name, $pdf);
+            $count++;
+        }
+        $zip->close();
+
+        session()->flash('success', "Déclarations de mouvement : {$created} créée(s), {$count} PDF dans le ZIP.");
+
+        return response()->download($path, 'dmt-csar-' . now()->format('Ymd-His') . '.zip', [
+            'Content-Type' => 'application/zip',
+        ])->deleteFileAfterSend();
+    }
+
     public function exportDocument(RhDocument $document)
     {
         $agent = $document->personnel
