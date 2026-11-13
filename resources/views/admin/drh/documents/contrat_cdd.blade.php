@@ -64,6 +64,7 @@
         $sansDiplome = true;
     } elseif (str_contains($posteLower, 'magasinier')) {
         $rolePhrase = 'en qualité de magasinier ' . $lieuEntite;
+        $sansDiplome = true;
     } else {
         $prep = preg_match('/^[aeiouyéèêàâîïôûh]/iu', $posteRole) ? "d'" : 'de ';
         $orgFinal = $mentionneInspection
