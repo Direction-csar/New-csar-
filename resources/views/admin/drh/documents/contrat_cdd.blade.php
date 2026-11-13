@@ -35,6 +35,28 @@
     $orgEntite = $estSiege
         ? 'du Commissariat à la Sécurité Alimentaire et à la Résilience'
         : "à l'$inspection du Commissariat à la Sécurité Alimentaire et à la Résilience";
+    // Si la fonction mentionne déjà l'inspection ou la région, éviter les doublons.
+    $fold = function ($s) {
+        return strtr(mb_strtolower((string) $s), [
+            'à' => 'a', 'â' => 'a', 'ä' => 'a', 'á' => 'a', 'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ó' => 'o', 'ô' => 'o', 'ö' => 'o', 'ú' => 'u', 'ù' => 'u',
+            'û' => 'u', 'ü' => 'u', 'ç' => 'c', 'ñ' => 'n',
+        ]);
+    };
+    $regionAffect = $inspection ? trim((string) preg_replace('/^Inspection régionale de\s+/iu', '', $inspection)) : '';
+    $posteRole = $posteLibelle;
+    $mentionneInspection = $fold($posteRole) !== '' && str_contains($fold($posteRole), 'inspection');
+    if (!$mentionneInspection && $regionAffect !== '' && str_contains($fold($posteRole), $fold($regionAffect))) {
+        $pat = '';
+        foreach (preg_split('//u', $regionAffect, -1, PREG_SPLIT_NO_EMPTY) as $ch) {
+            $var = ['a' => 'aàâäá', 'e' => 'eéèêë', 'i' => 'iîïí', 'o' => 'oôöó', 'u' => 'uùûüú', 'c' => 'cç', 'n' => 'nñ'][$fold($ch)] ?? null;
+            $pat .= $var ? '[' . $var . ']' : preg_quote($ch, '/');
+        }
+        $nettoye = trim(preg_replace('/(?:\s+(?:de|du|des|d\'|à|au|aux|en|le|la|les|l\'|d))*\s*' . $pat . '\s*$/iu', '', $posteRole));
+        if ($nettoye !== '' && $nettoye !== $posteRole) {
+            $posteRole = $nettoye;
+        }
+    }
     // Gardiens et magasiniers : formulation directe demandée par la DRH.
     $posteLower = mb_strtolower((string) $posteLibelle);
     if (str_contains($posteLower, 'gardien')) {
@@ -43,8 +65,11 @@
     } elseif (str_contains($posteLower, 'magasinier')) {
         $rolePhrase = 'en qualité de magasinier ' . $lieuEntite;
     } else {
-        $prep = preg_match('/^[aeiouyéèêàâîïôûh]/iu', $posteLibelle) ? "d'" : 'de ';
-        $rolePhrase = 'pour servir en qualité ' . $prep . $posteLibelle . ' ' . $orgEntite;
+        $prep = preg_match('/^[aeiouyéèêàâîïôûh]/iu', $posteRole) ? "d'" : 'de ';
+        $orgFinal = $mentionneInspection
+            ? 'du Commissariat à la Sécurité Alimentaire et à la Résilience'
+            : $orgEntite;
+        $rolePhrase = 'pour servir en qualité ' . $prep . $posteRole . ' ' . $orgFinal;
     }
     // Le libellé du tableau commence souvent par « d'un… » : ne pas le préfixer deux fois.
     $diplomeTexte = '';
