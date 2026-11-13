@@ -28,7 +28,7 @@ class ContractService
     public const DISK = 'local';
 
     /** À incrémenter à chaque correction du texte des contrats : force la régénération des PDF. */
-    public const MODELE = '2026-11-14-dedoublonnage';
+    public const MODELE = '2026-11-14-chauffeur-au';
 
     private const VIEWS = [
         'contrat-cdi' => 'admin.drh.documents.contrat_cdi',

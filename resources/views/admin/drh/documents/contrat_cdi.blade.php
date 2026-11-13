@@ -65,6 +65,9 @@
         $orgFinal = $mentionneInspection
             ? 'du Commissariat à la Sécurité Alimentaire et à la Résilience'
             : $orgEntite;
+        if (str_contains($fold($posteRole), 'chauffeur')) {
+            $orgFinal = $lieuEntite;
+        }
         $rolePhrase = 'pour servir en qualité ' . $prep . $posteRole . ' ' . $orgFinal;
     }
     // Le libellé du tableau commence souvent par « d'un… » : ne pas le préfixer deux fois.
