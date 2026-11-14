@@ -21,6 +21,7 @@ class DirectionLoginController extends Controller
         'dtl' => 'Direction Technique et Logistique',
         'inspecteur' => 'Inspections terrain',
         'comptable' => 'Comptabilité des matières',
+        'magasinier' => 'Magasin & Gestion des stocks',
     ];
 
     public function showLoginForm(string $direction)

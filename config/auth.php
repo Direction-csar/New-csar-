@@ -80,6 +80,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'magasinier' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
     ],
 
     /*

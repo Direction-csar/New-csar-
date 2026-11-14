@@ -1512,6 +1512,29 @@ Route::middleware(['direction:comptable'])->prefix('archives/comptable')->name('
     Route::get('/{archive}/print', [\App\Http\Controllers\Comptable\ArchiveController::class, 'print'])->name('print');
 });
 
+// === PORTAIL MAGASINIER (miroir de l'APK CSAR Magasin) ===
+Route::prefix('magasinier')->name('magasinier.')->group(function () {
+    Route::get('/login', fn () => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->showLoginForm('magasinier'))->name('login');
+    Route::post('/login', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->login($request, 'magasinier'))->name('login.submit');
+    Route::post('/logout', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->logout($request, 'magasinier'))->name('logout');
+});
+
+Route::middleware(['direction:magasinier'])->prefix('magasinier')->name('magasinier.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Magasinier\PortailController::class, 'dashboard'])->name('dashboard');
+    Route::get('/magasins', [\App\Http\Controllers\Magasinier\PortailController::class, 'warehouses'])->name('warehouses.index');
+    Route::get('/magasins/{warehouse}', [\App\Http\Controllers\Magasinier\PortailController::class, 'warehouseShow'])->name('warehouses.show');
+    Route::get('/magasins/{warehouse}/etat-stock', [\App\Http\Controllers\Magasinier\PortailController::class, 'stockStatus'])->name('warehouses.stock-status');
+    Route::get('/magasins/{warehouse}/mouvements/create', [\App\Http\Controllers\Magasinier\PortailController::class, 'movementCreate'])->name('mouvements.create');
+    Route::post('/magasins/{warehouse}/mouvements', [\App\Http\Controllers\Magasinier\PortailController::class, 'movementStore'])->name('mouvements.store');
+    Route::get('/transferts/create', [\App\Http\Controllers\Magasinier\PortailController::class, 'transferCreate'])->name('transferts.create');
+    Route::post('/transferts', [\App\Http\Controllers\Magasinier\PortailController::class, 'transferStore'])->name('transferts.store');
+    Route::get('/inventaires/create', [\App\Http\Controllers\Magasinier\PortailController::class, 'inventoryCreate'])->name('inventaires.create');
+    Route::post('/inventaires', [\App\Http\Controllers\Magasinier\PortailController::class, 'inventoryStore'])->name('inventaires.store');
+    Route::get('/missions', [\App\Http\Controllers\Magasinier\PortailController::class, 'missions'])->name('missions.index');
+    Route::post('/missions/{id}/report', [\App\Http\Controllers\Magasinier\PortailController::class, 'missionReport'])->name('missions.report');
+    Route::get('/recus/{reference}', [\App\Http\Controllers\Magasinier\PortailController::class, 'receipt'])->name('receipts.show');
+});
+
 // === PORTAIL INSPECTEUR ===
 Route::prefix('inspecteur')->name('inspecteur.')->group(function () {
     Route::get('/login', fn () => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->showLoginForm('inspecteur'))->name('login');
