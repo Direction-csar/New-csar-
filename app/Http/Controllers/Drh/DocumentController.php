@@ -452,10 +452,20 @@ class DocumentController extends Controller
             }
             // Les immatriculations C.C.P.F.-A.T. et A.G.R.O.M. doivent rester
             // vides : purge des anciennes valeurs (ex. CIN pré-rempli).
+            // « Directeur Général » saisi dans la signature employeur est un
+            // titre, pas une signature : il est retiré.
             $docData = $doc->data ?? [];
+            $dirty = false;
             if (($docData['numero_cfp_at'] ?? '') !== '' || ($docData['numero_agrom'] ?? '') !== '') {
                 $docData['numero_cfp_at'] = '';
                 $docData['numero_agrom'] = '';
+                $dirty = true;
+            }
+            if (preg_match('/directeur|g[ée]n[ée]ral/iu', (string) ($docData['signature_employeur'] ?? ''))) {
+                $docData['signature_employeur'] = '';
+                $dirty = true;
+            }
+            if ($dirty) {
                 $doc->update(['data' => $docData]);
             }
             $data = array_merge(['personnel' => $agent], $docData);
