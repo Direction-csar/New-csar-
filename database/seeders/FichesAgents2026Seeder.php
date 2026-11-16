@@ -56,9 +56,12 @@ class FichesAgents2026Seeder extends AgentsImportSeeder
                     continue;
                 }
 
+                $avant = clone $agent;
                 $agent->fill(array_intersect_key($data, array_flip(self::UPDATED_FIELDS)));
                 if ($agent->isDirty()) {
                     $agent->save();
+                    // Propage la fiche vers les documents RH non signés.
+                    rescue(fn () => app(\App\Services\Drh\AgentDocumentSync::class)->sync($avant, $agent), report: false);
                     $updated++;
                 } else {
                     $unchanged++;
