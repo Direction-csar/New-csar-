@@ -98,7 +98,7 @@ class AgentDocumentData
     {
         $filiation = trim((string) $filiation);
         if (preg_match('/^(?:De|Fils de)\s+(.+?)\s+et\s+(.+)$/iu', $filiation, $m)) {
-            return ['pere' => trim($m[1]), 'mere' => trim($m[2])];
+            return ['pere' => trim($m[1]), 'mere' => trim(preg_replace('/^de\s+/iu', '', trim($m[2])))];
         }
         return ['pere' => '', 'mere' => ''];
     }
