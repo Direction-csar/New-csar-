@@ -29,6 +29,19 @@ class FichesAgents2026Seeder extends AgentsImportSeeder
         'salaire_brut', 'net_a_payer',
     ];
 
+    /** Corrections validées par la DRH, par matricule (valeurs absentes du tableau source). */
+    private const CORRECTIONS = [
+        '202606' => ['type_contrat' => 'CDI'],
+        '020142' => ['nombre_epouses' => 1],
+        '202502' => ['nombre_epouses' => 1],
+        '007020' => ['nombre_epouses' => 1],
+        '020132' => ['nombre_epouses' => 1],
+        '202603' => ['nombre_epouses' => 1],
+        '099013' => ['nombre_epouses' => 1],
+        '202610' => ['nombre_epouses' => 1],
+        '202507' => ['nombre_epouses' => 1],
+    ];
+
     public function run(): void
     {
         $path = $this->csvPath ?: database_path('seeders/fiches_2026.csv');
@@ -47,6 +60,8 @@ class FichesAgents2026Seeder extends AgentsImportSeeder
                 $data['direction_service'] = config('organigramme')[mb_strtoupper(trim($cols[1] ?? ''))] ?? $data['direction_service'];
                 $data['indemnite_fonction'] ??= 0;
                 $data['indemnite_transport'] ??= 0;
+                $corrections = self::CORRECTIONS[$data['matricule']] ?? [];
+                $data = array_merge($data, $corrections);
 
                 $agent = $existing->get(ltrim($data['matricule'], '0'));
                 if (!$agent) {
@@ -57,7 +72,7 @@ class FichesAgents2026Seeder extends AgentsImportSeeder
                 }
 
                 $avant = clone $agent;
-                $agent->fill(array_intersect_key($data, array_flip(self::UPDATED_FIELDS)));
+                $agent->fill(array_intersect_key($data, array_flip(array_merge(self::UPDATED_FIELDS, array_keys($corrections)))));
                 if ($agent->isDirty()) {
                     $agent->save();
                     // Propage la fiche vers les documents RH non signés.

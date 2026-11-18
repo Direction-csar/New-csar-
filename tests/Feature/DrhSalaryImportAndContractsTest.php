@@ -480,6 +480,54 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertStringContainsString("titulaire d&#039;un(e) Gardien", $html);
     }
 
+    public function test_corrections_drh_listees_fiches_contrats_et_dmt(): void
+    {
+        Schema::table('personnel', function (Blueprint $t) {
+            foreach (['tranche_age', 'contact_telephonique', 'email', 'groupe_sanguin', 'date_prise_service_csar', 'statut',
+                'localisation_region', 'dernier_poste_avant_csar', 'autres_diplomes_certifications',
+                'logiciels_maitrises', 'langues_parlees', 'autres_aptitudes', 'aspirations_professionnelles',
+                'interet_nouvelles_responsabilites', 'photo_personnelle', 'taille_vetements', 'contact_urgence_nom',
+                'contact_urgence_telephone', 'contact_urgence_lien_parente', 'observations_personnelles', 'statut_validation'] as $c) {
+                $t->string($c)->nullable();
+            }
+        });
+
+        $this->agent('202606', 'Oumar Abdourahmane SALL', ['type_contrat' => 'CDD']);
+        $this->agent('099011', 'Moussa DIOP', ['filiation' => 'De Mayoro et Astou WADE']);
+        $this->agent('202102', 'Souadou KA', ['nombre_enfants' => 3]);
+        $this->agent('020143', 'Mohamed Sileye DIOP');
+        $this->agent('007020', 'Babou THIAM');
+        $this->agent('202502', 'Ousmane THIAM', ['lieu_naissance' => 'Paoscoto']);
+        $this->agent('020078', 'Yandé NDIAYE', ['formations_professionnelles' => "d'un Master en Finance publique"]);
+
+        $lines = file(database_path('seeders/fiches_2026.csv'));
+        $keep = ['202606', '099011', '202102', '020143', '007020', '202502', '020078'];
+        $csv = tempnam(sys_get_temp_dir(), 'fiches');
+        file_put_contents($csv, $lines[0] . implode('', array_filter(
+            array_slice($lines, 1), fn ($l) => in_array(str_getcsv($l, ';')[4] ?? '', $keep, true)
+        )));
+        $seeder = new \Database\Seeders\FichesAgents2026Seeder();
+        $seeder->csvPath = $csv;
+        $seeder->run();
+        @unlink($csv);
+
+        $p = fn ($m) => Personnel::where('matricule', $m)->firstOrFail();
+        $this->assertSame('CDI', $p('202606')->type_contrat);
+        $this->assertStringContainsString('Fatou WADE', $p('099011')->filiation);
+        $this->assertSame(4, (int) $p('202102')->nombre_enfants);
+        $this->assertSame('Mouhamadou Sileye DIOP', $p('020143')->prenoms_nom);
+        $this->assertSame(1, (int) $p('007020')->nombre_epouses);
+        $this->assertSame(1, (int) $p('202502')->nombre_epouses);
+        $this->assertSame('Taïba Niassene, arrondissement de Paoscoto', $p('202502')->lieu_naissance);
+        $this->assertStringContainsString('Finances et Gestion Publique', $p('020078')->formations_professionnelles);
+
+        $defaults = app(\App\Services\Drh\AgentDocumentData::class)->defaults($p('202502'));
+        $this->assertSame(1, (int) $defaults['nombre_epouses']);
+        $this->assertSame('Paoscoto', explode('arrondissement de ', $defaults['lieu_naissance'])[1]);
+        $this->assertSame('indeterminee', app(\App\Services\Drh\AgentDocumentData::class)->defaults($p('202606'))['duree_contrat_type']);
+        $this->assertSame('contrat-cdi', app(\App\Services\Drh\ContractService::class)->typeFor($p('202606')));
+    }
+
     public function test_document_edit_updates_in_place_and_changes_agent(): void
     {
         $a = $this->agent('099001', 'Awa FICTIF');

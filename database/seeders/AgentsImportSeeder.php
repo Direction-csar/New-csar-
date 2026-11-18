@@ -140,7 +140,7 @@ class AgentsImportSeeder extends Seeder
             'filiation' => $filiation ?: null,
             'date_delivrance_id' => null,
             'nombre_epouses' => null,
-            'type_contrat' => ($prenom === 'Oumar Abdourahmane' && $nom === 'SALL') ? 'CDD' : 'CDI',
+            'type_contrat' => 'CDI',
             'direction_service' => $this->mapDirection($directionRaw),
             'localisation_region' => $this->mapRegion($directionRaw, $adresse),
             'dernier_poste_avant_csar' => null,
