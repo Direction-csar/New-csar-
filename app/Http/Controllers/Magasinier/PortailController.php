@@ -103,13 +103,22 @@ class PortailController extends Controller
 
         $data = $request->validate([
             'movement_date' => 'required|date',
-            'label' => 'required|string|max:255',
+            'label' => 'required|string|max:200',
+            'product' => 'required|string|max:100',
+            'format' => 'required|numeric|min:0.01',
             'position' => 'nullable|string|max:50',
             'movement_type' => 'required|in:entry,exit,adjustment,report',
             'sacs' => 'required|numeric|min:0',
             'kg' => 'required|numeric|min:0',
             'observation' => 'nullable|string|max:1000',
         ]);
+
+        $produit = collect($this->stock->products())->firstWhere('name', $data['product']);
+        abort_unless($produit, 422, 'Produit inconnu.');
+        $format = rtrim(rtrim(number_format((float) $data['format'], 2, '.', ''), '0'), '.');
+        // Même convention que l'APK : « Produit [50kg] — motif ».
+        $data['label'] = "{$produit['name']} [{$format}{$produit['unit']}] — {$data['label']}";
+        unset($data['product'], $data['format']);
 
         $result = $this->stock->recordMovement($this->user(), $data + ['warehouse_id' => $wh->id]);
 

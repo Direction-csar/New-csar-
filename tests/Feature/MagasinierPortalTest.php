@@ -183,13 +183,24 @@ class MagasinierPortalTest extends TestCase
     public function test_stock_sheet_and_movement_creation(): void
     {
         $this->actingAs($this->magasinier, 'magasinier');
+        \App\Models\Product::create(['name' => 'Riz brisé', 'unit' => 'kg', 'category' => 'Céréales', 'is_active' => 1]);
+        \App\Models\Product::create(['name' => 'Huile', 'unit' => 'Litres', 'category' => 'Huiles', 'is_active' => 1]);
 
         $this->get(route('magasinier.warehouses.show', $this->warehouse->id))->assertOk();
-        $this->get(route('magasinier.mouvements.create', $this->warehouse->id))->assertOk();
+        $this->get(route('magasinier.mouvements.create', $this->warehouse->id))
+            ->assertOk()->assertSee('Huile')->assertSee('Format du contenant');
+
+        $this->post(route('magasinier.mouvements.store', $this->warehouse->id), [
+            'movement_date' => '2026-11-14', 'label' => 'Réception huile', 'product' => 'Huile',
+            'format' => 20, 'movement_type' => 'entry', 'sacs' => 10, 'kg' => 200,
+        ])->assertRedirect();
+        $this->assertDatabaseHas('stock_movements', ['reason' => 'Huile [20L] — Réception huile']);
 
         $this->post(route('magasinier.mouvements.store', $this->warehouse->id), [
             'movement_date' => '2026-11-14',
             'label' => 'Réception test riz',
+            'product' => 'Riz brisé',
+            'format' => 25,
             'movement_type' => 'entry',
             'sacs' => 50,
             'kg' => 1250,
@@ -199,19 +210,20 @@ class MagasinierPortalTest extends TestCase
             'warehouse_id' => $this->warehouse->id,
             'type' => 'entry',
             'quantity' => 50,
-            'reason' => 'Réception test riz',
+            'reason' => 'Riz brisé [25kg] — Réception test riz',
         ]);
         // Le solde est recalculé depuis les mouvements : 0 existant + 50
-        $this->assertEquals(50, (float) $this->warehouse->fresh()->current_stock);
+        $this->assertEquals(60, (float) $this->warehouse->fresh()->current_stock);
     }
 
     public function test_exit_blocked_when_insufficient_stock(): void
     {
         $this->actingAs($this->magasinier, 'magasinier');
+        \App\Models\Product::create(['name' => 'Riz brisé', 'unit' => 'kg', 'is_active' => 1]);
 
         $this->post(route('magasinier.mouvements.store', $this->warehouse->id), [
             'movement_date' => '2026-11-14',
-            'label' => 'Sortie excessive',
+            'label' => 'Sortie excessive', 'product' => 'Riz brisé', 'format' => 25,
             'movement_type' => 'exit',
             'sacs' => 9999,
             'kg' => 9999,
