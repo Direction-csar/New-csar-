@@ -528,6 +528,26 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertSame('contrat-cdi', app(\App\Services\Drh\ContractService::class)->typeFor($p('202606')));
     }
 
+    public function test_cdi_header_is_avenant_except_four_2026_recruits(): void
+    {
+        $render = fn (string $m) => view('admin.drh.documents.contrat_cdi', [
+            'personnel' => new Personnel(['prenoms_nom' => 'Awa FICTIVE', 'matricule' => $m, 'sexe' => 'Feminin']),
+        ])->render();
+
+        foreach (['099001', '020142'] as $m) {
+            $html = $render($m);
+            $this->assertStringContainsString('AVENANT AU CONTRAT DE TRAVAIL', $html);
+            $this->assertStringContainsString('A DUREE INDETERMINEE', $html);
+            $this->assertStringContainsString('Directrice générale', $html);
+        }
+        foreach (['202609', '202608', '202610', '202606'] as $m) {
+            $html = $render($m);
+            $this->assertStringNotContainsString('AVENANT', $html);
+            $this->assertStringContainsString('CONTRAT DE TRAVAIL', $html);
+            $this->assertStringContainsString('Directeur Général', $html);
+        }
+    }
+
     public function test_document_edit_updates_in_place_and_changes_agent(): void
     {
         $a = $this->agent('099001', 'Awa FICTIF');

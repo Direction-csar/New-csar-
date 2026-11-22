@@ -6,6 +6,10 @@
     $money = function ($m) {
         return ($m !== null && $m !== '') ? number_format((float) $m, 0, ',', ' ') : '..........................';
     };
+    // Les 4 recrutements de 2026 (Faye DIENG, Cheikh Bou DIOP, THIAW, SALL) gardent un contrat ;
+    // tous les autres agents reçoivent un avenant à leur contrat à durée indéterminée.
+    $matriculesContrat = ['202609', '202608', '202610', '202606'];
+    $estAvenant = !in_array(trim((string) ($personnel->matricule ?? '')), $matriculesContrat, true);
     $nomComplet = $personnel->prenoms_nom ?? '';
     $parts = preg_split('/\s+/', trim($nomComplet));
     $nomFamille = count($parts) > 1 ? array_pop($parts) : $nomComplet;
@@ -103,7 +107,7 @@
 
     {{-- ================= PAGE 1 ================= --}}
     <div class="title">
-        CONTRAT DE TRAVAIL<br>
+        {{ $estAvenant ? 'AVENANT AU CONTRAT DE TRAVAIL' : 'CONTRAT DE TRAVAIL' }}<br>
         A DUREE INDETERMINEE
     </div>
 
@@ -114,7 +118,7 @@
     <p style="text-align: justify;">
         <strong>Le Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</strong> sis au
         2 Rue Amadou Assane NDOYE X Bérenger Ferraud, Dakar représenté par
-        <strong>Madame Mame Ndeye SENE, en sa qualité de Directeur Général ;</strong>
+        <strong>Madame Mame Ndeye SENE, en sa qualité de {{ $estAvenant ? 'Directrice générale' : 'Directeur Général' }} ;</strong>
     </p>
 
     <p class="right">D'UNE PART</p>
