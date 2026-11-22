@@ -27,6 +27,17 @@
                 <i class="fas fa-file-archive me-1"></i> Générer tous les contrats (ZIP)
             </button>
         </form>
+        <form action="{{ route('admin.drh.contrats.pdf-unique') }}" method="POST" class="d-flex gap-1"
+              onsubmit="return confirm('Générer tous les contrats dans un seul PDF pour impression ? Cela peut prendre plusieurs minutes.');">
+            @csrf
+            <select name="pages" class="form-select form-select-sm" style="width:auto;" title="Pages à imprimer">
+                <option value="all">Pages 1 et 2</option>
+                <option value="first">Page 1 seulement (sans la 2e page)</option>
+            </select>
+            <button type="submit" class="btn btn-success btn-sm">
+                <i class="fas fa-print me-1"></i> Contrats (PDF unique)
+            </button>
+        </form>
         <form action="{{ route('admin.drh.documents.dmt.generate-all') }}" method="POST"
               onsubmit="return confirm('Générer les déclarations de mouvement de tous les agents dans un seul PDF ? Cela peut prendre plusieurs minutes.');">
             @csrf

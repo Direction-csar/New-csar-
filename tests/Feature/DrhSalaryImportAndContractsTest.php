@@ -347,6 +347,28 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertSame(2, RhDocument::count());
         $this->actingAs($this->drh, 'drh')->get(route('admin.drh.documents'))->assertOk()->assertSee('Générer tous les contrats');
     }
+    public function test_contracts_single_pdf_with_first_page_only_option(): void
+    {
+        $this->agent('099001', 'Awa FICTIF');
+        $this->agent('099002', 'Moussa EXEMPLE', ['type_contrat' => 'CDD']);
+
+        foreach (['all', 'first'] as $pages) {
+            $res = $this->actingAs($this->drh, 'drh')->post(route('admin.drh.contrats.pdf-unique'), ['pages' => $pages]);
+            $res->assertOk();
+            $this->assertSame('application/pdf', $res->headers->get('Content-Type'));
+            $this->assertStringStartsWith('%PDF', $res->baseResponse->getContent());
+        }
+
+        $docs = RhDocument::contracts()->current()->with('personnel')->get();
+        $svc = app(\App\Services\Drh\ContractService::class);
+        $this->assertStringContainsString('ARTICLE 4', $svc->combinedHtml($docs, 'all'));
+        $first = $svc->combinedHtml($docs, 'first');
+        $this->assertStringNotContainsString('ARTICLE 4', $first);
+        $this->assertStringContainsString('ARTICLE 1', $first);
+        $this->assertSame(2, substr_count($first, 'ARTICLE 1 :'));
+        $this->actingAs($this->drh, 'drh')->get(route('admin.drh.documents'))->assertOk()->assertSee('Page 1 seulement');
+    }
+
     public function test_personnel_update_accepts_placeholder_values(): void
     {
         $agent = $this->agent('202610', 'Awa FICTIF');
@@ -544,13 +566,13 @@ class DrhSalaryImportAndContractsTest extends TestCase
             $html = $render($m);
             $this->assertStringContainsString('AVENANT AU CONTRAT DE TRAVAIL', $html);
             $this->assertStringContainsString('A DUREE INDETERMINEE', $html);
-            $this->assertStringContainsString('Directrice générale', $html);
+            $this->assertStringContainsString('en sa qualité de Directrice générale', $html);
         }
         foreach (['202609', '202608', '202610', '202606'] as $m) {
             $html = $render($m);
             $this->assertStringNotContainsString('AVENANT', $html);
             $this->assertStringContainsString('CONTRAT DE TRAVAIL', $html);
-            $this->assertStringContainsString('Directeur Général', $html);
+            $this->assertStringContainsString('en sa qualité de Directrice générale', $html);
         }
     }
 

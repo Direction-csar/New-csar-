@@ -118,7 +118,7 @@
     <p style="text-align: justify;">
         <strong>Le Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</strong> sis au
         2 Rue Amadou Assane NDOYE X Bérenger Ferraud, Dakar représenté par
-        <strong>Madame Mame Ndeye SENE, en sa qualité de {{ $estAvenant ? 'Directrice générale' : 'Directeur Général' }} ;</strong>
+        <strong>Madame Mame Ndeye SENE, en sa qualité de Directrice générale ;</strong>
     </p>
 
     <p class="right">D'UNE PART</p>

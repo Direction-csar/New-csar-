@@ -78,6 +78,32 @@ class ContractBatchController extends Controller
         ])->deleteFileAfterSend();
     }
 
+    /** Tous les contrats en vigueur dans un seul PDF ; option : page 1 uniquement. */
+    public function generateAllPdf(Request $request)
+    {
+        $pages = $request->validate(['pages' => ['nullable', 'in:all,first']])['pages'] ?? 'all';
+        @set_time_limit(900);
+        @ini_set('memory_limit', '1024M');
+        $this->contracts->generateMany(Personnel::orderBy('prenoms_nom')->get(), 'all', Auth::id());
+
+        $documents = RhDocument::contracts()->current()
+            ->where('statut', '!=', RhDocument::STATUT_A_VALIDER)
+            ->with('personnel')->get()
+            ->sortBy(fn ($d) => $d->personnel?->prenoms_nom)->values();
+        if ($documents->isEmpty()) {
+            return back()->with('error', "Aucun contrat n'a pu être généré.");
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($this->contracts->combinedHtml($documents, $pages))->setPaper('a4', 'portrait');
+        $suffixe = $pages === 'first' ? '-page1' : '';
+
+        return response($pdf->output(), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="contrats-csar' . $suffixe . '-' . now()->format('Ymd-His') . '.pdf"',
+            'Cache-Control' => 'no-store, private',
+        ]);
+    }
+
     public function preview(Personnel $personnel)
     {
         return response($this->contracts->preview($personnel), 200, [

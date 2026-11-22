@@ -28,7 +28,7 @@ class ContractService
     public const DISK = 'local';
 
     /** À incrémenter à chaque correction du texte des contrats : force la régénération des PDF. */
-    public const MODELE = '2026-11-22-keita-diagne';
+    public const MODELE = '2026-11-22-directrice';
 
     private const VIEWS = [
         'contrat-cdi' => 'admin.drh.documents.contrat_cdi',
@@ -241,6 +241,38 @@ class ContractService
         $zip->close();
 
         return $path;
+    }
+
+    /**
+     * Tous les contrats dans un seul document HTML (impression en une fois).
+     *
+     * @param 'all'|'first' $pages 'first' : uniquement la page 1 de chaque contrat (sans la 2e page).
+     */
+    public function combinedHtml(Collection $documents, string $pages = 'all'): string
+    {
+        $style = '';
+        $body = '';
+        foreach ($documents as $doc) {
+            $agent = $doc->personnel;
+            if (!$agent || !isset(self::VIEWS[$doc->type])) {
+                continue;
+            }
+            $data = collect($doc->data ?? [])->except('personnel')->all();
+            $html = view(self::VIEWS[$doc->type], array_merge($data, ['personnel' => $agent, 'data' => $data]))->render();
+            if ($style === '' && preg_match('/<style[^>]*>(.*?)<\/style>/s', $html, $sm)) {
+                $style = $sm[1];
+            }
+            if (!preg_match('/<body[^>]*>(.*)<\/body>/s', $html, $bm)) {
+                continue;
+            }
+            $content = $bm[1];
+            if ($pages === 'first') {
+                $content = explode('<div class="page-break"></div>', $content)[0];
+            }
+            $body .= ($body === '' ? '' : '<div style="page-break-before: always;"></div>') . $content;
+        }
+
+        return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $style . '</style></head><body>' . $body . '</body></html>';
     }
 
     private function store(Personnel $agent, string $type, array $data, int $version, string $statut, ?int $userId): RhDocument
