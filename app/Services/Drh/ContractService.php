@@ -28,7 +28,7 @@ class ContractService
     public const DISK = 'local';
 
     /** À incrémenter à chaque correction du texte des contrats : force la régénération des PDF. */
-    public const MODELE = '2026-11-23-directeur-general';
+    public const MODELE = '2026-11-23-corrections-3';
 
     private const VIEWS = [
         'contrat-cdi' => 'admin.drh.documents.contrat_cdi',

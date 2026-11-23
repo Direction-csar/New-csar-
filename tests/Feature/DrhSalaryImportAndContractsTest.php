@@ -525,11 +525,15 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->agent('000598', 'Ibrahima DIAGNE', ['nombre_enfants' => 2]);
         $this->agent('099022', 'Ibrahima DIOP');
         $this->agent('000633', 'Lamine NDIAYE', ['filiation' => 'De Pathé et Gnilane']);
+        $this->agent('202106', 'Ousmane KA');
+        $this->agent('098703', 'Ibrahima DIOP');
+        $this->agent('098721', 'Sidate BABOU');
+        $this->agent('098716', 'Mame Cor NDOUR', ['numero_cni' => '17781198401957']);
         $this->agent('202602', 'Mohamed SOW');
         $this->agent('202503', 'Lamine Séye DANFA');
 
         $lines = file(database_path('seeders/fiches_2026.csv'));
-        $keep = ['202606', '099011', '202102', '020143', '007020', '202502', '020078', '202202', '000598', '099022', '202602', '202503', '000633'];
+        $keep = ['202606', '099011', '202102', '020143', '007020', '202502', '020078', '202202', '000598', '099022', '202602', '202503', '000633', '202106', '098703', '098721', '098716'];
         $csv = tempnam(sys_get_temp_dir(), 'fiches');
         file_put_contents($csv, $lines[0] . implode('', array_filter(
             array_slice($lines, 1), fn ($l) => in_array(str_getcsv($l, ';')[4] ?? '', $keep, true)
@@ -551,7 +555,12 @@ class DrhSalaryImportAndContractsTest extends TestCase
 
         $this->assertStringContainsString('Risques liés à la Sécurité Alimentaire', $p('202202')->formations_professionnelles);
         $this->assertStringNotContainsString('Agricoles', $p('202202')->formations_professionnelles);
-        $this->assertSame(6, (int) $p('000598')->nombre_enfants);
+        $this->assertSame(2, (int) $p('000598')->nombre_enfants);
+        $this->assertSame('Belihel, commune de Dahra', $p('202106')->lieu_naissance);
+        $this->assertSame('De Amadou Tidiane et Ndickou WADE', $p('098703')->filiation);
+        $this->assertStringContainsString('Médina Course', $p('098703')->adresse_complete);
+        $this->assertSame('De Beck et Amy FALL', $p('098721')->filiation);
+        $this->assertSame('1768198401957', $p('098716')->numero_cni);
         $this->assertSame('De Pathé et Gnilane SARR', $p('000633')->filiation);
         $this->assertSame('Gnilane SARR', app(\App\Services\Drh\AgentDocumentData::class)->defaults($p('000633'))['mere']);
         $this->assertStringContainsString('Master en Sciences et Techniques des Ressources Humaines', $p('099022')->formations_professionnelles);
