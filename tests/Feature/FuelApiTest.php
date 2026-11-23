@@ -146,6 +146,7 @@ class FuelApiTest extends TestCase
             $t->timestamp('validated_at')->nullable();
             $t->text('rejection_reason')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
 
         Schema::create('fuel_entries', function (Blueprint $t) {

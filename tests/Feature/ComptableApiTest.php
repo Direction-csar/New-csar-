@@ -125,6 +125,7 @@ class ComptableApiTest extends TestCase
             $t->timestamp('validated_at')->nullable();
             $t->text('rejection_reason')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
     }
 

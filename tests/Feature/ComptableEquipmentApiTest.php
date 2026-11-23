@@ -101,6 +101,7 @@ class ComptableEquipmentApiTest extends TestCase
             $t->decimal('quantity', 15, 2)->default(0);
             $t->string('status')->default('draft');
             $t->timestamps();
+            $t->softDeletes();
         });
 
         Schema::create('equipment_assignments', function (Blueprint $t) {

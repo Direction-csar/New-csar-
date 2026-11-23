@@ -96,6 +96,7 @@ class StockPageRenderTest extends TestCase
             $t->text('metadata')->nullable();
             $t->unsignedBigInteger('created_by')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
         Schema::create('public_requests', function (Blueprint $t) {
             $t->id();

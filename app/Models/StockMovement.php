@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockMovement extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'stock_id',
@@ -36,6 +37,7 @@ class StockMovement extends Model
         'metadata',
         'public_request_id',
         'request_mission_id',
+        'stock_operation_id',
         'status',
         'validated_by',
         'validated_at',

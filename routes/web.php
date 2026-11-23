@@ -456,6 +456,14 @@ Route::prefix('dg')->name('dg.')->group(function () {
         // Consultation des stocks (lecture seule)
         Route::get('/situation-stocks', [App\Http\Controllers\DG\StockSituationController::class, 'index'])->name('situation-stocks.index');
         Route::get('/situation-stocks/data', [App\Http\Controllers\DG\StockSituationController::class, 'data'])->name('situation-stocks.data');
+
+        // Circuit opérationnel des stocks : instructions DG → DTL → Inspecteur → Magasinier
+        Route::get('/stock-operations', [App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
+        Route::get('/stock-operations/create', [App\Http\Controllers\StockOperations\OperationController::class, 'create'])->name('stock-operations.create');
+        Route::post('/stock-operations', [App\Http\Controllers\StockOperations\OperationController::class, 'store'])->name('stock-operations.store');
+        Route::get('/stock-operations/{id}', [App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
+        Route::post('/stock-operations/{id}/cancel', [App\Http\Controllers\StockOperations\OperationController::class, 'cancel'])->name('stock-operations.cancel');
+        Route::post('/stock-operations/{id}/reject', [App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
         Route::get('/stocks', [App\Http\Controllers\DG\StockController::class, 'index'])->name('stocks.index');
         Route::get('/stocks/{id}', [App\Http\Controllers\DG\StockController::class, 'show'])->name('stocks.show');
 
@@ -1443,6 +1451,12 @@ Route::middleware(['direction:dtl'])->prefix('dtl')->name('dtl.')->group(functio
     Route::post('/missions/{missionId}/cancel', [\App\Http\Controllers\Dtl\DemandeController::class, 'cancelMission'])->name('missions.cancel');
     Route::post('/missions/{missionId}/validate', [\App\Http\Controllers\Dtl\DemandeController::class, 'validateMission'])->name('missions.validate');
     Route::post('/missions/{missionId}/correct', [\App\Http\Controllers\Dtl\DemandeController::class, 'requestCorrection'])->name('missions.correct');
+
+    // Circuit opérationnel des stocks : le DTL affecte les instructions de la DG aux inspecteurs
+    Route::get('/stock-operations', [\App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
+    Route::get('/stock-operations/{id}', [\App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
+    Route::post('/stock-operations/{id}/assign-inspector', [\App\Http\Controllers\StockOperations\OperationController::class, 'assignInspector'])->name('stock-operations.assign-inspector');
+    Route::post('/stock-operations/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
 });
 
 // === PORTAIL COMPTABLE DES MATIÈRES ===
@@ -1536,6 +1550,11 @@ Route::middleware(['direction:magasinier'])->prefix('magasinier')->name('magasin
     Route::get('/missions', [\App\Http\Controllers\Magasinier\PortailController::class, 'missions'])->name('missions.index');
     Route::post('/missions/{id}/report', [\App\Http\Controllers\Magasinier\PortailController::class, 'missionReport'])->name('missions.report');
     Route::get('/recus/{reference}', [\App\Http\Controllers\Magasinier\PortailController::class, 'receipt'])->name('receipts.show');
+
+    // Opérations de stock transmises par l'inspecteur (circuit DG→DTL→Inspecteur→Magasinier)
+    Route::get('/operations', [\App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
+    Route::get('/operations/{id}', [\App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
+    Route::post('/operations/{id}/execute', [\App\Http\Controllers\StockOperations\OperationController::class, 'execute'])->name('stock-operations.execute');
 });
 
 // === PORTAIL INSPECTEUR ===
@@ -1551,6 +1570,14 @@ Route::middleware(['direction:inspecteur'])->prefix('inspecteur')->name('inspect
     Route::get('/missions/{id}', [\App\Http\Controllers\Inspecteur\MissionController::class, 'show'])->name('missions.show');
     Route::post('/missions/{id}/start', [\App\Http\Controllers\Inspecteur\MissionController::class, 'start'])->name('missions.start');
     Route::post('/missions/{id}/report', [\App\Http\Controllers\Inspecteur\MissionController::class, 'submitReport'])->name('missions.report');
+
+    // Opérations de stock affectées : consignes magasinier, vérification, anomalies
+    Route::get('/operations', [\App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
+    Route::get('/operations/{id}', [\App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
+    Route::post('/operations/{id}/transmit', [\App\Http\Controllers\StockOperations\OperationController::class, 'transmit'])->name('stock-operations.transmit');
+    Route::post('/operations/{id}/verify', [\App\Http\Controllers\StockOperations\OperationController::class, 'verify'])->name('stock-operations.verify');
+    Route::post('/operations/{id}/anomaly', [\App\Http\Controllers\StockOperations\OperationController::class, 'anomaly'])->name('stock-operations.anomaly');
+    Route::post('/operations/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
 });
 
 Route::middleware(['direction:inspecteur'])->prefix('archives/inspecteur')->name('archives.inspecteur.')->group(function () {

@@ -104,6 +104,7 @@ class StockAlertServiceTest extends TestCase
             $t->string('type');
             $t->decimal('quantity', 10, 2);
             $t->timestamps();
+            $t->softDeletes();
         });
         Schema::create('stock_alerts', function (Blueprint $t) {
             $t->id();

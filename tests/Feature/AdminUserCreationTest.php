@@ -154,6 +154,7 @@ class AdminUserCreationTest extends TestCase
             $t->string('status')->default('draft');
             $t->unsignedBigInteger('created_by')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
 
         Schema::create('equipment_assignments', function (Blueprint $t) {

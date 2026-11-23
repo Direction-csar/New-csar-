@@ -8,6 +8,9 @@ Route::prefix('v1')->name('warehouse.api.v1.')->group(function () {
     // Authentification (pas de middleware, mais rate-limited)
     Route::post('/login', [WarehouseKeeperController::class, 'login'])->name('login')
         ->middleware('throttle:5,1');
+    // Authentification APK Inspecteur (rôle inspecteur uniquement)
+    Route::post('/login/inspecteur', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'loginInspector'])->name('login.inspector')
+        ->middleware('throttle:5,1');
 
     // Routes protégées (token Sanctum)
     Route::middleware('auth:sanctum')->group(function () {
@@ -25,5 +28,16 @@ Route::prefix('v1')->name('warehouse.api.v1.')->group(function () {
         // Missions de sortie de stock affectées par le DTL
         Route::get('/missions', [WarehouseKeeperController::class, 'getMissions'])->name('missions');
         Route::post('/missions/{id}/report', [WarehouseKeeperController::class, 'reportMission'])->name('missions.report');
+
+        // Circuit opérationnel DG → DTL → Inspecteur → Magasinier (APK Magasinier + APK Inspecteur)
+        Route::get('/operations', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'index'])->name('operations.index');
+        Route::get('/operations/{id}', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'show'])->name('operations.show');
+        Route::post('/operations/{id}/transmit', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'transmit'])->name('operations.transmit');
+        Route::post('/operations/{id}/execute', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'execute'])->name('operations.execute');
+        Route::post('/operations/{id}/verify', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'verify'])->name('operations.verify');
+        Route::post('/operations/{id}/anomaly', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'anomaly'])->name('operations.anomaly');
+        Route::post('/operations/{id}/reject', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'reject'])->name('operations.reject');
+        Route::get('/stock-ops/status', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'stockStatus'])->name('operations.stock-status');
+        Route::get('/stock-ops/warehouses', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'warehouses'])->name('operations.warehouses');
     });
 });

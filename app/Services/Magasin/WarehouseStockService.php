@@ -2,6 +2,7 @@
 
 namespace App\Services\Magasin;
 
+use App\Models\AuditLog;
 use App\Models\Product;
 use App\Models\RequestMission;
 use App\Models\Stock;
@@ -48,10 +49,16 @@ class WarehouseStockService
             ->exists();
     }
 
-    /** Solde du magasin en contenants (sacs), kg et par unité réelle. */
+    /** Mouvements qui ne comptent pas dans le stock officiel (circuit de vérification). */
+    private const STATUTS_HORS_STOCK_OFFICIEL = ['en_attente', 'rejetee', 'anomalie', 'rejected'];
+
+    /** Solde officiel du magasin : mouvements vérifiés uniquement. */
     public function balance(int $warehouseId): array
     {
         $movements = StockMovement::where('warehouse_id', $warehouseId)
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhereNotIn('status', self::STATUTS_HORS_STOCK_OFFICIEL);
+            })
             ->get(['type', 'quantity', 'quantity_before', 'quantity_after', 'reason']);
 
         $sacs = 0;
@@ -178,6 +185,9 @@ class WarehouseStockService
             return ['ok' => false, 'message' => $result['error'], 'status' => 422];
         }
 
+        $this->auditMovement($user, 'stock_movement.create', $result['movement'],
+            "Mouvement {$type} de {$sacs} contenants sur le magasin #{$warehouseId} (réf. {$result['ref']})");
+
         return [
             'ok' => true,
             'message' => 'Mouvement enregistré avec succès.',
@@ -299,6 +309,9 @@ class WarehouseStockService
             return ['ok' => false, 'message' => 'Erreur transfert : ' . $e->getMessage(), 'status' => 500];
         }
 
+        $this->auditMovement($user, 'stock_movement.transfer', $movementSource,
+            "Transfert {$numeroTransfert} : {$sacs} contenants de #{$warehouseId} vers #{$destId} (réf. {$ref})");
+
         return [
             'ok' => true,
             'message' => 'Transfert effectué avec succès.',
@@ -358,6 +371,9 @@ class WarehouseStockService
             return ['ok' => false, 'message' => 'Erreur inventaire : ' . $e->getMessage(), 'status' => 500];
         }
 
+        $this->auditMovement($user, 'stock_movement.inventory', $movement,
+            "Inventaire physique sur le magasin #{$warehouseId} : théorique {$theoretical}, réel {$actual} (réf. {$ref})");
+
         return [
             'ok' => true,
             'message' => 'Inventaire enregistré.',
@@ -373,6 +389,9 @@ class WarehouseStockService
     public function stockStatus(int $warehouseId): array
     {
         $movements = StockMovement::where('warehouse_id', $warehouseId)
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhereNotIn('status', self::STATUTS_HORS_STOCK_OFFICIEL);
+            })
             ->get(['type', 'quantity', 'quantity_before', 'quantity_after', 'reason', 'metadata', 'stock_id']);
 
         $stockByProduct = [];
@@ -744,6 +763,12 @@ class WarehouseStockService
             : null;
     }
 
+    /** Variation signée d'un mouvement (entrée +, sortie -, ajustement = écart). */
+    public function signedDelta(StockMovement $m): float
+    {
+        return $this->signedQuantity($m);
+    }
+
     private function signedQuantity(StockMovement $m): float
     {
         switch ($m->type) {
@@ -815,6 +840,30 @@ class WarehouseStockService
             }
         }
         return null;
+    }
+
+    /** Journalise un mouvement dans audit_logs (traçabilité complète). */
+    private function auditMovement(User $user, string $action, StockMovement $movement, string $description): void
+    {
+        try {
+            AuditLog::create([
+                'user_id' => $user->id,
+                'action' => $action,
+                'level' => 'info',
+                'status' => 'success',
+                'model_type' => StockMovement::class,
+                'model_id' => $movement->id,
+                'description' => $description,
+                'data' => [
+                    'reference' => $movement->reference,
+                    'warehouse_id' => $movement->warehouse_id,
+                    'type' => $movement->type,
+                    'quantity' => $movement->quantity,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::warning('Audit mouvement échoué : ' . $e->getMessage());
+        }
     }
 
     private function movementTypeLabel($type): string

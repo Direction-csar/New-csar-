@@ -92,6 +92,7 @@ class StockStatsServiceTest extends TestCase
             $t->text('metadata')->nullable();
             $t->unsignedBigInteger('created_by')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
     }
 

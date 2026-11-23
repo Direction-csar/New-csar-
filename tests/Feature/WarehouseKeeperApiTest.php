@@ -151,6 +151,7 @@ class WarehouseKeeperApiTest extends TestCase
             $t->unsignedBigInteger('public_request_id')->nullable();
             $t->unsignedBigInteger('request_mission_id')->nullable();
             $t->timestamps();
+            $t->softDeletes();
         });
 
         Schema::create('public_requests', function (Blueprint $t) {
