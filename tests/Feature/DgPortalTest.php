@@ -60,6 +60,25 @@ class DgPortalTest extends TestCase
         return $dg;
     }
 
+    public function test_dg_sees_real_time_stock_situation(): void
+    {
+        $this->actingAsDg();
+        $this->mock(\App\Services\Magasin\WarehouseStockService::class, function ($m) {
+            $m->shouldReceive('situation')->andReturn([
+                'generated_at' => '23/11/2026 10:00:00',
+                'warehouses' => [['id' => 1, 'name' => 'Magasin Central Dakar', 'region' => 'Dakar', 'total_kg' => 3250, 'total_l' => 0,
+                    'last_movement_at' => null, 'products' => [['name' => 'Sucre', 'format' => 25, 'unit' => 'kg', 'contenants' => 130, 'quantite' => 3250]]]],
+                'totals' => [['name' => 'Sucre', 'unit' => 'kg', 'quantite' => 3250, 'contenants' => 130]],
+                'recent' => [],
+            ]);
+        });
+
+        $this->get(route('dg.situation-stocks.index'))->assertOk()->assertSee('Situation des stocks')->assertSee('Magasin Central Dakar');
+        $this->getJson(route('dg.situation-stocks.data'))->assertOk()
+            ->assertJsonPath('warehouses.0.products.0.quantite', 3250)
+            ->assertJsonPath('totals.0.name', 'Sucre');
+    }
+
     public function test_list_displays_real_subject_urgency_and_workflow_label(): void
     {
         $this->actingAsDg();

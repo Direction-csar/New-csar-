@@ -242,4 +242,62 @@ class MagasinierPortalTest extends TestCase
         $this->actingAs($this->magasinier, 'magasinier');
         $this->get(route('magasinier.warehouses.show', $other->id))->assertForbidden();
     }
+
+    private function importerSituation(): array
+    {
+        Warehouse::create(['name' => 'Complexe céréalier de Thiès', 'region' => 'Thiès', 'capacity' => 1, 'current_stock' => 0, 'status' => 'active', 'is_active' => true]);
+        return app(\App\Services\Magasin\StockSituationImporter::class)->run(true);
+    }
+
+    public function test_real_stock_situation_import_is_exact_and_idempotent(): void
+    {
+        \App\Models\Product::create(['name' => 'Riz Vallée', 'unit' => 'kg', 'category' => 'Céréales', 'is_active' => 1]);
+        // Ancienne donnée de test à remettre à zéro (historique conservé).
+        StockMovement::create(['warehouse_id' => $this->warehouse->id, 'type' => 'entry', 'quantity' => 10,
+            'quantity_before' => 0, 'quantity_after' => 10, 'reason' => 'Riz brisé [25kg] — test', 'reference' => 'OLD-1']);
+
+        $report = $this->importerSituation();
+        $this->assertContains('appliqué', array_column($report, 'status'));
+
+        $svc = app(\App\Services\Magasin\WarehouseStockService::class);
+        $dakar = collect($svc->stockStatus($this->warehouse->id)['products'])->keyBy(fn ($p) => $p['product_name'] . '|' . $p['format_kg']);
+        $this->assertEquals(692, $dakar['Riz Vallée|50']['total_sacs']);
+        $this->assertEquals(34600, $dakar['Riz Vallée|50']['total_kg']);
+        $this->assertEquals(28480, $dakar['Huile|20']['total_kg']);
+        $this->assertEquals(130, $dakar['Sucre|25']['total_sacs']);
+        $this->assertEquals(3080, $dakar['Niébé|5']['total_kg']);
+        $this->assertEquals(2595 + 10, $dakar['Farine|15']['total_kg'] + $dakar['Farine|1']['total_kg']);
+        $this->assertEquals(0, $dakar['Riz brisé|25']['total_sacs'], 'ancien stock de test remis à zéro');
+
+        $thies = Warehouse::where('region', 'Thiès')->first();
+        $t = collect($svc->stockStatus($thies->id)['products'])->keyBy('product_name');
+        $this->assertEquals(150000, $t['Riz Vallée']['total_kg']);
+        $this->assertEquals(720, $t['Niébé']['total_kg']);
+
+        // Idempotent : une 2e exécution ne recrée rien.
+        $before = StockMovement::count();
+        app(\App\Services\Magasin\StockSituationImporter::class)->run(true);
+        $this->assertSame($before, StockMovement::count());
+
+        // Situation DG temps réel : totaux par produit sur tous les magasins.
+        $situation = $svc->situation();
+        $riz = collect($situation['totals'])->firstWhere('name', 'Riz Vallée');
+        $this->assertEquals(184600, $riz['quantite']);
+        $this->assertNotEmpty($situation['recent']);
+    }
+
+    public function test_exit_is_checked_against_the_real_stock_of_the_product(): void
+    {
+        $this->importerSituation();
+        $this->actingAs($this->magasinier, 'magasinier');
+        $base = ['movement_date' => '2026-11-23', 'label' => 'Distribution', 'product' => 'Sucre', 'format' => 25, 'movement_type' => 'exit', 'kg' => 25];
+
+        // 131 sacs de sucre alors qu'il y en a 130 (même si le riz est abondant) : refusé.
+        $this->post(route('magasinier.mouvements.store', $this->warehouse->id), $base + ['sacs' => 131])->assertSessionHas('error');
+        $this->post(route('magasinier.mouvements.store', $this->warehouse->id), $base + ['sacs' => 30])->assertRedirect();
+
+        $svc = app(\App\Services\Magasin\WarehouseStockService::class);
+        $sucre = collect($svc->stockStatus($this->warehouse->id)['products'])->firstWhere('product_name', 'Sucre');
+        $this->assertEquals(100, $sucre['total_sacs']);
+    }
 }

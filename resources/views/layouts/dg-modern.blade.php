@@ -614,6 +614,13 @@
                 </div>
 
                 <div class="menu-item">
+                    <a href="{{ route('dg.situation-stocks.index') }}" class="menu-link {{ request()->routeIs('dg.situation-stocks.*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Situation des stocks</span>
+                    </a>
+                </div>
+
+                <div class="menu-item">
                     <a href="{{ route('dg.stocks.index') }}" class="menu-link {{ request()->routeIs('dg.stocks.*') ? 'active' : '' }}">
                         <i class="fas fa-boxes"></i>
                         <span>Stocks</span>

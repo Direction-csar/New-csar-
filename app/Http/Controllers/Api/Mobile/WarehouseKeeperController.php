@@ -165,6 +165,9 @@ class WarehouseKeeperController extends Controller
                             'message' => 'Solde insuffisant. Disponible : ' . $balance['sacs'] . ' contenants'
                         ], 422));
                     }
+                    if ($manque = app(\App\Services\Magasin\WarehouseStockService::class)->productShortage((int) $request->warehouse_id, (string) $request->label, (float) $sacs)) {
+                        abort(response()->json(['message' => $manque], 422));
+                    }
                 }
 
                 // Réutiliser la référence client (idempotence) sinon en générer une
@@ -318,6 +321,9 @@ class WarehouseKeeperController extends Controller
                     } else {
                         if ($data['sacs'] > $balance['sacs']) {
                             throw new \RuntimeException('Solde insuffisant (' . $balance['sacs'] . ')');
+                        }
+                        if ($manque = app(\App\Services\Magasin\WarehouseStockService::class)->productShortage((int) $data['warehouse_id'], (string) $data['label'], (float) $data['sacs'])) {
+                            throw new \RuntimeException($manque);
                         }
                         $newBalanceSacs -= $data['sacs'];
                         $newBalanceKg   -= $data['kg'];

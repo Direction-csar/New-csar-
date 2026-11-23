@@ -114,6 +114,9 @@ class WarehouseStockService
                     if ($sacs > $balance['sacs']) {
                         return ['error' => 'Solde insuffisant. Disponible : ' . $balance['sacs'] . ' contenants'];
                     }
+                    if ($manque = $this->productShortage($warehouseId, (string) $data['label'], $sacs)) {
+                        return ['error' => $manque];
+                    }
                 }
 
                 $ref = $clientRef ?: 'STK-' . strtoupper(Str::random(8));
@@ -224,6 +227,10 @@ class WarehouseStockService
             if ($sacs > $balanceSource['sacs']) {
                 DB::rollBack();
                 return ['ok' => false, 'message' => 'Solde insuffisant pour le transfert. Disponible : ' . $balanceSource['sacs'] . ' contenants', 'status' => 422];
+            }
+            if ($manque = $this->productShortage($warehouseId, (string) $data['label'], $sacs)) {
+                DB::rollBack();
+                return ['ok' => false, 'message' => $manque, 'status' => 422];
             }
 
             $newBalanceSource = $balanceSource['sacs'] - $sacs;
@@ -455,6 +462,52 @@ class WarehouseStockService
         ];
     }
 
+    /**
+     * Situation temps réel de tous les magasins (même source que le portail magasinier et l'APK).
+     *
+     * @return array{generated_at: string, warehouses: list<array>, totals: list<array>, recent: list<array>}
+     */
+    public function situation(): array
+    {
+        $warehouses = [];
+        $totals = [];
+        foreach (Warehouse::where('is_active', true)->orderBy('region')->orderBy('name')->get() as $w) {
+            $products = [];
+            foreach ($this->stockStatus($w->id)['products'] as $p) {
+                if ($p['total_sacs'] <= 0) {
+                    continue;
+                }
+                $unit = $p['unit'] === 'L' ? 'L' : 'kg';
+                $products[] = ['name' => $p['product_name'], 'format' => (int) $p['format_kg'], 'unit' => $unit,
+                    'contenants' => (float) $p['total_sacs'], 'quantite' => (float) $p['total_kg']];
+                $key = $p['product_name'] . '|' . $unit;
+                $totals[$key] ??= ['name' => $p['product_name'], 'unit' => $unit, 'quantite' => 0.0, 'contenants' => 0.0];
+                $totals[$key]['quantite'] += (float) $p['total_kg'];
+                $totals[$key]['contenants'] += (float) $p['total_sacs'];
+            }
+            $last = StockMovement::where('warehouse_id', $w->id)->latest('id')->first();
+            $warehouses[] = [
+                'id' => $w->id, 'name' => $w->name, 'region' => $w->region,
+                'products' => $products,
+                'total_kg' => array_sum(array_map(fn ($x) => $x['unit'] === 'kg' ? $x['quantite'] : 0, $products)),
+                'total_l' => array_sum(array_map(fn ($x) => $x['unit'] === 'L' ? $x['quantite'] : 0, $products)),
+                'last_movement_at' => $last?->created_at?->format('d/m/Y H:i'),
+            ];
+        }
+
+        $recent = StockMovement::with('warehouse:id,name')->latest('id')->limit(12)->get()->map(fn ($m) => [
+            'date' => $m->created_at?->format('d/m/Y H:i'),
+            'warehouse' => $m->warehouse?->name,
+            'type' => $this->movementTypeLabel($m->type),
+            'reason' => $m->reason,
+            'quantity' => (float) $m->quantity,
+        ])->all();
+
+        usort($totals, fn ($a, $b) => strcmp($a['name'], $b['name']));
+
+        return ['generated_at' => now()->format('d/m/Y H:i:s'), 'warehouses' => $warehouses, 'totals' => array_values($totals), 'recent' => $recent];
+    }
+
     /** Produits autorisés + formats de conditionnement. */
     public function products(): array
     {
@@ -664,6 +717,32 @@ class WarehouseStockService
     // ------------------------------------------------------------------
     // Helpers privés (miroir de WarehouseKeeperController)
     // ------------------------------------------------------------------
+
+    /**
+     * Vérifie la sortie contre le stock RÉEL du produit (et de son format) :
+     * on ne peut pas sortir du sucre avec le stock de riz.
+     * Retourne un message d'erreur, ou null si le libellé n'indique pas de produit/format ou si le stock suffit.
+     */
+    public function productShortage(int $warehouseId, string $label, float $sacs): ?string
+    {
+        if (!preg_match('/^(.+?)\s*\[(\d+)\s*(kg|L|litres?)\]/i', $label, $m)) {
+            return null;
+        }
+        $norm = fn ($s) => mb_strtolower(\Illuminate\Support\Str::ascii(trim((string) $s)));
+        $name = trim($m[1]);
+        $format = (int) $m[2];
+        $available = 0.0;
+        foreach ($this->stockStatus($warehouseId)['products'] as $p) {
+            if ($norm($p['product_name']) === $norm($name) && (int) $p['format_kg'] === $format) {
+                $available = (float) $p['total_sacs'];
+                break;
+            }
+        }
+
+        return $sacs > $available
+            ? sprintf('Stock insuffisant pour %s [%d%s]. Disponible : %s contenants', $name, $format, strtolower($m[3]) === 'kg' ? 'kg' : 'L', rtrim(rtrim(number_format($available, 2, '.', ''), '0'), '.'))
+            : null;
+    }
 
     private function signedQuantity(StockMovement $m): float
     {

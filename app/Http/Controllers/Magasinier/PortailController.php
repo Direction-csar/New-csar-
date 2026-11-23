@@ -135,6 +135,7 @@ class PortailController extends Controller
     {
         return view('magasinier.transferts.create', [ 'direction' => 'magasinier', 'directionLabel' => 'Magasin & Gestion des stocks' ] + [
             'warehouses' => $this->stock->accessibleWarehouses($this->user()),
+            'products' => $this->stock->products(),
         ]);
     }
 
@@ -144,11 +145,19 @@ class PortailController extends Controller
             'warehouse_id' => 'required|exists:warehouses,id',
             'destination_warehouse_id' => 'required|exists:warehouses,id|different:warehouse_id',
             'movement_date' => 'required|date',
-            'label' => 'required|string|max:255',
-            'sacs' => 'required|numeric|min:1',
-            'kg' => 'required|numeric|min:1',
+            'label' => 'required|string|max:200',
+            'product' => 'required|string|max:100',
+            'format' => 'required|numeric|min:0.01',
+            'sacs' => 'required|numeric|min:0.01',
+            'kg' => 'required|numeric|min:0.01',
             'observation' => 'nullable|string|max:1000',
         ]);
+
+        $produit = collect($this->stock->products())->firstWhere('name', $data['product']);
+        abort_unless($produit, 422, 'Produit inconnu.');
+        $format = rtrim(rtrim(number_format((float) $data['format'], 2, '.', ''), '0'), '.');
+        $data['label'] = "{$produit['name']} [{$format}{$produit['unit']}] — {$data['label']}";
+        unset($data['product'], $data['format']);
 
         $result = $this->stock->recordTransfer($this->user(), $data);
 

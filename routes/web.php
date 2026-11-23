@@ -454,6 +454,8 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::get('/warehouses/{id}', [App\Http\Controllers\DG\WarehouseController::class, 'show'])->name('warehouses.show');
 
         // Consultation des stocks (lecture seule)
+        Route::get('/situation-stocks', [App\Http\Controllers\DG\StockSituationController::class, 'index'])->name('situation-stocks.index');
+        Route::get('/situation-stocks/data', [App\Http\Controllers\DG\StockSituationController::class, 'data'])->name('situation-stocks.data');
         Route::get('/stocks', [App\Http\Controllers\DG\StockController::class, 'index'])->name('stocks.index');
         Route::get('/stocks/{id}', [App\Http\Controllers\DG\StockController::class, 'show'])->name('stocks.show');
 
