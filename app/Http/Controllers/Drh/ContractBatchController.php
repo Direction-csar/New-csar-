@@ -94,7 +94,7 @@ class ContractBatchController extends Controller
             return back()->with('error', "Aucun contrat n'a pu être généré.");
         }
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($this->contracts->combinedHtml($documents, $pages, true))->setPaper('a4', 'portrait');
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($this->contracts->combinedHtml($documents, $pages))->setPaper('a4', 'portrait');
         $suffixe = $pages === 'first' ? '-page1' : '';
 
         return response($pdf->output(), 200, [

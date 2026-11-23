@@ -248,7 +248,7 @@ class ContractService
      *
      * @param 'all'|'first' $pages 'first' : uniquement la page 1 de chaque contrat (sans la 2e page).
      */
-    public function combinedHtml(Collection $documents, string $pages = 'all', bool $printerSafe = false): string
+    public function combinedHtml(Collection $documents, string $pages = 'all'): string
     {
         $style = '';
         $body = '';
@@ -272,11 +272,7 @@ class ContractService
             $body .= ($body === '' ? '' : '<div style="page-break-before: always;"></div>') . $content;
         }
 
-        // Impression directe (clé USB) : polices standard du PDF (Times), non embarquées,
-        // que toutes les imprimantes savent traiter (les polices TrueType embarquées sont souvent rejetées).
-        $safe = $printerSafe ? ' body, body * { font-family: "Times New Roman", Times, serif !important; }' : '';
-
-        return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $style . $safe . '</style></head><body>' . $body . '</body></html>';
+        return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $style . '</style></head><body>' . $body . '</body></html>';
     }
 
     private function store(Personnel $agent, string $type, array $data, int $version, string $statut, ?int $userId): RhDocument

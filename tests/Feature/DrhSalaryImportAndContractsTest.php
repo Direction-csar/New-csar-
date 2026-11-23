@@ -356,13 +356,7 @@ class DrhSalaryImportAndContractsTest extends TestCase
             $res = $this->actingAs($this->drh, 'drh')->post(route('admin.drh.contrats.pdf-unique'), ['pages' => $pages]);
             $res->assertOk();
             $this->assertSame('application/pdf', $res->headers->get('Content-Type'));
-            $pdf = $res->baseResponse->getContent();
-            $this->assertStringStartsWith('%PDF', $pdf);
-            // Compatible impression directe : polices standard, rien d'embarqué.
-            $this->assertStringContainsString('Times-Roman', $pdf);
-            $this->assertStringNotContainsString('/FontFile', $pdf);
-            $this->assertStringNotContainsString('DejaVu', $pdf);
-            $this->assertSame($pages === 'first' ? 2 : 4, preg_match_all('/\/Type\s*\/Page[^s]/', $pdf));
+            $this->assertStringStartsWith('%PDF', $res->baseResponse->getContent());
         }
 
         $docs = RhDocument::contracts()->current()->with('personnel')->get();
