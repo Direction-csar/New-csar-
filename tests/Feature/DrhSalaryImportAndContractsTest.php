@@ -518,7 +518,7 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->agent('099011', 'Moussa DIOP', ['filiation' => 'De Mayoro et Astou WADE']);
         $this->agent('202102', 'Souadou KA', ['nombre_enfants' => 3]);
         $this->agent('020143', 'Mohamed Sileye DIOP');
-        $this->agent('007020', 'Babou THIAM');
+        $this->agent('007020', 'Babou THIAM', ['filiation' => 'De Ousmane et Volimata FAYE']);
         $this->agent('202502', 'Ousmane THIAM', ['lieu_naissance' => 'Paoscoto']);
         $this->agent('020078', 'Yandé NDIAYE', ['formations_professionnelles' => "d'un Master en Finance publique"]);
         $this->agent('202202', 'Soumaïla KEITA', ['formations_professionnelles' => "d'un Master en Prévention et Gestion des Risques Agricoles liés à la Sécurité"]);
@@ -557,6 +557,7 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertStringContainsString('Risques liés à la Sécurité Alimentaire', $p('202202')->formations_professionnelles);
         $this->assertStringNotContainsString('Agricoles', $p('202202')->formations_professionnelles);
         $this->assertSame(2, (int) $p('000598')->nombre_enfants);
+        $this->assertSame('De Ousmane et Wolimata FAYE', $p('007020')->filiation);
         $this->assertSame('Belihel, commune de Dahra', $p('202106')->lieu_naissance);
         $this->assertSame('De Amadou Tidiane et Ndickou WADE', $p('098703')->filiation);
         $this->assertStringContainsString('Médina Course', $p('098703')->adresse_complete);
