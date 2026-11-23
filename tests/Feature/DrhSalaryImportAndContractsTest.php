@@ -529,11 +529,12 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->agent('098703', 'Ibrahima DIOP');
         $this->agent('098721', 'Sidate BABOU');
         $this->agent('098716', 'Mame Cor NDOUR', ['numero_cni' => '17781198401957']);
+        $this->agent('202301', 'Mame Libass Laye FAYE', ['numero_cni' => '190820020026']);
         $this->agent('202602', 'Mohamed SOW');
         $this->agent('202503', 'Lamine Séye DANFA');
 
         $lines = file(database_path('seeders/fiches_2026.csv'));
-        $keep = ['202606', '099011', '202102', '020143', '007020', '202502', '020078', '202202', '000598', '099022', '202602', '202503', '000633', '202106', '098703', '098721', '098716'];
+        $keep = ['202606', '099011', '202102', '020143', '007020', '202502', '020078', '202202', '000598', '099022', '202602', '202503', '000633', '202106', '098703', '098721', '098716', '202301'];
         $csv = tempnam(sys_get_temp_dir(), 'fiches');
         file_put_contents($csv, $lines[0] . implode('', array_filter(
             array_slice($lines, 1), fn ($l) => in_array(str_getcsv($l, ';')[4] ?? '', $keep, true)
@@ -561,6 +562,7 @@ class DrhSalaryImportAndContractsTest extends TestCase
         $this->assertStringContainsString('Médina Course', $p('098703')->adresse_complete);
         $this->assertSame('De Beck et Amy FALL', $p('098721')->filiation);
         $this->assertSame('1768198401957', $p('098716')->numero_cni);
+        $this->assertSame('1908200200261', $p('202301')->numero_cni);
         $this->assertSame('De Pathé et Gnilane SARR', $p('000633')->filiation);
         $this->assertSame('Gnilane SARR', app(\App\Services\Drh\AgentDocumentData::class)->defaults($p('000633'))['mere']);
         $this->assertStringContainsString('Master en Sciences et Techniques des Ressources Humaines', $p('099022')->formations_professionnelles);
