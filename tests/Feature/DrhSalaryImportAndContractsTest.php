@@ -578,13 +578,13 @@ class DrhSalaryImportAndContractsTest extends TestCase
             $html = $render($m);
             $this->assertStringContainsString('AVENANT AU CONTRAT DE TRAVAIL', $html);
             $this->assertStringContainsString('A DUREE INDETERMINEE', $html);
-            $this->assertStringContainsString('en sa qualité de Directrice générale', $html);
+            $this->assertStringContainsString('en sa qualité de Directeur Général', $html);
         }
         foreach (['202609', '202608', '202610', '202606'] as $m) {
             $html = $render($m);
             $this->assertStringNotContainsString('AVENANT', $html);
             $this->assertStringContainsString('CONTRAT DE TRAVAIL', $html);
-            $this->assertStringContainsString('en sa qualité de Directrice générale', $html);
+            $this->assertStringContainsString('en sa qualité de Directeur Général', $html);
         }
     }
 
