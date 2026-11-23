@@ -15,11 +15,30 @@
                     <span class="badge bg-success ms-2" id="live">● en direct (actualisation toutes les 20 s)</span>
                 </p>
             </div>
-            <button class="btn btn-primary-modern btn-modern btn-sm" onclick="rafraichir()"><i class="fas fa-sync-alt me-1"></i>Actualiser</button>
+            <div class="d-flex gap-2">
+                <a href="{{ route('dg.situation-stocks.export-csv') }}" class="btn btn-outline-success btn-sm"><i class="fas fa-file-csv me-1"></i>CSV</a>
+                <a href="{{ route('dg.situation-stocks.export-pdf') }}" class="btn btn-outline-danger btn-sm"><i class="fas fa-file-pdf me-1"></i>PDF</a>
+                <a href="{{ route('dg.stock-operations.index') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-dolly me-1"></i>Opérations</a>
+                <button class="btn btn-primary-modern btn-modern btn-sm" onclick="rafraichir()"><i class="fas fa-sync-alt me-1"></i>Actualiser</button>
+            </div>
         </div>
     </div>
 
     <div class="row g-3 mb-3" id="totaux"></div>
+
+    <div class="card-modern p-3 mb-3" id="bloc-attente" style="display:none">
+        <h5 class="fw-bold mb-3"><i class="fas fa-hourglass-half me-2 text-warning"></i>En attente de vérification</h5>
+        <div class="d-flex gap-4 mb-2">
+            <div>Opérations en cours : <strong id="ops-en-cours">0</strong></div>
+            <div>Mouvements en attente : <strong id="mvmts-attente">0</strong></div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-sm" id="table-attente">
+                <thead><tr><th>Date</th><th>Magasin</th><th>Opération</th><th>Libellé</th><th class="text-end">Contenants</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 
     <div class="card-modern p-3 mb-3">
         <h5 class="fw-bold mb-3"><i class="fas fa-warehouse me-2 text-primary"></i>Stock par magasin</h5>
@@ -64,6 +83,14 @@
 
         document.querySelector('#table-recents tbody').innerHTML = d.recent.map(m => `<tr>
             <td class="small">${esc(m.date)}</td><td>${esc(m.warehouse)}</td><td>${esc(m.type)}</td><td>${esc(m.reason)}</td><td class="text-end">${fmt(m.quantity)}</td></tr>`).join('');
+
+        const ops = d.operations || {en_cours: 0, mouvements_en_attente: 0, derniers_en_attente: []};
+        document.getElementById('ops-en-cours').textContent = ops.en_cours;
+        document.getElementById('mvmts-attente').textContent = ops.mouvements_en_attente;
+        const bloc = document.getElementById('bloc-attente');
+        bloc.style.display = (ops.en_cours > 0 || ops.mouvements_en_attente > 0) ? '' : 'none';
+        document.querySelector('#table-attente tbody').innerHTML = (ops.dernier_en_attente || ops.derniers_en_attente || []).map(m => `<tr>
+            <td class="small">${esc(m.date)}</td><td>${esc(m.warehouse)}</td><td>${esc(m.operation || '—')}</td><td>${esc(m.reason)}</td><td class="text-end">${fmt(m.quantity)}</td></tr>`).join('');
     }
 
     window.rafraichir = function () {

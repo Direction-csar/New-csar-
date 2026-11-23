@@ -68,7 +68,7 @@ class StockOperationsCircuitTest extends TestCase
 
     private function createSchema(): void
     {
-        foreach (['stock_operations', 'stock_movements', 'warehouses', 'products', 'stocks', 'users', 'audit_logs', 'notifications'] as $t) {
+        foreach (['stock_operations', 'stock_movements', 'warehouses', 'products', 'stocks', 'users', 'audit_logs', 'notifications', 'personal_access_tokens'] as $t) {
             Schema::dropIfExists($t);
         }
 
@@ -197,6 +197,17 @@ class StockOperationsCircuitTest extends TestCase
             $t->json('new_values')->nullable();
             $t->string('ip_address')->nullable();
             $t->string('user_agent')->nullable();
+            $t->timestamps();
+        });
+
+        Schema::create('personal_access_tokens', function (Blueprint $t) {
+            $t->id();
+            $t->morphs('tokenable');
+            $t->string('name');
+            $t->string('token', 64)->unique();
+            $t->text('abilities')->nullable();
+            $t->timestamp('last_used_at')->nullable();
+            $t->timestamp('expires_at')->nullable();
             $t->timestamps();
         });
 
@@ -406,6 +417,81 @@ class StockOperationsCircuitTest extends TestCase
         $r = $svc->execute($this->magasinier, $op->id, ['quantity_executed' => 500]);
         $this->assertFalse($r['ok']);
         $this->assertStringContainsString('insuffisant', mb_strtolower($r['message']));
+    }
+
+    // ------------------------------------------------------------------
+    // API mobile (APK Inspecteur / APK Magasinier)
+    // ------------------------------------------------------------------
+    public function test_api_inspector_login_and_full_flow(): void
+    {
+        \Laravel\Sanctum\Sanctum::actingAs($this->inspecteur, ['inspector']);
+
+        // L'inspecteur ne voit que ses opérations affectées
+        $svc = app(\App\Services\Magasin\StockOperationService::class);
+        $op = $this->createOperationViaService();
+        $svc->assignInspector($this->dtl, $op->id, $this->inspecteur->id);
+
+        $this->getJson('/api/warehouse/v1/operations')->assertOk()
+            ->assertJsonCount(1, 'operations');
+        $this->getJson("/api/warehouse/v1/operations/{$op->id}")->assertOk();
+
+        // Transmission au magasinier via API
+        $this->postJson("/api/warehouse/v1/operations/{$op->id}/transmit", [
+            'assigned_magasinier_id' => $this->magasinier->id,
+            'inspector_comment' => 'From APK',
+        ])->assertOk()->assertJsonPath('operation.status', 'transmise_magasinier');
+    }
+
+    public function test_api_magasinier_execute_and_inspector_verify(): void
+    {
+        $svc = app(\App\Services\Magasin\StockOperationService::class);
+        $op = $this->createOperationViaService();
+        $svc->assignInspector($this->dtl, $op->id, $this->inspecteur->id);
+        $svc->transmitToMagasinier($this->inspecteur, $op->id, $this->magasinier->id);
+
+        // Magasinier exécute via API
+        \Laravel\Sanctum\Sanctum::actingAs($this->magasinier, ['warehouse']);
+        $this->getJson('/api/warehouse/v1/operations')->assertOk()
+            ->assertJsonCount(1, 'operations');
+        $this->postJson("/api/warehouse/v1/operations/{$op->id}/execute", [
+            'quantity_executed' => 10, 'quantity_executed_kg' => 500,
+        ])->assertOk()->assertJsonPath('operation.status', 'executee');
+
+        // Un rôle non autorisé ne peut pas exécuter
+        \Laravel\Sanctum\Sanctum::actingAs($this->inspecteur, ['inspector']);
+        $this->postJson("/api/warehouse/v1/operations/{$op->id}/execute", [
+            'quantity_executed' => 5,
+        ])->assertStatus(403);
+
+        // Inspecteur vérifie via API
+        $this->postJson("/api/warehouse/v1/operations/{$op->id}/verify", [
+            'inspector_comment' => 'OK terrain',
+            'latitude' => 14.69, 'longitude' => -17.44,
+        ])->assertOk()->assertJsonPath('operation.status', 'verifiee');
+
+        $stock = app(\App\Services\Magasin\WarehouseStockService::class);
+        $this->assertEquals(90, $stock->balance($this->warehouse->id)['sacs']);
+    }
+
+    public function test_api_inspector_login_endpoint(): void
+    {
+        // Inspecteur : login dédié OK
+        $this->postJson('/api/warehouse/v1/login/inspecteur', [
+            'email' => $this->inspecteur->email,
+            'password' => 'password123',
+        ])->assertOk()->assertJsonStructure(['token', 'user']);
+
+        // Magasinier refusé sur l'endpoint inspecteur
+        $this->postJson('/api/warehouse/v1/login/inspecteur', [
+            'email' => $this->magasinier->email,
+            'password' => 'password123',
+        ])->assertStatus(403);
+
+        // Inspecteur refusé sur l'endpoint magasinier
+        $this->postJson('/api/warehouse/v1/login', [
+            'email' => $this->inspecteur->email,
+            'password' => 'password123',
+        ])->assertStatus(403);
     }
 
     public function test_audit_trail_is_written(): void

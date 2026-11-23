@@ -52,6 +52,14 @@ class StockMovement extends Model
     ];
 
     /**
+     * Opération de stock à l'origine du mouvement (circuit DG→DTL→Inspecteur→Magasinier).
+     */
+    public function stockOperation()
+    {
+        return $this->belongsTo(StockOperation::class, 'stock_operation_id');
+    }
+
+    /**
      * Relation avec l'entrepôt
      */
     public function warehouse()

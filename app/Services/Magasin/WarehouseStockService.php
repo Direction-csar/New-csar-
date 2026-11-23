@@ -524,7 +524,36 @@ class WarehouseStockService
 
         usort($totals, fn ($a, $b) => strcmp($a['name'], $b['name']));
 
-        return ['generated_at' => now()->format('d/m/Y H:i:s'), 'warehouses' => $warehouses, 'totals' => array_values($totals), 'recent' => $recent];
+        // Circuit de vérification : opérations et mouvements en attente
+        // (tables absentes des schémas de test minimaux → ignorées)
+        $hasOps = \Illuminate\Support\Facades\Schema::hasTable('stock_operations');
+        $pendingOps = $hasOps ? \App\Models\StockOperation::whereIn('status', [
+            'soumise', 'affectee_inspecteur', 'transmise_magasinier', 'executee', 'anomalie',
+        ])->count() : 0;
+        $pendingMovements = StockMovement::whereIn('status', ['en_attente', 'anomalie'])->count();
+        $pendingList = $hasOps
+            ? StockMovement::with(['warehouse:id,name', 'creator:id,name', 'stockOperation:id,reference,status'])
+                ->where('status', 'en_attente')->latest('id')->limit(10)->get()
+                ->map(fn ($m) => [
+                    'date' => $m->created_at?->format('d/m/Y H:i'),
+                    'warehouse' => $m->warehouse?->name,
+                    'operation' => $m->stockOperation?->reference,
+                    'reason' => $m->reason,
+                    'quantity' => (float) $m->quantity,
+                ])->all()
+            : [];
+
+        return [
+            'generated_at' => now()->format('d/m/Y H:i:s'),
+            'warehouses' => $warehouses,
+            'totals' => array_values($totals),
+            'recent' => $recent,
+            'operations' => [
+                'en_cours' => $pendingOps,
+                'mouvements_en_attente' => $pendingMovements,
+                'derniers_en_attente' => $pendingList,
+            ],
+        ];
     }
 
     /** Produits autorisés + formats de conditionnement. */

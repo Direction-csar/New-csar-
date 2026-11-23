@@ -456,6 +456,8 @@ Route::prefix('dg')->name('dg.')->group(function () {
         // Consultation des stocks (lecture seule)
         Route::get('/situation-stocks', [App\Http\Controllers\DG\StockSituationController::class, 'index'])->name('situation-stocks.index');
         Route::get('/situation-stocks/data', [App\Http\Controllers\DG\StockSituationController::class, 'data'])->name('situation-stocks.data');
+        Route::get('/situation-stocks/export.csv', [App\Http\Controllers\DG\StockSituationController::class, 'exportCsv'])->name('situation-stocks.export-csv');
+        Route::get('/situation-stocks/export.pdf', [App\Http\Controllers\DG\StockSituationController::class, 'exportPdf'])->name('situation-stocks.export-pdf');
 
         // Circuit opérationnel des stocks : instructions DG → DTL → Inspecteur → Magasinier
         Route::get('/stock-operations', [App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
