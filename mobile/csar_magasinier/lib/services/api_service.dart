@@ -6,6 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/warehouse.dart';
 import '../models/product.dart';
 import '../models/mission.dart';
+import '../models/stock_operation.dart';
 
 class ApiService {
   static const String baseUrl = 'https://www.csar.sn/api/warehouse/v1';
@@ -268,6 +269,59 @@ class ApiService {
           .toList();
     }
     throw Exception('Erreur chargement missions');
+  }
+
+  // OPÉRATIONS DE STOCK (circuit DG → DTL → Inspecteur → Magasinier)
+  static Future<List<StockOperation>> getOperations({String? status}) async {
+    final token = await getToken();
+    final uri = Uri.parse('$baseUrl/operations').replace(
+      queryParameters: {if (status != null) 'status': status},
+    );
+    final response = await _get(uri, headers: _headers(token));
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data['operations'] as List)
+          .map((e) => StockOperation.fromJson(Map<String, dynamic>.from(e)))
+          .toList();
+    }
+    throw Exception('Erreur chargement opérations');
+  }
+
+  static Future<StockOperation> getOperation(int id) async {
+    final token = await getToken();
+    final response = await _get(
+      Uri.parse('$baseUrl/operations/$id'),
+      headers: _headers(token),
+    );
+    if (response.statusCode == 200) {
+      return StockOperation.fromJson(
+          Map<String, dynamic>.from(jsonDecode(response.body)['operation']));
+    }
+    throw Exception('Opération introuvable');
+  }
+
+  /// Enregistre l'opération réelle exécutée. Le mouvement reste
+  /// 'en_attente' jusqu'à la vérification de l'inspecteur.
+  /// `clientRef` garantit l'idempotence en cas de retry réseau.
+  static Future<Map<String, dynamic>> executeOperation(
+    int id,
+    Map<String, dynamic> data,
+  ) async {
+    final token = await getToken();
+    final response = await _post(
+      Uri.parse('$baseUrl/operations/$id/execute'),
+      headers: _headers(token),
+      body: jsonEncode(data),
+    );
+
+    if (response.statusCode == 200) {
+      return {'success': true, 'data': jsonDecode(response.body)};
+    }
+    return {
+      'success': false,
+      'message': jsonDecode(response.body)['message'] ?? 'Erreur exécution'
+    };
   }
 
   // Clôturer une mission avec justificatif (référence de mouvement sortie)

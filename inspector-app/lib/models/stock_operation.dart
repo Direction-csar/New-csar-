@@ -16,6 +16,7 @@ class StockOperation {
   final String? productUnit;
   final String? format;
   final double? quantityRequested;
+  final double? quantityRequestedKg;
   final double? quantityExecuted;
   final double? quantityExecutedKg;
   final String? dgInstruction;
@@ -46,6 +47,7 @@ class StockOperation {
     this.productUnit,
     this.format,
     this.quantityRequested,
+    this.quantityRequestedKg,
     this.quantityExecuted,
     this.quantityExecutedKg,
     this.dgInstruction,
@@ -73,14 +75,15 @@ class StockOperation {
         magasinier: j['magasinier'] as Map<String, dynamic>?,
         executor: j['executor'] as Map<String, dynamic>?,
         verifier: j['verifier'] as Map<String, dynamic>?,
-        productName: j['product_name'] as String?,
-        productUnit: j['product_unit'] as String?,
+        productName: j['produit'] as String?,
+        productUnit: j['unite'] as String?,
         format: j['format'] as String?,
         quantityRequested: _toDouble(j['quantity_requested']),
+        quantityRequestedKg: _toDouble(j['quantity_requested_kg']),
         quantityExecuted: _toDouble(j['quantity_executed']),
         quantityExecutedKg: _toDouble(j['quantity_executed_kg']),
-        dgInstruction: j['dg_instruction'] as String?,
-        dtlInstruction: j['dtl_instruction'] as String?,
+        dgInstruction: j['instructions'] as String?,
+        dtlInstruction: j['dtl_comment'] as String?,
         inspectorComment: j['inspector_comment'] as String?,
         observation: j['observation'] as String?,
         anomalyReport: j['anomaly_report'] as String?,

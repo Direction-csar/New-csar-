@@ -3,6 +3,7 @@ import 'dashboard_screen.dart';
 import 'stock_status_screen.dart';
 import 'movement_history_screen.dart';
 import 'missions_screen.dart';
+import 'operations_screen.dart';
 import 'profile_screen.dart';
 
 /// Coquille principale de l'application avec navigation basse :
@@ -20,6 +21,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
   final List<Widget> _tabs = const [
     DashboardScreen(),
     StockStatusScreen(),
+    OperationsScreen(),
     MissionsScreen(),
     MovementHistoryScreen(),
     ProfileScreen(),
@@ -42,9 +44,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
               children: [
                 _navItem(0, Icons.home, Icons.home_outlined, 'Accueil'),
                 _navItem(1, Icons.inventory_2, Icons.inventory_2_outlined, 'Stocks'),
-                _navItem(2, Icons.assignment, Icons.assignment_outlined, 'Missions'),
-                _navItem(3, Icons.swap_horiz, Icons.swap_horiz, 'Mouvements'),
-                _navItem(4, Icons.person, Icons.person_outline, 'Profil'),
+                _navItem(2, Icons.assignment_turned_in, Icons.assignment_turned_in_outlined, 'Opérations'),
+                _navItem(3, Icons.assignment, Icons.assignment_outlined, 'Missions'),
+                _navItem(4, Icons.swap_horiz, Icons.swap_horiz, 'Mouvements'),
+                _navItem(5, Icons.person, Icons.person_outline, 'Profil'),
               ],
             ),
           ),
