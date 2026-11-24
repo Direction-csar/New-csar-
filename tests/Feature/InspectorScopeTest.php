@@ -238,6 +238,69 @@ class InspectorScopeTest extends TestCase
         @unlink($csv);
     }
 
+    public function test_compte_desactive_ne_peut_plus_utiliser_les_api(): void
+    {
+        $token = $this->token($this->inspecteur);
+        $this->withToken($token)->getJson('/api/warehouse/v1/stock-ops/warehouses')->assertOk();
+
+        $this->inspecteur->forceFill(['is_active' => false])->save();
+        app('auth')->forgetGuards();
+
+        $this->withToken($token)->getJson('/api/warehouse/v1/stock-ops/warehouses')->assertStatus(403);
+        $this->postJson('/api/warehouse/v1/login/inspecteur', ['email' => $this->inspecteur->email, 'password' => 'password123'])
+            ->assertStatus(403);
+
+        $this->magasinier->forceFill(['is_active' => false])->save();
+        $this->postJson('/api/warehouse/v1/login', ['email' => $this->magasinier->email, 'password' => 'password123'])
+            ->assertStatus(403);
+    }
+
+    private function asManager(User $u)
+    {
+        return $this->withoutMiddleware([\App\Http\Middleware\DirectionPortalMiddleware::class])->actingAs($u);
+    }
+
+    public function test_dtl_cree_modifie_desactive_magasinier_avec_historique(): void
+    {
+        $r = $this->asManager($this->dtl)->post('/dtl/personnel-stock', [
+            'role' => 'magasinier', 'name' => 'Agent Reel', 'email' => 'agent.reel@csar.test',
+            'phone' => '770000001', 'warehouse_id' => $this->whB->id,
+        ]);
+        $r->assertSessionHas('generated_password');
+        $k = User::where('email', 'agent.reel@csar.test')->first();
+        $this->assertSame('magasinier', $k->role);
+        $this->assertSame($this->whB->id, (int) $k->warehouse_id);
+
+        // Changement de magasin historisé
+        $this->asManager($this->dtl)->put("/dtl/personnel-stock/{$k->id}", [
+            'name' => 'Agent Reel', 'email' => 'agent.reel@csar.test', 'phone' => '770000001', 'warehouse_id' => $this->whA->id,
+        ])->assertSessionHasNoErrors();
+        $this->assertSame($this->whA->id, (int) $k->fresh()->warehouse_id);
+        $this->assertDatabaseHas('audit_logs', ['action' => 'staff.update', 'model_id' => $k->id]);
+
+        // Désactivation : tokens révoqués, accès API coupé
+        $token = $this->token($k);
+        $this->asManager($this->dtl)->post("/dtl/personnel-stock/{$k->id}/toggle");
+        $this->assertFalse((bool) $k->fresh()->is_active);
+        $this->assertSame(0, $k->tokens()->count());
+        $this->assertDatabaseHas('audit_logs', ['action' => 'staff.deactivate', 'model_id' => $k->id]);
+        $this->assertNotNull(User::find($k->id));
+    }
+
+    public function test_gestion_personnel_refusee_aux_autres_roles_et_comptes_hors_perimetre(): void
+    {
+        $payload = ['role' => 'inspecteur', 'name' => 'X', 'email' => 'x@csar.test', 'phone' => '1'];
+        $this->asManager($this->inspecteur)->post('/dtl/personnel-stock', $payload)->assertForbidden();
+        $this->asManager($this->magasinier)->post('/dtl/personnel-stock', $payload)->assertForbidden();
+        $this->assertNull(User::where('email', 'x@csar.test')->first());
+
+        // La DTL ne peut pas modifier/désactiver un compte hors inspecteur/magasinier
+        $this->asManager($this->dtl)->post("/dtl/personnel-stock/{$this->dtl->id}/toggle")->assertForbidden();
+        $dg = $this->makeUser('dg');
+        $this->asManager($this->dtl)->put("/dtl/personnel-stock/{$dg->id}", ['name' => 'H', 'email' => 'h@csar.test', 'phone' => '1'])->assertForbidden();
+        $this->assertTrue((bool) $dg->fresh()->is_active);
+    }
+
     public function test_api_pending_movements_filtrees_par_perimetre(): void
     {
         $this->pendingMovement($this->whA->id, 'MVT-A-4');

@@ -289,6 +289,12 @@ $directionSlug = strtolower($direction);
             <span class="menu-text">Affectations inspecteurs</span>
         </a>
         @endif
+        @if(in_array($directionSlug, ['dtl', 'dg']) && Route::has($directionSlug . '.stock-staff.index'))
+        <a href="{{ route($directionSlug . '.stock-staff.index') }}" class="menu-link {{ str_contains($currentRoute, 'stock-staff') ? 'active' : '' }}">
+            <i class="fas fa-users-gear"></i>
+            <span class="menu-text">Personnel stock</span>
+        </a>
+        @endif
 
         @if($directionSlug === 'comptable')
             @if(Route::has('comptable.mouvements.index'))

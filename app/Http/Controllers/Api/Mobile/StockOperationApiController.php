@@ -39,6 +39,11 @@ class StockOperationApiController extends Controller
         }
 
         $user = \Illuminate\Support\Facades\Auth::guard('admin')->user();
+        if (!$user->is_active) {
+            \Illuminate\Support\Facades\Auth::guard('admin')->logout();
+            return response()->json(['message' => 'Compte désactivé.'], 403);
+        }
+
         if ($user->role !== 'inspecteur') {
             \Illuminate\Support\Facades\Auth::guard('admin')->logout();
             return response()->json(['message' => 'Accès réservé aux inspecteurs.'], 403);

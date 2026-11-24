@@ -21,6 +21,14 @@ Les noms, e-mails et téléphones des inspecteurs réels ne sont **pas** dans le
 
 Les 14 régions : Dakar, Thiès, Diourbel, Fatick, Kaolack, Kaffrine, Louga, Saint-Louis, Matam, Tambacounda, Kédougou, Kolda, Sédhiou, Ziguinchor.
 
+## 2bis. Administration des comptes (Admin / DG / DTL)
+
+Page **« Personnel stock »** (`/admin|dg|dtl/personnel-stock`) : créer, modifier, désactiver/réactiver inspecteurs et magasiniers, rattacher un magasinier à son magasin, avec **historique** (audit_logs `staff.*`, dont les changements de magasin). Les magasins des inspecteurs se gèrent dans « Affectations inspecteurs » (historique + révocation). Aucun compte n'est supprimé ; mot de passe initial généré et affiché une seule fois.
+
+**Faille corrigée** : un compte désactivé conservait l'accès API (token Sanctum encore valide, login non bloqué). Désormais : login refusé (403), middleware `EnsureActiveApiUser` sur toutes les routes API stock, tokens révoqués à la désactivation.
+
+**APK Inspecteur** : la liste des magasins affiche maintenant les magasiniers du magasin (APK recompilé, `flutter analyze` propre).
+
 ## 3. État en local (données de démo uniquement)
 
 | Région | Magasin | Magasinier | Inspecteur | État |
@@ -41,8 +49,8 @@ L'état **réel** (production) ne sera connu qu'après `stock:audit` / `stock:co
 
 ## 5. Tests
 
-- `InspectorScopeTest` : 18 tests (isolation, révocation, couverture 14 régions, magasiniers visibles de l'inspecteur, provisionnement simulation/apply/idempotence).
-- Suite complète : suite complète **487 passed, 1 skipped** (2 323 assertions), aucune régression.
+- `InspectorScopeTest` : 21 tests (dont compte désactivé, gestion du personnel, permissions par rôle) (isolation, révocation, couverture 14 régions, magasiniers visibles de l'inspecteur, provisionnement simulation/apply/idempotence).
+- Suite complète : suite complète **490 passed, 1 skipped** (2 343 assertions), aucune régression.
 
 ## 6. Points ouverts
 

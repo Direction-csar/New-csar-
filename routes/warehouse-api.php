@@ -13,7 +13,7 @@ Route::prefix('v1')->name('warehouse.api.v1.')->group(function () {
         ->middleware('throttle:5,1');
 
     // Routes protégées (token Sanctum)
-    Route::middleware('auth:sanctum')->group(function () {
+    Route::middleware(['auth:sanctum', \App\Http\Middleware\EnsureActiveApiUser::class])->group(function () {
         Route::get('/warehouses', [WarehouseKeeperController::class, 'getWarehouses'])->name('warehouses');
         Route::get('/warehouses/{id}/sheet', [WarehouseKeeperController::class, 'getStockSheet'])->name('sheet');
         Route::post('/movements', [WarehouseKeeperController::class, 'storeMovement'])->name('movements.store');

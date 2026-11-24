@@ -475,6 +475,10 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::get('/inspecteur-affectations', [App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'index'])->name('inspector-assignments.index');
         Route::post('/inspecteur-affectations', [App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'store'])->name('inspector-assignments.store');
         Route::delete('/inspecteur-affectations/{assignment}', [App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'revoke'])->name('inspector-assignments.revoke');
+        Route::get('/personnel-stock', [App\Http\Controllers\StockOperations\StockStaffController::class, 'index'])->name('stock-staff.index');
+        Route::post('/personnel-stock', [App\Http\Controllers\StockOperations\StockStaffController::class, 'store'])->name('stock-staff.store');
+        Route::put('/personnel-stock/{id}', [App\Http\Controllers\StockOperations\StockStaffController::class, 'update'])->name('stock-staff.update');
+        Route::post('/personnel-stock/{id}/toggle', [App\Http\Controllers\StockOperations\StockStaffController::class, 'toggle'])->name('stock-staff.toggle');
         Route::get('/stocks', [App\Http\Controllers\DG\StockController::class, 'index'])->name('stocks.index');
         Route::get('/stocks/{id}', [App\Http\Controllers\DG\StockController::class, 'show'])->name('stocks.show');
 
@@ -938,6 +942,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'index'])->name('inspector-assignments.index');
         Route::post('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'store'])->name('inspector-assignments.store');
         Route::delete('/inspecteur-affectations/{assignment}', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'revoke'])->name('inspector-assignments.revoke');
+        Route::get('/personnel-stock', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'index'])->name('stock-staff.index');
+        Route::post('/personnel-stock', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'store'])->name('stock-staff.store');
+        Route::put('/personnel-stock/{id}', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'update'])->name('stock-staff.update');
+        Route::post('/personnel-stock/{id}/toggle', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'toggle'])->name('stock-staff.toggle');
 
         // Messages
         // Routes messages déjà définies plus haut dans le groupe admin (lignes 454-459)
@@ -1482,6 +1490,10 @@ Route::middleware(['direction:dtl'])->prefix('dtl')->name('dtl.')->group(functio
     Route::get('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'index'])->name('inspector-assignments.index');
     Route::post('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'store'])->name('inspector-assignments.store');
     Route::delete('/inspecteur-affectations/{assignment}', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'revoke'])->name('inspector-assignments.revoke');
+    Route::get('/personnel-stock', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'index'])->name('stock-staff.index');
+    Route::post('/personnel-stock', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'store'])->name('stock-staff.store');
+    Route::put('/personnel-stock/{id}', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'update'])->name('stock-staff.update');
+    Route::post('/personnel-stock/{id}/toggle', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'toggle'])->name('stock-staff.toggle');
 });
 
 // === PORTAIL COMPTABLE DES MATIÈRES ===

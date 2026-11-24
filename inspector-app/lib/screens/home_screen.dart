@@ -184,10 +184,8 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ListTile(
               leading: const Icon(Icons.warehouse_outlined),
               title: Text((w['name'] ?? '') as String),
-              subtitle: Text([
-                w['region'],
-                w['city'],
-              ].whereType<String>().where((s) => s.isNotEmpty).join(' — ')),
+              subtitle: Text(_warehouseSubtitle(w)),
+              isThreeLine: true,
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.of(context).push(MaterialPageRoute(
                 builder: (_) => WarehouseStockScreen(warehouse: w),
@@ -197,6 +195,17 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     );
+  }
+
+  String _warehouseSubtitle(Map<String, dynamic> w) {
+    final place = [w['region'], w['city']]
+        .whereType<String>()
+        .where((s) => s.isNotEmpty)
+        .join(' — ');
+    final keepers = ((w['magasiniers'] as List?) ?? [])
+        .map((m) => (m as Map)['name'])
+        .join(', ');
+    return '$place\nMagasinier(s) : ${keepers.isEmpty ? 'aucun' : keepers}';
   }
 
   Widget _operationCard(StockOperation op) {

@@ -29,6 +29,11 @@ class WarehouseKeeperController extends Controller
 
         $user = Auth::guard('admin')->user();
 
+        if (!$user->is_active) {
+            \Illuminate\Support\Facades\Auth::guard('admin')->logout();
+            return response()->json(['message' => 'Compte désactivé.'], 403);
+        }
+
         // Accepter : magasinier, admin, super_admin
         if (!in_array($user->role, ['magasinier', 'admin', 'super_admin'])) {
             Auth::guard('admin')->logout();
