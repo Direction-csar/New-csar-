@@ -89,7 +89,7 @@
     function fillFormats() {
         const opt = prod.selectedOptions[0];
         fmt.innerHTML = '';
-        if (!opt || !opt.value) { fmt.disabled = true; fmt.innerHTML = '<option value="">— Choisir d'abord un produit —</option>'; unitLabel.textContent = 'kg / L'; return; }
+        if (!opt || !opt.value) { fmt.disabled = true; fmt.innerHTML = "<option value=''>— Choisir d'abord un produit —</option>"; unitLabel.textContent = 'kg / L'; return; }
         const unit = opt.dataset.unit, formats = JSON.parse(opt.dataset.formats || '[]');
         unitLabel.textContent = unit;
         formats.forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = f + ' ' + unit; if (String(f) === String(oldFormat)) o.selected = true; fmt.appendChild(o); });

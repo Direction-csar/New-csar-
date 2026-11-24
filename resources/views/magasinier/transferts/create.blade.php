@@ -31,7 +31,7 @@
                     <label class="form-label fw-semibold">Magasin destination <span class="text-danger">*</span></label>
                     <select name="destination_warehouse_id" class="form-select" required>
                         <option value="">— Choisir —</option>
-                        @foreach($warehouses as $w)
+                        @foreach($allWarehouses ?? $warehouses as $w)
                             <option value="{{ $w->id }}" {{ old('destination_warehouse_id') == $w->id ? 'selected' : '' }}>{{ $w->name }}</option>
                         @endforeach
                     </select>
@@ -93,7 +93,7 @@
     function fillFormats() {
         const opt = prod.selectedOptions[0];
         fmt.innerHTML = '';
-        if (!opt || !opt.value) { fmt.disabled = true; fmt.innerHTML = '<option value="">— Choisir d'abord un produit —</option>'; unitLabel.textContent = 'kg / L'; return; }
+        if (!opt || !opt.value) { fmt.disabled = true; fmt.innerHTML = "<option value=''>— Choisir d'abord un produit —</option>"; unitLabel.textContent = 'kg / L'; return; }
         const unit = opt.dataset.unit, formats = JSON.parse(opt.dataset.formats || '[]');
         unitLabel.textContent = unit;
         formats.forEach(f => { const o = document.createElement('option'); o.value = f; o.textContent = f + ' ' + unit; if (String(f) === String(oldFormat)) o.selected = true; fmt.appendChild(o); });

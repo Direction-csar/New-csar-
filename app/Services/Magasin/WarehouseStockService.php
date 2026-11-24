@@ -208,7 +208,10 @@ class WarehouseStockService
         $sacs = (float) $data['sacs'];
         $kg = (float) $data['kg'];
 
-        if (!$this->canAccess($user, $warehouseId) || !$this->canAccess($user, $destId)) {
+        // Seul le magasin source doit être accessible au déclarant :
+        // la réception est confirmée par le magasinier destinataire
+        // (confirmTransferReceipt vérifie son accès au magasin « in »).
+        if (!$this->canAccess($user, $warehouseId)) {
             return ['ok' => false, 'message' => 'Magasin non autorisé.', 'status' => 403];
         }
 

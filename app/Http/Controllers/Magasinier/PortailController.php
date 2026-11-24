@@ -135,6 +135,7 @@ class PortailController extends Controller
     {
         return view('magasinier.transferts.create', [ 'direction' => 'magasinier', 'directionLabel' => 'Magasin & Gestion des stocks' ] + [
             'warehouses' => $this->stock->accessibleWarehouses($this->user()),
+            'allWarehouses' => Warehouse::where('status', 'active')->orderBy('name')->get(),
             'products' => $this->stock->products(),
         ]);
     }

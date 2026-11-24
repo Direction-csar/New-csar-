@@ -127,6 +127,9 @@ class WarehouseKeeperController extends Controller
         ]);
 
         $user = $request->user();
+        if ($resp = $this->warehouseWriteGuard($user)) {
+            return $resp;
+        }
         $type = $request->movement_type;
         $sacs = (float) $request->sacs;
         $kg   = (float) $request->kg;
@@ -287,6 +290,9 @@ class WarehouseKeeperController extends Controller
         ]);
 
         $user = $request->user();
+        if ($resp = $this->warehouseWriteGuard($user)) {
+            return $resp;
+        }
         $results = [];
         $errors = [];
 
@@ -430,15 +436,17 @@ class WarehouseKeeperController extends Controller
         ]);
 
         $user = $request->user();
+        if ($resp = $this->warehouseWriteGuard($user)) {
+            return $resp;
+        }
         $sacs = (float) $request->sacs;
         $kg   = (float) $request->kg;
 
         if ($resp = $this->denyWarehouseAccess($user, (int) $request->warehouse_id)) {
             return $resp;
         }
-        if ($resp = $this->denyWarehouseAccess($user, (int) $request->destination_warehouse_id)) {
-            return $resp;
-        }
+        // Pas de contrôle d'accès sur la destination : la réception
+        // sera confirmée par le magasinier du magasin destinataire.
 
         // Idempotence : un client_ref déjà utilisé renvoie le transfert existant
         $clientRef = $request->client_ref;
@@ -569,6 +577,9 @@ class WarehouseKeeperController extends Controller
         ]);
 
         $user = $request->user();
+        if ($resp = $this->warehouseWriteGuard($user)) {
+            return $resp;
+        }
 
         if ($resp = $this->denyWarehouseAccess($user, (int) $request->warehouse_id)) {
             return $resp;
@@ -888,6 +899,19 @@ class WarehouseKeeperController extends Controller
      * Refuse l'accès à un magasin pour un magasinier qui n'y est pas rattaché.
      * Retourne une réponse 403 ou null si l'accès est autorisé.
      */
+    /**
+     * Garde d'écriture : seuls les acteurs « magasin » (magasinier, admin,
+     * super_admin) peuvent saisir des mouvements. Un token inspecteur
+     * (login/inspecteur) ne doit jamais créer de mouvement directement.
+     */
+    private function warehouseWriteGuard($user): ?\Illuminate\Http\JsonResponse
+    {
+        if (!$user || !in_array($user->role, ['magasinier', 'admin', 'super_admin'], true)) {
+            return response()->json(['message' => 'Accès réservé aux acteurs magasin.'], 403);
+        }
+        return null;
+    }
+
     private function denyWarehouseAccess($user, int $warehouseId): ?\Illuminate\Http\JsonResponse
     {
         if (!$user || $user->role !== 'magasinier') {
@@ -1032,6 +1056,9 @@ class WarehouseKeeperController extends Controller
         ]);
 
         $user = $request->user();
+        if ($resp = $this->warehouseWriteGuard($user)) {
+            return $resp;
+        }
         $mission = \App\Models\RequestMission::where('type', \App\Models\RequestMission::TYPE_STOCK_EXIT)
             ->findOrFail($id);
 
