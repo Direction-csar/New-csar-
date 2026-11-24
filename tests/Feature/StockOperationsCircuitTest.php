@@ -51,6 +51,14 @@ class StockOperationsCircuitTest extends TestCase
             'status' => 'verified',
         ]);
         $this->warehouse->update(['current_stock' => 100]);
+
+        // Périmètre inspecteur : l'inspecteur couvre le magasin du test
+        \App\Models\InspectorWarehouseAssignment::create([
+            'inspector_id' => $this->inspecteur->id,
+            'warehouse_id' => $this->warehouse->id,
+            'assigned_by' => $this->dtl->id,
+            'is_active' => true,
+        ]);
     }
 
     private function makeUser(string $role): User
@@ -68,7 +76,7 @@ class StockOperationsCircuitTest extends TestCase
 
     private function createSchema(): void
     {
-        foreach (['stock_operations', 'stock_movements', 'warehouses', 'products', 'stocks', 'users', 'audit_logs', 'notifications', 'personal_access_tokens'] as $t) {
+        foreach (['inspector_warehouse_assignments', 'stock_operations', 'stock_movements', 'warehouses', 'products', 'stocks', 'users', 'audit_logs', 'notifications', 'personal_access_tokens'] as $t) {
             Schema::dropIfExists($t);
         }
 
@@ -100,6 +108,19 @@ class StockOperationsCircuitTest extends TestCase
             $t->string('status')->nullable();
             $t->boolean('is_active')->default(true);
             $t->timestamps();
+        });
+
+        Schema::create('inspector_warehouse_assignments', function (Blueprint $t) {
+            $t->id();
+            $t->unsignedBigInteger('inspector_id');
+            $t->unsignedBigInteger('warehouse_id');
+            $t->unsignedBigInteger('assigned_by')->nullable();
+            $t->string('note')->nullable();
+            $t->boolean('is_active')->default(true);
+            $t->timestamp('revoked_at')->nullable();
+            $t->unsignedBigInteger('revoked_by')->nullable();
+            $t->timestamps();
+            $t->unique(['inspector_id', 'warehouse_id']);
         });
 
         Schema::create('stock_operations', function (Blueprint $t) {
@@ -521,14 +542,14 @@ class StockOperationsCircuitTest extends TestCase
             ->assertJsonCount(1, 'magasiniers')
             ->assertJsonPath('magasiniers.0.id', $this->magasinier->id);
 
-        // Un magasinier d'un autre entrepôt n'est pas proposé
+        // Un magasin hors du périmètre inspecteur est refusé
         $other = Warehouse::create([
             'name' => 'Autre', 'region' => 'Kaolack',
             'capacity' => 10, 'current_stock' => 0,
             'status' => 'active', 'is_active' => true,
         ]);
         $this->getJson('/api/warehouse/v1/operations/magasinier-candidates?warehouse_id=' . $other->id)
-            ->assertOk()->assertJsonCount(0, 'magasiniers');
+            ->assertForbidden();
     }
 
     public function test_audit_trail_is_written(): void
@@ -667,6 +688,14 @@ class StockOperationsCircuitTest extends TestCase
         $magDest = $this->makeUser('magasinier');
         $magDest->warehouse_id = $dest->id;
         $magDest->save();
+
+        // L'inspecteur couvre aussi le magasin de destination pour ce transfert
+        \App\Models\InspectorWarehouseAssignment::create([
+            'inspector_id' => $this->inspecteur->id,
+            'warehouse_id' => $dest->id,
+            'assigned_by' => $this->dtl->id,
+            'is_active' => true,
+        ]);
 
         // Le DG enregistre le transfert (accès à tous les magasins)
         $r = $stock->recordTransfer($this->dg, [

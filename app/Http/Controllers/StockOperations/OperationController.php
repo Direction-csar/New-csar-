@@ -50,7 +50,12 @@ class OperationController extends Controller
         ])->orderByDesc('id');
 
         match ($user->role) {
-            'inspecteur' => $q->where('assigned_inspector_id', $user->id),
+            'inspecteur' => $q->where('assigned_inspector_id', $user->id)
+                ->where(function ($w) use ($user) {
+                    $scope = array_map('intval', $this->operations->inspectorScopeIds($user) ?: []);
+                    $w->whereIn('warehouse_id', $scope ?: [0])
+                        ->orWhereIn('destination_warehouse_id', $scope ?: [0]);
+                }),
             'magasinier' => $q->where('assigned_magasinier_id', $user->id),
             'dtl' => null, // le DTL voit tout le circuit pour superviser
             default => null,
@@ -153,7 +158,9 @@ class OperationController extends Controller
         ])->findOrFail($id);
 
         // Isolation : un inspecteur/magasinier ne voit que ses opérations
-        if ($this->user()->role === 'inspecteur' && $op->assigned_inspector_id !== $this->user()->id) {
+        if ($this->user()->role === 'inspecteur'
+            && ($op->assigned_inspector_id !== $this->user()->id
+                || !$this->operations->inspectorCanAccessOperation($this->user(), $op))) {
             abort(403);
         }
         if ($this->user()->role === 'magasinier' && $op->assigned_magasinier_id !== $this->user()->id) {

@@ -76,7 +76,12 @@ class StockOperationApiController extends Controller
             ->orderByDesc('id');
 
         if ($user->role === 'inspecteur') {
-            $q->where('assigned_inspector_id', $user->id);
+            $scope = array_map('intval', $this->stock->inspectorScopeWarehouseIds($user) ?: []);
+            $q->where('assigned_inspector_id', $user->id)
+                ->where(function ($w) use ($scope) {
+                    $w->whereIn('warehouse_id', $scope ?: [0])
+                        ->orWhereIn('destination_warehouse_id', $scope ?: [0]);
+                });
         } elseif ($user->role === 'magasinier') {
             $q->where('assigned_magasinier_id', $user->id);
         }
@@ -103,6 +108,9 @@ class StockOperationApiController extends Controller
         if (!$warehouseId) {
             return response()->json(['message' => 'warehouse_id requis.'], 422);
         }
+        if ($user->role === 'inspecteur' && !$this->stock->inspectorCanAccessWarehouse($user, $warehouseId)) {
+            return response()->json(['message' => 'Magasin hors de votre périmètre d\'affectation.'], 403);
+        }
 
         $magasiniers = User::where('role', 'magasinier')
             ->where('warehouse_id', $warehouseId)
@@ -120,7 +128,9 @@ class StockOperationApiController extends Controller
 
         $op = StockOperation::with(['warehouse', 'destinationWarehouse', 'movements'])->findOrFail($id);
 
-        if ($user->role === 'inspecteur' && $op->assigned_inspector_id !== $user->id) {
+        if ($user->role === 'inspecteur'
+            && ($op->assigned_inspector_id !== $user->id
+                || !$this->operations->inspectorCanAccessOperation($user, $op))) {
             return response()->json(['message' => 'Opération non affectée à cet inspecteur.'], 403);
         }
         if ($user->role === 'magasinier' && $op->assigned_magasinier_id !== $user->id) {
@@ -317,6 +327,9 @@ class StockOperationApiController extends Controller
         if ($user->role === 'magasinier' && !$this->stock->canAccess($user, $warehouseId)) {
             return response()->json(['message' => 'Magasin non autorisé.'], 403);
         }
+        if ($user->role === 'inspecteur' && !$this->stock->inspectorCanAccessWarehouse($user, $warehouseId)) {
+            return response()->json(['message' => 'Magasin hors de votre périmètre d\'affectation.'], 403);
+        }
 
         return response()->json($this->stock->stockStatus($warehouseId));
     }
@@ -326,9 +339,14 @@ class StockOperationApiController extends Controller
         $user = $this->user($request);
         if ($r = $this->denyRole($user, ['inspecteur', 'magasinier', 'admin', 'super_admin'])) return $r;
 
-        $warehouses = $user->role === 'magasinier'
-            ? $this->stock->accessibleWarehouses($user)
-            : Warehouse::where('status', 'active')->orderBy('name')->get();
+        if ($user->role === 'magasinier') {
+            $warehouses = $this->stock->accessibleWarehouses($user);
+        } elseif ($user->role === 'inspecteur') {
+            $scope = $this->stock->inspectorScopeWarehouseIds($user) ?: [];
+            $warehouses = Warehouse::where('status', 'active')->whereIn('id', $scope)->orderBy('name')->get();
+        } else {
+            $warehouses = Warehouse::where('status', 'active')->orderBy('name')->get();
+        }
 
         return response()->json(['warehouses' => $warehouses]);
     }

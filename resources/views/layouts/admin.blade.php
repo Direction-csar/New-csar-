@@ -615,6 +615,7 @@
                 ['label' => 'Distribution', 'icon' => 'fa-hands-holding-circle', 'url' => url('/admin/distribution'), 'active' => request()->is('admin/distribution*')],
                 ['label' => 'Entrepôts', 'icon' => 'fa-warehouse', 'url' => route('admin.entrepots.index'), 'active' => request()->routeIs('admin.entrepots.*')],
                 ['label' => 'Gestion des stocks', 'icon' => 'fa-boxes-stacked', 'url' => route('admin.stock.index'), 'active' => request()->routeIs('admin.stock.*')],
+                ['label' => 'Affectations inspecteurs', 'icon' => 'fa-user-shield', 'url' => route('admin.inspector-assignments.index'), 'active' => request()->routeIs('admin.inspector-assignments.*'), 'show' => $isAdmin],
                 ['label' => 'Produits', 'icon' => 'fa-seedling', 'url' => route('admin.products.index'), 'active' => request()->routeIs('admin.products.*')],
             ]],
             ['title' => 'SIM — Marchés', 'items' => [

@@ -470,6 +470,11 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::post('/stock-operations-pending/{id}/confirm', [App\Http\Controllers\StockOperations\OperationController::class, 'confirmReceipt'])->name('stock-operations.pending.confirm');
         Route::post('/stock-operations/{id}/cancel', [App\Http\Controllers\StockOperations\OperationController::class, 'cancel'])->name('stock-operations.cancel');
         Route::post('/stock-operations/{id}/reject', [App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
+
+        // Affectations inspecteurs ↔ magasins (périmètre de contrôle)
+        Route::get('/inspecteur-affectations', [App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'index'])->name('inspector-assignments.index');
+        Route::post('/inspecteur-affectations', [App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'store'])->name('inspector-assignments.store');
+        Route::delete('/inspecteur-affectations/{assignment}', [App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'revoke'])->name('inspector-assignments.revoke');
         Route::get('/stocks', [App\Http\Controllers\DG\StockController::class, 'index'])->name('stocks.index');
         Route::get('/stocks/{id}', [App\Http\Controllers\DG\StockController::class, 'show'])->name('stocks.show');
 
@@ -928,6 +933,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/warehouses/{warehouse}/edit', [\App\Http\Controllers\Admin\WarehouseController::class, 'edit'])->name('warehouses.edit');
         Route::put('/warehouses/{warehouse}', [\App\Http\Controllers\Admin\WarehouseController::class, 'update'])->name('warehouses.update');
         Route::delete('/warehouses/{warehouse}', [\App\Http\Controllers\Admin\WarehouseController::class, 'destroy'])->name('warehouses.destroy');
+
+        // Affectations inspecteurs ↔ magasins (périmètre de contrôle)
+        Route::get('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'index'])->name('inspector-assignments.index');
+        Route::post('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'store'])->name('inspector-assignments.store');
+        Route::delete('/inspecteur-affectations/{assignment}', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'revoke'])->name('inspector-assignments.revoke');
 
         // Messages
         // Routes messages déjà définies plus haut dans le groupe admin (lignes 454-459)
@@ -1467,6 +1477,11 @@ Route::middleware(['direction:dtl'])->prefix('dtl')->name('dtl.')->group(functio
     Route::post('/stock-operations-pending/{id}/confirm', [\App\Http\Controllers\StockOperations\OperationController::class, 'confirmReceipt'])->name('stock-operations.pending.confirm');
     Route::post('/stock-operations/{id}/assign-inspector', [\App\Http\Controllers\StockOperations\OperationController::class, 'assignInspector'])->name('stock-operations.assign-inspector');
     Route::post('/stock-operations/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
+
+    // Affectations inspecteurs ↔ magasins (périmètre de contrôle)
+    Route::get('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'index'])->name('inspector-assignments.index');
+    Route::post('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'store'])->name('inspector-assignments.store');
+    Route::delete('/inspecteur-affectations/{assignment}', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'revoke'])->name('inspector-assignments.revoke');
 });
 
 // === PORTAIL COMPTABLE DES MATIÈRES ===

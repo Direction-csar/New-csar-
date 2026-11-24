@@ -950,9 +950,30 @@ class WarehouseStockService
     }
 
     /**
+     * Périmètre inspecteur : IDs des magasins qui lui sont affectés
+     * (affectations actives). Retourne null pour les non-inspecteurs
+     * (pas de restriction), un tableau (éventuellement vide) sinon.
+     */
+    public function inspectorScopeWarehouseIds(User $user): ?array
+    {
+        if ($user->role !== 'inspecteur') {
+            return null;
+        }
+        return $user->inspectionWarehouses()->pluck('warehouses.id')->all();
+    }
+
+    /** Un inspecteur n'agit que sur les magasins de son périmètre. */
+    public function inspectorCanAccessWarehouse(User $user, int $warehouseId): bool
+    {
+        $scope = $this->inspectorScopeWarehouseIds($user);
+        return $scope === null || in_array($warehouseId, array_map('intval', $scope), true);
+    }
+
+    /**
      * Mouvements 'en_attente' hors circuit stock_operations.
      * - magasinier : ceux de ses magasins accessibles (y compris réceptions de transfert)
-     * - inspecteur / dtl / dg / admin : tous
+     * - inspecteur : uniquement les magasins de son périmètre d'affectation
+     * - dtl / dg / admin : tous
      */
     public function pendingMovements(User $user, array $filters = []): \Illuminate\Database\Eloquent\Collection
     {
@@ -970,6 +991,9 @@ class WarehouseStockService
         if ($isMagasinier) {
             $ids = $this->accessibleWarehouses($user)->pluck('id')->all();
             $q->whereIn('warehouse_id', $ids ?: [0]);
+        } elseif ($user->role === 'inspecteur') {
+            $scope = $this->inspectorScopeWarehouseIds($user) ?: [0];
+            $q->whereIn('warehouse_id', $scope);
         }
 
         if (!empty($filters['warehouse_id'])) {
@@ -1007,6 +1031,9 @@ class WarehouseStockService
                 }
                 if ($m->status !== 'en_attente' || $m->stock_operation_id) {
                     return ['ok' => false, 'message' => 'Mouvement déjà traité ou géré par une opération de stock.', 'status' => 409];
+                }
+                if (!$this->inspectorCanAccessWarehouse($user, (int) $m->warehouse_id)) {
+                    return ['ok' => false, 'message' => 'Magasin hors de votre périmètre d\'affectation.', 'status' => 403];
                 }
 
                 $isAdjust = $this->isAdjustmentMovement($m);
@@ -1076,6 +1103,9 @@ class WarehouseStockService
         if ($m->status !== 'en_attente' || $m->stock_operation_id) {
             return ['ok' => false, 'message' => 'Mouvement déjà traité ou géré par une opération de stock.', 'status' => 409];
         }
+        if (!$this->inspectorCanAccessWarehouse($user, (int) $m->warehouse_id)) {
+            return ['ok' => false, 'message' => 'Magasin hors de votre périmètre d\'affectation.', 'status' => 403];
+        }
 
         $isAdjust = $this->isAdjustmentMovement($m);
         $roles = $isAdjust ? self::VERIFY_ROLES_ADJUSTMENT : self::VERIFY_ROLES_OPERATION;
@@ -1108,6 +1138,9 @@ class WarehouseStockService
         }
         if ($user->role === 'magasinier' && !$this->canAccess($user, (int) $m->warehouse_id)) {
             return ['ok' => false, 'message' => 'Magasin destinataire non autorisé.', 'status' => 403];
+        }
+        if ($user->role === 'inspecteur' && !$this->inspectorCanAccessWarehouse($user, (int) $m->warehouse_id)) {
+            return ['ok' => false, 'message' => 'Magasin hors de votre périmètre d\'affectation.', 'status' => 403];
         }
 
         $meta = json_decode($m->metadata ?? '{}', true) ?: [];

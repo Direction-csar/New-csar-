@@ -61,10 +61,27 @@ Script : `_demo_circuit.php` (local, non versionné). **40+ contrôles, tous OK.
 | 3 | Transfert impossible entre magasins distincts : le déclarant devait avoir accès aux 2 magasins (API + service + formulaire Web) | Moyenne | Accès requis sur la **source** seulement ; la réception est confirmée par le magasinier destinataire (contrôle conservé) ; liste des destinations complète sur le Web |
 | 4 | Apostrophe `d'abord` dans un `innerHTML` JS → tout le script des formulaires mouvement/transfert plantait (`Unexpected identifier 'abord'`) | Moyenne | Guillemets corrigés, 0 erreur JS |
 
+## 4bis. Périmètre inspecteur ↔ magasins (ajouté après audit)
+
+Avant : l'inspecteur n'avait **aucun** rattachement à un magasin — il pouvait vérifier les mouvements en attente de n'importe quel magasin, et `/stock-ops/status`, `/stock-ops/warehouses`, `magasinier-candidates` exposaient tous les magasins.
+
+**Implémenté** :
+
+- Table `inspector_warehouse_assignments` (inspector_id, warehouse_id, assigned_by, note, is_active, revoked_at/by) — historique complet, révocation sans suppression, `unique(inspector_id, warehouse_id)`.
+- Modèle `InspectorWarehouseAssignment` + relation `User::inspectorWarehouseAssignments()`.
+- Scoping appliqué dans `WarehouseStockService` (pendingMovements, verifyPendingMovement, rejectPendingMovement, confirmTransferReceipt) et `StockOperationService` (assignInspector, transmitToMagasinier, verify, reportAnomaly, reject) : un inspecteur ne voit/agit que sur les magasins de son périmètre — **y compris en appelant directement l'API avec l'ID d'un mouvement/magasin hors périmètre**.
+- API `StockOperationApiController` : `index`, `show`, `stockStatus`, `warehouses`, `magasinierCandidates` filtrés par périmètre pour le rôle inspecteur.
+- Web `StockOperations\OperationController` : liste et détail filtrés ; routes `dg|dtl|admin/inspecteur-affectations` (consultation globale + affectation/révocation journalisée `AuditLog`).
+- Règle DTL : `assignInspector` refuse d'affecter une opération à un inspecteur qui ne couvre pas le magasin de l'opération.
+- **Inspecteur sans aucune affectation = périmètre vide** : il ne voit ni ne vérifie rien tant qu'un admin/DTL/DG ne lui a pas affecté de magasin.
+
+**Tests** : `tests/Feature/InspectorScopeTest.php` — 15 tests prouvant l'isolation (filtrage file, refus verify/reject hors périmètre même avec l'ID, statut/warehouses/candidates API, affectation DTL, révocation). Suite complète : **484 passed, 1 skipped**.
+
 ## 5. Tests automatisés
 
-- **Suite Laravel complète : 469 passed, 1 skipped** (2 280 assertions) — aucune régression (distribution, RH, demandes, workflow, etc.).
-- `WarehouseKeeperApiTest`, `MagasinierPortalTest`, `StockOperationsCircuitTest` : 47 tests ciblés OK après les correctifs.
+- **Suite Laravel complète : 484 passed, 1 skipped** (2 308 assertions) — aucune régression (distribution, RH, demandes, workflow, etc.).
+- `InspectorScopeTest` : 15 tests d'isolation par périmètre inspecteur.
+- `WarehouseKeeperApiTest`, `MagasinierPortalTest`, `StockOperationsCircuitTest` : 47+ tests ciblés OK après les correctifs.
 
 ## 6. Limites de cette phase
 
@@ -79,7 +96,7 @@ Commande **lecture seule**, déjà sur la branche. Sur le serveur après `git pu
 ```bash
 cd /var/www/csar
 git pull
-php artisan migrate --force   # applique la migration stock_id nullable
+php artisan migrate --force   # stock_id nullable + table inspector_warehouse_assignments
 php artisan stock:audit
 cat storage/app/audit-stock-*.json   # à m'envoyer pour analyse
 ```

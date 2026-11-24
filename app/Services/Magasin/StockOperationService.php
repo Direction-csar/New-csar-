@@ -26,6 +26,39 @@ class StockOperationService
     public function __construct(private WarehouseStockService $stock) {}
 
     // ------------------------------------------------------------------
+    // Périmètre inspecteur (affectations inspecteur ↔ magasins)
+    // ------------------------------------------------------------------
+
+    /** IDs des magasins du périmètre inspecteur (null = non inspecteur). */
+    public function inspectorScopeIds(User $user): ?array
+    {
+        return $this->stock->inspectorScopeWarehouseIds($user);
+    }
+
+    /** L'inspecteur couvre-t-il ce magasin ? */
+    public function inspectorCoversWarehouse(User $inspector, int $warehouseId): bool
+    {
+        return $this->stock->inspectorCanAccessWarehouse($inspector, $warehouseId);
+    }
+
+    /**
+     * Une opération touche le périmètre de l'inspecteur si son magasin
+     * source OU sa destination lui est affecté.
+     */
+    public function inspectorCanAccessOperation(User $inspector, StockOperation $op): bool
+    {
+        if ($inspector->role !== 'inspecteur') {
+            return true;
+        }
+        $scope = array_map('intval', $this->inspectorScopeIds($inspector) ?: []);
+        $ids = array_filter([
+            (int) $op->warehouse_id,
+            $op->destination_warehouse_id ? (int) $op->destination_warehouse_id : null,
+        ]);
+        return (bool) array_intersect($ids, $scope);
+    }
+
+    // ------------------------------------------------------------------
     // Étape 1 — DG : création de l'instruction
     // ------------------------------------------------------------------
     public function create(User $author, array $data): array
@@ -87,6 +120,13 @@ class StockOperationService
         if ($inspector->role !== 'inspecteur') {
             return ['ok' => false, 'message' => 'L\'opération doit être affectée à un inspecteur.', 'status' => 422];
         }
+        // L'inspecteur doit couvrir le magasin de l'opération (ou la destination pour un transfert)
+        $covers = $inspector->role === 'inspecteur'
+            && ($this->inspectorCoversWarehouse($inspector, (int) $op->warehouse_id)
+                || ($op->destination_warehouse_id && $this->inspectorCoversWarehouse($inspector, (int) $op->destination_warehouse_id)));
+        if (!$covers) {
+            return ['ok' => false, 'message' => 'Cet inspecteur n\'est pas affecté au(x) magasin(s) de cette opération. Affectez-lui d\'abord le(s) magasin(s) concerné(s).', 'status' => 422];
+        }
 
         $op->update([
             'status' => StockOperation::STATUS_AFFECTEE,
@@ -113,6 +153,9 @@ class StockOperationService
         $op = StockOperation::findOrFail($operationId);
         if ($op->status !== StockOperation::STATUS_AFFECTEE || $op->assigned_inspector_id !== $inspector->id) {
             return ['ok' => false, 'message' => 'Opération non affectée à cet inspecteur.', 'status' => 403];
+        }
+        if (!$this->inspectorCanAccessOperation($inspector, $op)) {
+            return ['ok' => false, 'message' => 'Magasin hors de votre périmètre d\'affectation.', 'status' => 403];
         }
         $magasinier = User::findOrFail($magasinierId);
         if ($magasinier->role !== 'magasinier') {
@@ -347,7 +390,8 @@ class StockOperationService
     {
         $op = StockOperation::findOrFail($operationId);
         if (!in_array($op->status, [StockOperation::STATUS_EXECUTEE, StockOperation::STATUS_ANOMALIE], true)
-            || $op->assigned_inspector_id !== $inspector->id) {
+            || $op->assigned_inspector_id !== $inspector->id
+            || !$this->inspectorCanAccessOperation($inspector, $op)) {
             return ['ok' => false, 'message' => 'Opération non vérifiable par cet inspecteur.', 'status' => 403];
         }
 
@@ -404,7 +448,8 @@ class StockOperationService
     {
         $op = StockOperation::findOrFail($operationId);
         if (!in_array($op->status, [StockOperation::STATUS_TRANSMISE, StockOperation::STATUS_EXECUTEE], true)
-            || $op->assigned_inspector_id !== $inspector->id) {
+            || $op->assigned_inspector_id !== $inspector->id
+            || !$this->inspectorCanAccessOperation($inspector, $op)) {
             return ['ok' => false, 'message' => 'Opération non accessible par cet inspecteur.', 'status' => 403];
         }
 
@@ -432,6 +477,7 @@ class StockOperationService
         $op = StockOperation::findOrFail($operationId);
         $allowed = match ($actor->role) {
             'inspecteur' => $op->assigned_inspector_id === $actor->id
+                && $this->inspectorCanAccessOperation($actor, $op)
                 && in_array($op->status, [StockOperation::STATUS_TRANSMISE, StockOperation::STATUS_EXECUTEE, StockOperation::STATUS_ANOMALIE], true),
             'dtl', 'dg', 'admin', 'super_admin' => in_array($op->status, [StockOperation::STATUS_SOUMISE, StockOperation::STATUS_AFFECTEE, StockOperation::STATUS_ANOMALIE], true),
             default => false,
