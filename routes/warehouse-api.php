@@ -31,6 +31,7 @@ Route::prefix('v1')->name('warehouse.api.v1.')->group(function () {
 
         // Circuit opérationnel DG → DTL → Inspecteur → Magasinier (APK Magasinier + APK Inspecteur)
         Route::get('/operations', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'index'])->name('operations.index');
+        Route::get('/operations/magasinier-candidates', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'magasinierCandidates'])->name('operations.magasinier-candidates');
         Route::get('/operations/{id}', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'show'])->name('operations.show');
         Route::post('/operations/{id}/transmit', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'transmit'])->name('operations.transmit');
         Route::post('/operations/{id}/execute', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'execute'])->name('operations.execute');

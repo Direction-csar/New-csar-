@@ -494,6 +494,30 @@ class StockOperationsCircuitTest extends TestCase
         ])->assertStatus(403);
     }
 
+    public function test_api_magasinier_candidates_for_transmit(): void
+    {
+        \Laravel\Sanctum\Sanctum::actingAs($this->inspecteur, ['inspector']);
+
+        // Sans warehouse_id → 422
+        $this->getJson('/api/warehouse/v1/operations/magasinier-candidates')
+            ->assertStatus(422);
+
+        // Avec le magasin de l'opération → le magasinier rattaché est proposé
+        $this->getJson('/api/warehouse/v1/operations/magasinier-candidates?warehouse_id=' . $this->warehouse->id)
+            ->assertOk()
+            ->assertJsonCount(1, 'magasiniers')
+            ->assertJsonPath('magasiniers.0.id', $this->magasinier->id);
+
+        // Un magasinier d'un autre entrepôt n'est pas proposé
+        $other = Warehouse::create([
+            'name' => 'Autre', 'region' => 'Kaolack',
+            'capacity' => 10, 'current_stock' => 0,
+            'status' => 'active', 'is_active' => true,
+        ]);
+        $this->getJson('/api/warehouse/v1/operations/magasinier-candidates?warehouse_id=' . $other->id)
+            ->assertOk()->assertJsonCount(0, 'magasiniers');
+    }
+
     public function test_audit_trail_is_written(): void
     {
         $svc = app(\App\Services\Magasin\StockOperationService::class);

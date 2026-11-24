@@ -90,6 +90,29 @@ class StockOperationApiController extends Controller
         ]);
     }
 
+    /**
+     * Magasiniers rattachés à un magasin — pour que l'inspecteur choisisse
+     * le destinataire des consignes opérationnelles.
+     */
+    public function magasinierCandidates(Request $request)
+    {
+        $user = $this->user($request);
+        if ($r = $this->denyRole($user, ['inspecteur', 'dtl', 'dg', 'admin', 'super_admin'])) return $r;
+
+        $warehouseId = (int) $request->query('warehouse_id');
+        if (!$warehouseId) {
+            return response()->json(['message' => 'warehouse_id requis.'], 422);
+        }
+
+        $magasiniers = User::where('role', 'magasinier')
+            ->where('warehouse_id', $warehouseId)
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        return response()->json(['magasiniers' => $magasiniers]);
+    }
+
     public function show(Request $request, $id)
     {
         $user = $this->user($request);
