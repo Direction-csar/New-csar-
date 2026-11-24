@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../models/stock_operation.dart';
 import '../services/api_service.dart';
+import 'pending_movements_screen.dart';
 import 'signature_screen.dart';
 
 /// Écran « Opérations » : instructions transmises par l'inspecteur
@@ -65,6 +66,13 @@ class _OperationsScreenState extends State<OperationsScreen> {
         backgroundColor: green,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.fact_check_outlined),
+            tooltip: 'Mouvements en attente',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const PendingMovementsScreen()),
+            ),
+          ),
           IconButton(icon: const Icon(Icons.refresh), onPressed: _load),
         ],
       ),

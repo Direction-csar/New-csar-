@@ -4,6 +4,7 @@ import '../models/stock_operation.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import 'operation_detail_screen.dart';
+import 'pending_movements_screen.dart';
 import 'warehouse_stock_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -98,13 +99,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _tab == 0 ? _operationsTab() : _body(),
+      body: _tab == 0 ? _operationsTab() : (_tab == 2 ? const PendingMovementsScreen() : _body()),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _tab,
         onDestinationSelected: (i) => setState(() => _tab = i),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.assignment_outlined), label: 'Opérations'),
           NavigationDestination(icon: Icon(Icons.warehouse_outlined), label: 'Magasins'),
+          NavigationDestination(icon: Icon(Icons.fact_check_outlined), label: 'En attente'),
         ],
       ),
     );

@@ -80,6 +80,22 @@ class ApiService {
       _request('POST', '/operations/$id/reject', token: token, body: {'rejection_reason': reason});
 
   // ------------------------------------------------------------------
+  // Mouvements directs en attente (entrées/sorties/transferts/inventaires
+  // saisis via Web, APK magasinier ou synchronisation hors ligne)
+  // ------------------------------------------------------------------
+  static Future<Map<String, dynamic>> getPendingMovements(String token) =>
+      _request('GET', '/pending-movements', token: token);
+
+  static Future<Map<String, dynamic>> verifyMovement(String token, int id) =>
+      _request('POST', '/pending-movements/$id/verify', token: token);
+
+  static Future<Map<String, dynamic>> rejectMovement(String token, int id, String reason) =>
+      _request('POST', '/pending-movements/$id/reject', token: token, body: {'rejection_reason': reason});
+
+  static Future<Map<String, dynamic>> confirmReceipt(String token, int id) =>
+      _request('POST', '/pending-movements/$id/confirm-receipt', token: token);
+
+  // ------------------------------------------------------------------
   // Consultation stock (lecture seule)
   // ------------------------------------------------------------------
   static Future<Map<String, dynamic>> getWarehouses(String token) =>

@@ -324,6 +324,38 @@ class ApiService {
     };
   }
 
+  // MOUVEMENTS DIRECTS EN ATTENTE (entrées/sorties/transferts/inventaires
+  // saisis via Web, APK ou sync hors ligne — vérification inspecteur requise)
+  static Future<List<Map<String, dynamic>>> getPendingMovements() async {
+    final token = await getToken();
+    final response = await _get(
+      Uri.parse('$baseUrl/pending-movements'),
+      headers: _headers(token),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data['movements'] as List? ?? [])
+          .map((e) => Map<String, dynamic>.from(e as Map))
+          .toList();
+    }
+    throw Exception('Erreur chargement mouvements en attente');
+  }
+
+  /// Confirme la réception physique d'une jambe « in » de transfert
+  /// (magasin destinataire). Idempotent côté serveur.
+  static Future<Map<String, dynamic>> confirmTransferReceipt(int movementId) async {
+    final token = await getToken();
+    final response = await _post(
+      Uri.parse('$baseUrl/pending-movements/$movementId/confirm-receipt'),
+      headers: _headers(token),
+    );
+    final body = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      return {'success': true, 'message': body['message']};
+    }
+    return {'success': false, 'message': body['message'] ?? 'Erreur confirmation réception'};
+  }
+
   // Clôturer une mission avec justificatif (référence de mouvement sortie)
   static Future<Map<String, dynamic>> reportMission(
     int missionId, {
