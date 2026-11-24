@@ -7,9 +7,11 @@ Toutes les réponses sont en JSON. Les codes d'erreur métier renvoient `{"messa
 ## 1. Authentification
 
 ### Magasinier
+
 `POST /login` — `{email, password}` → `{token, user}` (rôle `magasinier`, `admin`, `super_admin`).
 
 ### Inspecteur (APK Inspecteur)
+
 `POST /login/inspecteur` — `{email, password}` → `{token, user}` (rôle `inspecteur` uniquement).
 
 ## 2. Circuit opérationnel (DG → DTL → Inspecteur → Magasinier)
@@ -22,7 +24,7 @@ Statuts d'une opération (`stock_operations.status`) :
 qui ne modifient **pas** le stock officiel tant que l'inspecteur n'a pas vérifié.
 
 | Endpoint | Rôle | Description |
-|---|---|---|
+| --- | --- | --- |
 | `GET /operations?status=` | inspecteur, magasinier, admin | Liste des opérations visibles (filtrées par affectation). |
 | `GET /operations/{id}` | idem | Détail + mouvements liés. |
 | `GET /operations/magasinier-candidates?warehouse_id=` | inspecteur, dtl, dg, admin | Magasiniers actifs rattachés au magasin (pour la transmission). |
@@ -46,7 +48,7 @@ Les anciens mouvements sans statut (`null`) ou `verified` restent officiels.
 ### File de vérification
 
 | Endpoint | Rôle | Description |
-|---|---|---|
+| --- | --- | --- |
 | `GET /pending-movements?warehouse_id=&type=` | inspecteur, magasinier, dtl, dg, admin | Mouvements `en_attente` (hors opérations). Magasinier : ses magasins + réceptions de transfert. Chaque item : `id, reference, type, type_label, quantity, reason, warehouse, creator, created_at, is_adjustment, is_transfer_in, receipt_confirmed`. |
 | `POST /pending-movements/{id}/verify` | inspecteur, dtl, dg, admin | Intègre le mouvement au stock officiel (`validated_by`, `validated_at`). Les ajustements/inventaires exigent dtl/dg/admin ; les sorties revérifient le solde officiel. |
 | `POST /pending-movements/{id}/reject` | inspecteur, dtl, dg, admin | `{rejection_reason}` — le mouvement ne comptera jamais. |
@@ -79,7 +81,7 @@ vérification. Les portails Web exposent la même file sous
 ## 3. Stock (lecture + saisie magasinier)
 
 | Endpoint | Rôle | Description |
-|---|---|---|
+| --- | --- | --- |
 | `GET /stock-ops/warehouses` | inspecteur, magasinier | Magasins accessibles (magasinier : uniquement les siens). |
 | `GET /stock-ops/status?warehouse_id=` | idem | Stock officiel par produit/format + péremptions. |
 | `GET /warehouses` | magasinier | Ses magasins affectés. |
