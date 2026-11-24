@@ -93,8 +93,8 @@ use App\Http\Controllers\Public\GalerieController as PublicGalerieController;
 // Password reset routes (global)
 use App\Http\Controllers\Auth\PasswordResetController;
 
-// Routes de connexion simplifiées
-require_once __DIR__ . '/simple-auth.php';
+// Connexions legacy /simple-login et /universal-login désactivées : aucune limitation de tentatives
+// ni contrôle is_active (audit sécurité). Utiliser les portails dédiés.
 
 // Endpoint pour collecter les violations CSP (utilisé par report-uri)
 Route::post('/csp-violations', \App\Http\Controllers\Security\CspReportController::class)
