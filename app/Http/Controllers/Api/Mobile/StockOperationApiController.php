@@ -348,6 +348,18 @@ class StockOperationApiController extends Controller
             $warehouses = Warehouse::where('status', 'active')->orderBy('name')->get();
         }
 
+        if ($user->role === 'inspecteur') {
+            $mags = \App\Models\User::where('role', 'magasinier')->where('is_active', true)
+                ->whereIn('warehouse_id', $warehouses->pluck('id'))->get(['id', 'name', 'phone', 'warehouse_id'])
+                ->groupBy('warehouse_id');
+            $warehouses = $warehouses->map(function ($w) use ($mags) {
+                $arr = $w->toArray();
+                $arr['magasiniers'] = $mags->get($w->id, collect())->map(fn ($u) => ['id' => $u->id, 'name' => $u->name, 'phone' => $u->phone])->values()->all();
+
+                return $arr;
+            })->values();
+        }
+
         return response()->json(['warehouses' => $warehouses]);
     }
 

@@ -73,6 +73,7 @@ class InspectorAssignmentController extends Controller
             'inspectors' => $inspectors,
             'warehouses' => $warehouses,
             'matrix' => $matrix,
+            'coverage' => app(\App\Services\Magasin\InspectorCoverageService::class)->report(),
             'active' => $active,
             'history' => $history,
             'indexRoute' => $this->indexRoute($portal),

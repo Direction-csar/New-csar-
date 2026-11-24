@@ -195,6 +195,49 @@ class InspectorScopeTest extends TestCase
         $this->assertNotContains($this->whB->id, $ids);
     }
 
+    public function test_api_warehouses_inspecteur_liste_ses_magasiniers(): void
+    {
+        $res = $this->withToken($this->token($this->inspecteur))
+            ->getJson('/api/warehouse/v1/stock-ops/warehouses');
+        $res->assertOk();
+        $wh = collect($res->json('warehouses'))->firstWhere('id', $this->whA->id);
+        $this->assertSame([$this->magasinier->id], collect($wh['magasiniers'])->pluck('id')->all());
+    }
+
+    public function test_couverture_14_regions_signale_les_manques(): void
+    {
+        $svc = app(\App\Services\Magasin\InspectorCoverageService::class);
+        $report = collect($svc->report())->keyBy('region');
+
+        $this->assertCount(14, collect(\App\Services\Magasin\InspectorCoverageService::REGIONS));
+        $this->assertSame('Dakar', $this->whA->region);
+        $dakar = $report['Dakar'];
+        $this->assertCount(2, $dakar['warehouses']);
+        $this->assertStringContainsString('sans magasinier', $dakar['status']); // magasin B sans magasinier
+        $this->assertSame('AUCUN MAGASIN', $report['Kolda']['status']);
+    }
+
+    public function test_provision_inspecteurs_simulation_ne_cree_rien_puis_apply_idempotent(): void
+    {
+        $csv = tempnam(sys_get_temp_dir(), 'insp');
+        file_put_contents($csv, "nom;email;telephone;regions\nInspecteur Reel;reel@csar.test;770000000;Dakar|Kolda\nBad;pas-un-email;;Dakar\n");
+
+        $this->artisan('inspectors:provision', ['file' => $csv])->assertSuccessful();
+        $this->assertNull(User::where('email', 'reel@csar.test')->first());
+
+        $this->artisan('inspectors:provision', ['file' => $csv, '--apply' => true])->assertFailed(); // ligne invalide signalée
+        $u = User::where('email', 'reel@csar.test')->first();
+        $this->assertNotNull($u);
+        $this->assertSame('inspecteur', $u->role);
+        $this->assertSame(2, InspectorWarehouseAssignment::where('inspector_id', $u->id)->where('is_active', true)->count());
+
+        $this->artisan('inspectors:provision', ['file' => $csv, '--apply' => true]);
+        $this->assertSame(1, User::where('email', 'reel@csar.test')->count());
+        $this->assertSame(2, InspectorWarehouseAssignment::where('inspector_id', $u->id)->count());
+        foreach (glob(storage_path('app/private/inspecteurs-identifiants-*.csv')) as $f) { @unlink($f); }
+        @unlink($csv);
+    }
+
     public function test_api_pending_movements_filtrees_par_perimetre(): void
     {
         $this->pendingMovement($this->whA->id, 'MVT-A-4');
@@ -306,7 +349,7 @@ class InspectorScopeTest extends TestCase
         Schema::create('users', function (Blueprint $t) {
             $t->id(); $t->string('name'); $t->string('email')->unique();
             $t->timestamp('email_verified_at')->nullable(); $t->string('password')->nullable();
-            $t->string('role')->default('agent'); $t->unsignedBigInteger('role_id')->nullable();
+            $t->string('phone')->nullable(); $t->string('role')->default('agent'); $t->unsignedBigInteger('role_id')->nullable();
             $t->boolean('is_active')->default(true); $t->unsignedBigInteger('warehouse_id')->nullable();
             $t->timestamp('last_activity')->nullable(); $t->rememberToken(); $t->timestamps();
         });

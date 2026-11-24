@@ -49,6 +49,32 @@
     </div>
 </div>
 
+{{-- Couverture des 14 régions --}}
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-header bg-white fw-bold"><i class="fas fa-map-location-dot me-2 text-primary"></i>Couverture des 14 régions</div>
+    <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0">
+            <thead class="table-light"><tr><th>Région</th><th>Magasin</th><th>Magasinier(s)</th><th>Inspecteur(s)</th><th>État</th></tr></thead>
+            <tbody>
+            @foreach($coverage as $reg)
+                @php($ok = $reg['status'] === 'COUVERT')
+                @forelse($reg['warehouses'] as $w)
+                    <tr>
+                        @if($loop->first)<td rowspan="{{ count($reg['warehouses']) }}" class="fw-semibold">{{ $reg['region'] }}</td>@endif
+                        <td>{{ $w['name'] }}</td>
+                        <td>{{ collect($w['magasiniers'])->pluck('name')->implode(', ') ?: '—' }}</td>
+                        <td>{{ collect($w['inspecteurs'])->pluck('name')->implode(', ') ?: '—' }}</td>
+                        @if($loop->first)<td rowspan="{{ count($reg['warehouses']) }}"><span class="badge bg-{{ $ok ? 'success' : 'warning text-dark' }}">{{ $reg['status'] }}</span></td>@endif
+                    </tr>
+                @empty
+                    <tr><td class="fw-semibold">{{ $reg['region'] }}</td><td colspan="3" class="text-muted">Aucun magasin enregistré</td><td><span class="badge bg-danger">{{ $reg['status'] }}</span></td></tr>
+                @endforelse
+            @endforeach
+            </tbody>
+        </table>
+    </div>
+</div>
+
 {{-- Affectations actives --}}
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-white fw-bold"><i class="fas fa-list-check me-2 text-success"></i>Affectations actives</div>
