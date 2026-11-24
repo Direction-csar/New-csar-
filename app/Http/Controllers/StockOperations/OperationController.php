@@ -246,6 +246,74 @@ class OperationController extends Controller
     }
 
     // ------------------------------------------------------------------
+    // Mouvements directs en attente (entrées/sorties/transferts/inventaires
+    // saisis via /movements, /sync, /transferts, /inventaires — Web ou APK)
+    // ------------------------------------------------------------------
+    public function pending(Request $request)
+    {
+        [$direction, $label] = $this->portal();
+        $user = $this->user();
+
+        $role = $user->role;
+        $canVerifyOps = in_array($role, ['inspecteur', 'dtl', 'dg', 'admin', 'super_admin'], true);
+        $canVerifyAdjust = in_array($role, ['dtl', 'dg', 'admin', 'super_admin'], true);
+        $canConfirm = in_array($role, ['magasinier', 'inspecteur', 'dtl', 'dg', 'admin', 'super_admin'], true);
+        $isDirection = $canVerifyAdjust;
+
+        $movements = $this->stock->pendingMovements($user, $request->only(['warehouse_id', 'type']));
+
+        $rows = $movements->map(function ($m) use ($canVerifyOps, $canVerifyAdjust, $canConfirm, $isDirection, $user) {
+            $meta = json_decode($m->metadata ?? '{}', true) ?: [];
+            $isAdjust = $this->stock->isAdjustmentMovement($m);
+            $isTransferIn = $this->stock->isTransferIn($m);
+            $receiptConfirmed = !empty($meta['receipt_confirmed_at']);
+            $canVerify = $isAdjust ? $canVerifyAdjust : $canVerifyOps;
+            // Un inspecteur ne peut pas vérifier une réception non confirmée
+            if ($isTransferIn && !$receiptConfirmed && !$isDirection) {
+                $canVerify = false;
+            }
+            $canConfirmThis = $canConfirm && $isTransferIn && !$receiptConfirmed
+                && ($user->role !== 'magasinier' || $this->stock->canAccess($user, (int) $m->warehouse_id));
+
+            return [
+                'movement' => $m,
+                'is_adjustment' => $isAdjust,
+                'is_transfer_in' => $isTransferIn,
+                'receipt_confirmed' => $receiptConfirmed,
+                'can_verify' => $canVerify,
+                'can_confirm' => $canConfirmThis,
+            ];
+        });
+
+        return view('stock-operations.pending', [
+            'direction' => $direction,
+            'directionLabel' => $label,
+            'rows' => $rows,
+            'warehouses' => Warehouse::where('status', 'active')->orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    public function verifyMovement(Request $request, $id)
+    {
+        $data = $request->validate(['comment' => 'nullable|string|max:1000']);
+        $result = $this->stock->verifyPendingMovement($this->user(), (int) $id);
+        return $this->backMovement($result, 'Mouvement vérifié et intégré au stock officiel.');
+    }
+
+    public function rejectMovement(Request $request, $id)
+    {
+        $data = $request->validate(['rejection_reason' => 'required|string|max:2000']);
+        $result = $this->stock->rejectPendingMovement($this->user(), (int) $id, $data['rejection_reason']);
+        return $this->backMovement($result, 'Mouvement rejeté.', true);
+    }
+
+    public function confirmReceipt(Request $request, $id)
+    {
+        $result = $this->stock->confirmTransferReceipt($this->user(), (int) $id);
+        return $this->backMovement($result, 'Réception confirmée.', isset($result['duplicate']));
+    }
+
+    // ------------------------------------------------------------------
     private function authorizeDirection(): void
     {
         if (!in_array($this->user()->role, ['dg', 'admin', 'super_admin'], true)) {
@@ -261,6 +329,15 @@ class OperationController extends Controller
     private function showRoute(StockOperation $op): string
     {
         return $this->portal()[0] . '.stock-operations.show';
+    }
+
+    private function backMovement(array $result, string $okMessage, bool $warn = false)
+    {
+        if (!$result['ok']) {
+            return redirect()->back()->with('error', $result['message']);
+        }
+        return redirect()->route($this->portal()[0] . '.stock-operations.pending')
+            ->with($warn ? 'warning' : 'success', $okMessage);
     }
 
     private function back(array $result, string $okMessage, string $koType = 'success')

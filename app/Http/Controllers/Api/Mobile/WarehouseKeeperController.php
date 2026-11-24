@@ -192,6 +192,7 @@ class WarehouseKeeperController extends Controller
                     'reason'          => $request->label,
                     'reference'       => $ref,
                     'created_by'      => $user->id,
+                    'status'          => 'en_attente',
                 ]);
 
                 $movement->metadata = json_encode([
@@ -210,10 +211,9 @@ class WarehouseKeeperController extends Controller
                 ]);
                 $movement->save();
 
-                Warehouse::where('id', $request->warehouse_id)
-                    ->update(['current_stock' => $newBalanceSacs]);
+                // Stock officiel inchangé : en attente de vérification inspecteur/DTL/DG.
 
-                Log::info('Mouvement de stock créé', [
+                Log::info('Mouvement de stock créé (en attente de vérification)', [
                     'user_id' => $user->id,
                     'warehouse_id' => $request->warehouse_id,
                     'reference' => $ref,
@@ -340,6 +340,7 @@ class WarehouseKeeperController extends Controller
                         'reason'          => $data['label'],
                         'reference'       => $ref,
                         'created_by'      => $user->id,
+                        'status'          => 'en_attente',
                         'metadata'        => json_encode([
                             'entry_sacs' => in_array($data['movement_type'], ['entry', 'report']) ? $data['sacs'] : 0,
                             'entry_kg'   => in_array($data['movement_type'], ['entry', 'report']) ? $data['kg'] : 0,
@@ -354,8 +355,7 @@ class WarehouseKeeperController extends Controller
                         ]),
                     ]);
 
-                    Warehouse::where('id', $data['warehouse_id'])
-                        ->update(['current_stock' => $newBalanceSacs]);
+                    // Stock officiel inchangé : en attente de vérification.
 
                     return $ref;
                 });
@@ -484,6 +484,7 @@ class WarehouseKeeperController extends Controller
                 'numero_transfert' => $numeroTransfert,
                 'entrepot_destination_id' => $request->destination_warehouse_id,
                 'created_by'      => $user->id,
+                'status'          => 'en_attente',
                 'metadata'        => json_encode([
                     'transfer_type' => 'out',
                     'client_ref' => $clientRef,
@@ -516,6 +517,7 @@ class WarehouseKeeperController extends Controller
                 'numero_transfert' => $numeroTransfert,
                 'entrepot_destination_id' => $request->warehouse_id,
                 'created_by'      => $user->id,
+                'status'          => 'en_attente',
             ]);
             $movementDest->metadata = json_encode([
                 'transfer_type' => 'in',
@@ -533,16 +535,14 @@ class WarehouseKeeperController extends Controller
             ]);
             $movementDest->save();
 
-            // Mise à jour des stocks courants
-            Warehouse::where('id', $request->warehouse_id)
-                ->update(['current_stock' => $newBalanceSource]);
-            Warehouse::where('id', $request->destination_warehouse_id)
-                ->update(['current_stock' => $newBalanceDest]);
+            // Stock officiel inchangé : les deux jambes restent 'en_attente'
+            // (sortie vérifiée par l'inspecteur, réception confirmée par le
+            // magasin destinataire, puis vérification).
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Transfert effectué avec succès.',
+                'message' => 'Transfert enregistré — en attente de vérification et de confirmation de réception.',
                 'reference' => $ref,
                 'numero_transfert' => $numeroTransfert,
                 'source_balance_sacs' => $newBalanceSource,
@@ -584,22 +584,27 @@ class WarehouseKeeperController extends Controller
             $movement = DB::transaction(function () use ($request, $user, $theoretical, $actual, $diff, $ref) {
                 Warehouse::where('id', $request->warehouse_id)->lockForUpdate()->first();
 
+                // Référence = stock officiel (mouvements vérifiés) au moment du comptage.
+                $official = $this->calculateBalance($request->warehouse_id)['sacs'];
+
                 $movement = StockMovement::create([
                     'warehouse_id'    => $request->warehouse_id,
                     'stock_id'        => null,
                     'type'            => 'adjustment',
-                    'quantity'        => abs($diff),
-                    'quantity_before' => $theoretical,
+                    'quantity'        => abs($actual - $official),
+                    'quantity_before' => $official,
                     'quantity_after'  => $actual,
                     'reason'          => $request->label . ' (Inventaire)',
                     'reference'       => $ref,
                     'raison_ajustement' => 'Inventaire physique',
                     'created_by'      => $user->id,
+                    'status'          => 'en_attente',
                 ]);
 
                 $movement->metadata = json_encode([
                     'inventory_type' => true,
                     'theoretical_sacs' => $theoretical,
+                    'official_sacs' => $official,
                     'actual_sacs' => $actual,
                     'difference_sacs' => $diff,
                     'observation' => $request->observation,
@@ -607,8 +612,8 @@ class WarehouseKeeperController extends Controller
                 ]);
                 $movement->save();
 
-                Warehouse::where('id', $request->warehouse_id)
-                    ->update(['current_stock' => $actual]);
+                // Stock officiel inchangé : correction appliquée après
+                // vérification par un responsable habilité (DTL/DG).
 
                 return $movement;
             });
@@ -641,9 +646,12 @@ class WarehouseKeeperController extends Controller
             return $resp;
         }
 
-        // Tous les types de mouvements : entry/exit/adjustment/transfer/report
-        // (mobile) et in/out (back-office web)
+        // Stock officiel : mouvements vérifiés uniquement (les 'en_attente',
+        // 'rejetee', 'anomalie' ne comptent pas encore).
         $movements = StockMovement::where('warehouse_id', $warehouseId)
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhereNotIn('status', ['en_attente', 'rejetee', 'anomalie', 'rejected']);
+            })
             ->get(['type', 'quantity', 'quantity_before', 'quantity_after', 'reason', 'metadata', 'stock_id']);
 
         // Analyser les métadonnées pour extraire produit et format
@@ -949,7 +957,11 @@ class WarehouseKeeperController extends Controller
 
     private function calculateBalance($warehouseId)
     {
+        // Solde officiel : uniquement les mouvements vérifiés (hors attentes/rejets).
         $movements = StockMovement::where('warehouse_id', $warehouseId)
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhereNotIn('status', ['en_attente', 'rejetee', 'anomalie', 'rejected']);
+            })
             ->get(['type', 'quantity', 'quantity_before', 'quantity_after', 'reason']);
 
         $sacs = 0;

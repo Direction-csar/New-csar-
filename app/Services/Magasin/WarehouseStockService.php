@@ -147,6 +147,7 @@ class WarehouseStockService
                     'reason' => $data['label'],
                     'reference' => $ref,
                     'created_by' => $user->id,
+                    'status' => 'en_attente',
                 ]);
 
                 $movement->metadata = json_encode([
@@ -165,9 +166,10 @@ class WarehouseStockService
                 ]);
                 $movement->save();
 
-                Warehouse::where('id', $warehouseId)->update(['current_stock' => $newBalanceSacs]);
+                // Le stock officiel (warehouses.current_stock) n'est PAS mis à jour :
+                // le mouvement reste 'en_attente' jusqu'à vérification inspecteur/DTL/DG.
 
-                Log::info('Mouvement de stock créé', [
+                Log::info('Mouvement de stock créé (en attente de vérification)', [
                     'user_id' => $user->id,
                     'warehouse_id' => $warehouseId,
                     'reference' => $ref,
@@ -175,7 +177,7 @@ class WarehouseStockService
                     'sacs' => $sacs,
                 ]);
 
-                return ['ref' => $ref, 'movement' => $movement, 'balance_sacs' => $newBalanceSacs, 'balance_kg' => $newBalanceKg];
+                return ['ref' => $ref, 'movement' => $movement, 'balance_sacs' => $balance['sacs'], 'balance_kg' => $balance['kg']];
             });
         } catch (\Throwable $e) {
             return ['ok' => false, 'message' => 'Erreur enregistrement : ' . $e->getMessage(), 'status' => 500];
@@ -186,11 +188,11 @@ class WarehouseStockService
         }
 
         $this->auditMovement($user, 'stock_movement.create', $result['movement'],
-            "Mouvement {$type} de {$sacs} contenants sur le magasin #{$warehouseId} (réf. {$result['ref']})");
+            "Mouvement {$type} de {$sacs} contenants sur le magasin #{$warehouseId} (réf. {$result['ref']}) — en attente de vérification");
 
         return [
             'ok' => true,
-            'message' => 'Mouvement enregistré avec succès.',
+            'message' => 'Mouvement enregistré — en attente de vérification par l\'inspecteur.',
             'reference' => $result['ref'],
             'balance_sacs' => $result['balance_sacs'],
             'balance_kg' => $result['balance_kg'],
@@ -256,6 +258,7 @@ class WarehouseStockService
                 'numero_transfert' => $numeroTransfert,
                 'entrepot_destination_id' => $destId,
                 'created_by' => $user->id,
+                'status' => 'en_attente',
                 'metadata' => json_encode([
                     'transfer_type' => 'out',
                     'client_ref' => $clientRef,
@@ -285,6 +288,7 @@ class WarehouseStockService
                 'numero_transfert' => $numeroTransfert,
                 'entrepot_destination_id' => $warehouseId,
                 'created_by' => $user->id,
+                'status' => 'en_attente',
             ]);
             $movementDest->metadata = json_encode([
                 'transfer_type' => 'in',
@@ -300,9 +304,6 @@ class WarehouseStockService
             ]);
             $movementDest->save();
 
-            Warehouse::where('id', $warehouseId)->update(['current_stock' => $newBalanceSource]);
-            Warehouse::where('id', $destId)->update(['current_stock' => $newBalanceDest]);
-
             DB::commit();
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -310,11 +311,11 @@ class WarehouseStockService
         }
 
         $this->auditMovement($user, 'stock_movement.transfer', $movementSource,
-            "Transfert {$numeroTransfert} : {$sacs} contenants de #{$warehouseId} vers #{$destId} (réf. {$ref})");
+            "Transfert {$numeroTransfert} : {$sacs} contenants de #{$warehouseId} vers #{$destId} (réf. {$ref}) — en attente de vérification");
 
         return [
             'ok' => true,
-            'message' => 'Transfert effectué avec succès.',
+            'message' => 'Transfert enregistré — en attente de vérification (sortie par l\'inspecteur, réception par le magasin destinataire).',
             'reference' => $ref,
             'numero_transfert' => $numeroTransfert,
             'source_balance_sacs' => $newBalanceSource,
@@ -333,29 +334,35 @@ class WarehouseStockService
 
         $theoretical = (float) $data['theoretical_sacs'];
         $actual = (float) $data['actual_sacs'];
-        $diff = $actual - $theoretical;
         $ref = 'INV-' . strtoupper(Str::random(8));
 
         try {
-            $movement = DB::transaction(function () use ($data, $user, $warehouseId, $theoretical, $actual, $diff, $ref) {
+            $result = DB::transaction(function () use ($data, $user, $warehouseId, $theoretical, $actual, $ref) {
                 Warehouse::where('id', $warehouseId)->lockForUpdate()->first();
+
+                // Référence = stock officiel (mouvements vérifiés) au moment du comptage.
+                // L'écart appliqué à la vérification = comptage réel − stock officiel.
+                $official = $this->balance($warehouseId)['sacs'];
+                $diff = $actual - $official;
 
                 $movement = StockMovement::create([
                     'warehouse_id' => $warehouseId,
                     'stock_id' => null,
                     'type' => 'adjustment',
                     'quantity' => abs($diff),
-                    'quantity_before' => $theoretical,
+                    'quantity_before' => $official,
                     'quantity_after' => $actual,
                     'reason' => $data['label'] . ' (Inventaire)',
                     'reference' => $ref,
                     'raison_ajustement' => 'Inventaire physique',
                     'created_by' => $user->id,
+                    'status' => 'en_attente',
                 ]);
 
                 $movement->metadata = json_encode([
                     'inventory_type' => true,
                     'theoretical_sacs' => $theoretical,
+                    'official_sacs' => $official,
                     'actual_sacs' => $actual,
                     'difference_sacs' => $diff,
                     'observation' => $data['observation'] ?? null,
@@ -363,25 +370,24 @@ class WarehouseStockService
                 ]);
                 $movement->save();
 
-                Warehouse::where('id', $warehouseId)->update(['current_stock' => $actual]);
-
-                return $movement;
+                // current_stock inchangé : correction appliquée après vérification.
+                return ['movement' => $movement, 'diff' => $diff];
             });
         } catch (\Throwable $e) {
             return ['ok' => false, 'message' => 'Erreur inventaire : ' . $e->getMessage(), 'status' => 500];
         }
 
-        $this->auditMovement($user, 'stock_movement.inventory', $movement,
-            "Inventaire physique sur le magasin #{$warehouseId} : théorique {$theoretical}, réel {$actual} (réf. {$ref})");
+        $this->auditMovement($user, 'stock_movement.inventory', $result['movement'],
+            "Inventaire physique sur le magasin #{$warehouseId} : théorique {$theoretical}, réel {$actual} (réf. {$ref}) — en attente de vérification");
 
         return [
             'ok' => true,
-            'message' => 'Inventaire enregistré.',
+            'message' => 'Inventaire enregistré — en attente de vérification avant correction du stock officiel.',
             'reference' => $ref,
             'theoretical_sacs' => $theoretical,
             'actual_sacs' => $actual,
-            'difference_sacs' => $diff,
-            'movement' => $movement,
+            'difference_sacs' => $result['diff'],
+            'movement' => $result['movement'],
         ];
     }
 
@@ -895,7 +901,7 @@ class WarehouseStockService
         }
     }
 
-    private function movementTypeLabel($type): string
+    public function movementTypeLabel($type): string
     {
         return [
             'entry' => 'Entrée de stock',
@@ -906,5 +912,215 @@ class WarehouseStockService
             'transfer' => 'Transfert',
             'report' => 'Report',
         ][$type] ?? (string) $type;
+    }
+
+    // ==================================================================
+    // File de vérification : mouvements saisis directement (hors
+    // stock_operations) — entrées, sorties, transferts, inventaires.
+    // Aucun ne touche le stock officiel tant qu'il n'est pas vérifié.
+    // ==================================================================
+
+    /** Rôles habilités à vérifier un mouvement de type entrée/sortie/transfert. */
+    private const VERIFY_ROLES_OPERATION = ['inspecteur', 'dtl', 'dg', 'admin', 'super_admin'];
+
+    /** Rôles habilités à valider un ajustement / inventaire physique. */
+    private const VERIFY_ROLES_ADJUSTMENT = ['dtl', 'dg', 'admin', 'super_admin'];
+
+    /** Un mouvement est une correction de stock (inventaire / ajustement). */
+    public function isAdjustmentMovement(StockMovement $m): bool
+    {
+        if ($m->type === 'adjustment') {
+            return true;
+        }
+        $meta = json_decode($m->metadata ?? '{}', true);
+        return !empty($meta['inventory_type']);
+    }
+
+    /** Le mouvement est la jambe « entrée » d'un transfert. */
+    public function isTransferIn(StockMovement $m): bool
+    {
+        if ($m->type !== 'entry') {
+            return false;
+        }
+        $meta = json_decode($m->metadata ?? '{}', true);
+        return ($meta['transfer_type'] ?? null) === 'in';
+    }
+
+    /**
+     * Mouvements 'en_attente' hors circuit stock_operations.
+     * - magasinier : ceux de ses magasins accessibles (y compris réceptions de transfert)
+     * - inspecteur / dtl / dg / admin : tous
+     */
+    public function pendingMovements(User $user, array $filters = []): \Illuminate\Database\Eloquent\Collection
+    {
+        $q = StockMovement::with(['warehouse:id,name,region', 'creator:id,name'])
+            ->where('status', 'en_attente')
+            ->orderByDesc('id');
+
+        $isMagasinier = $user->role === 'magasinier';
+        if (!$isMagasinier) {
+            // Les mouvements rattachés à une stock_operation sont gérés
+            // par le circuit dédié (vérification groupée de l'opération).
+            $q->whereNull('stock_operation_id');
+        }
+
+        if ($isMagasinier) {
+            $ids = $this->accessibleWarehouses($user)->pluck('id')->all();
+            $q->whereIn('warehouse_id', $ids ?: [0]);
+        }
+
+        if (!empty($filters['warehouse_id'])) {
+            $q->where('warehouse_id', (int) $filters['warehouse_id']);
+        }
+        if (!empty($filters['type'])) {
+            $q->where('type', $filters['type']);
+        }
+
+        $rows = $q->get();
+
+        if ($isMagasinier) {
+            // Le magasinier voit ses mouvements directs + les réceptions de
+            // transfert (y compris celles issues d'une stock_operation) pour
+            // pouvoir confirmer la réception.
+            $rows = $rows->filter(fn ($m) => !$m->stock_operation_id || $this->isTransferIn($m))->values();
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Vérifie un mouvement en attente → l'intègre au stock officiel.
+     * Règles : ajustements/inventaires → DTL/DG/admin ; transferts « in » →
+     * confirmation de réception du magasin destinataire exigée (la direction
+     * peut passer outre) ; les sorties revérifient le solde officiel.
+     */
+    public function verifyPendingMovement(User $user, int $movementId): array
+    {
+        try {
+            return DB::transaction(function () use ($user, $movementId) {
+                $m = StockMovement::whereKey($movementId)->lockForUpdate()->first();
+                if (!$m) {
+                    return ['ok' => false, 'message' => 'Mouvement introuvable.', 'status' => 404];
+                }
+                if ($m->status !== 'en_attente' || $m->stock_operation_id) {
+                    return ['ok' => false, 'message' => 'Mouvement déjà traité ou géré par une opération de stock.', 'status' => 409];
+                }
+
+                $isAdjust = $this->isAdjustmentMovement($m);
+                $roles = $isAdjust ? self::VERIFY_ROLES_ADJUSTMENT : self::VERIFY_ROLES_OPERATION;
+                if (!in_array($user->role, $roles, true)) {
+                    return ['ok' => false, 'message' => 'Rôle non habilité à vérifier ce mouvement.', 'status' => 403];
+                }
+
+                // Jambe « in » d'un transfert : réception confirmée par le magasin destinataire
+                $meta = json_decode($m->metadata ?? '{}', true) ?: [];
+                if ($this->isTransferIn($m) && empty($meta['receipt_confirmed_at'])
+                    && !in_array($user->role, ['dtl', 'dg', 'admin', 'super_admin'], true)) {
+                    return ['ok' => false, 'message' => 'Réception non encore confirmée par le magasin destinataire.', 'status' => 409];
+                }
+
+                // Delta à appliquer : inventaire = comptage réel − stock officiel actuel
+                // (auto-corrige si d'autres mouvements ont été vérifiés entre-temps).
+                if (!empty($meta['inventory_type'])) {
+                    $delta = (float) $m->quantity_after - $this->balance($m->warehouse_id)['sacs'];
+                } else {
+                    $delta = $this->signedDelta($m);
+                }
+
+                // Les sorties revérifient le solde officiel (des sorties en attente
+                // concurrentes peuvent avoir été validées entre-temps).
+                if ($delta < 0 && abs($delta) > $this->balance($m->warehouse_id)['sacs'] + 0.0001) {
+                    return ['ok' => false, 'message' => 'Solde officiel insuffisant à la vérification. Mouvement à rejeter ou à refaire.', 'status' => 422];
+                }
+
+                // Stock produit (stocks.quantity) : même delta, avec
+                // contrôle produit-par-produit pour les sorties.
+                if ($m->stock_id && $delta != 0.0) {
+                    $stockRow = Stock::whereKey($m->stock_id)->lockForUpdate()->first();
+                    if ($stockRow) {
+                        if ($delta < 0 && (float) $stockRow->quantity + $delta < -0.0001) {
+                            return ['ok' => false, 'message' => 'Stock produit insuffisant à la vérification.', 'status' => 422];
+                        }
+                        $stockRow->increment('quantity', $delta);
+                    }
+                }
+
+                $m->update([
+                    'status' => 'verifie',
+                    'validated_by' => $user->id,
+                    'validated_at' => now(),
+                ]);
+
+                Warehouse::where('id', $m->warehouse_id)->increment('current_stock', $delta);
+
+                $this->auditMovement($user, 'stock_movement.verify', $m,
+                    "Mouvement {$m->reference} vérifié (delta {$delta}) — intégré au stock officiel");
+
+                return ['ok' => true, 'movement' => $m->fresh(), 'delta' => $delta];
+            });
+        } catch (\Throwable $e) {
+            return ['ok' => false, 'message' => 'Erreur vérification : ' . $e->getMessage(), 'status' => 500];
+        }
+    }
+
+    /** Rejette un mouvement en attente — il ne comptera jamais au stock officiel. */
+    public function rejectPendingMovement(User $user, int $movementId, string $reason): array
+    {
+        $m = StockMovement::find($movementId);
+        if (!$m) {
+            return ['ok' => false, 'message' => 'Mouvement introuvable.', 'status' => 404];
+        }
+        if ($m->status !== 'en_attente' || $m->stock_operation_id) {
+            return ['ok' => false, 'message' => 'Mouvement déjà traité ou géré par une opération de stock.', 'status' => 409];
+        }
+
+        $isAdjust = $this->isAdjustmentMovement($m);
+        $roles = $isAdjust ? self::VERIFY_ROLES_ADJUSTMENT : self::VERIFY_ROLES_OPERATION;
+        if (!in_array($user->role, $roles, true)) {
+            return ['ok' => false, 'message' => 'Rôle non habilité à rejeter ce mouvement.', 'status' => 403];
+        }
+
+        $m->update(['status' => 'rejetee', 'rejection_reason' => $reason]);
+        $this->auditMovement($user, 'stock_movement.reject', $m,
+            "Mouvement {$m->reference} rejeté : {$reason}");
+
+        return ['ok' => true, 'movement' => $m->fresh()];
+    }
+
+    /**
+     * Confirmation de réception d'une jambe « in » de transfert par le
+     * magasinier du magasin destinataire (ou la direction).
+     */
+    public function confirmTransferReceipt(User $user, int $movementId): array
+    {
+        $m = StockMovement::find($movementId);
+        if (!$m) {
+            return ['ok' => false, 'message' => 'Mouvement introuvable.', 'status' => 404];
+        }
+        if (!$this->isTransferIn($m) || $m->status !== 'en_attente') {
+            return ['ok' => false, 'message' => 'Ce mouvement n\'est pas une réception de transfert en attente.', 'status' => 409];
+        }
+        if (!in_array($user->role, ['magasinier', 'inspecteur', 'dtl', 'dg', 'admin', 'super_admin'], true)) {
+            return ['ok' => false, 'message' => 'Rôle non autorisé.', 'status' => 403];
+        }
+        if ($user->role === 'magasinier' && !$this->canAccess($user, (int) $m->warehouse_id)) {
+            return ['ok' => false, 'message' => 'Magasin destinataire non autorisé.', 'status' => 403];
+        }
+
+        $meta = json_decode($m->metadata ?? '{}', true) ?: [];
+        if (!empty($meta['receipt_confirmed_at'])) {
+            return ['ok' => true, 'message' => 'Réception déjà confirmée.', 'movement' => $m, 'duplicate' => true];
+        }
+
+        $meta['receipt_confirmed_by'] = $user->id;
+        $meta['receipt_confirmed_by_name'] = $user->name;
+        $meta['receipt_confirmed_at'] = now()->toIso8601String();
+        $m->metadata = json_encode($meta);
+        $m->save();
+
+        $this->auditMovement($user, 'stock_movement.transfer_receipt', $m,
+            "Réception confirmée pour le transfert {$m->numero_transfert} (réf. {$m->reference})");
+
+        return ['ok' => true, 'message' => 'Réception confirmée — en attente de vérification inspecteur.', 'movement' => $m->fresh()];
     }
 }

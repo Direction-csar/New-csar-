@@ -381,7 +381,20 @@ class StockOperationsCircuitTest extends TestCase
         $this->assertEquals(100, $stock->balance($this->warehouse->id)['sacs']);
         $this->assertEquals(0, $stock->balance($dest->id)['sacs']);
 
-        $svc->verify($this->inspecteur, $op->id);
+        // La vérification est bloquée tant que le magasin destinataire
+        // n'a pas confirmé la réception physique.
+        $r = $svc->verify($this->inspecteur, $op->id);
+        $this->assertFalse($r['ok']);
+        $this->assertEquals(409, $r['status']);
+
+        // Le magasinier de destination confirme la réception
+        $inMovement = StockMovement::where('stock_operation_id', $op->id)
+            ->where('warehouse_id', $dest->id)->first();
+        $r = $stock->confirmTransferReceipt($mag2, $inMovement->id);
+        $this->assertTrue($r['ok'], $r['message'] ?? '');
+
+        $r = $svc->verify($this->inspecteur, $op->id);
+        $this->assertTrue($r['ok'], $r['message'] ?? '');
         $this->assertEquals(80, $stock->balance($this->warehouse->id)['sacs']);
         $this->assertEquals(20, $stock->balance($dest->id)['sacs']);
     }
@@ -536,5 +549,266 @@ class StockOperationsCircuitTest extends TestCase
         $this->assertContains('stock_operation.transmit', $actions);
         $this->assertContains('stock_operation.execute', $actions);
         $this->assertContains('stock_operation.verify', $actions);
+    }
+
+    // ------------------------------------------------------------------
+    // Mouvements directs (hors stock_operations) : aucun ne doit modifier
+    // le stock officiel sans vérification — Web, APK, API ou /sync.
+    // ------------------------------------------------------------------
+
+    private function movementData(string $type, float $sacs, array $extra = []): array
+    {
+        return $extra + [
+            'warehouse_id' => $this->warehouse->id,
+            'movement_type' => $type,
+            'sacs' => $sacs,
+            'kg' => $sacs * 50,
+            'label' => 'Riz [50kg] — test',
+            'movement_date' => '2026-11-25',
+        ];
+    }
+
+    public function test_direct_entry_stays_pending_until_inspector_verifies(): void
+    {
+        $stock = app(\App\Services\Magasin\WarehouseStockService::class);
+
+        $r = $stock->recordMovement($this->magasinier, $this->movementData('entry', 10, ['client_ref' => 'DIR-1']));
+        $this->assertTrue($r['ok'], $r['message'] ?? '');
+
+        $m = StockMovement::where('reference', 'DIR-1')->first();
+        $this->assertSame('en_attente', $m->status);
+        $this->assertSame($this->magasinier->id, $m->created_by);
+
+        // Stock officiel et current_stock inchangés
+        $this->assertEquals(100, $stock->balance($this->warehouse->id)['sacs']);
+        $this->assertEquals(100, (float) $this->warehouse->fresh()->current_stock);
+
+        // Le magasinier ne peut pas vérifier son propre mouvement
+        $r = $stock->verifyPendingMovement($this->magasinier, $m->id);
+        $this->assertFalse($r['ok']);
+        $this->assertEquals(403, $r['status']);
+
+        // L'inspecteur vérifie → intégré au stock officiel
+        $r = $stock->verifyPendingMovement($this->inspecteur, $m->id);
+        $this->assertTrue($r['ok'], $r['message'] ?? '');
+        $this->assertEquals(110, $stock->balance($this->warehouse->id)['sacs']);
+        $this->assertEquals(110, (float) $this->warehouse->fresh()->current_stock);
+        $this->assertSame('verifie', $m->fresh()->status);
+        $this->assertSame($this->inspecteur->id, $m->fresh()->validated_by);
+        $this->assertNotNull($m->fresh()->validated_at);
+    }
+
+    public function test_direct_exit_deducted_only_after_verification(): void
+    {
+        $stock = app(\App\Services\Magasin\WarehouseStockService::class);
+
+        $r = $stock->recordMovement($this->magasinier, $this->movementData('exit', 30, ['client_ref' => 'DIR-OUT-1']));
+        $this->assertTrue($r['ok'], $r['message'] ?? '');
+
+        // Officiel toujours 100 tant que non vérifié
+        $this->assertEquals(100, $stock->balance($this->warehouse->id)['sacs']);
+        $this->assertEquals(100, (float) $this->warehouse->fresh()->current_stock);
+
+        $stock->verifyPendingMovement($this->inspecteur, StockMovement::where('reference', 'DIR-OUT-1')->first()->id);
+        $this->assertEquals(70, $stock->balance($this->warehouse->id)['sacs']);
+        $this->assertEquals(70, (float) $this->warehouse->fresh()->current_stock);
+    }
+
+    public function test_pending_exits_are_rechecked_against_official_balance(): void
+    {
+        $stock = app(\App\Services\Magasin\WarehouseStockService::class);
+
+        // Deux sorties de 60 en attente sur un stock officiel de 100 :
+        // les deux sont acceptées à la saisie (solde officiel = 100)…
+        $stock->recordMovement($this->magasinier, $this->movementData('exit', 60, ['client_ref' => 'P-OUT-1']));
+        $stock->recordMovement($this->magasinier, $this->movementData('exit', 60, ['client_ref' => 'P-OUT-2']));
+
+        // …mais la seconde est refusée à la vérification (solde officiel = 40)
+        $m1 = StockMovement::where('reference', 'P-OUT-1')->first();
+        $m2 = StockMovement::where('reference', 'P-OUT-2')->first();
+        $this->assertTrue($stock->verifyPendingMovement($this->inspecteur, $m1->id)['ok']);
+        $this->assertEquals(40, $stock->balance($this->warehouse->id)['sacs']);
+
+        $r = $stock->verifyPendingMovement($this->inspecteur, $m2->id);
+        $this->assertFalse($r['ok']);
+        $this->assertEquals(422, $r['status']);
+        $this->assertEquals(40, $stock->balance($this->warehouse->id)['sacs']);
+        $this->assertSame('en_attente', $m2->fresh()->status);
+    }
+
+    public function test_rejected_direct_movement_never_counts(): void
+    {
+        $stock = app(\App\Services\Magasin\WarehouseStockService::class);
+
+        $stock->recordMovement($this->magasinier, $this->movementData('entry', 50, ['client_ref' => 'DIR-REJ']));
+        $m = StockMovement::where('reference', 'DIR-REJ')->first();
+
+        $r = $stock->rejectPendingMovement($this->inspecteur, $m->id, 'Justificatif absent');
+        $this->assertTrue($r['ok'], $r['message'] ?? '');
+        $this->assertSame('rejetee', $m->fresh()->status);
+        $this->assertSame('Justificatif absent', $m->fresh()->rejection_reason);
+
+        $this->assertEquals(100, $stock->balance($this->warehouse->id)['sacs']);
+        $this->assertEquals(100, (float) $this->warehouse->fresh()->current_stock);
+
+        // Un mouvement rejeté ne peut plus être vérifié
+        $r = $stock->verifyPendingMovement($this->inspecteur, $m->id);
+        $this->assertFalse($r['ok']);
+    }
+
+    public function test_transfer_requires_origin_check_and_destination_receipt(): void
+    {
+        $stock = app(\App\Services\Magasin\WarehouseStockService::class);
+        $dest = Warehouse::create([
+            'name' => 'Magasin Kaolack', 'region' => 'Kaolack',
+            'capacity' => 500, 'current_stock' => 0,
+            'status' => 'active', 'is_active' => true,
+        ]);
+        $magDest = $this->makeUser('magasinier');
+        $magDest->warehouse_id = $dest->id;
+        $magDest->save();
+
+        // Le DG enregistre le transfert (accès à tous les magasins)
+        $r = $stock->recordTransfer($this->dg, [
+            'warehouse_id' => $this->warehouse->id,
+            'destination_warehouse_id' => $dest->id,
+            'sacs' => 20, 'kg' => 1000,
+            'label' => 'Riz [50kg] — transfert',
+            'movement_date' => '2026-11-25',
+            'client_ref' => 'TRF-DIR-1',
+        ]);
+        $this->assertTrue($r['ok'], $r['message'] ?? '');
+
+        $out = StockMovement::where('reference', 'TRF-DIR-1')->first();
+        $in = StockMovement::where('reference', 'TRF-DIR-1-IN')->first();
+        $this->assertSame('en_attente', $out->status);
+        $this->assertSame('en_attente', $in->status);
+
+        // Aucun stock officiel ne bouge
+        $this->assertEquals(100, $stock->balance($this->warehouse->id)['sacs']);
+        $this->assertEquals(0, $stock->balance($dest->id)['sacs']);
+
+        // La réception ne peut pas être vérifiée avant confirmation du destinataire
+        $r = $stock->verifyPendingMovement($this->inspecteur, $in->id);
+        $this->assertFalse($r['ok']);
+        $this->assertEquals(409, $r['status']);
+
+        // Le magasinier destinataire confirme la réception physique
+        $r = $stock->confirmTransferReceipt($magDest, $in->id);
+        $this->assertTrue($r['ok'], $r['message'] ?? '');
+        $meta = json_decode($in->fresh()->metadata, true);
+        $this->assertSame($magDest->id, $meta['receipt_confirmed_by']);
+        $this->assertNotEmpty($meta['receipt_confirmed_at']);
+
+        // Idempotent : une seconde confirmation ne duplique rien
+        $r = $stock->confirmTransferReceipt($magDest, $in->id);
+        $this->assertTrue($r['ok']);
+        $this->assertTrue($r['duplicate'] ?? false);
+
+        // Sortie vérifiée par l'inspecteur, réception vérifiée ensuite
+        $this->assertTrue($stock->verifyPendingMovement($this->inspecteur, $out->id)['ok']);
+        $this->assertTrue($stock->verifyPendingMovement($this->inspecteur, $in->id)['ok']);
+
+        $this->assertEquals(80, $stock->balance($this->warehouse->id)['sacs']);
+        $this->assertEquals(20, $stock->balance($dest->id)['sacs']);
+    }
+
+    public function test_inventory_correction_requires_dtl_or_dg(): void
+    {
+        $stock = app(\App\Services\Magasin\WarehouseStockService::class);
+
+        $r = $stock->recordInventory($this->magasinier, [
+            'warehouse_id' => $this->warehouse->id,
+            'theoretical_sacs' => 100,
+            'actual_sacs' => 92,
+            'label' => 'Inventaire annuel',
+            'movement_date' => '2026-11-25',
+        ]);
+        $this->assertTrue($r['ok'], $r['message'] ?? '');
+        $this->assertEquals(-8, $r['difference_sacs']);
+
+        $m = StockMovement::where('reference', $r['reference'])->first();
+        $this->assertSame('en_attente', $m->status);
+        $this->assertEquals(100, $stock->balance($this->warehouse->id)['sacs']);
+
+        // L'inspecteur ne peut pas valider un ajustement d'inventaire
+        $r = $stock->verifyPendingMovement($this->inspecteur, $m->id);
+        $this->assertFalse($r['ok']);
+        $this->assertEquals(403, $r['status']);
+
+        // La DTL valide → correction appliquée (100 → 92)
+        $r = $stock->verifyPendingMovement($this->dtl, $m->id);
+        $this->assertTrue($r['ok'], $r['message'] ?? '');
+        $this->assertEquals(92, $stock->balance($this->warehouse->id)['sacs']);
+        $this->assertEquals(92, (float) $this->warehouse->fresh()->current_stock);
+    }
+
+    public function test_offline_sync_movements_stay_pending_and_idempotent(): void
+    {
+        $stock = app(\App\Services\Magasin\WarehouseStockService::class);
+
+        \Laravel\Sanctum\Sanctum::actingAs($this->magasinier, ['warehouse']);
+        $payload = ['movements' => [[
+            'warehouse_id' => $this->warehouse->id,
+            'movement_date' => '2026-11-25',
+            'label' => 'Riz [50kg] — offline',
+            'movement_type' => 'entry',
+            'sacs' => 15, 'kg' => 750,
+            'client_ref' => 'OFFLINE-1',
+        ]]];
+
+        $this->postJson('/api/warehouse/v1/sync', $payload)->assertOk();
+        // Re-synchronisation (retry réseau) : aucun doublon
+        $r2 = $this->postJson('/api/warehouse/v1/sync', $payload)->assertOk();
+        $this->assertSame('duplicate', $r2->json('results.0.status'));
+
+        $this->assertSame(1, StockMovement::where('reference', 'OFFLINE-1')->count());
+        $this->assertSame('en_attente', StockMovement::where('reference', 'OFFLINE-1')->first()->status);
+        $this->assertEquals(100, $stock->balance($this->warehouse->id)['sacs']);
+        $this->assertEquals(100, (float) $this->warehouse->fresh()->current_stock);
+    }
+
+    public function test_api_pending_movements_endpoints(): void
+    {
+        $stock = app(\App\Services\Magasin\WarehouseStockService::class);
+        $stock->recordMovement($this->magasinier, $this->movementData('entry', 5, ['client_ref' => 'API-PEND-1']));
+        $m = StockMovement::where('reference', 'API-PEND-1')->first();
+
+        // L'inspecteur voit le mouvement en attente et le vérifie via l'API
+        \Laravel\Sanctum\Sanctum::actingAs($this->inspecteur, ['inspector']);
+        $this->getJson('/api/warehouse/v1/pending-movements')->assertOk()
+            ->assertJsonCount(1, 'movements')
+            ->assertJsonPath('movements.0.reference', 'API-PEND-1');
+
+        $this->postJson("/api/warehouse/v1/pending-movements/{$m->id}/verify")
+            ->assertOk()->assertJsonPath('movement.status', 'verifie');
+        $this->assertEquals(105, $stock->balance($this->warehouse->id)['sacs']);
+
+        // Le magasinier voit ses propres mouvements en attente (lecture seule)
+        $stock->recordMovement($this->magasinier, $this->movementData('exit', 5, ['client_ref' => 'API-PEND-2']));
+        $m2 = StockMovement::where('reference', 'API-PEND-2')->first();
+        \Laravel\Sanctum\Sanctum::actingAs($this->magasinier, ['warehouse']);
+        $this->getJson('/api/warehouse/v1/pending-movements')->assertOk()
+            ->assertJsonCount(1, 'movements');
+        // …mais ne peut ni vérifier ni rejeter
+        $this->postJson("/api/warehouse/v1/pending-movements/{$m2->id}/verify")->assertStatus(403);
+        $this->postJson("/api/warehouse/v1/pending-movements/{$m2->id}/reject", [
+            'rejection_reason' => 'test',
+        ])->assertStatus(403);
+        $this->assertEquals(105, $stock->balance($this->warehouse->id)['sacs']);
+    }
+
+    public function test_client_ref_idempotency_on_direct_movements(): void
+    {
+        $stock = app(\App\Services\Magasin\WarehouseStockService::class);
+
+        $r1 = $stock->recordMovement($this->magasinier, $this->movementData('entry', 7, ['client_ref' => 'IDEM-1']));
+        $r2 = $stock->recordMovement($this->magasinier, $this->movementData('entry', 7, ['client_ref' => 'IDEM-1']));
+
+        $this->assertTrue($r1['ok']);
+        $this->assertTrue($r2['ok']);
+        $this->assertTrue($r2['duplicate']);
+        $this->assertSame(1, StockMovement::where('reference', 'IDEM-1')->count());
+        $this->assertEquals(100, $stock->balance($this->warehouse->id)['sacs']);
     }
 }

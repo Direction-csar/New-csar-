@@ -213,8 +213,18 @@ class MagasinierPortalTest extends TestCase
             'quantity' => 50,
             'reason' => 'Riz brisé [25kg] — Réception test riz',
         ]);
-        // Le solde est recalculé depuis les mouvements : 0 existant + 50
-        $this->assertEquals(60, (float) $this->warehouse->fresh()->current_stock);
+
+        // Les deux entrées restent 'en_attente' : le stock officiel ne bouge pas
+        $this->assertSame('en_attente', StockMovement::latest('id')->first()->status);
+        $this->assertEquals(100, (float) $this->warehouse->fresh()->current_stock);
+
+        // Après vérification (DTL), le stock officiel intègre les +60
+        $dtl = $this->makeUser('dtl');
+        $svc = app(\App\Services\Magasin\WarehouseStockService::class);
+        foreach (StockMovement::where('status', 'en_attente')->get() as $m) {
+            $this->assertTrue($svc->verifyPendingMovement($dtl, $m->id)['ok']);
+        }
+        $this->assertEquals(160, (float) $this->warehouse->fresh()->current_stock);
     }
 
     public function test_exit_blocked_when_insufficient_stock(): void
@@ -297,7 +307,16 @@ class MagasinierPortalTest extends TestCase
         $this->post(route('magasinier.mouvements.store', $this->warehouse->id), $base + ['sacs' => 131])->assertSessionHas('error');
         $this->post(route('magasinier.mouvements.store', $this->warehouse->id), $base + ['sacs' => 30])->assertRedirect();
 
+        // La sortie reste 'en_attente' : le stock officiel est encore 130
         $svc = app(\App\Services\Magasin\WarehouseStockService::class);
+        $sucre = collect($svc->stockStatus($this->warehouse->id)['products'])->firstWhere('product_name', 'Sucre');
+        $this->assertEquals(130, $sucre['total_sacs']);
+
+        // Après vérification, le stock officiel passe à 100
+        $dtl = $this->makeUser('dtl');
+        foreach (StockMovement::where('status', 'en_attente')->get() as $m) {
+            $this->assertTrue($svc->verifyPendingMovement($dtl, $m->id)['ok']);
+        }
         $sucre = collect($svc->stockStatus($this->warehouse->id)['products'])->firstWhere('product_name', 'Sucre');
         $this->assertEquals(100, $sucre['total_sacs']);
     }

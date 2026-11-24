@@ -172,6 +172,11 @@ class StockSituationImporter
                     'reason' => "{$m['name']} [{$m['format']}{$m['unit']}] — Situation réelle du 23/11/2026",
                     'reference' => sprintf('%s-W%d-%02d', self::PREFIX, $wh->id, $i + 1),
                     'created_by' => $userId,
+                    // Situation de référence validée : ces mouvements
+                    // constituent le stock de départ officiel.
+                    'status' => 'verified',
+                    'validated_by' => $userId,
+                    'validated_at' => now(),
                 ]);
                 $movement->metadata = json_encode([
                     'entry_sacs' => $m['type'] === 'entry' ? $m['sacs'] : 0,

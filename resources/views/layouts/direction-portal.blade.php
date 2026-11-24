@@ -272,9 +272,15 @@ $directionSlug = strtolower($direction);
         @endif
 
         @if(Route::has($directionSlug . '.stock-operations.index'))
-        <a href="{{ route($directionSlug . '.stock-operations.index') }}" class="menu-link {{ str_contains($currentRoute, 'stock-operations') ? 'active' : '' }}">
+        <a href="{{ route($directionSlug . '.stock-operations.index') }}" class="menu-link {{ str_contains($currentRoute, 'stock-operations') && !str_contains($currentRoute, 'stock-operations.pending') ? 'active' : '' }}">
             <i class="fas fa-dolly"></i>
             <span class="menu-text">Opérations de stock</span>
+        </a>
+        @endif
+        @if(Route::has($directionSlug . '.stock-operations.pending'))
+        <a href="{{ route($directionSlug . '.stock-operations.pending') }}" class="menu-link {{ str_contains($currentRoute, 'stock-operations.pending') ? 'active' : '' }}">
+            <i class="fas fa-clock"></i>
+            <span class="menu-text">Mouvements en attente</span>
         </a>
         @endif
 

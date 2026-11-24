@@ -23,6 +23,7 @@ class WarehouseKeeperApiTest extends TestCase
 {
     protected User $admin;
     protected User $magasinier;
+    protected User $dtl;
     protected Warehouse $whA;
     protected Warehouse $whB;
 
@@ -56,6 +57,11 @@ class WarehouseKeeperApiTest extends TestCase
             'role' => 'magasinier',
             'is_active' => true,
             'warehouse_id' => $this->whA->id,
+        ]);
+
+        $this->dtl = User::factory()->create([
+            'role' => 'dtl',
+            'is_active' => true,
         ]);
 
         Product::create([
@@ -150,6 +156,11 @@ class WarehouseKeeperApiTest extends TestCase
             $t->string('raison_ajustement')->nullable();
             $t->unsignedBigInteger('public_request_id')->nullable();
             $t->unsignedBigInteger('request_mission_id')->nullable();
+            $t->unsignedBigInteger('stock_operation_id')->nullable();
+            $t->string('status')->nullable();
+            $t->unsignedBigInteger('validated_by')->nullable();
+            $t->timestamp('validated_at')->nullable();
+            $t->text('rejection_reason')->nullable();
             $t->timestamps();
             $t->softDeletes();
         });
@@ -219,6 +230,19 @@ class WarehouseKeeperApiTest extends TestCase
         return $this;
     }
 
+    /**
+     * Vérifie tous les mouvements 'en_attente' comme le ferait la DTL :
+     * c'est le seul moyen de les intégrer au stock officiel.
+     */
+    private function verifyAllPending(): void
+    {
+        $svc = app(\App\Services\Magasin\WarehouseStockService::class);
+        foreach (StockMovement::where('status', 'en_attente')->get() as $m) {
+            $r = $svc->verifyPendingMovement($this->dtl, $m->id);
+            $this->assertTrue($r['ok'], "Vérification impossible pour {$m->reference} : " . ($r['message'] ?? ''));
+        }
+    }
+
     private function postEntry(int $wh, string $label, float $sacs, float $kg, ?string $ref = null)
     {
         return $this->postJson('/api/warehouse/v1/movements', [
@@ -255,6 +279,7 @@ class WarehouseKeeperApiTest extends TestCase
         // Créer un mouvement de sortie dans le magasin A (magasin du magasinier)
         $this->apiAdmin();
         $this->postEntry($this->whA->id, 'Riz Test [25kg]', 10, 250, 'T-IN-M1')->assertStatus(201);
+        $this->verifyAllPending(); // l'entrée doit être vérifiée pour autoriser la sortie
         $exit = $this->postJson('/api/warehouse/v1/movements', [
             'warehouse_id' => $this->whA->id,
             'movement_date' => '2026-10-20',
@@ -288,6 +313,7 @@ class WarehouseKeeperApiTest extends TestCase
     {
         $this->apiAdmin();
         $this->postEntry($this->whB->id, 'Riz Test [25kg]', 10, 250, 'T-IN-M2')->assertStatus(201);
+        $this->verifyAllPending();
         $exit = $this->postJson('/api/warehouse/v1/movements', [
             'warehouse_id' => $this->whB->id,
             'movement_date' => '2026-10-20',
@@ -337,6 +363,14 @@ class WarehouseKeeperApiTest extends TestCase
         $r = $this->postEntry($this->whA->id, 'Riz Test [25kg]', 40, 1000, 'T-ENTRY-1');
         $r->assertStatus(201);
 
+        // L'entrée est 'en_attente' : invisible du stock officiel
+        $this->assertSame('en_attente', StockMovement::where('reference', 'T-ENTRY-1')->first()->status);
+        $pending = $this->getJson('/api/warehouse/v1/stock-status?warehouse_id=' . $this->whA->id)->json('products');
+        $this->assertSame(0.0, (float) ($pending[0]['total_sacs'] ?? 0));
+
+        // Après vérification DTL/inspecteur, elle compte
+        $this->verifyAllPending();
+
         $status = $this->getJson('/api/warehouse/v1/stock-status?warehouse_id=' . $this->whA->id)
             ->assertStatus(200)->json('products');
 
@@ -351,6 +385,8 @@ class WarehouseKeeperApiTest extends TestCase
     {
         $this->apiAdmin();
         $this->postEntry($this->whA->id, 'Riz Test [25kg]', 40, 1000, 'T-IN');
+        // L'entrée doit être vérifiée avant de pouvoir être sortie
+        $this->verifyAllPending();
         $this->postJson('/api/warehouse/v1/movements', [
             'warehouse_id' => $this->whA->id,
             'movement_date' => '2026-10-20',
@@ -359,6 +395,7 @@ class WarehouseKeeperApiTest extends TestCase
             'sacs' => 5,
             'kg' => 125,
         ])->assertStatus(201);
+        $this->verifyAllPending();
 
         $status = $this->getJson('/api/warehouse/v1/stock-status?warehouse_id=' . $this->whA->id)
             ->json('products');
@@ -371,6 +408,7 @@ class WarehouseKeeperApiTest extends TestCase
     {
         $this->apiAdmin();
         $this->postEntry($this->whA->id, 'Huile Test [20L]', 15, 300, 'T-HUILE')->assertStatus(201);
+        $this->verifyAllPending();
 
         $status = $this->getJson('/api/warehouse/v1/stock-status?warehouse_id=' . $this->whA->id)
             ->json('products');
@@ -399,6 +437,7 @@ class WarehouseKeeperApiTest extends TestCase
     {
         $this->apiAdmin();
         $this->postEntry($this->whA->id, 'Riz Test [25kg]', 10, 250, 'T-IN2');
+        $this->verifyAllPending();
 
         $this->postJson('/api/warehouse/v1/movements', [
             'warehouse_id' => $this->whA->id,
@@ -478,6 +517,7 @@ class WarehouseKeeperApiTest extends TestCase
     {
         $this->apiAdmin();
         $this->postEntry($this->whA->id, 'Riz Test [25kg]', 20, 500, 'T-SRC');
+        $this->verifyAllPending(); // stock officiel = 20 avant le transfert
 
         $r = $this->postJson('/api/warehouse/v1/transfers', [
             'warehouse_id' => $this->whA->id,
@@ -488,13 +528,23 @@ class WarehouseKeeperApiTest extends TestCase
             'kg' => 125,
             'client_ref' => 'TRF-TEST-1',
         ])->assertStatus(201);
+        $this->assertNotNull($r->json('numero_transfert'));
 
-        // Source : 20 - 5 = 15 ; destination : 5
+        // Les deux jambes sont 'en_attente' : le stock officiel ne bouge pas
+        // (source toujours 20, destination toujours 0)
+        $this->assertSame(2, StockMovement::where('status', 'en_attente')->count());
+        $sA = $this->getJson('/api/warehouse/v1/stock-status?warehouse_id=' . $this->whA->id)->json('products');
+        $sB = $this->getJson('/api/warehouse/v1/stock-status?warehouse_id=' . $this->whB->id)->json('products');
+        $this->assertSame(20.0, (float) $sA[0]['total_sacs']);
+        $this->assertSame(0.0, (float) ($sB[0]['total_sacs'] ?? 0));
+
+        // Après vérification (DTL passe outre la confirmation de réception),
+        // source = 20 - 5 = 15 ; destination = 5
+        $this->verifyAllPending();
         $sA = $this->getJson('/api/warehouse/v1/stock-status?warehouse_id=' . $this->whA->id)->json('products');
         $sB = $this->getJson('/api/warehouse/v1/stock-status?warehouse_id=' . $this->whB->id)->json('products');
         $this->assertSame(15.0, (float) $sA[0]['total_sacs']);
         $this->assertSame(5.0, (float) $sB[0]['total_sacs']);
-        $this->assertNotNull($r->json('numero_transfert'));
     }
 
     /** 8. Transfert impossible : aucune écriture partielle */
@@ -545,13 +595,16 @@ class WarehouseKeeperApiTest extends TestCase
     {
         $this->apiAdmin();
         $this->postEntry($this->whA->id, 'Riz Test [25kg]', 10, 250, 'T-IN3');
+        $this->verifyAllPending();
 
         $this->postJson('/api/warehouse/v1/movements', [
             'warehouse_id' => $this->whA->id, 'movement_date' => '2026-10-20',
             'label' => 'Riz Test [25kg]', 'movement_type' => 'exit', 'sacs' => 6, 'kg' => 150,
         ])->assertStatus(201);
+        // La sortie reste en attente : le solde officiel est toujours 10
+        $this->verifyAllPending();
 
-        // La seconde sortie voit le nouveau solde (4) → refusée
+        // Après vérification, il ne reste que 4 → la seconde sortie est refusée
         $this->postJson('/api/warehouse/v1/movements', [
             'warehouse_id' => $this->whA->id, 'movement_date' => '2026-10-20',
             'label' => 'Riz Test [25kg]', 'movement_type' => 'exit', 'sacs' => 6, 'kg' => 150,
@@ -563,8 +616,10 @@ class WarehouseKeeperApiTest extends TestCase
     {
         $this->apiAdmin();
         $this->postEntry($this->whA->id, 'Riz Test [25kg]', 20, 500, 'T-INV');
+        // L'inventaire se réfère au stock officiel : l'entrée doit être vérifiée
+        $this->verifyAllPending();
 
-        // Écart négatif : compté 18 au lieu de 20
+        // Écart négatif : compté 18 au lieu de 20 (reste 'en_attente')
         $this->postJson('/api/warehouse/v1/inventory', [
             'warehouse_id' => $this->whA->id,
             'movement_date' => '2026-10-20',

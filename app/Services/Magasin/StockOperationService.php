@@ -351,6 +351,17 @@ class StockOperationService
             return ['ok' => false, 'message' => 'Opération non vérifiable par cet inspecteur.', 'status' => 403];
         }
 
+        // Transfert : la jambe « in » exige la confirmation de réception
+        // du magasin destinataire avant vérification.
+        $pendingIn = StockMovement::where('stock_operation_id', $op->id)
+            ->where('status', 'en_attente')
+            ->get()
+            ->first(fn ($m) => $this->stock->isTransferIn($m)
+                && empty((json_decode($m->metadata ?? '{}', true) ?: [])['receipt_confirmed_at']));
+        if ($pendingIn) {
+            return ['ok' => false, 'message' => 'En attente de la confirmation de réception par le magasin destinataire.', 'status' => 409];
+        }
+
         try {
             DB::transaction(function () use ($op, $inspector, $comment) {
                 $op = StockOperation::whereKey($op->id)->lockForUpdate()->firstOrFail();

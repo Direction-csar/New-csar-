@@ -40,5 +40,11 @@ Route::prefix('v1')->name('warehouse.api.v1.')->group(function () {
         Route::post('/operations/{id}/reject', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'reject'])->name('operations.reject');
         Route::get('/stock-ops/status', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'stockStatus'])->name('operations.stock-status');
         Route::get('/stock-ops/warehouses', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'warehouses'])->name('operations.warehouses');
+
+        // Mouvements directs en attente de vérification (tous points d'entrée)
+        Route::get('/pending-movements', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'pendingMovements'])->name('pending.index');
+        Route::post('/pending-movements/{id}/verify', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'verifyMovement'])->name('pending.verify');
+        Route::post('/pending-movements/{id}/reject', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'rejectMovement'])->name('pending.reject');
+        Route::post('/pending-movements/{id}/confirm-receipt', [\App\Http\Controllers\Api\Mobile\StockOperationApiController::class, 'confirmReceipt'])->name('pending.confirm-receipt');
     });
 });

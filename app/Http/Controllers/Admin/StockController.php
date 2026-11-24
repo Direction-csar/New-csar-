@@ -177,31 +177,26 @@ class StockController extends Controller
             // Générer la référence automatique si non fournie
             $reference = $request->reference ?: $this->generateUniqueReference($request->type);
 
-            // Gestion du stock : produit existant ou nouveau
+            // Gestion du stock : produit existant ou nouveau.
+            // La quantité n'est PAS modifiée ici : le mouvement reste
+            // 'en_attente' et n'est appliqué qu'après vérification.
             if ($request->stock_id) {
-                // Produit existant sélectionné
                 $stock = Stock::findOrFail($request->stock_id);
                 $quantityBefore = $stock->quantity;
-
-                // Calculer la nouvelle quantité
                 $quantityChange = $request->type === 'in' ? $request->quantity : -$request->quantity;
                 $quantityAfter = $quantityBefore + $quantityChange;
 
-                // Vérifier que la quantité après n'est pas négative
                 if ($quantityAfter < 0) {
                     throw new \Exception('Quantité insuffisante en stock. Stock actuel: ' . $quantityBefore);
                 }
-
-                // Mettre à jour le stock existant
-                $stock->update(['quantity' => $quantityAfter]);
             } else {
-                // Nouveau produit saisi manuellement
-                // Créer un nouveau stock si c'est une entrée
+                // Nouveau produit : la fiche est créée à quantité 0,
+                // le stock n'augmentera qu'à la vérification du mouvement.
                 if ($request->type === 'in') {
                     $stock = Stock::create([
                         'warehouse_id' => $request->warehouse_id,
                         'item_name' => $request->product_name,
-                        'quantity' => $request->quantity,
+                        'quantity' => 0,
                         'min_quantity' => 0,
                         'is_active' => true
                     ]);
@@ -212,7 +207,7 @@ class StockController extends Controller
                 }
             }
 
-            // Créer le mouvement de stock
+            // Créer le mouvement de stock (en attente de vérification)
             $mouvement = StockMovement::create([
                 'warehouse_id' => $request->warehouse_id,
                 'stock_id' => $stock->id,
@@ -223,7 +218,8 @@ class StockController extends Controller
                 'reason' => $request->reason,
                 'reference' => $reference,
                 'reference_number' => $this->getReferenceNumber($reference),
-                'created_by' => auth()->id()
+                'created_by' => auth()->id(),
+                'status' => 'en_attente',
             ]);
 
             // Créer une notification

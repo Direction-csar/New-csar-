@@ -464,6 +464,10 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::get('/stock-operations/create', [App\Http\Controllers\StockOperations\OperationController::class, 'create'])->name('stock-operations.create');
         Route::post('/stock-operations', [App\Http\Controllers\StockOperations\OperationController::class, 'store'])->name('stock-operations.store');
         Route::get('/stock-operations/{id}', [App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
+        Route::get('/stock-operations-pending', [App\Http\Controllers\StockOperations\OperationController::class, 'pending'])->name('stock-operations.pending');
+        Route::post('/stock-operations-pending/{id}/verify', [App\Http\Controllers\StockOperations\OperationController::class, 'verifyMovement'])->name('stock-operations.pending.verify');
+        Route::post('/stock-operations-pending/{id}/reject', [App\Http\Controllers\StockOperations\OperationController::class, 'rejectMovement'])->name('stock-operations.pending.reject');
+        Route::post('/stock-operations-pending/{id}/confirm', [App\Http\Controllers\StockOperations\OperationController::class, 'confirmReceipt'])->name('stock-operations.pending.confirm');
         Route::post('/stock-operations/{id}/cancel', [App\Http\Controllers\StockOperations\OperationController::class, 'cancel'])->name('stock-operations.cancel');
         Route::post('/stock-operations/{id}/reject', [App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
         Route::get('/stocks', [App\Http\Controllers\DG\StockController::class, 'index'])->name('stocks.index');
@@ -1457,6 +1461,10 @@ Route::middleware(['direction:dtl'])->prefix('dtl')->name('dtl.')->group(functio
     // Circuit opérationnel des stocks : le DTL affecte les instructions de la DG aux inspecteurs
     Route::get('/stock-operations', [\App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
     Route::get('/stock-operations/{id}', [\App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
+    Route::get('/stock-operations-pending', [\App\Http\Controllers\StockOperations\OperationController::class, 'pending'])->name('stock-operations.pending');
+    Route::post('/stock-operations-pending/{id}/verify', [\App\Http\Controllers\StockOperations\OperationController::class, 'verifyMovement'])->name('stock-operations.pending.verify');
+    Route::post('/stock-operations-pending/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'rejectMovement'])->name('stock-operations.pending.reject');
+    Route::post('/stock-operations-pending/{id}/confirm', [\App\Http\Controllers\StockOperations\OperationController::class, 'confirmReceipt'])->name('stock-operations.pending.confirm');
     Route::post('/stock-operations/{id}/assign-inspector', [\App\Http\Controllers\StockOperations\OperationController::class, 'assignInspector'])->name('stock-operations.assign-inspector');
     Route::post('/stock-operations/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
 });
@@ -1557,6 +1565,8 @@ Route::middleware(['direction:magasinier'])->prefix('magasinier')->name('magasin
     Route::get('/operations', [\App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
     Route::get('/operations/{id}', [\App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
     Route::post('/operations/{id}/execute', [\App\Http\Controllers\StockOperations\OperationController::class, 'execute'])->name('stock-operations.execute');
+    Route::get('/operations-pending', [\App\Http\Controllers\StockOperations\OperationController::class, 'pending'])->name('stock-operations.pending');
+    Route::post('/operations-pending/{id}/confirm-receipt', [\App\Http\Controllers\StockOperations\OperationController::class, 'confirmReceipt'])->name('stock-operations.pending.confirm');
 });
 
 // === PORTAIL INSPECTEUR ===
@@ -1580,6 +1590,10 @@ Route::middleware(['direction:inspecteur'])->prefix('inspecteur')->name('inspect
     Route::post('/operations/{id}/verify', [\App\Http\Controllers\StockOperations\OperationController::class, 'verify'])->name('stock-operations.verify');
     Route::post('/operations/{id}/anomaly', [\App\Http\Controllers\StockOperations\OperationController::class, 'anomaly'])->name('stock-operations.anomaly');
     Route::post('/operations/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
+    Route::get('/operations-pending', [\App\Http\Controllers\StockOperations\OperationController::class, 'pending'])->name('stock-operations.pending');
+    Route::post('/operations-pending/{id}/verify', [\App\Http\Controllers\StockOperations\OperationController::class, 'verifyMovement'])->name('stock-operations.pending.verify');
+    Route::post('/operations-pending/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'rejectMovement'])->name('stock-operations.pending.reject');
+    Route::post('/operations-pending/{id}/confirm-receipt', [\App\Http\Controllers\StockOperations\OperationController::class, 'confirmReceipt'])->name('stock-operations.pending.confirm');
 });
 
 Route::middleware(['direction:inspecteur'])->prefix('archives/inspecteur')->name('archives.inspecteur.')->group(function () {

@@ -231,6 +231,78 @@ class StockOperationApiController extends Controller
     }
 
     // ------------------------------------------------------------------
+    // Mouvements directs en attente (entrées/sorties/transferts/inventaires
+    // saisis hors circuit stock_operations — Web, APK ou sync hors ligne)
+    // ------------------------------------------------------------------
+    public function pendingMovements(Request $request)
+    {
+        $user = $this->user($request);
+        if ($r = $this->denyRole($user, ['inspecteur', 'magasinier', 'dtl', 'dg', 'admin', 'super_admin'])) return $r;
+
+        $movements = $this->stock->pendingMovements($user, $request->only(['warehouse_id', 'type']));
+
+        return response()->json([
+            'movements' => $movements->map(function ($m) {
+                $meta = json_decode($m->metadata ?? '{}', true) ?: [];
+                return [
+                    'id' => $m->id,
+                    'reference' => $m->reference,
+                    'type' => $m->type,
+                    'type_label' => $this->stock->movementTypeLabel($m->type),
+                    'quantity' => (float) $m->quantity,
+                    'reason' => $m->reason,
+                    'warehouse' => $m->warehouse ? ['id' => $m->warehouse->id, 'name' => $m->warehouse->name] : null,
+                    'creator' => $m->creator ? ['id' => $m->creator->id, 'name' => $m->creator->name] : null,
+                    'created_at' => $m->created_at?->toIso8601String(),
+                    'is_adjustment' => $this->stock->isAdjustmentMovement($m),
+                    'is_transfer_in' => $this->stock->isTransferIn($m),
+                    'receipt_confirmed' => !empty($meta['receipt_confirmed_at']),
+                ];
+            })->values(),
+        ]);
+    }
+
+    public function verifyMovement(Request $request, $id)
+    {
+        $user = $this->user($request);
+        if ($r = $this->denyRole($user, ['inspecteur', 'dtl', 'dg', 'admin', 'super_admin'])) return $r;
+
+        $result = $this->stock->verifyPendingMovement($user, (int) $id);
+        return $this->respondMovement($result, 'Mouvement vérifié et intégré au stock officiel.');
+    }
+
+    public function rejectMovement(Request $request, $id)
+    {
+        $user = $this->user($request);
+        if ($r = $this->denyRole($user, ['inspecteur', 'dtl', 'dg', 'admin', 'super_admin'])) return $r;
+
+        $data = $request->validate(['rejection_reason' => 'required|string|max:2000']);
+        $result = $this->stock->rejectPendingMovement($user, (int) $id, $data['rejection_reason']);
+        return $this->respondMovement($result, 'Mouvement rejeté.');
+    }
+
+    public function confirmReceipt(Request $request, $id)
+    {
+        $user = $this->user($request);
+        if ($r = $this->denyRole($user, ['magasinier', 'inspecteur', 'dtl', 'dg', 'admin', 'super_admin'])) return $r;
+
+        $result = $this->stock->confirmTransferReceipt($user, (int) $id);
+        return $this->respondMovement($result, $result['message'] ?? 'Réception confirmée.');
+    }
+
+    private function respondMovement(array $result, string $okMessage)
+    {
+        if (!$result['ok']) {
+            return response()->json(['message' => $result['message']], $result['status'] ?? 422);
+        }
+        return response()->json([
+            'message' => $okMessage,
+            'movement' => $result['movement'] ?? null,
+            'delta' => $result['delta'] ?? null,
+        ]);
+    }
+
+    // ------------------------------------------------------------------
     // Consultation stock (inspecteur : lecture seule des magasins affectés)
     // ------------------------------------------------------------------
     public function stockStatus(Request $request)
