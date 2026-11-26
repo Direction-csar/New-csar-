@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Espace Inspecteur — CSAR Gestion du contrôle</title>
+<link rel="stylesheet" href="assets/maquettes.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<aside class="sidebar" id="sb">
+  <div class="sb-brand"><div class="logo">CSAR</div><div class="t"><strong>Gestion du contrôle</strong><small>Inspecteur de stocks</small></div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Contrôle</div>
+    <a class="sb-link active" href="dashboard-inspecteur.html"><i class="fas fa-tachometer-alt"></i><span class="lbl">Tableau de bord</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-dolly"></i><span class="lbl">Opérations affectées</span><span class="sb-badge">5</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-clipboard-check"></i><span class="lbl">Mouvements à vérifier</span><span class="sb-badge">7</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-exclamation-circle"></i><span class="lbl">Anomalies</span><span class="sb-badge">2</span></a>
+    <div class="sb-section">Périmètre</div>
+    <a class="sb-link" href="#"><i class="fas fa-warehouse"></i><span class="lbl">Mes magasins (3)</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-boxes"></i><span class="lbl">Stocks de mon périmètre</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-users"></i><span class="lbl">Magasiniers</span></a>
+    <div class="sb-section">Activité</div>
+    <a class="sb-link" href="#"><i class="fas fa-clipboard-list"></i><span class="lbl">Mes missions</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-history"></i><span class="lbl">Historique des contrôles</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-archive"></i><span class="lbl">Archives</span></a>
+  </nav>
+  <div class="sb-user"><div class="sb-avatar">IN</div><div class="u"><b>Inspecteur M. Ndiaye</b><small>Périmètre : Thiès</small></div><button class="sb-toggle" onclick="document.getElementById('sb').classList.toggle('collapsed');document.getElementById('mn').classList.toggle('expanded')"><i class="fas fa-chevron-left"></i></button></div>
+</aside>
+<div class="main" id="mn">
+  <div class="topbar">
+    <div><h1>Tableau de bord — Contrôle des stocks</h1><div class="crumb">CSAR › Gestion du contrôle › Inspecteur</div></div>
+    <div class="right">
+      <span class="refresh"><span class="dot"></span> Dernière actualisation : aujourd'hui 14:32</span>
+      <button class="icon-btn"><i class="fas fa-bell"></i><span class="ping">4</span></button>
+      <div class="avatar-top">IN</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="alert-strip alert-info"><i class="fas fa-info-circle"></i><div>Vous intervenez sur <b>3 magasins</b> de la région de <b>Thiès</b> : Thiès (Inspection Régionale), Mbour, Tivaouane. Vous ne voyez que votre périmètre d'affectation.</div></div>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="ic ic-blue"><i class="fas fa-warehouse"></i></div><div><div class="v">3</div><div class="l">Magasins affectés</div><div class="d" style="color:var(--muted)">Thiès · Mbour · Tivaouane</div></div></div>
+      <div class="kpi"><div class="ic ic-orange"><i class="fas fa-dolly"></i></div><div><div class="v">5</div><div class="l">Opérations reçues</div><div class="d" style="color:var(--orange)">2 à traiter</div></div></div>
+      <div class="kpi"><div class="ic ic-amber"><i class="fas fa-clipboard-check"></i></div><div><div class="v">7</div><div class="l">Contrôles à effectuer</div><div class="d" style="color:var(--muted)">mouvements en attente</div></div></div>
+      <div class="kpi"><div class="ic ic-red"><i class="fas fa-exclamation-circle"></i></div><div><div class="v">2</div><div class="l">Anomalies signalées</div><div class="d" style="color:var(--muted)">en suivi</div></div></div>
+      <div class="kpi"><div class="ic ic-green"><i class="fas fa-check-double"></i></div><div><div class="v">38</div><div class="l">Contrôles réalisés (mois)</div><div class="d" style="color:var(--green)">dont 4 anomalies</div></div></div>
+      <div class="kpi"><div class="ic ic-blue"><i class="fas fa-boxes"></i></div><div><div class="v">3 858</div><div class="l">Stock de mon périmètre</div><div class="d" style="color:var(--muted)">contenants</div></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-dolly"></i> Opérations à traiter</h3><a href="#" style="font-size:12px;font-weight:600">Toutes mes opérations →</a></div>
+        <div class="card-b" style="padding:0">
+          <table class="tbl compact">
+            <tr><th>Référence</th><th>Type</th><th>Magasin</th><th>Magasinier</th><th>Étape</th><th>Statut</th><th></th></tr>
+            <tr><td>OP-2026-000411</td><td><span class="badge b-amber">Transfert</span></td><td>Central Dakar → Thiès</td><td>Mag. Dakar</td><td>Exécutée</td><td><span class="badge b-orange">À vérifier</span></td><td><button class="btn btn-orange btn-sm">Vérifier</button></td></tr>
+            <tr><td>OP-2026-000410</td><td><span class="badge b-green">Inventaire</span></td><td>Louga</td><td>Mag. Louga</td><td>Transmise</td><td><span class="badge b-blue">Consignes</span></td><td><button class="btn btn-blue btn-sm">Ouvrir</button></td></tr>
+            <tr><td>OP-2026-000402</td><td><span class="badge b-blue">Entrée</span></td><td>Thiès (Rég.)</td><td>Mag. Thiès</td><td>Exécutée</td><td><span class="badge b-orange">À vérifier</span></td><td><button class="btn btn-orange btn-sm">Vérifier</button></td></tr>
+            <tr><td>OP-2026-000398</td><td><span class="badge b-blue">Sortie</span></td><td>Mbour</td><td>Mag. Mbour</td><td>Transmise</td><td><span class="badge b-blue">Consignes</span></td><td><button class="btn btn-blue btn-sm">Ouvrir</button></td></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-warehouse"></i> Mes magasins &amp; magasiniers</h3></div>
+          <div class="card-b" style="padding:0">
+            <table class="tbl compact">
+              <tr><th>Magasin</th><th>Ville</th><th>Stock</th><th>Magasinier</th></tr>
+              <tr><td>Thiès (Inspection Rég.)</td><td>Thiès</td><td>3 144</td><td>M. Fall</td></tr>
+              <tr><td>Mbour</td><td>Mbour</td><td>0</td><td>Mme Sarr</td></tr>
+              <tr><td>Tivaouane</td><td>Tivaouane</td><td>0</td><td>—</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-chart-bar"></i> Mon activité (30 j)</h3></div>
+          <div class="card-b"><div class="chart-box sm"><canvas id="chInsp"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-clipboard-check"></i> Mouvements en attente de vérification</h3></div>
+        <div class="card-b" style="padding:0">
+          <table class="tbl compact">
+            <tr><th>Référence</th><th>Type</th><th>Magasin</th><th>Qté</th><th>Date</th><th></th></tr>
+            <tr><td>STK-88421</td><td>Entrée</td><td>Thiès (Rég.)</td><td>120</td><td>24/11</td><td><button class="btn btn-orange btn-sm">Vérifier</button></td></tr>
+            <tr><td>STK-88419</td><td>Sortie</td><td>Thiès (Rég.)</td><td>45</td><td>24/11</td><td><button class="btn btn-orange btn-sm">Vérifier</button></td></tr>
+            <tr><td>TFR-77120-IN</td><td>Réception</td><td>Tivaouane</td><td>80</td><td>23/11</td><td><button class="btn btn-blue btn-sm">Confirmer</button></td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-exclamation-circle"></i> Anomalies &amp; historique</h3></div>
+        <div class="card-b" style="padding:8px 20px">
+          <div class="timeline">
+            <div class="tl-item warn"><b>Anomalie — OP-2026-000390</b><span>Écart quantité sortie Mbour · il y a 2 j</span></div>
+            <div class="tl-item done"><b>18 contrôles réalisés cette semaine</b><span>Sur 3 magasins du périmètre</span></div>
+            <div class="tl-item"><b>Inventaire Tivaouane programmé</b><span>Proposition DTL · vendredi</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="mq-note">Maquette Inspecteur — données illustratives</div>
+<script>
+new Chart(document.getElementById('chInsp'),{type:'bar',data:{labels:['Vérifs','Rejets','Anomalies','Contrôles'],datasets:[{data:[22,2,4,38],backgroundColor:['#10B981','#DC2626','#F97316','#1D4ED8'],borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},maintainAspectRatio:false}});
+</script>
+</body>
+</html>

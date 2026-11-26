@@ -32,7 +32,7 @@ class DirectionLoginController extends Controller
             return redirect()->route("{$direction}.dashboard");
         }
 
-        return view('auth.direction-login', [
+        return view($direction === 'inspecteur' ? 'auth.inspecteur-login' : 'auth.direction-login', [
             'direction' => $direction,
             'directionLabel' => self::DIRECTIONS[$direction],
         ]);

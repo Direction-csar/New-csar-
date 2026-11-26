@@ -459,6 +459,9 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::get('/situation-stocks/export.csv', [App\Http\Controllers\DG\StockSituationController::class, 'exportCsv'])->name('situation-stocks.export-csv');
         Route::get('/situation-stocks/export.pdf', [App\Http\Controllers\DG\StockSituationController::class, 'exportPdf'])->name('situation-stocks.export-pdf');
 
+        // Vue nationale des stocks (pilotage exécutif DG)
+        Route::get('/stocks-national', [App\Http\Controllers\DG\StockNationalController::class, 'index'])->name('stock-national');
+
         // Circuit opérationnel des stocks : instructions DG → DTL → Inspecteur → Magasinier
         Route::get('/stock-operations', [App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
         Route::get('/stock-operations/create', [App\Http\Controllers\StockOperations\OperationController::class, 'create'])->name('stock-operations.create');
@@ -479,6 +482,11 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::post('/personnel-stock', [App\Http\Controllers\StockOperations\StockStaffController::class, 'store'])->name('stock-staff.store');
         Route::put('/personnel-stock/{id}', [App\Http\Controllers\StockOperations\StockStaffController::class, 'update'])->name('stock-staff.update');
         Route::post('/personnel-stock/{id}/toggle', [App\Http\Controllers\StockOperations\StockStaffController::class, 'toggle'])->name('stock-staff.toggle');
+
+        // Rapports et statistiques stocks (PDF + XLSX + historique)
+        Route::get('/stock-reports', [App\Http\Controllers\Reports\StockReportController::class, 'index'])->name('stock-reports.index');
+        Route::post('/stock-reports/generate', [App\Http\Controllers\Reports\StockReportController::class, 'generate'])->name('stock-reports.generate');
+        Route::get('/stock-reports/{export}/download', [App\Http\Controllers\Reports\StockReportController::class, 'download'])->name('stock-reports.download');
         Route::get('/stocks', [App\Http\Controllers\DG\StockController::class, 'index'])->name('stocks.index');
         Route::get('/stocks/{id}', [App\Http\Controllers\DG\StockController::class, 'show'])->name('stocks.show');
 
@@ -1466,6 +1474,7 @@ foreach (['cpm', 'dpse', 'dtl'] as $directionSlug) {
 
 // === PORTAIL DTL : DOSSIERS TRANSMI & MISSIONS ===
 Route::middleware(['direction:dtl'])->prefix('dtl')->name('dtl.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Dtl\StockDashboardController::class, 'index'])->name('dashboard');
     Route::get('/demandes', [\App\Http\Controllers\Dtl\DemandeController::class, 'index'])->name('demandes.index');
     Route::get('/demandes/{id}', [\App\Http\Controllers\Dtl\DemandeController::class, 'show'])->name('demandes.show');
     Route::get('/demandes/{id}/document/{type}', [\App\Http\Controllers\Admin\DemandesController::class, 'document'])->name('demandes.document');
@@ -1494,9 +1503,14 @@ Route::middleware(['direction:dtl'])->prefix('dtl')->name('dtl.')->group(functio
     Route::post('/personnel-stock', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'store'])->name('stock-staff.store');
     Route::put('/personnel-stock/{id}', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'update'])->name('stock-staff.update');
     Route::post('/personnel-stock/{id}/toggle', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'toggle'])->name('stock-staff.toggle');
+
+    // Rapports et statistiques stocks (PDF + XLSX + historique)
+    Route::get('/stock-reports', [\App\Http\Controllers\Reports\StockReportController::class, 'index'])->name('stock-reports.index');
+    Route::post('/stock-reports/generate', [\App\Http\Controllers\Reports\StockReportController::class, 'generate'])->name('stock-reports.generate');
+    Route::get('/stock-reports/{export}/download', [\App\Http\Controllers\Reports\StockReportController::class, 'download'])->name('stock-reports.download');
 });
 
-// === PORTAIL COMPTABLE DES MATIÈRES ===
+// === PORTAIL COMPTABLE DES MATIÈMES ===
 Route::prefix('comptable')->name('comptable.')->group(function () {
     Route::get('/login', fn () => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->showLoginForm('comptable'))->name('login');
     Route::post('/login', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->login($request, 'comptable'))->name('login.submit');
@@ -1604,7 +1618,7 @@ Route::prefix('inspecteur')->name('inspecteur.')->group(function () {
 });
 
 Route::middleware(['direction:inspecteur'])->prefix('inspecteur')->name('inspecteur.')->group(function () {
-    Route::get('/', fn () => redirect()->route('inspecteur.missions.index'))->name('dashboard');
+    Route::get('/', [\App\Http\Controllers\Inspecteur\StockDashboardController::class, 'index'])->name('dashboard');
     Route::get('/missions', [\App\Http\Controllers\Inspecteur\MissionController::class, 'index'])->name('missions.index');
     Route::get('/missions/{id}', [\App\Http\Controllers\Inspecteur\MissionController::class, 'show'])->name('missions.show');
     Route::post('/missions/{id}/start', [\App\Http\Controllers\Inspecteur\MissionController::class, 'start'])->name('missions.start');

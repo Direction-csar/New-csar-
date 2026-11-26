@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tableau de bord DG — CSAR Stocks</title>
+<link rel="stylesheet" href="assets/maquettes.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+.reg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.reg{border:1.5px solid var(--line);border-radius:11px;padding:11px 12px;cursor:pointer;transition:.2s;background:#fff}
+.reg:hover{border-color:var(--blue);box-shadow:var(--shadow)}
+.reg .nm{font-size:12.5px;font-weight:700;color:var(--night)}
+.reg .st{font-size:10.5px;font-weight:700;margin-top:4px}
+.reg .mt{font-size:10.5px;color:var(--muted);margin-top:3px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.quick{display:flex;gap:10px;flex-wrap:wrap}
+.quick a{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:var(--night)}
+.quick a i{color:var(--orange)}
+.quick a:hover{border-color:var(--blue);color:var(--blue)}
+.legend{display:flex;gap:16px;font-size:11.5px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:6px}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sb">
+  <div class="sb-brand"><div class="logo">CSAR</div><div class="t"><strong>Direction Générale</strong><small>Gestion des stocks</small></div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Pilotage</div>
+    <a class="sb-link active" href="dashboard-dg.html"><i class="fas fa-globe-africa"></i><span class="lbl">Vue nationale</span></a>
+    <a class="sb-link" href="dashboard-dtl.html"><i class="fas fa-project-diagram"></i><span class="lbl">Opérations &amp; circuit</span></a>
+    <a class="sb-link" href="rapports.html"><i class="fas fa-file-alt"></i><span class="lbl">Rapports &amp; stats</span></a>
+    <div class="sb-section">Stocks</div>
+    <a class="sb-link" href="#"><i class="fas fa-warehouse"></i><span class="lbl">Magasins (49)</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-boxes"></i><span class="lbl">Situation des stocks</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-exchange-alt"></i><span class="lbl">Mouvements</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-clipboard-check"></i><span class="lbl">En attente (24)</span><span class="sb-badge">24</span></a>
+    <div class="sb-section">Organisation</div>
+    <a class="sb-link" href="#"><i class="fas fa-user-shield"></i><span class="lbl">Affectations inspecteurs</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-users-gear"></i><span class="lbl">Personnel stock</span></a>
+    <div class="sb-section">Autres</div>
+    <a class="sb-link" href="#"><i class="fas fa-inbox"></i><span class="lbl">Dossiers approuvés</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-archive"></i><span class="lbl">Archives DG</span></a>
+  </nav>
+  <div class="sb-user"><div class="sb-avatar">DG</div><div class="u"><b>M. Directeur Général</b><small>Direction Générale</small></div><button class="sb-toggle" onclick="document.getElementById('sb').classList.toggle('collapsed');document.getElementById('mn').classList.toggle('expanded')"><i class="fas fa-chevron-left"></i></button></div>
+</aside>
+<div class="main" id="mn">
+  <div class="topbar">
+    <div><h1>Vue nationale des stocks</h1><div class="crumb">CSAR › Direction Générale › Tableau de bord</div></div>
+    <div class="right">
+      <span class="refresh"><span class="dot"></span> Dernière actualisation : aujourd'hui 14:32</span>
+      <button class="icon-btn"><i class="fas fa-bell"></i><span class="ping">7</span></button>
+      <div class="avatar-top">DG</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="alert-strip alert-danger"><i class="fas fa-exclamation-triangle"></i><div><b>3 alertes critiques :</b> stock négatif à Bambey (Diourbel), transfert Kolda → Sédhiou non réceptionné depuis 4 jours, 2 anomalies en cours d'examen.</div></div>
+    <div class="alert-strip alert-warn"><i class="fas fa-clock"></i><div><b>24 mouvements en attente de vérification</b> répartis sur 9 magasins — délai moyen constaté : 1,8 jour.</div></div>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="ic ic-blue"><i class="fas fa-warehouse"></i></div><div><div class="v">49</div><div class="l">Magasins actifs</div><div class="d" style="color:var(--green)">14 régions couvertes</div></div></div>
+      <div class="kpi"><div class="ic ic-green"><i class="fas fa-boxes"></i></div><div><div class="v">68 412</div><div class="l">Stock national (contenants)</div><div class="d" style="color:var(--green)">+2,4 % ce mois</div></div></div>
+      <div class="kpi"><div class="ic ic-orange"><i class="fas fa-arrow-down"></i></div><div><div class="v">4 215</div><div class="l">Entrées (30 j)</div><div class="d" style="color:var(--muted)">18 magasins actifs</div></div></div>
+      <div class="kpi"><div class="ic ic-night"><i class="fas fa-arrow-up"></i></div><div><div class="v">3 890</div><div class="l">Sorties (30 j)</div><div class="d" style="color:var(--muted)">12 magasins actifs</div></div></div>
+      <div class="kpi"><div class="ic ic-blue"><i class="fas fa-exchange-alt"></i></div><div><div class="v">37</div><div class="l">Transferts (30 j)</div><div class="d" style="color:var(--amber)">5 en attente réception</div></div></div>
+      <div class="kpi"><div class="ic ic-amber"><i class="fas fa-spinner"></i></div><div><div class="v">18</div><div class="l">Opérations en cours</div><div class="d" style="color:var(--muted)">circuit DG→Magasinier</div></div></div>
+      <div class="kpi"><div class="ic ic-orange"><i class="fas fa-clock"></i></div><div><div class="v">24</div><div class="l">Mouvements en attente</div><div class="d" style="color:var(--orange)">vérification requise</div></div></div>
+      <div class="kpi"><div class="ic ic-red"><i class="fas fa-exclamation-circle"></i></div><div><div class="v">3</div><div class="l">Anomalies signalées</div><div class="d" style="color:var(--red)">1 critique</div></div></div>
+      <div class="kpi"><div class="ic ic-red"><i class="fas fa-triangle-exclamation"></i></div><div><div class="v">4</div><div class="l">Stocks critiques</div><div class="d" style="color:var(--muted)">seuil &lt; 10 contenants</div></div></div>
+      <div class="kpi"><div class="ic ic-green"><i class="fas fa-user-shield"></i></div><div><div class="v">11 / 14</div><div class="l">Régions avec inspecteur</div><div class="d" style="color:var(--amber)">3 à couvrir</div></div></div>
+    </div>
+
+    <div class="quick" style="margin-bottom:20px">
+      <a href="#"><i class="fas fa-plus"></i> Nouvelle instruction</a>
+      <a href="#"><i class="fas fa-boxes"></i> Consulter les stocks</a>
+      <a href="#"><i class="fas fa-dolly"></i> Opérations</a>
+      <a href="#"><i class="fas fa-map"></i> Carte des régions</a>
+      <a href="rapports.html"><i class="fas fa-file-pdf"></i> Générer un rapport</a>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-chart-line"></i> Évolution du stock national</h3><span class="badge b-gray">30 derniers jours</span></div>
+        <div class="card-b"><div class="chart-box"><canvas id="chStock"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-chart-pie"></i> Répartition par famille</h3></div>
+        <div class="card-b"><div class="chart-box sm"><canvas id="chFam"></canvas></div></div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-map-marked-alt"></i> Couverture des 14 régions</h3><a href="#" style="font-size:12px;font-weight:600">Détail →</a></div>
+        <div class="card-b">
+          <div class="reg-grid">
+            <div class="reg"><div class="nm">Dakar</div><div class="st" style="color:var(--amber)"><span class="dot" style="background:var(--amber)"></span>INCOMPLET</div><div class="mt">5 magasins · 2 inspecteurs</div></div>
+            <div class="reg"><div class="nm">Thiès</div><div class="st" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>COUVERT</div><div class="mt">5 magasins · 1 inspecteur</div></div>
+            <div class="reg"><div class="nm">Diourbel</div><div class="st" style="color:var(--amber)"><span class="dot" style="background:var(--amber)"></span>INCOMPLET</div><div class="mt">3 magasins · stock -50</div></div>
+            <div class="reg"><div class="nm">Fatick</div><div class="st" style="color:var(--red)"><span class="dot" style="background:var(--red)"></span>NON COUVERT</div><div class="mt">4 magasins · 0 inspecteur</div></div>
+            <div class="reg"><div class="nm">Kaolack</div><div class="st" style="color:var(--red)"><span class="dot" style="background:var(--red)"></span>NON COUVERT</div><div class="mt">5 magasins · 0 inspecteur</div></div>
+            <div class="reg"><div class="nm">Kaffrine</div><div class="st" style="color:var(--red)"><span class="dot" style="background:var(--red)"></span>NON COUVERT</div><div class="mt">4 magasins · 0 inspecteur</div></div>
+            <div class="reg"><div class="nm">Louga</div><div class="st" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>COUVERT</div><div class="mt">4 magasins · 1 inspecteur</div></div>
+            <div class="reg"><div class="nm">Saint-Louis</div><div class="st" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>COUVERT</div><div class="mt">3 magasins · 1 inspecteur</div></div>
+            <div class="reg"><div class="nm">Matam</div><div class="st" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>COUVERT</div><div class="mt">3 magasins · 1 inspecteur</div></div>
+            <div class="reg"><div class="nm">Tambacounda</div><div class="st" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>COUVERT</div><div class="mt">4 magasins · 1 inspecteur</div></div>
+            <div class="reg"><div class="nm">Kédougou</div><div class="st" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>COUVERT</div><div class="mt">3 magasins · 1 inspecteur</div></div>
+            <div class="reg"><div class="nm">Kolda</div><div class="st" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>COUVERT</div><div class="mt">3 magasins · 1 inspecteur</div></div>
+            <div class="reg"><div class="nm">Sédhiou</div><div class="st" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>COUVERT</div><div class="mt">3 magasins · 1 inspecteur</div></div>
+            <div class="reg"><div class="nm">Ziguinchor</div><div class="st" style="color:var(--green)"><span class="dot" style="background:var(--green)"></span>COUVERT</div><div class="mt">3 magasins · 1 inspecteur</div></div>
+          </div>
+          <div class="legend"><span><span class="dot" style="background:var(--green)"></span>Couvert</span><span><span class="dot" style="background:var(--amber)"></span>Incomplet</span><span><span class="dot" style="background:var(--red)"></span>Non couvert</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-bell"></i> Centre d'alertes</h3></div>
+          <div class="card-b" style="padding:8px 20px">
+            <div class="timeline">
+              <div class="tl-item warn"><b>Stock négatif — Bambey (Diourbel)</b><span>Solde -50 contenants · il y a 2 h</span></div>
+              <div class="tl-item warn"><b>Transfert Kolda → Sédhiou</b><span>Réception non confirmée depuis 4 j</span></div>
+              <div class="tl-item"><b>2 anomalies en attente d'examen</b><span>Inspecteur Thiès · il y a 5 h</span></div>
+              <div class="tl-item done"><b>14 mouvements vérifiés aujourd'hui</b><span>Sur 7 régions</span></div>
+              <div class="tl-item"><b>3 régions sans inspecteur affecté</b><span>Fatick, Kaolack, Kaffrine</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-dolly"></i> Dernières opérations</h3><a href="#" style="font-size:12px;font-weight:600">Tout voir →</a></div>
+          <div class="card-b" style="padding:0">
+            <table class="tbl compact">
+              <tr><th>Référence</th><th>Type</th><th>Magasin</th><th>Statut</th></tr>
+              <tr><td>OP-2026-000412</td><td>Entrée</td><td>Central Dakar</td><td><span class="badge b-green">Vérifiée</span></td></tr>
+              <tr><td>OP-2026-000411</td><td>Transfert</td><td>Dakar → Thiès</td><td><span class="badge b-orange">En cours</span></td></tr>
+              <tr><td>OP-2026-000410</td><td>Inventaire</td><td>Louga</td><td><span class="badge b-blue">Transmise</span></td></tr>
+              <tr><td>OP-2026-000409</td><td>Sortie</td><td>Kolda</td><td><span class="badge b-green">Vérifiée</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="mq-note">Maquette DG — données illustratives</div>
+<script>
+new Chart(document.getElementById('chStock'),{type:'line',data:{labels:['01/10','05/10','10/10','15/10','20/10','25/10','30/10','04/11','09/11','14/11','19/11','24/11'],datasets:[{label:'Stock national',data:[58200,59500,60100,59800,61200,62500,63100,64000,65500,66100,67000,68412],borderColor:'#1D4ED8',backgroundColor:'rgba(29,78,216,.08)',fill:true,tension:.4,pointRadius:2}]},options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>v/1000+'k'}}},maintainAspectRatio:false}});
+new Chart(document.getElementById('chFam'),{type:'doughnut',data:{labels:['Riz','Céréales','Légumineuses','Huiles','Divers'],datasets:[{data:[34,22,18,15,11],backgroundColor:['#1D4ED8','#F97316','#10B981','#F59E0B','#94A3B8'],borderWidth:0}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},cutout:'62%',maintainAspectRatio:false}});
+</script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pilotage DTL — CSAR Stocks</title>
+<link rel="stylesheet" href="assets/maquettes.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<aside class="sidebar" id="sb">
+  <div class="sb-brand"><div class="logo">CSAR</div><div class="t"><strong>DTL</strong><small>Technique &amp; Logistique</small></div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Pilotage</div>
+    <a class="sb-link active" href="dashboard-dtl.html"><i class="fas fa-project-diagram"></i><span class="lbl">Centre de pilotage</span></a>
+    <a class="sb-link" href="rapports.html"><i class="fas fa-file-alt"></i><span class="lbl">Rapports &amp; stats</span></a>
+    <div class="sb-section">Circuit de stock</div>
+    <a class="sb-link" href="#"><i class="fas fa-inbox"></i><span class="lbl">Instructions reçues</span><span class="sb-badge">6</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-user-check"></i><span class="lbl">À affecter</span><span class="sb-badge">4</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-dolly"></i><span class="lbl">Opérations en cours</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-clipboard-check"></i><span class="lbl">Mouvements en attente</span><span class="sb-badge">24</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-exchange-alt"></i><span class="lbl">Transferts &amp; réceptions</span><span class="sb-badge">5</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-exclamation-circle"></i><span class="lbl">Anomalies</span><span class="sb-badge">3</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-clipboard-list"></i><span class="lbl">Inventaires &amp; ajustements</span></a>
+    <div class="sb-section">Organisation</div>
+    <a class="sb-link" href="#"><i class="fas fa-user-shield"></i><span class="lbl">Affectations inspecteurs</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-users-gear"></i><span class="lbl">Personnel stock</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-warehouse"></i><span class="lbl">Magasins (49)</span></a>
+    <div class="sb-section">Autres</div>
+    <a class="sb-link" href="#"><i class="fas fa-inbox"></i><span class="lbl">Dossiers approuvés</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-archive"></i><span class="lbl">Archives DTL</span></a>
+  </nav>
+  <div class="sb-user"><div class="sb-avatar">DT</div><div class="u"><b>M. Directeur Technique</b><small>DTL</small></div><button class="sb-toggle" onclick="document.getElementById('sb').classList.toggle('collapsed');document.getElementById('mn').classList.toggle('expanded')"><i class="fas fa-chevron-left"></i></button></div>
+</aside>
+<div class="main" id="mn">
+  <div class="topbar">
+    <div><h1>Centre de pilotage opérationnel</h1><div class="crumb">CSAR › DTL › Tableau de bord</div></div>
+    <div class="right">
+      <span class="refresh"><span class="dot"></span> Dernière actualisation : aujourd'hui 14:32</span>
+      <button class="icon-btn"><i class="fas fa-bell"></i><span class="ping">9</span></button>
+      <div class="avatar-top">DT</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="alert-strip alert-info"><i class="fas fa-tasks"></i><div><b>Priorités du jour :</b> 4 instructions DG en attente d'affectation d'inspecteur · 24 mouvements à vérifier · 3 anomalies à instruire.</div></div>
+
+    <div class="kpi-grid">
+      <div class="kpi"><div class="ic ic-blue"><i class="fas fa-inbox"></i></div><div><div class="v">6</div><div class="l">Instructions reçues (DG)</div><div class="d" style="color:var(--muted)">dont 4 à affecter</div></div></div>
+      <div class="kpi"><div class="ic ic-orange"><i class="fas fa-user-check"></i></div><div><div class="v">4</div><div class="l">Opérations à affecter</div><div class="d" style="color:var(--orange)">action requise</div></div></div>
+      <div class="kpi"><div class="ic ic-green"><i class="fas fa-user-shield"></i></div><div><div class="v">11</div><div class="l">Inspecteurs actifs</div><div class="d" style="color:var(--muted)">couvrent 11 régions</div></div></div>
+      <div class="kpi"><div class="ic ic-blue"><i class="fas fa-warehouse"></i></div><div><div class="v">49</div><div class="l">Magasins suivis</div><div class="d" style="color:var(--green)">36 avec magasinier</div></div></div>
+      <div class="kpi"><div class="ic ic-orange"><i class="fas fa-clock"></i></div><div><div class="v">24</div><div class="l">Mouvements en attente</div><div class="d" style="color:var(--muted)">vérification inspecteur</div></div></div>
+      <div class="kpi"><div class="ic ic-amber"><i class="fas fa-exchange-alt"></i></div><div><div class="v">5</div><div class="l">Réceptions à confirmer</div><div class="d" style="color:var(--amber)">transferts entrants</div></div></div>
+      <div class="kpi"><div class="ic ic-red"><i class="fas fa-exclamation-circle"></i></div><div><div class="v">3</div><div class="l">Anomalies</div><div class="d" style="color:var(--red)">2 à instruire</div></div></div>
+      <div class="kpi"><div class="ic ic-green"><i class="fas fa-check-double"></i></div><div><div class="v">142</div><div class="l">Opérations terminées (mois)</div><div class="d" style="color:var(--muted)">98 % dans les délais</div></div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-inbox"></i> Instructions DG à affecter</h3><a href="#" style="font-size:12px;font-weight:600">Voir toutes →</a></div>
+        <div class="card-b" style="padding:0">
+          <table class="tbl compact">
+            <tr><th>Référence</th><th>Type</th><th>Magasin</th><th>Reçue</th><th></th></tr>
+            <tr><td>OP-2026-000415</td><td><span class="badge b-blue">Entrée</span></td><td>Magasin Thiès</td><td>il y a 3 h</td><td><button class="btn btn-orange btn-sm">Affecter</button></td></tr>
+            <tr><td>OP-2026-000414</td><td><span class="badge b-blue">Sortie</span></td><td>Central Dakar</td><td>il y a 5 h</td><td><button class="btn btn-orange btn-sm">Affecter</button></td></tr>
+            <tr><td>OP-2026-000413</td><td><span class="badge b-amber">Transfert</span></td><td>Thiès → Mbour</td><td>hier</td><td><button class="btn btn-orange btn-sm">Affecter</button></td></tr>
+            <tr><td>OP-2026-000408</td><td><span class="badge b-green">Inventaire</span></td><td>Louga</td><td>hier</td><td><button class="btn btn-orange btn-sm">Affecter</button></td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-users"></i> Inspecteurs — charge &amp; couverture</h3></div>
+        <div class="card-b" style="padding:0">
+          <table class="tbl compact">
+            <tr><th>Inspecteur</th><th>Région(s)</th><th>En cours</th><th>À vérifier</th></tr>
+            <tr><td>M. Ndiaye</td><td>Thiès</td><td>2</td><td><span class="badge b-orange">7</span></td></tr>
+            <tr><td>Mme Fall</td><td>Saint-Louis, Matam</td><td>1</td><td><span class="badge b-orange">4</span></td></tr>
+            <tr><td>M. Ba</td><td>Kolda, Sédhiou, Ziguinchor</td><td>3</td><td><span class="badge b-green">0</span></td></tr>
+            <tr><td>—</td><td>Fatick, Kaolack, Kaffrine</td><td>—</td><td><span class="badge b-red">Non couvert</span></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-chart-bar"></i> Activité du circuit (30 j)</h3><span class="badge b-gray">Opérations par statut</span></div>
+        <div class="card-b"><div class="chart-box"><canvas id="chAct"></canvas></div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3><i class="fas fa-bell"></i> Anomalies &amp; blocages</h3></div>
+        <div class="card-b" style="padding:8px 20px">
+          <div class="timeline">
+            <div class="tl-item warn"><b>Anomalie quantité — OP-2026-000407</b><span>Sortie Kolda : 210 exécutés / 180 demandés · il y a 6 h</span></div>
+            <div class="tl-item warn"><b>Réception en retard — T-20261120-8K2P</b><span>Kolda → Sédhiou · 4 jours</span></div>
+            <div class="tl-item"><b>Stock négatif — Bambey</b><span>Correction à instruire (ajustement réservé DTL/DG)</span></div>
+            <div class="tl-item done"><b>Inventaire Matam clôturé</b><span>Écart +12 contenants régularisé</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><h3><i class="fas fa-dolly"></i> Opérations en cours — circuit complet</h3><a href="#" style="font-size:12px;font-weight:600">Vue détaillée →</a></div>
+      <div class="card-b" style="padding:0">
+        <table class="tbl compact">
+          <tr><th>Référence</th><th>Type</th><th>Magasin</th><th>Inspecteur</th><th>Magasinier</th><th>Étape</th><th>Statut</th></tr>
+          <tr><td>OP-2026-000411</td><td>Transfert</td><td>Dakar → Thiès</td><td>M. Ndiaye</td><td>Mag. Dakar</td><td>Exécutée</td><td><span class="badge b-orange">À vérifier</span></td></tr>
+          <tr><td>OP-2026-000410</td><td>Inventaire</td><td>Louga</td><td>M. Ndiaye</td><td>Mag. Louga</td><td>Transmise</td><td><span class="badge b-blue">En cours</span></td></tr>
+          <tr><td>OP-2026-000409</td><td>Sortie</td><td>Kolda</td><td>M. Ba</td><td>Mag. Kolda</td><td>Vérifiée</td><td><span class="badge b-green">Terminée</span></td></tr>
+          <tr><td>OP-2026-000407</td><td>Sortie</td><td>Kolda</td><td>M. Ba</td><td>Mag. Kolda</td><td>Anomalie</td><td><span class="badge b-red">Anomalie</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="mq-note">Maquette DTL — données illustratives</div>
+<script>
+new Chart(document.getElementById('chAct'),{type:'bar',data:{labels:['Soumises','Affectées','Transmises','Exécutées','Vérifiées','Rejetées','Anomalies'],datasets:[{label:'Opérations',data:[6,4,9,22,142,7,3],backgroundColor:['#94A3B8','#F59E0B','#3B82F6','#F97316','#10B981','#DC2626','#B91C1C'],borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}},maintainAspectRatio:false}});
+</script>
+</body>
+</html>

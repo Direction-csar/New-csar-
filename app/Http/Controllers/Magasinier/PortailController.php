@@ -50,7 +50,53 @@ class PortailController extends Controller
             })
             ->orderBy('created_at', 'desc')->limit(10)->get();
 
-        return view('magasinier.dashboard', [ 'direction' => 'magasinier', 'directionLabel' => 'Magasin & Gestion des stocks' ] + compact('warehouses', 'balances', 'stats', 'alerts', 'missions', 'recent'));
+        // Circuit opérationnel : opérations transmises par l'inspecteur
+        $whIds = $warehouses->pluck('id');
+        $stockOps = [
+            'transmises' => \App\Models\StockOperation::whereIn('status', [\App\Models\StockOperation::STATUS_TRANSMISE, \App\Models\StockOperation::STATUS_EXECUTEE])
+                ->where(function ($q) use ($whIds, $user) {
+                    $q->whereIn('warehouse_id', $whIds)->orWhereIn('destination_warehouse_id', $whIds);
+                })->count(),
+            'a_executer' => \App\Models\StockOperation::where('status', \App\Models\StockOperation::STATUS_TRANSMISE)
+                ->where(function ($q) use ($whIds) {
+                    $q->whereIn('warehouse_id', $whIds)->orWhereIn('destination_warehouse_id', $whIds);
+                })->count(),
+            'executees_mois' => \App\Models\StockOperation::where('status', \App\Models\StockOperation::STATUS_EXECUTEE)
+                ->where(function ($q) use ($whIds) {
+                    $q->whereIn('warehouse_id', $whIds)->orWhereIn('destination_warehouse_id', $whIds);
+                })->where('executed_at', '>=', now()->startOfMonth())->count(),
+        ];
+
+        $operations = \App\Models\StockOperation::with(['warehouse:id,name', 'inspector:id,name', 'destinationWarehouse:id,name'])
+            ->whereIn('status', [\App\Models\StockOperation::STATUS_TRANSMISE, \App\Models\StockOperation::STATUS_EXECUTEE])
+            ->where(function ($q) use ($whIds) {
+                $q->whereIn('warehouse_id', $whIds)->orWhereIn('destination_warehouse_id', $whIds);
+            })->latest('id')->limit(10)->get();
+
+        $receptions = \App\Models\StockMovement::with('warehouse:id,name')
+            ->where('status', 'en_attente')
+            ->whereIn('warehouse_id', $whIds)
+            ->where('type', 'entry')
+            ->where('metadata', 'like', '%"transfer_type":"in"%')
+            ->where('metadata', 'not like', '%receipt_confirmed_at%')
+            ->latest('id')->limit(8)->get();
+
+        $enAttente = \App\Models\StockMovement::with('warehouse:id,name')
+            ->where('status', 'en_attente')
+            ->whereIn('warehouse_id', $whIds)
+            ->whereNot(function ($q) {
+                $q->where('type', 'entry')->where('metadata', 'like', '%"transfer_type":"in"%');
+            })
+            ->latest('id')->limit(8)->get();
+
+        $stockTotal = $balances->sum(fn ($b) => (float) ($b['balance']['sacs'] ?? 0));
+
+        return view('magasinier.dashboard', [
+            'direction' => 'magasinier',
+            'directionLabel' => 'Magasin & Gestion des stocks',
+            'portal' => 'magasinier',
+            'portalLabel' => 'Portail Magasinier',
+        ] + compact('warehouses', 'balances', 'stats', 'alerts', 'missions', 'recent', 'stockOps', 'operations', 'receptions', 'enAttente', 'stockTotal'));
     }
 
     /** Liste des magasins accessibles. */

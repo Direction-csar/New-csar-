@@ -112,6 +112,28 @@ class MagasinierPortalTest extends TestCase
             $t->softDeletes();
         });
 
+        Schema::create('stock_operations', function (Blueprint $t) {
+            $t->id();
+            $t->string('reference')->nullable();
+            $t->string('type');
+            $t->unsignedBigInteger('warehouse_id');
+            $t->unsignedBigInteger('destination_warehouse_id')->nullable();
+            $t->string('produit')->nullable();
+            $t->string('unite')->nullable();
+            $t->decimal('quantity_requested', 14, 2)->nullable();
+            $t->decimal('quantity_executed', 14, 2)->nullable();
+            $t->string('status')->default('soumise');
+            $t->unsignedBigInteger('created_by')->nullable();
+            $t->unsignedBigInteger('assigned_inspector_id')->nullable();
+            $t->unsignedBigInteger('assigned_magasinier_id')->nullable();
+            $t->unsignedBigInteger('executed_by')->nullable();
+            $t->timestamp('executed_at')->nullable();
+            $t->unsignedBigInteger('verified_by')->nullable();
+            $t->timestamp('verified_at')->nullable();
+            $t->timestamps();
+            $t->softDeletes();
+        });
+
         Schema::create('products', function (Blueprint $t) {
             $t->id();
             $t->string('name');
