@@ -1457,7 +1457,7 @@ foreach (['cpm', 'dpse', 'dtl'] as $directionSlug) {
     });
 
     Route::middleware(["direction:{$directionSlug}"])->group(function () use ($directionSlug) {
-        Route::get("/admin/{$directionSlug}", fn () => app(\App\Http\Controllers\DirectionDashboardController::class)->index($directionSlug))->name("{$directionSlug}.dashboard");
+        Route::get("/admin/{$directionSlug}", fn () => app(\App\Http\Controllers\DirectionDashboardController::class)->index($directionSlug))->name($directionSlug === 'dtl' ? 'dtl.portal-dashboard' : "{$directionSlug}.dashboard");
 
         Route::prefix("archives/{$directionSlug}")->name("archives.{$directionSlug}.")->group(function () use ($directionSlug) {
             $controller = 'App\\Http\\Controllers\\' . ucfirst($directionSlug) . '\\ArchiveController';
