@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockMovement extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'stock_id',
@@ -18,14 +19,45 @@ class StockMovement extends Model
         'quantity_after',
         'reason',
         'reference',
-        'created_by'
+        'created_by',
+        'produit',
+        'unite',
+        'prix_unitaire',
+        'total',
+        'responsable',
+        'motif',
+        'date_mouvement',
+        'fournisseur',
+        'numero_facture',
+        'destinataire',
+        'numero_bon',
+        'numero_transfert',
+        'entrepot_destination_id',
+        'raison_ajustement',
+        'metadata',
+        'public_request_id',
+        'request_mission_id',
+        'stock_operation_id',
+        'status',
+        'validated_by',
+        'validated_at',
+        'rejection_reason',
     ];
 
     protected $casts = [
         'quantity' => 'decimal:2',
         'quantity_before' => 'decimal:2',
-        'quantity_after' => 'decimal:2'
+        'quantity_after' => 'decimal:2',
+        'validated_at' => 'datetime',
     ];
+
+    /**
+     * Opération de stock à l'origine du mouvement (circuit DG→DTL→Inspecteur→Magasinier).
+     */
+    public function stockOperation()
+    {
+        return $this->belongsTo(StockOperation::class, 'stock_operation_id');
+    }
 
     /**
      * Relation avec l'entrepôt

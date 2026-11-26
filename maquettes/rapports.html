@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rapports &amp; statistiques — CSAR Stocks</title>
+<link rel="stylesheet" href="assets/maquettes.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.role-tabs{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:11px;padding:4px;gap:4px;margin-bottom:20px}
+.role-tabs button{border:none;background:transparent;padding:9px 20px;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer}
+.role-tabs button.on{background:var(--night);color:#fff}
+.pdf-prev{background:#fff;border:1px solid var(--line);border-radius:12px;padding:0;overflow:hidden}
+.pdf-head{background:linear-gradient(135deg,var(--night),#123a6b);color:#fff;padding:22px 26px;display:flex;justify-content:space-between;align-items:center}
+.pdf-head .ref{font-size:11px;opacity:.8}
+.pdf-head h4{font-size:16px;font-weight:800}
+.pdf-body{padding:24px 26px;font-size:13px}
+.pdf-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.pdf-kpi{border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center}
+.pdf-kpi b{display:block;font-size:19px;color:var(--night)}
+.pdf-kpi span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.pdf-foot{border-top:1px solid var(--line);padding:12px 26px;font-size:10.5px;color:var(--muted);display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<aside class="sidebar" id="sb">
+  <div class="sb-brand"><div class="logo">CSAR</div><div class="t"><strong>Direction Générale</strong><small>Gestion des stocks</small></div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Pilotage</div>
+    <a class="sb-link" href="dashboard-dg.html"><i class="fas fa-globe-africa"></i><span class="lbl">Vue nationale</span></a>
+    <a class="sb-link" href="dashboard-dtl.html"><i class="fas fa-project-diagram"></i><span class="lbl">Opérations &amp; circuit</span></a>
+    <a class="sb-link active" href="rapports.html"><i class="fas fa-file-alt"></i><span class="lbl">Rapports &amp; stats</span></a>
+    <div class="sb-section">Stocks</div>
+    <a class="sb-link" href="#"><i class="fas fa-warehouse"></i><span class="lbl">Magasins (49)</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-boxes"></i><span class="lbl">Situation des stocks</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-exchange-alt"></i><span class="lbl">Mouvements</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-clipboard-check"></i><span class="lbl">En attente</span><span class="sb-badge">24</span></a>
+    <div class="sb-section">Organisation</div>
+    <a class="sb-link" href="#"><i class="fas fa-user-shield"></i><span class="lbl">Affectations inspecteurs</span></a>
+    <a class="sb-link" href="#"><i class="fas fa-users-gear"></i><span class="lbl">Personnel stock</span></a>
+    <div class="sb-section">Autres</div>
+    <a class="sb-link" href="#"><i class="fas fa-archive"></i><span class="lbl">Archives DG</span></a>
+  </nav>
+  <div class="sb-user"><div class="sb-avatar">DG</div><div class="u"><b>M. Directeur Général</b><small>Direction Générale</small></div><button class="sb-toggle" onclick="document.getElementById('sb').classList.toggle('collapsed');document.getElementById('mn').classList.toggle('expanded')"><i class="fas fa-chevron-left"></i></button></div>
+</aside>
+<div class="main" id="mn">
+  <div class="topbar">
+    <div><h1>Rapports &amp; statistiques</h1><div class="crumb">CSAR › Direction Générale › Rapports</div></div>
+    <div class="right">
+      <span class="refresh"><span class="dot"></span> Dernière actualisation : aujourd'hui 14:32</span>
+      <button class="icon-btn"><i class="fas fa-bell"></i><span class="ping">7</span></button>
+      <div class="avatar-top">DG</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="role-tabs">
+      <button class="on" onclick="setRole(this,'dg')"><i class="fas fa-globe-africa"></i> Rapports DG</button>
+      <button onclick="setRole(this,'dtl')"><i class="fas fa-project-diagram"></i> Rapports DTL</button>
+    </div>
+
+    <div class="wizard-steps">
+      <div class="wstep on">1. Type de rapport</div>
+      <div class="wstep on">2. Filtres</div>
+      <div class="wstep on">3. Aperçu</div>
+      <div class="wstep">4. Export</div>
+    </div>
+
+    <div class="grid-2">
+      <div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-filter"></i> Filtres du rapport</h3></div>
+          <div class="card-b">
+            <div class="filters" style="margin-bottom:16px">
+              <input class="f-input" type="date" value="2026-10-01" title="Date de début">
+              <span style="color:var(--muted)">→</span>
+              <input class="f-input" type="date" value="2026-11-24" title="Date de fin">
+              <select class="f-select"><option>Toutes les régions</option><option>Dakar</option><option>Thiès</option><option>…</option></select>
+              <select class="f-select"><option>Tous les magasins</option></select>
+            </div>
+            <div class="filters">
+              <select class="f-select"><option>Toutes les denrées</option><option>Riz</option><option>Céréales</option></select>
+              <select class="f-select"><option>Tous les statuts</option><option>Vérifiées</option><option>En attente</option><option>Rejetées</option></select>
+              <select class="f-select"><option>Tous les inspecteurs</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-file-export"></i> Format d'export</h3></div>
+          <div class="card-b">
+            <div class="filters">
+              <button class="btn btn-orange"><i class="fas fa-file-pdf"></i> Générer PDF</button>
+              <button class="btn btn-ghost"><i class="fas fa-file-excel"></i> Générer Excel (.xlsx)</button>
+              <button class="btn btn-ghost"><i class="fas fa-eye"></i> Aperçu</button>
+            </div>
+            <p style="font-size:11.5px;color:var(--muted);margin-top:12px">Chaque export est journalisé (auteur, date, filtres) et consultable dans l'historique.</p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-h"><h3><i class="fas fa-file-pdf"></i> Aperçu du rapport</h3><span class="badge b-blue">RPT-2026-1187</span></div>
+          <div class="card-b" style="background:#F8FAFC">
+            <div class="pdf-prev">
+              <div class="pdf-head">
+                <div><div class="ref">CSAR — Réf. RPT-2026-1187 · Généré le 25/11/2026 à 14:32</div><h4>Rapport national des stocks alimentaires</h4></div>
+                <i class="fas fa-file-pdf" style="font-size:26px;opacity:.85"></i>
+              </div>
+              <div class="pdf-body">
+                <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Période : 01/10/2026 → 24/11/2026 · Filtres : toutes régions, tous magasins, toutes denrées</div>
+                <div class="pdf-kpis">
+                  <div class="pdf-kpi"><b>68 412</b><span>Stock national</span></div>
+                  <div class="pdf-kpi"><b>4 215</b><span>Entrées</span></div>
+                  <div class="pdf-kpi"><b>3 890</b><span>Sorties</span></div>
+                  <div class="pdf-kpi"><b>37</b><span>Transferts</span></div>
+                </div>
+                <table class="tbl compact">
+                  <tr><th>Région</th><th>Magasins</th><th>Stock</th><th>Inspecteurs</th></tr>
+                  <tr><td>Dakar</td><td>5</td><td>40 005</td><td>2</td></tr>
+                  <tr><td>Thiès</td><td>5</td><td>3 144</td><td>1</td></tr>
+                  <tr><td>Saint-Louis</td><td>3</td><td>68</td><td>1</td></tr>
+                  <tr><td colspan="4" style="color:var(--muted);font-size:11px">… 11 autres régions</td></tr>
+                </table>
+              </div>
+              <div class="pdf-foot"><span>Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR) — République du Sénégal</span><span>Page 1 / 4</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><h3><i class="fas fa-folder-open"></i> Rapports générés — historique</h3></div>
+      <div class="card-b" style="padding:0">
+        <table class="tbl compact">
+          <tr><th>Référence</th><th>Rapport</th><th>Période</th><th>Format</th><th>Généré par</th><th>Date</th><th></th></tr>
+          <tr><td>RPT-2026-1187</td><td>Stocks nationaux</td><td>01/10 → 24/11</td><td><span class="badge b-red"><i class="fas fa-file-pdf"></i> PDF</span></td><td>DG</td><td>24/11 14:32</td><td><a href="#" class="btn btn-ghost btn-sm"><i class="fas fa-download"></i></a></td></tr>
+          <tr><td>RPT-2026-1183</td><td>Stocks par région</td><td>01/11 → 24/11</td><td><span class="badge b-green"><i class="fas fa-file-excel"></i> XLSX</span></td><td>DTL</td><td>24/11 09:15</td><td><a href="#" class="btn btn-ghost btn-sm"><i class="fas fa-download"></i></a></td></tr>
+          <tr><td>RPT-2026-1176</td><td>Couverture 14 régions</td><td>Annuel</td><td><span class="badge b-red"><i class="fas fa-file-pdf"></i> PDF</span></td><td>Admin</td><td>23/11 17:48</td><td><a href="#" class="btn btn-ghost btn-sm"><i class="fas fa-download"></i></a></td></tr>
+          <tr><td>RPT-2026-1169</td><td>Anomalies &amp; rejets</td><td>01/10 → 31/10</td><td><span class="badge b-green"><i class="fas fa-file-excel"></i> XLSX</span></td><td>DTL</td><td>02/11 11:20</td><td><a href="#" class="btn btn-ghost btn-sm"><i class="fas fa-download"></i></a></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-h"><h3><i class="fas fa-th-large"></i> Catalogue des rapports — <span id="roleLabel">DG</span></h3></div>
+      <div class="card-b">
+        <div class="report-cards" id="repGrid">
+          <div class="rep-card"><h4><i class="fas fa-globe-africa"></i> Rapport national des stocks</h4><p>Vision consolidée : stock total, entrées, sorties, transferts sur la période.</p><span class="tag">13 sections</span></div>
+          <div class="rep-card"><h4><i class="fas fa-map-marked-alt"></i> Stocks par région</h4><p>Détail des 14 régions : magasins, stock, inspecteurs, couverture.</p><span class="tag">14 lignes</span></div>
+          <div class="rep-card"><h4><i class="fas fa-warehouse"></i> Stocks par magasin</h4><p>Fiche détaillée magasin par magasin avec produits et formats.</p><span class="tag">49 fiches</span></div>
+          <div class="rep-card"><h4><i class="fas fa-arrow-down"></i> Rapport des entrées</h4><p>Toutes les entrées validées, par magasin, produit et période.</p><span class="tag">Mouvements</span></div>
+          <div class="rep-card"><h4><i class="fas fa-arrow-up"></i> Rapport des sorties</h4><p>Sorties validées avec motifs, destinataires et quantités.</p><span class="tag">Mouvements</span></div>
+          <div class="rep-card"><h4><i class="fas fa-exchange-alt"></i> Rapport des transferts</h4><p>Transferts inter-magasins : origine, destination, réceptions.</p><span class="tag">T-YYYYMMDD-XXXX</span></div>
+          <div class="rep-card"><h4><i class="fas fa-clipboard-check"></i> Rapport des inventaires</h4><p>Inventaires physiques, écarts constatés et régularisations.</p><span class="tag">Ajustements</span></div>
+          <div class="rep-card"><h4><i class="fas fa-exclamation-circle"></i> Rapport des anomalies</h4><p>Anomalies signalées par les inspecteurs, statut et suites.</p><span class="tag">Circuit</span></div>
+          <div class="rep-card"><h4><i class="fas fa-clock"></i> Mouvements en attente</h4><p>File de vérification : depuis quand, par quel magasinier.</p><span class="tag">Temps réel</span></div>
+          <div class="rep-card"><h4><i class="fas fa-check-double"></i> Mouvements vérifiés</h4><p>Historique des validations avec vérificateur et date.</p><span class="tag">Audit</span></div>
+          <div class="rep-card"><h4><i class="fas fa-user-shield"></i> Performance des inspecteurs</h4><p>Contrôles réalisés, délais de vérification, anomalies par agent.</p><span class="tag">Par inspecteur</span></div>
+          <div class="rep-card"><h4><i class="fas fa-warehouse"></i> Activité des magasins</h4><p>Entrées/sorties par magasin, régularité, stocks critiques.</p><span class="tag">49 magasins</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="mq-note">Maquette Rapports — données illustratives</div>
+<script>
+var DG=['Rapport national des stocks','Stocks par région','Stocks par magasin','Entrées','Sorties','Transferts','Inventaires','Anomalies','Mouvements en attente','Mouvements vérifiés','Mouvements rejetés','Couverture 14 régions','Performance des magasins','Historique des opérations'];
+var DTL=['Opérations reçues','Opérations affectées','Opérations exécutées','Contrôles par inspecteur','Anomalies constatées','Mouvements vérifiés','Mouvements rejetés','Transferts','Réceptions','Activité des magasins','Couverture des inspecteurs','Inventaires','Ajustements autorisés'];
+function setRole(btn,role){document.querySelectorAll('.role-tabs button').forEach(b=>b.classList.remove('on'));btn.classList.add('on');document.getElementById('roleLabel').textContent=role.toUpperCase();
+var icons=['fas fa-globe-africa','fas fa-map-marked-alt','fas fa-warehouse','fas fa-arrow-down','fas fa-arrow-up','fas fa-exchange-alt','fas fa-clipboard-check','fas fa-exclamation-circle','fas fa-clock','fas fa-check-double','fas fa-user-shield','fas fa-store','fas fa-user-check','fas fa-history'];
+var g=document.getElementById('repGrid');g.innerHTML=(role==='dg'?DG:DTL).map((t,i)=>'<div class="rep-card"><h4><i class="'+icons[i%icons.length]+'"></i> '+t+'</h4><p>Rapport détaillé — période, région, magasin, produit filtrables.</p><span class="tag">PDF · XLSX</span></div>').join('');}
+</script>
+</body>
+</html>

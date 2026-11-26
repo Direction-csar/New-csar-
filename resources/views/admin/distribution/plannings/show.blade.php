@@ -30,6 +30,50 @@
     </div>
 
     <div class="row mb-3">
+        <div class="col-md-6 mb-2">
+            <div class="card-modern p-3 h-100">
+                <h6 class="fw-bold mb-2">🚚 Agents distributeurs ({{ $planning->distributors->count() }})</h6>
+                @forelse($planning->distributors as $u)
+                    <span class="badge bg-primary-subtle text-primary border me-1 mb-1">{{ $u->name }}</span>
+                @empty
+                    <div class="text-muted small">Aucun distributeur affecté — le planning est invisible dans l'APK Distribution.</div>
+                @endforelse
+                <h6 class="fw-bold mb-2 mt-3">📷 Agents scanners ({{ $planning->scanners->count() }})</h6>
+                @forelse($planning->scanners as $u)
+                    <span class="badge bg-success-subtle text-success border me-1 mb-1">{{ $u->name }} ({{ $u->role }})</span>
+                @empty
+                    <div class="text-muted small">Aucun scanner affecté — la remise des kits ne peut pas être confirmée.</div>
+                @endforelse
+            </div>
+        </div>
+        <div class="col-md-6 mb-2">
+            <div class="card-modern p-3 h-100">
+                <h6 class="fw-bold mb-2">📊 Statistiques par agent</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead><tr><th>Agent</th><th>Affectation</th><th class="text-end">Validés</th><th class="text-end">Tickets émis</th><th class="text-end">Kits remis</th><th class="text-end">Vérif.</th><th class="text-end">Refusés</th></tr></thead>
+                        <tbody>
+                        @forelse($agentStats as $st)
+                            <tr>
+                                <td>{{ $st['name'] }}</td>
+                                <td class="small">{{ $st['is_distributor'] ? 'Distributeur' : '' }}{{ $st['is_distributor'] && $st['is_scanner'] ? ' + ' : '' }}{{ $st['is_scanner'] ? 'Scanner' : '' }}{{ !$st['is_distributor'] && !$st['is_scanner'] ? '—' : '' }}</td>
+                                <td class="text-end">{{ $st['validated'] }}</td>
+                                <td class="text-end">{{ $st['issued'] }}</td>
+                                <td class="text-end">{{ $st['collected'] }}</td>
+                                <td class="text-end">{{ $st['verified'] }}</td>
+                                <td class="text-end">{{ $st['refused'] }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="7" class="text-muted small">Aucune activité ni affectation enregistrée.</td></tr>
+                        @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
         <div class="col-12">
             <div class="card-modern p-3">
                 <div class="d-flex justify-content-between align-items-center mb-3">

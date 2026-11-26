@@ -342,7 +342,7 @@
                         <i class="fas fa-phone"></i>
                         <div>
                             <strong>Téléphone</strong><br>
-                            <span id="user-phone">{{ auth()->user()->phone ?? '+221 33 123 45 67' }}</span>
+                            <span id="user-phone">{{ auth()->user()->phone ?? '+221 77 645 92 42' }}</span>
                         </div>
                     </div>
                     <div class="info-item-modern">

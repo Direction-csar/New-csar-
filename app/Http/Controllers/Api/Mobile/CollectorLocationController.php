@@ -12,9 +12,22 @@ class CollectorLocationController extends Controller
 {
     public function updateLocation(Request $request)
     {
-        $collector = $request->user() instanceof SimCollector
-            ? $request->user()
-            : SimCollector::find($request->input('collector_id'));
+        $actor = $request->user();
+
+        if ($actor instanceof SimCollector) {
+            // Un collecteur ne peut publier que sa propre position.
+            $collector = $actor;
+            $requestedId = $request->input('collector_id');
+            if ($requestedId !== null && (int) $requestedId !== (int) $collector->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Un collecteur ne peut mettre à jour que sa propre position.',
+                ], 403);
+            }
+        } else {
+            // Personnel authentifié (admin/superviseur/API) : déclare la position d'un collecteur cible.
+            $collector = SimCollector::find($request->input('collector_id'));
+        }
 
         if (!$collector) {
             return response()->json(['success' => false, 'message' => 'Collecteur non identifié'], 401);

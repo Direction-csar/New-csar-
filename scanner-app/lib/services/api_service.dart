@@ -2,8 +2,36 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  static const String apiBaseUrl = 'https://www.csar.sn/api';
-  static const String distBaseUrl = 'https://www.csar.sn/mobile/v1/distribution';
+  /// URL du serveur, configurable au build :
+  /// flutter build apk --dart-define=CSAR_API_URL=http://10.0.2.2
+  /// La valeur par défaut reste la production.
+  static const String serverUrl = String.fromEnvironment(
+    'CSAR_API_URL',
+    defaultValue: 'https://www.csar.sn',
+  );
+  static const String apiBaseUrl = '$serverUrl/api';
+  static const String distBaseUrl = '$serverUrl/mobile/v1/distribution';
+
+  /// Décode la réponse JSON en remontant le message d'erreur du serveur
+  /// sur les codes HTTP >= 400, au lieu d'échouer sur du HTML ou un corps vide.
+  static Map<String, dynamic> _decode(http.Response response) {
+    dynamic body;
+    try {
+      body = jsonDecode(response.body);
+    } catch (_) {
+      return {
+        'success': false,
+        'message': 'Erreur serveur (HTTP ${response.statusCode})',
+      };
+    }
+    final map = body is Map<String, dynamic> ? body : <String, dynamic>{};
+    if (response.statusCode >= 400) {
+      map['success'] = false;
+      map['message'] ??= 'Erreur serveur (HTTP ${response.statusCode})';
+      map['http_status'] = response.statusCode;
+    }
+    return map;
+  }
 
   static Future<Map<String, dynamic>> login(String email, String password) async {
     final response = await http.post(
@@ -11,7 +39,36 @@ class ApiService {
       headers: {'Content-Type': 'application/json', 'Accept': 'application/json'},
       body: jsonEncode({'email': email, 'password': password}),
     );
-    return jsonDecode(response.body);
+    return _decode(response);
+  }
+
+  /// Revocation du jeton cote serveur (best effort).
+  static Future<void> logout(String token) async {
+    try {
+      await http.post(Uri.parse('$distBaseUrl/logout'), headers: _headers(token));
+    } catch (_) {}
+  }
+
+  /// True si le jeton est refuse/expire (deconnexion requise).
+  static bool isAuthError(Map<String, dynamic> res) =>
+      res['http_status'] == 401 || res['http_status'] == 403;
+
+  /// Plannings auxquels l'agent est affecte pour les operations de controle.
+  static Future<Map<String, dynamic>> getScanPlannings(String token) async {
+    final response = await http.get(
+      Uri.parse('$distBaseUrl/scan/plannings'),
+      headers: _headers(token),
+    );
+    return _decode(response);
+  }
+
+  /// Verification SANS effet de bord : apercu avant confirmation de remise.
+  static Future<Map<String, dynamic>> verifyTicket(String token, String ticketCode) async {
+    final response = await http.post(
+      Uri.parse('$distBaseUrl/tickets/$ticketCode/verify'),
+      headers: _headers(token),
+    );
+    return _decode(response);
   }
 
   static Future<Map<String, dynamic>> collectKit(String token, String ticketCode, {String? scanLocation}) async {
@@ -20,16 +77,17 @@ class ApiService {
       headers: _headers(token),
       body: jsonEncode({'scan_location': scanLocation}),
     );
-    return jsonDecode(response.body);
+    return _decode(response);
   }
 
-  static Future<Map<String, dynamic>> getScanHistory(String token, {String? search, String? date}) async {
+  static Future<Map<String, dynamic>> getScanHistory(String token, {String? search, String? date, dynamic planningId}) async {
     final params = <String, String>{};
+    if (planningId != null) params['planning_id'] = '$planningId';
     if (search != null && search.isNotEmpty) params['search'] = search;
     if (date != null && date.isNotEmpty) params['date'] = date;
     final uri = Uri.parse('$distBaseUrl/scans/history').replace(queryParameters: params.isEmpty ? null : params);
     final response = await http.get(uri, headers: _headers(token));
-    return jsonDecode(response.body);
+    return _decode(response);
   }
 
   static Future<Map<String, dynamic>> getTicketByCode(String token, String code) async {
@@ -37,7 +95,7 @@ class ApiService {
       Uri.parse('$distBaseUrl/tickets/$code'),
       headers: _headers(token),
     );
-    return jsonDecode(response.body);
+    return _decode(response);
   }
 
   static Map<String, String> _headers(String token) => {

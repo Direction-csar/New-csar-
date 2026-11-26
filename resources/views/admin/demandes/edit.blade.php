@@ -49,32 +49,39 @@
                     ];
                     $currentWf = $demande->workflow_status ?? 'soumise';
                     $wfKeys = array_keys($workflowSteps);
-                    $currentIndex = array_search($currentWf, $wfKeys);
-                    if ($currentIndex === false) $currentIndex = 0;
+                    // Étapes réellement franchies, reconstruites depuis
+                    // l'historique — pas depuis la position dans la liste.
+                    $reachedSteps = ['soumise' => true];
+                    foreach (($demande->workflow_history ?? []) as $historyEntry) {
+                        $toStatus = $historyEntry['to_status'] ?? null;
+                        if ($toStatus && isset($workflowSteps[$toStatus])) {
+                            $reachedSteps[$toStatus] = true;
+                        }
+                    }
+                    $reachedSteps[$currentWf] = true;
                 @endphp
                 <div class="d-flex justify-content-between align-items-center position-relative" style="gap: 4px;">
                     @foreach($workflowSteps as $key => $step)
                         @php
                             $stepIndex = array_search($key, $wfKeys);
-                            $isCompleted = $stepIndex < $currentIndex && $currentWf !== 'rejetee';
+                            $isReached = isset($reachedSteps[$key]);
                             $isCurrent = $key === $currentWf;
-                            $isRejected = $currentWf === 'rejetee' && $key === 'rejetee';
                         @endphp
                         <div class="text-center flex-fill" style="position: relative; z-index: 2;">
                             <div class="mx-auto d-flex align-items-center justify-content-center rounded-circle mb-1"
                                  style="width: 36px; height: 36px; font-size: 0.75rem;
-                                 background: {{ $isCompleted || $isCurrent || $isRejected ? 'linear-gradient(135deg, var(--bs-' . $step['color'] . '), var(--bs-' . $step['color'] . '-dark, var(--bs-' . $step['color'] . ')))' : '#e2e8f0' }};
-                                 color: {{ $isCompleted || $isCurrent || $isRejected ? '#fff' : '#94a3b8' }};
+                                 background: {{ $isReached ? 'linear-gradient(135deg, var(--bs-' . $step['color'] . '), var(--bs-' . $step['color'] . '-dark, var(--bs-' . $step['color'] . ')))' : '#e2e8f0' }};
+                                 color: {{ $isReached ? '#fff' : '#94a3b8' }};
                                  box-shadow: {{ $isCurrent ? '0 0 0 4px rgba(59,130,246,0.2)' : 'none' }};
                                  transition: all 0.3s ease;">
                                 <i class="fas {{ $step['icon'] }}"></i>
                             </div>
-                            <div class="small fw-bold {{ $isCurrent ? 'text-primary' : ($isCompleted || $isRejected ? 'text-' . $step['color'] : 'text-muted') }}" style="font-size: 0.65rem;">
+                            <div class="small fw-bold {{ $isCurrent ? 'text-primary' : ($isReached ? 'text-' . $step['color'] : 'text-muted') }}" style="font-size: 0.65rem;">
                                 {{ $step['label'] }}
                             </div>
                         </div>
                         @if(!$loop->last)
-                        <div class="flex-fill align-self-start" style="height: 3px; background: {{ $stepIndex < $currentIndex ? 'linear-gradient(90deg, var(--bs-' . $workflowSteps[$wfKeys[$stepIndex]]['color'] . '), var(--bs-' . $workflowSteps[$wfKeys[$stepIndex + 1]]['color'] . '))' : '#e2e8f0' }}; margin-top: 16px; border-radius: 2px;"></div>
+                        <div class="flex-fill align-self-start" style="height: 3px; background: {{ isset($reachedSteps[$wfKeys[$stepIndex + 1]]) ? 'linear-gradient(90deg, var(--bs-' . $workflowSteps[$wfKeys[$stepIndex]]['color'] . '), var(--bs-' . $workflowSteps[$wfKeys[$stepIndex + 1]]['color'] . '))' : '#e2e8f0' }}; margin-top: 16px; border-radius: 2px;"></div>
                         @endif
                     @endforeach
                 </div>
@@ -95,12 +102,20 @@
                         <p><strong>Demandeur:</strong> {{ $demande->full_name }}</p>
                         <p><strong>Email:</strong> {{ $demande->email }}</p>
                         <p><strong>Téléphone:</strong> {{ $demande->phone }}</p>
-                        <p><strong>Région:</strong> {{ $demande->region }}</p>
+                        <p><strong>Région:</strong> {{ $demande->region ?: '—' }}</p>
+                        @if($demande->latitude && $demande->longitude)
+                        <p><strong>Position GPS:</strong>
+                            {{ number_format((float) $demande->latitude, 6) }}, {{ number_format((float) $demande->longitude, 6) }}
+                            <a href="https://www.openstreetmap.org/?mlat={{ (float) $demande->latitude }}&mlon={{ (float) $demande->longitude }}#map=16/{{ (float) $demande->latitude }}/{{ (float) $demande->longitude }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary ms-1">
+                                <i class="fas fa-map-location-dot"></i> Voir sur la carte
+                            </a>
+                        </p>
+                        @endif
                     </div>
                     <div class="col-md-6">
                         <p><strong>Type:</strong> {{ ucfirst($demande->type) }}</p>
                         <p><strong>Date de demande:</strong> {{ optional($demande->request_date)->format('d/m/Y') ?? \Carbon\Carbon::parse($demande->created_at)->format('d/m/Y') }}</p>
-                        <p><strong>Statut actuel:</strong> 
+                        <p><strong>Statut actuel:</strong>
                             <span class="badge bg-{{ $demande->status === 'approved' ? 'success' : ($demande->status === 'rejected' ? 'danger' : ($demande->status === 'completed' ? 'info' : 'warning')) }}">
                                 {{ ucfirst($demande->status) }}
                             </span>
@@ -110,6 +125,58 @@
                         @endif
                     </div>
                 </div>
+                @if($demande->depot_mode || $demande->demandeur_type || $demande->departement || $demande->commune || $demande->letter_path || $demande->attachments)
+                <div class="row mt-2 pt-2 border-top">
+                    <div class="col-md-6">
+                        @if($demande->depot_mode)
+                        <p><strong>Mode de dépôt:</strong> {{ $demande->depot_mode === 'lettre' ? 'Lettre téléversée' : 'Formulaire en ligne' }}</p>
+                        @endif
+                        @if($demande->demandeur_type)
+                        <p><strong>Type de demandeur:</strong> {{ config('demande.demandeur_types')[$demande->demandeur_type] ?? $demande->demandeur_type }}</p>
+                        @endif
+                        @if($demande->structure_name)
+                        <p><strong>Structure:</strong> {{ $demande->structure_name }}</p>
+                        @endif
+                        @if($demande->event_date || $demande->event_location || $demande->event_participants)
+                        <p><strong>Événement:</strong>
+                            {{ optional($demande->event_date)->format('d/m/Y') }}
+                            {{ $demande->event_location ? '— '.$demande->event_location : '' }}
+                            {{ $demande->event_participants ? '— '.$demande->event_participants.' pers.' : '' }}
+                        </p>
+                        @endif
+                        @if($demande->cni)
+                        <p><strong>CNI:</strong> <span class="text-muted">{{ $demande->cni }}</span> <span class="badge bg-secondary">confidentiel</span></p>
+                        @endif
+                        @if($demande->ninea)
+                        <p><strong>NINEA / identifiant:</strong> {{ $demande->ninea }}</p>
+                        @endif
+                    </div>
+                    <div class="col-md-6">
+                        @if($demande->departement)
+                        <p><strong>Département:</strong> {{ $demande->departement }}</p>
+                        @endif
+                        @if($demande->commune)
+                        <p><strong>Commune:</strong> {{ $demande->commune }}</p>
+                        @endif
+                        @if($demande->letter_path)
+                        <p><strong>Lettre déposée:</strong>
+                            <a href="{{ route('admin.demandes.lettre', $demande->id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-file-arrow-down"></i> Télécharger la lettre
+                            </a>
+                        </p>
+                        @endif
+                        @if($demande->attachments)
+                        <p><strong>Pièces justificatives:</strong>
+                            @foreach($demande->attachments as $i => $att)
+                            <a href="{{ route('admin.demandes.piece', [$demande->id, $i]) }}" class="btn btn-sm btn-outline-secondary me-1">
+                                <i class="fas fa-paperclip"></i> Pièce {{ $i + 1 }}
+                            </a>
+                            @endforeach
+                        </p>
+                        @endif
+                    </div>
+                </div>
+                @endif
                 @if($demande->description)
                 <div class="mt-3">
                     <p><strong>Description:</strong></p>
@@ -131,7 +198,7 @@
                 <form action="{{ route('admin.demandes.update', $demande->id) }}" method="POST">
                     @csrf
                     @method('PUT')
-                    
+
                     @if ($errors->any())
                         <div class="alert alert-danger">
                             <ul class="mb-0">
@@ -141,7 +208,7 @@
                             </ul>
                         </div>
                     @endif
-                    
+
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="status" class="form-label small fw-bold">Statut *</label>
@@ -152,7 +219,7 @@
                                 <option value="completed" {{ $demande->status === 'completed' ? 'selected' : '' }}>Terminée</option>
                             </select>
                         </div>
-                        
+
                         <div class="col-md-6 mb-3">
                             <label for="assigned_to" class="form-label small fw-bold">Assigner à</label>
                             <select class="form-select form-select-sm" id="assigned_to" name="assigned_to">
@@ -165,13 +232,15 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="mb-3">
-                        <label for="admin_comment" class="form-label small fw-bold">Commentaire administrateur</label>
-                        <textarea class="form-control form-control-sm" id="admin_comment" name="admin_comment" rows="3" 
+                        <label for="admin_comment" class="form-label small fw-bold">Commentaire administrateur (interne)</label>
+                        <textarea class="form-control form-control-sm" id="admin_comment" name="admin_comment" rows="3"
                                   placeholder="Ajoutez un commentaire...">{{ $demande->admin_comment ?? '' }}</textarea>
+                        <label class="form-label small fw-bold mt-2">Motif public en cas de rejet</label>
+                        <textarea class="form-control form-control-sm" name="public_comment" maxlength="2000"></textarea>
                     </div>
-                    
+
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-primary btn-sm">
                             <i class="fas fa-save me-1"></i>Mettre à jour
@@ -187,8 +256,8 @@
                     @csrf
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Nouveau statut workflow</label>
-                        <select class="form-select form-select-sm" name="workflow_status" required>
-                            @foreach([
+                        @php
+                            $workflowLabels = [
                                 'soumise' => 'Soumise',
                                 'en_revue' => 'En revue',
                                 'document_attente' => 'Attente document',
@@ -198,16 +267,25 @@
                                 'approuvee' => 'Approuvée',
                                 'rejetee' => 'Rejetée',
                                 'cloturee' => 'Clôturée',
-                            ] as $value => $label)
-                                <option value="{{ $value }}" {{ ($demande->workflow_status ?? 'soumise') === $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
+                            ];
+                            $currentWorkflow = $demande->workflow_status ?? 'soumise';
+                            $allowed = $allowedTransitions ?? [];
+                        @endphp
+                        <select class="form-select form-select-sm" name="workflow_status" required>
+                            <option value="{{ $currentWorkflow }}" selected>{{ $workflowLabels[$currentWorkflow] ?? $currentWorkflow }} (actuel)</option>
+                            @foreach($allowed as $value)
+                                <option value="{{ $value }}">{{ $workflowLabels[$value] ?? $value }}</option>
                             @endforeach
                         </select>
+                        @if(empty($allowed))
+                            <small class="text-muted">Aucune transition disponible depuis ce statut pour votre rôle.</small>
+                        @endif
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Commentaire</label>
+                        <label class="form-label small fw-bold">Note interne (non communiquée)</label>
                         <textarea class="form-control form-control-sm" name="comment" rows="2" placeholder="Commentaire sur cette transition..."></textarea>
+                        <label class="form-label small fw-bold mt-2">Motif public (obligatoire pour un rejet ou un complément)</label>
+                        <textarea class="form-control form-control-sm" name="public_comment" rows="2" maxlength="2000" placeholder="Ce texte sera visible par le demandeur."></textarea>
                     </div>
                     <button type="submit" class="btn btn-success btn-sm">
                         <i class="fas fa-forward me-1"></i>Avancer le workflow
@@ -285,6 +363,8 @@
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Commentaire DG</label>
                         <textarea class="form-control form-control-sm" name="dg_comment" rows="3" placeholder="Commentaire de la Direction Générale..."></textarea>
+                        <label class="form-label small fw-bold mt-2">Motif public du rejet</label>
+                        <textarea class="form-control form-control-sm" name="public_comment" rows="2" maxlength="2000" placeholder="Ce texte sera visible par le demandeur."></textarea>
                     </div>
                 </form>
             </div>
@@ -298,7 +378,7 @@
                     <div class="small">
                         <i class="fas fa-signature text-primary me-1"></i>Document signé
                     </div>
-                    <a href="{{ asset('storage/' . $demande->dg_signature_file) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                    <a href="{{ route('admin.demandes.document', [$demande->id, 'signature']) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                         <i class="fas fa-eye"></i>
                     </a>
                 </div>
@@ -308,7 +388,7 @@
                     <div class="small">
                         <i class="fas fa-file-pdf text-info me-1"></i>Scan
                     </div>
-                    <a href="{{ asset('storage/' . $demande->scan_file) }}" target="_blank" class="btn btn-sm btn-outline-info">
+                    <a href="{{ route('admin.demandes.document', [$demande->id, 'scan']) }}" target="_blank" class="btn btn-sm btn-outline-info">
                         <i class="fas fa-eye"></i>
                     </a>
                 </div>

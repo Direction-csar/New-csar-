@@ -7,12 +7,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:csar_scanner/main.dart';
+import 'package:csar_scanner/services/auth_service.dart';
 
 void main() {
   testWidgets('CSAR Scanner app smoke test', (WidgetTester tester) async {
-    await tester.pumpWidget(const CsarScannerApp());
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => AuthService(),
+        child: const CsarScannerApp(),
+      ),
+    );
     expect(find.byType(MaterialApp), findsOneWidget);
   });
 }

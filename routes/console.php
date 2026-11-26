@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
@@ -36,3 +37,7 @@ Artisan::command('schedule:daily-requests-summary', function () {
         $this->info('📧 Résumé quotidien des demandes envoyé.');
     }
 })->purpose('Envoyer le résumé quotidien des demandes en attente aux administrateurs');
+
+// Rattrapage des notifications de suivi préparées mais non mises en file
+// (ex. afterCommit perdu en cas d'arrêt du processus). Idempotente.
+Schedule::command('requests:dispatch-notifications')->everyMinute();

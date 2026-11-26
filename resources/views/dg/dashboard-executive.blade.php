@@ -40,10 +40,9 @@
                     <div class="col-md-3">
                         <label class="form-label small fw-bold">Période</label>
                         <select name="period" class="form-select form-select-sm" onchange="this.form.submit()">
-                            <option value="week" {{ ($filters['period'] ?? '') === 'week' ? 'selected' : '' }}>Cette semaine</option>
-                            <option value="month" {{ ($filters['period'] ?? 'month') === 'month' ? 'selected' : '' }}>Ce mois</option>
-                            <option value="quarter" {{ ($filters['period'] ?? '') === 'quarter' ? 'selected' : '' }}>Ce trimestre</option>
-                            <option value="year" {{ ($filters['period'] ?? '') === 'year' ? 'selected' : '' }}>Cette année</option>
+                            @foreach(\App\Services\DgDashboardService::PERIODS as $periodKey => $periodLabel)
+                                <option value="{{ $periodKey }}" {{ ($filters['period'] ?? 'month') === $periodKey ? 'selected' : '' }}>{{ $periodLabel }}</option>
+                            @endforeach
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -51,20 +50,29 @@
                         <select name="region" class="form-select form-select-sm">
                             <option value="">Toutes les régions</option>
                             @foreach($filters['regions'] ?? [] as $region)
-                                <option value="{{ $region }}" {{ request('region') === $region ? 'selected' : '' }}>{{ $region }}</option>
+                                <option value="{{ $region }}" {{ ($filters['region'] ?? null) === $region ? 'selected' : '' }}>{{ $region }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label small fw-bold">Type de demande</label>
+                        <select name="type" class="form-select form-select-sm">
+                            <option value="">Tous les types</option>
+                            @foreach(\App\Services\DgDashboardService::TYPES as $typeKey => $typeLabel)
+                                <option value="{{ $typeKey }}" {{ ($filters['type'] ?? null) === $typeKey ? 'selected' : '' }}>{{ $typeLabel }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label small fw-bold">Direction</label>
                         <select name="direction" class="form-select form-select-sm">
                             <option value="">Toutes les directions</option>
                             @foreach($filters['directions'] ?? [] as $direction)
-                                <option value="{{ $direction }}" {{ request('direction') === $direction ? 'selected' : '' }}>{{ $direction }}</option>
+                                <option value="{{ $direction }}" {{ ($filters['direction'] ?? null) === $direction ? 'selected' : '' }}>{{ $direction }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <button type="submit" class="btn btn-primary-modern btn-modern btn-sm w-100">
                             <i class="fas fa-filter me-1"></i>Filtrer
                         </button>
@@ -73,6 +81,24 @@
             </div>
         </div>
     </div>
+
+    @php
+        $k = $dashboard['kpis'] ?? [];
+        $don = $dashboard['donations'] ?? null;
+        $fmt = fn ($v) => $v === null ? '—' : number_format($v, 0, ',', ' ');
+        $statusLabels = [
+            'soumise' => ['Soumise', 'secondary'],
+            'en_revue' => ['En revue', 'info'],
+            'document_attente' => ['Pièces attendues', 'warning'],
+            'signee' => ['Signée', 'primary'],
+            'scannee' => ['Scannée', 'warning'],
+            'validee_dg' => ['Validée DG', 'success'],
+            'approuvee' => ['Approuvée', 'success'],
+            'rejetee' => ['Rejetée', 'danger'],
+            'cloturee' => ['Clôturée', 'secondary'],
+        ];
+        $typeLabels = \App\Services\DgDashboardService::TYPES;
+    @endphp
 
     <!-- Métriques KPI essentielles pour DG -->
     <div class="row mb-3">
@@ -83,29 +109,29 @@
                         <i class="fas fa-clipboard-list"></i>
                     </div>
                     <div class="flex-grow-1">
-                        <h3 class="stats-number" data-stat="total_requests">{{ $stats['total_requests'] ?? 0 }}</h3>
-                        <p class="stats-label">📋 Total Demandes</p>
-                        <small class="text-muted">Toutes catégories</small>
+                        <h3 class="stats-number">{{ $fmt($k['in_progress'] ?? null) }}</h3>
+                        <p class="stats-label">Dossiers en cours</p>
+                        <small class="text-muted">Workflow non finalisé</small>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
                     <div class="icon-3d me-3" style="background: var(--gradient-warning); width: 50px; height: 50px;">
-                        <i class="fas fa-clock"></i>
+                        <i class="fas fa-file-signature"></i>
                     </div>
                     <div class="flex-grow-1">
-                        <h3 class="stats-number" data-stat="pending_requests">{{ $stats['pending_requests'] ?? 0 }}</h3>
-                        <p class="stats-label">⏳ En Attente</p>
-                        <small class="text-warning">Nécessite attention</small>
+                        <h3 class="stats-number">{{ $fmt($k['awaiting_dg'] ?? null) }}</h3>
+                        <p class="stats-label">À décider</p>
+                        <small class="text-warning">Signés et scannés, décision DG</small>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -113,41 +139,61 @@
                         <i class="fas fa-check-circle"></i>
                     </div>
                     <div class="flex-grow-1">
-                        <h3 class="stats-number" data-stat="approved_requests">{{ $stats['approved_requests'] ?? 0 }}</h3>
-                        <p class="stats-label">✅ Traitées</p>
-                        <small class="text-success">Approuvées</small>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
-            <div class="stats-card">
-                <div class="d-flex align-items-center">
-                    <div class="icon-3d me-3" style="background: var(--gradient-info); width: 50px; height: 50px;">
-                        <i class="fas fa-warehouse"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h3 class="stats-number" data-stat="total_warehouses">{{ $stats['total_warehouses'] ?? 0 }}</h3>
-                        <p class="stats-label">🏢 Entrepôts</p>
-                        <small class="text-info">Opérationnels</small>
+                        <h3 class="stats-number">{{ $fmt($k['approved'] ?? null) }}</h3>
+                        <p class="stats-label">Approuvées</p>
+                        <small class="text-success">Sur la période</small>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- KPI Donations -->
         <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
                     <div class="icon-3d me-3" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); width: 50px; height: 50px;">
-                        <i class="fas fa-hand-holding-heart"></i>
+                        <i class="fas fa-bolt"></i>
                     </div>
                     <div class="flex-grow-1">
-                        <h3 class="stats-number" data-stat="total_donations">{{ $stats['total_donations'] ?? 0 }}</h3>
-                        <p class="stats-label">❤️ Donations</p>
-                        <small class="text-success">{{ number_format($stats['donation_amount'] ?? 0, 0, ',', ' ') }} F</small>
+                        <h3 class="stats-number">{{ $fmt($k['urgent'] ?? null) }}</h3>
+                        <p class="stats-label">Urgentes</p>
+                        <small class="text-danger">Priorité haute non finalisée</small>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicateurs secondaires -->
+    <div class="row mb-3">
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-dark mb-1">{{ $fmt($k['rejected'] ?? null) }}</h4>
+                    <small class="text-muted">Rejetées (période)</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-info mb-1">{{ $fmt($k['warehouses_active'] ?? null) }}</h4>
+                    <small class="text-muted">Entrepôts actifs</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-warning mb-1">{{ $fmt($k['stock_alerts'] ?? null) }}</h4>
+                    <small class="text-muted">Alertes de stock actives</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+            <div class="stats-card">
+                <div class="text-center">
+                    <h4 class="fw-bold text-success mb-1">{{ $don === null ? '—' : number_format($don['success_count'], 0, ',', ' ') }}</h4>
+                    <small class="text-muted">Dons reçus{{ $don === null ? '' : ' — ' . number_format($don['success_amount'], 0, ',', ' ') . ' F' }}</small>
                 </div>
             </div>
         </div>
@@ -400,116 +446,314 @@
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3">
                     <h6 class="mb-2 mb-md-0 fw-bold">
                         <i class="fas fa-chart-area me-2 text-primary"></i>
-                        Tendance des Demandes (7 jours)
+                        Évolution des demandes (6 derniers mois)
                     </h6>
-                    <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary btn-sm active" onclick="updateChart('7d')">7j</button>
-                        <button class="btn btn-outline-primary btn-sm" onclick="updateChart('30d')">30j</button>
+                    @if(($dashboard['evolution']['total'] ?? null) !== null)
+                        <span class="badge bg-primary">{{ $dashboard['evolution']['total'] }} demande(s)</span>
+                    @endif
+                </div>
+                @if(!empty($dashboard['evolution']))
+                    <div style="height: 180px; position: relative;">
+                        <canvas id="requestsChart"></canvas>
                     </div>
-                </div>
-                <!-- Graphique optimisé avec hauteur responsive -->
-                <div style="height: 180px; position: relative;">
-                    <canvas id="requestsChart"></canvas>
-                </div>
+                @else
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-area text-muted mb-2" style="font-size: 1.5rem;"></i>
+                        <p class="text-muted small mb-0">Données d'évolution indisponibles</p>
+                    </div>
+                @endif
             </div>
         </div>
-        
+
         <!-- Métriques de performance compactes -->
+        @php $perf = $dashboard['performance'] ?? null; @endphp
         <div class="col-xl-4 col-lg-12 col-md-12 mb-3">
             <div class="card-modern p-3">
                 <h6 class="mb-3 fw-bold">
                     <i class="fas fa-tachometer-alt me-2 text-success"></i>
                     Performance
                 </h6>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">Taux de traitement</span>
-                        <span class="small fw-bold">{{ $stats['efficiency_rate'] ?? '0%' }}</span>
+
+                @if($perf !== null)
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small">Taux de traitement</span>
+                            <span class="small fw-bold">{{ $perf['processing_rate'] === null ? '—' : $perf['processing_rate'] . '%' }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-success" style="width: {{ $perf['processing_rate'] ?? 0 }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ $perf['decided'] }}/{{ $perf['created'] }} dossier(s) décidé(s) sur la période</small>
                     </div>
-                    <div class="progress" style="height: 6px;">
-                        @php $rate = isset($stats['processing_rate']) ? (float)$stats['processing_rate'] : 0; @endphp
-                        <div class="progress-bar bg-success" style="width: {{ $rate }}%"></div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small">Délai moyen de traitement</span>
+                            <span class="small fw-bold">{{ $perf['average_days'] === null ? '—' : $perf['average_days'] . ' j' }}</span>
+                        </div>
+                        <small class="text-muted">{{ $perf['processed_count'] }} dossier(s) traité(s) sur la période</small>
                     </div>
-                </div>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">Délai moyen</span>
-                        <span class="small fw-bold">{{ $stats['response_time'] ?? '—' }}</span>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="small">Taux de clôture</span>
+                            <span class="small fw-bold">{{ $perf['closure_rate'] === null ? '—' : $perf['closure_rate'] . '%' }}</span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar bg-warning" style="width: {{ $perf['closure_rate'] ?? 0 }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ $perf['closed'] }}/{{ $perf['approved_all'] }} dossier(s) approuvé(s) clôturé(s)</small>
                     </div>
-                    <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-info" style="width: 0%"></div>
+                @else
+                    <div class="text-center py-4">
+                        <i class="fas fa-tachometer-alt text-muted mb-2" style="font-size: 1.5rem;"></i>
+                        <p class="text-muted small mb-0">Indicateurs de performance indisponibles</p>
                     </div>
-                </div>
-                
-                <div class="mb-3">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="small">Satisfaction</span>
-                        <span class="small fw-bold">{{ $stats['satisfaction_rate'] ?? '—' }}</span>
-                    </div>
-                    <div class="progress" style="height: 6px;">
-                        <div class="progress-bar bg-warning" style="width: 0%"></div>
-                    </div>
-                </div>
+                @endif
             </div>
         </div>
     </div>
 
-    <!-- Section principale : Vue d'ensemble et actions -->
+    <!-- Section décisionnelle : dossiers à décider et alertes de stock -->
     <div class="row">
-        <!-- Vue d'ensemble des demandes -->
-        <div class="col-xl-6 col-lg-12 col-md-12 mb-3">
+        <div class="col-xl-8 col-lg-12 col-md-12 mb-3">
+            <div class="card-modern p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-file-signature me-2 text-warning"></i>
+                        Dossiers en attente de votre décision
+                    </h6>
+                    <a href="{{ route('dg.demandes.index', ['workflow_status' => 'scannee']) }}" class="btn btn-primary-modern btn-modern btn-sm">
+                        <i class="fas fa-external-link-alt me-1"></i>Voir tout
+                    </a>
+                </div>
+                @php $awaitingList = $dashboard['awaiting'] ?? collect(); @endphp
+                @if($awaitingList->count() > 0)
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Dossier</th>
+                                    <th>Type</th>
+                                    <th>Région</th>
+                                    <th>En attente</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($awaitingList as $request)
+                                <tr>
+                                    <td>
+                                        <div class="fw-bold small">{{ $request->tracking_code ?? ('#' . $request->id) }}</div>
+                                        <small class="text-muted">{{ $request->full_name ?? $request->name ?? 'N/A' }}</small>
+                                    </td>
+                                    <td><span class="badge bg-info small">{{ $typeLabels[$request->type] ?? ucfirst((string) $request->type) }}</span></td>
+                                    <td><small>{{ $request->region ?? '—' }}</small></td>
+                                    <td>
+                                        @if($request->awaiting_days === null)
+                                            <small class="text-muted">—</small>
+                                        @else
+                                            <span class="badge {{ $request->awaiting_days >= 3 ? 'bg-danger' : 'bg-warning text-dark' }} small">{{ $request->awaiting_days }} j</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('dg.demandes.show', $request->id) }}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-gavel me-1"></i>Décider
+                                        </a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <div class="text-center py-4">
+                        <div class="icon-3d mx-auto mb-2" style="width: 60px; height: 60px; background: var(--gradient-success);">
+                            <i class="fas fa-check" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <h6 class="text-muted">Aucun dossier en attente de décision</h6>
+                        <p class="text-muted small">Les dossiers signés et scannés apparaîtront ici</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <!-- Alertes de stock réelles -->
+        <div class="col-xl-4 col-lg-12 col-md-12 mb-3">
+            <div class="card-modern p-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-bell me-2 text-danger"></i>
+                        Alertes de stock
+                    </h6>
+                    <a href="{{ route('dg.stocks.index') }}" class="btn btn-outline-danger btn-sm">Stocks</a>
+                </div>
+                @php $alerts = $dashboard['stockAlerts'] ?? null; @endphp
+                @if($alerts === null)
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-circle text-muted mb-2" style="font-size: 1.5rem;"></i>
+                        <p class="text-muted small mb-0">Alertes indisponibles</p>
+                    </div>
+                @elseif($alerts->count() > 0)
+                    @foreach($alerts as $alert)
+                        <div class="alert {{ $alert['priority'] === 'critical' ? 'alert-danger' : 'alert-warning' }} d-flex align-items-start mb-2 py-2">
+                            <i class="fas fa-exclamation-triangle me-2 mt-1"></i>
+                            <div>
+                                <strong class="small">{{ $alert['type_label'] }} — {{ $alert['product_name'] }}</strong><br>
+                                <small>
+                                    {{ $alert['warehouse_name'] }}
+                                    @if($alert['days_left'] !== null)
+                                        — {{ $alert['days_left'] <= 0 ? 'péremption dépassée' : $alert['days_left'] . ' j restants' }}
+                                    @elseif($alert['threshold'] !== null)
+                                        — {{ $alert['quantity'] }}{{ $alert['unit'] ? ' ' . $alert['unit'] : '' }} / seuil {{ $alert['threshold'] }}
+                                    @endif
+                                </small>
+                            </div>
+                        </div>
+                    @endforeach
+                    @if(($k['stock_alerts'] ?? 0) > $alerts->count())
+                        <a href="{{ route('dg.stocks.index') }}" class="small">+ {{ $k['stock_alerts'] - $alerts->count() }} autre(s) alerte(s)</a>
+                    @endif
+                @else
+                    <div class="text-center py-4">
+                        <div class="icon-3d mx-auto mb-2" style="width: 60px; height: 60px; background: var(--gradient-success);">
+                            <i class="fas fa-check-circle" style="font-size: 1.5rem;"></i>
+                        </div>
+                        <h6 class="text-muted">Aucune alerte de stock active</h6>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Urgences, journal du workflow et répartition par type -->
+    <div class="row">
+        <div class="col-xl-4 col-lg-12 col-md-12 mb-3">
+            <div class="card-modern p-3 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="mb-0 fw-bold">
+                        <i class="fas fa-bolt me-2 text-danger"></i>
+                        Demandes urgentes
+                    </h6>
+                    <a href="{{ route('dg.demandes.index', ['urgency' => 'haute']) }}" class="btn btn-outline-danger btn-sm">Voir</a>
+                </div>
+                @php $urgentList = $dashboard['urgent'] ?? collect(); @endphp
+                @if($urgentList->count() > 0)
+                    <ul class="list-unstyled mb-0">
+                        @foreach($urgentList as $request)
+                            @php $st = $statusLabels[$request->workflow_status] ?? [$request->workflow_status ?? 'N/A', 'secondary']; @endphp
+                            <li class="d-flex justify-content-between align-items-center py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                                <div>
+                                    <a href="{{ route('dg.demandes.show', $request->id) }}" class="fw-bold small text-decoration-none">{{ $request->tracking_code ?? ('#' . $request->id) }}</a>
+                                    <div class="text-muted" style="font-size: 0.75rem;">{{ $request->region ?? '—' }} — {{ \Carbon\Carbon::parse($request->created_at)->format('d/m/Y') }}</div>
+                                </div>
+                                <span class="badge bg-{{ $st[1] }} small">{{ $st[0] }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <div class="text-center py-4">
+                        <i class="fas fa-bolt text-muted mb-2" style="font-size: 1.5rem;"></i>
+                        <p class="text-muted small mb-0">Aucune demande urgente non finalisée</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-12 col-md-12 mb-3">
+            <div class="card-modern p-3 h-100">
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-history me-2 text-info"></i>
+                    Journal du workflow
+                </h6>
+                @php $activities = $dashboard['activities'] ?? collect(); @endphp
+                @if($activities->count() > 0)
+                    <ul class="list-unstyled mb-0">
+                        @foreach($activities as $act)
+                            <li class="d-flex justify-content-between align-items-start py-2 {{ !$loop->last ? 'border-bottom' : '' }}">
+                                <div>
+                                    <div class="small fw-bold">{{ $act['label'] }}</div>
+                                    <small class="text-muted">
+                                        <a href="{{ route('dg.demandes.show', $act['request_id']) }}" class="text-decoration-none">{{ $act['tracking_code'] ?? ('#' . $act['request_id']) }}</a>
+                                        — {{ $act['user_name'] }}
+                                    </small>
+                                </div>
+                                <small class="text-muted ms-2 text-nowrap">{{ $act['timestamp']->diffForHumans() }}</small>
+                            </li>
+                        @endforeach
+                    </ul>
+                @else
+                    <div class="text-center py-4">
+                        <i class="fas fa-history text-muted mb-2" style="font-size: 1.5rem;"></i>
+                        <p class="text-muted small mb-0">Aucune activité de workflow récente</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-12 col-md-12 mb-3">
+            <div class="card-modern p-3 h-100">
+                <h6 class="fw-bold mb-3">
+                    <i class="fas fa-chart-pie text-primary me-2"></i>
+                    Demandes par type (période)
+                </h6>
+                @if(($dashboard['types']['total'] ?? 0) > 0)
+                    <div style="height: 220px; position: relative;">
+                        <canvas id="chartTypes"></canvas>
+                    </div>
+                @else
+                    <div class="text-center py-4">
+                        <i class="fas fa-chart-pie text-muted mb-2" style="font-size: 1.5rem;"></i>
+                        <p class="text-muted small mb-0">Aucune demande sur la période</p>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <!-- Demandes récentes -->
+    <div class="row">
+        <div class="col-12 mb-3">
             <div class="card-modern p-3">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="mb-0 fw-bold">
                         <i class="fas fa-eye me-2 text-info"></i>
-                        Vue d'Ensemble des Demandes
+                        Demandes récentes
                     </h6>
                     <a href="{{ route('dg.demandes.index') }}" class="btn btn-primary-modern btn-modern btn-sm">
                         <i class="fas fa-external-link-alt me-1"></i>Voir tout
                     </a>
                 </div>
-                
-                @if(isset($recentRequests) && $recentRequests->count() > 0)
+                @php $recent = $dashboard['recentRequests'] ?? collect(); @endphp
+                @if($recent->count() > 0)
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover">
+                        <table class="table table-sm table-hover align-middle">
                             <thead>
                                 <tr>
                                     <th>Demandeur</th>
                                     <th>Type</th>
+                                    <th>Région</th>
                                     <th>Statut</th>
                                     <th>Date</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($recentRequests->take(5) as $request)
+                                @foreach($recent as $request)
+                                @php $st = $statusLabels[$request->workflow_status] ?? [$request->status ?? 'N/A', 'secondary']; @endphp
                                 <tr>
                                     <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="icon-3d me-2" style="width: 30px; height: 30px; background: var(--gradient-info);">
-                                                <i class="fas fa-user" style="font-size: 12px;"></i>
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold small">{{ $request->name ?? 'N/A' }}</div>
-                                                <small class="text-muted">{{ $request->email ?? 'N/A' }}</small>
-                                            </div>
-                                        </div>
+                                        <div class="fw-bold small">{{ $request->full_name ?? $request->name ?? 'N/A' }}</div>
+                                        <small class="text-muted">{{ $request->tracking_code ?? $request->email ?? '—' }}</small>
                                     </td>
+                                    <td><span class="badge bg-info small">{{ $typeLabels[$request->type] ?? ucfirst((string) $request->type) }}</span></td>
+                                    <td><small>{{ $request->region ?? '—' }}</small></td>
+                                    <td><span class="badge bg-{{ $st[1] }} small">{{ $st[0] }}</span></td>
+                                    <td><small>{{ \Carbon\Carbon::parse($request->created_at)->format('d/m/Y') }}</small></td>
                                     <td>
-                                        <span class="badge bg-info small">{{ $request->type ?? 'Autre' }}</span>
-                                    </td>
-                                    <td>
-                                        @if($request->status == 'pending')
-                                            <span class="badge bg-warning small">En attente</span>
-                                        @elseif($request->status == 'approved')
-                                            <span class="badge bg-success small">Approuvé</span>
-                                        @else
-                                            <span class="badge bg-secondary small">{{ $request->status }}</span>
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <small>{{ \Carbon\Carbon::parse($request->created_at)->format('d/m') }}</small>
+                                        <a href="{{ route('dg.demandes.show', $request->id) }}" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
                                     </td>
                                 </tr>
                                 @endforeach
@@ -527,63 +771,67 @@
                 @endif
             </div>
         </div>
-        
-        <!-- Actions et alertes essentielles -->
-        <div class="col-xl-6 col-lg-12 col-md-12 mb-3">
-            <div class="card-modern p-3">
-                <h6 class="mb-3 fw-bold">
-                    <i class="fas fa-bell me-2 text-warning"></i>
-                    Alertes & Actions
-                </h6>
-                
-                <!-- Alertes critiques -->
-                <div class="alert alert-warning d-flex align-items-center mb-2">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <div>
-                        <strong class="small">Stock faible détecté</strong><br>
-                        <small>Entrepôt Principal - Action requise</small>
-                    </div>
-                </div>
-                
-                <div class="alert alert-info d-flex align-items-center mb-2">
-                    <i class="fas fa-info-circle me-2"></i>
-                    <div>
-                        <strong class="small">Système opérationnel</strong><br>
-                        <small>Tous les services fonctionnels</small>
-                    </div>
-                </div>
+    </div>
 
-                <!-- Donations alert -->
-                <div class="alert alert-success d-flex align-items-center mb-2">
-                    <i class="fas fa-hand-holding-heart me-2"></i>
-                    <div>
-                        <strong class="small">{{ $stats['donation_success'] ?? 0 }} dons reçus</strong><br>
-                        <small>{{ number_format($stats['donation_amount'] ?? 0, 0, ',', ' ') }} FCFA collectés</small>
-                    </div>
-                </div>
-
-                <!-- Actions rapides pour DG -->
-                <div class="mt-3">
-                    <h6 class="small fw-bold mb-2">Actions Rapides</h6>
-                    <div class="d-grid gap-1">
-                    <a href="{{ route('dg.demandes.index') }}" class="btn btn-outline-primary btn-sm">
-                        <i class="fas fa-clipboard-list me-1"></i>Consulter Demandes
-                    </a>
-                        <a href="{{ route('dg.donations.index') }}" class="btn btn-outline-danger btn-sm">
-                            <i class="fas fa-hand-holding-heart me-1"></i>Gérer les Donations
-                        </a>
-                        <a href="{{ route('dg.reports.index') }}" class="btn btn-outline-success btn-sm">
-                            <i class="fas fa-chart-bar me-1"></i>Générer Rapport
-                        </a>
-                        <a href="{{ route('dg.warehouses.index') }}" class="btn btn-outline-info btn-sm">
-                            <i class="fas fa-warehouse me-1"></i>Voir Entrepôts
-                        </a>
+    <!-- Exécution & transmission DTL -->
+    @php $ops = $dashboard['operations'] ?? null; @endphp
+    <div class="row mb-3">
+        <div class="col-12">
+            <h5 class="fw-bold text-secondary mb-2"><i class="fas fa-cogs me-2"></i>Exécution & transmission DTL</h5>
+        </div>
+        @if($ops !== null)
+            <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+                <div class="stats-card">
+                    <div class="text-center">
+                        <h4 class="fw-bold text-primary mb-1">{{ $ops['in_execution'] }}</h4>
+                        <small class="text-muted">Approuvées en exécution</small>
                     </div>
                 </div>
             </div>
-        </div>
+            <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+                <div class="stats-card">
+                    <div class="text-center">
+                        <h4 class="fw-bold text-info mb-1">{{ $ops['transmitted_period'] }}</h4>
+                        <small class="text-muted">Transmises DTL (période)</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+                <div class="stats-card">
+                    <div class="text-center">
+                        <h4 class="fw-bold text-warning mb-1">{{ $ops['missions_active'] }}</h4>
+                        <small class="text-muted">Missions actives</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-3 col-md-4 col-6 mb-2">
+                <div class="stats-card">
+                    <div class="text-center">
+                        <h4 class="fw-bold text-danger mb-1">{{ $ops['reports_pending'] }}</h4>
+                        <small class="text-muted">Rapports à valider</small>
+                    </div>
+                </div>
+            </div>
+        @else
+            <div class="col-12 mb-2">
+                <div class="stats-card">
+                    <div class="text-center text-muted small py-2">Indicateurs d'exécution indisponibles</div>
+                </div>
+            </div>
+        @endif
     </div>
 
+    <!-- Actions rapides pour DG -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card-modern p-3">
+                <h6 class="small fw-bold mb-2">Actions Rapides</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ route('dg.demandes.index') }}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-clipboard-list me-1"></i>Consulter Demandes
+                    </a>
+                    <a href="{{ route('dg.donations.index') }}" class="btn btn-outline-danger btn-sm">
+                        <i class="fas fa-hand-holding-heart me-1"></i>Gérer les Donations
     <!-- Donations récentes DG -->
     <div class="row mb-3">
         <div class="col-12">
@@ -680,16 +928,17 @@
                         Carte des Entrepôts et Demandes
                     </h6>
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary btn-sm" onclick="toggleMapLayer('warehouses')">
+                        <button class="btn btn-outline-primary btn-sm active" onclick="toggleMapLayer('warehouses', this)">
                             <i class="fas fa-warehouse me-1"></i>Entrepôts
                         </button>
-                        <button class="btn btn-outline-primary btn-sm" onclick="toggleMapLayer('requests')">
+                        <button class="btn btn-outline-primary btn-sm active" onclick="toggleMapLayer('requests', this)">
                             <i class="fas fa-map-pin me-1"></i>Demandes
                         </button>
                     </div>
                 </div>
                 <!-- Carte avec hauteur fixe -->
                 <div id="interactiveMap" style="height: 300px; border-radius: 8px; overflow: hidden;"></div>
+                <small id="mapNotice" class="text-muted d-block mt-1"></small>
             </div>
         </div>
     </div>
@@ -698,81 +947,79 @@
 
 @section('scripts')
 <script>
-    // Graphique optimisé pour DG
-    const ctx = document.getElementById('requestsChart').getContext('2d');
-    const requestsChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'],
-            datasets: [{
-                label: 'Demandes CSAR',
-                data: [8, 12, 6, 15, 9, 11, 7],
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.15)',
-                borderWidth: 3,
-                fill: true,
-                tension: 0.3,
-                pointRadius: 5,
-                pointHoverRadius: 8,
-                pointBackgroundColor: '#667eea',
-                pointBorderColor: '#ffffff',
-                pointBorderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    backgroundColor: 'rgba(0,0,0,0.8)',
-                    titleColor: '#ffffff',
-                    bodyColor: '#ffffff',
+    // Évolution des demandes (données réelles, 6 derniers mois)
+    const evolutionEl = document.getElementById('requestsChart');
+    if (evolutionEl) {
+        new Chart(evolutionEl.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: @json($dashboard['evolution']['labels'] ?? []),
+                datasets: [{
+                    label: 'Demandes CSAR',
+                    data: @json($dashboard['evolution']['values'] ?? []),
                     borderColor: '#667eea',
-                    borderWidth: 1,
-                    cornerRadius: 8
-                }
+                    backgroundColor: 'rgba(102, 126, 234, 0.15)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 20,
-                    grid: {
-                        color: 'rgba(0,0,0,0.08)',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        font: {
-                            size: 11,
-                            weight: '500'
-                        },
-                        color: '#6c757d',
-                        stepSize: 5
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0,0,0,0.8)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#667eea',
+                        borderWidth: 1,
+                        cornerRadius: 8
                     }
                 },
-                x: {
-                    grid: {
-                        display: false
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.08)', drawBorder: false },
+                        ticks: { font: { size: 11, weight: '500' }, color: '#6c757d', precision: 0 }
                     },
-                    ticks: {
-                        font: {
-                            size: 11,
-                            weight: '500'
-                        },
-                        color: '#6c757d'
+                    x: {
+                        grid: { display: false },
+                        ticks: { font: { size: 11, weight: '500' }, color: '#6c757d' }
                     }
-                }
-            },
-            elements: {
-                line: {
-                    borderJoinStyle: 'round',
-                    borderCapStyle: 'round'
+                },
+                elements: {
+                    line: { borderJoinStyle: 'round', borderCapStyle: 'round' }
                 }
             }
-        }
-    });
+        });
+    }
+
+    // Répartition par type (données réelles de la période)
+    const typesEl = document.getElementById('chartTypes');
+    if (typesEl) {
+        new Chart(typesEl, {
+            type: 'doughnut',
+            data: {
+                labels: @json(collect($dashboard['types']['items'] ?? [])->pluck('label')->values()),
+                datasets: [{
+                    data: @json(collect($dashboard['types']['items'] ?? [])->pluck('total')->values()),
+                    backgroundColor: ['#0d6efd', '#ffc107', '#198754', '#0dcaf0', '#6c757d'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom', labels: { font: { size: 11 } } } }
+            }
+        });
+    }
 
     // ── Chart: DRH Contract Types ──
     new Chart(document.getElementById('chartContracts'), {
@@ -860,24 +1107,93 @@
         }
     });
 
-    // Carte interactive compacte
-    const map = L.map('interactiveMap').setView([14.6928, -17.4467], 10);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
+    // ── Carte interactive : cadrage Sénégal + marqueurs réels ──
+    const senegalBoundsCfg = @json(config('regions_senegal.bounds'));
+    const senegalBounds = L.latLngBounds(
+        [senegalBoundsCfg.south, senegalBoundsCfg.west],
+        [senegalBoundsCfg.north, senegalBoundsCfg.east]
+    );
 
-    // Marqueurs d'entrepôts
+    const dgMap = L.map('interactiveMap');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors',
+        maxZoom: 18
+    }).addTo(dgMap);
+    dgMap.fitBounds(senegalBounds, {padding: [8, 8]});
+
+    const warehouseLayer = L.layerGroup().addTo(dgMap);
+    const requestLayer = L.layerGroup().addTo(dgMap);
+
     const warehouseIcon = L.divIcon({
         className: 'warehouse-marker',
         html: '<i class="fas fa-warehouse" style="color: #667eea; font-size: 16px;"></i>',
         iconSize: [25, 25]
     });
+    const requestIcon = L.divIcon({
+        className: 'request-marker',
+        html: '<i class="fas fa-map-pin" style="color: #f5576c; font-size: 16px;"></i>',
+        iconSize: [22, 22]
+    });
 
-    // Ajouter des marqueurs d'exemple
-    L.marker([14.6928, -17.4467], {icon: warehouseIcon})
-        .addTo(map)
-        .bindPopup('<b>Entrepôt Principal CSAR</b><br>Dakar, Sénégal');
+    function escapeHtml(value) {
+        return String(value === null || value === undefined ? '' : value)
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function showMapNotice(message) {
+        const notice = document.getElementById('mapNotice');
+        if (notice) { notice.textContent = message; }
+    }
+
+    fetch('{{ route('dg.map.data') }}', {headers: {'Accept': 'application/json'}})
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+            if (!data || data.success === false) {
+                showMapNotice('Données cartographiques indisponibles.');
+                return;
+            }
+            const points = [];
+            (data.warehouses || []).forEach(function (w) {
+                if (w.latitude === null || w.longitude === null) { return; }
+                const latLng = [w.latitude, w.longitude];
+                points.push(latLng);
+                L.marker(latLng, {icon: warehouseIcon})
+                    .bindPopup('<b>' + escapeHtml(w.name) + '</b><br>' +
+                        (w.region ? escapeHtml(w.region) + '<br>' : '') +
+                        (w.requests_count || 0) + ' demande(s) — ' + (w.pending_requests || 0) + ' en cours')
+                    .addTo(warehouseLayer);
+            });
+            (data.recent_requests || []).forEach(function (req) {
+                if (req.latitude === null || req.longitude === null) { return; }
+                const latLng = [req.latitude, req.longitude];
+                points.push(latLng);
+                L.marker(latLng, {icon: requestIcon})
+                    .bindPopup('<b>' + escapeHtml(req.type || 'Demande') + '</b><br>' +
+                        escapeHtml(req.user_name || '') + '<br>' +
+                        (req.region ? escapeHtml(req.region) + ' — ' : '') + escapeHtml(req.created_at || ''))
+                    .addTo(requestLayer);
+            });
+            if (points.length) {
+                // Le territoire national reste entièrement cadré tout en incluant les points réels.
+                dgMap.fitBounds(L.latLngBounds(points).extend(senegalBounds), {padding: [12, 12]});
+            } else {
+                showMapNotice('Aucun point géolocalisé disponible.');
+            }
+        })
+        .catch(function () {
+            showMapNotice('Données cartographiques indisponibles.');
+        });
+
+    // Redimensionnement : recalculer la taille quand la fenêtre ou la sidebar change.
+    window.addEventListener('resize', function () { dgMap.invalidateSize(); });
+    const sidebarToggleBtn = document.getElementById('sidebarToggle');
+    if (sidebarToggleBtn) {
+        sidebarToggleBtn.addEventListener('click', function () {
+            setTimeout(function () { dgMap.invalidateSize(); }, 350);
+        });
+    }
+    setTimeout(function () { dgMap.invalidateSize(); }, 200);
 
     // Fonctions pour DG
     function refreshDashboard() {
@@ -912,31 +1228,16 @@
         });
     }
 
-    function updateChart(period) {
-        // Mise à jour des données selon la période
-        let newData;
-        if (period === '7d') {
-            newData = [8, 12, 6, 15, 9, 11, 7];
-        } else if (period === '30d') {
-            newData = [45, 52, 38, 61, 47, 55, 42, 48, 39, 44, 51, 37, 43, 49, 35, 41, 46, 40, 45, 38, 42, 47, 36, 44, 50, 39, 43, 48, 37, 41];
+    // Bascule réelle des couches de la carte
+    function toggleMapLayer(layer, btn) {
+        const group = layer === 'warehouses' ? warehouseLayer : requestLayer;
+        if (dgMap.hasLayer(group)) {
+            dgMap.removeLayer(group);
+            if (btn) { btn.classList.remove('active'); }
+        } else {
+            dgMap.addLayer(group);
+            if (btn) { btn.classList.add('active'); }
         }
-        
-        requestsChart.data.datasets[0].data = newData;
-        requestsChart.update('active');
     }
-
-    function toggleMapLayer(layer) {
-        console.log('Basculement de la couche:', layer);
-    }
-
-    // Mise à jour automatique des statistiques (moins fréquente pour DG)
-    setInterval(function() {
-        const stats = document.querySelectorAll('[data-stat]');
-        stats.forEach(stat => {
-            const currentValue = parseInt(stat.textContent);
-            const newValue = currentValue + Math.floor(Math.random() * 2) - 1;
-            stat.textContent = Math.max(0, newValue);
-        });
-    }, 60000); // Mise à jour toutes les minutes
 </script>
 @endsection

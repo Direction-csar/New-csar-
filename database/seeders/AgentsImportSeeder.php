@@ -71,7 +71,7 @@ class AgentsImportSeeder extends Seeder
         $this->command->info("Agents ignorés : $skipped");
     }
 
-    private function mapRow(array $cols): ?array
+    protected function mapRow(array $cols): ?array
     {
         if (count($cols) < 17) {
             return null;
@@ -140,7 +140,7 @@ class AgentsImportSeeder extends Seeder
             'filiation' => $filiation ?: null,
             'date_delivrance_id' => null,
             'nombre_epouses' => null,
-            'type_contrat' => ($prenom === 'Oumar Abdourahmane' && $nom === 'SALL') ? 'CDD' : 'CDI',
+            'type_contrat' => 'CDI',
             'direction_service' => $this->mapDirection($directionRaw),
             'localisation_region' => $this->mapRegion($directionRaw, $adresse),
             'dernier_poste_avant_csar' => null,
@@ -237,13 +237,16 @@ class AgentsImportSeeder extends Seeder
             'DIOURBEL' => 'Diourbel',
             'FATICK' => 'Fatick',
             'KAFFRINE' => 'Kaffrine',
-            'KOLDA' => 'Kolda Sedhiou',
-            'SEDHIOU' => 'Kolda Sedhiou',
+            'KOLDA' => 'Kolda',
+            'SEDHIOU' => 'Sédhiou',
             'ZIGUINCHOR' => 'Ziguinchor',
         ];
 
+        // Pour les inspections régionales, la région vient de la direction
+        // (l'adresse peut mentionner une autre ville, ex. « Grand standing Thies »).
+        $isInspection = str_contains($direction, 'INSPECTION');
         foreach ($regions as $key => $value) {
-            if (str_contains($direction, $key) || str_contains($adresse, $key)) {
+            if (str_contains($direction, $key) || (!$isInspection && str_contains($adresse, $key))) {
                 return $value;
             }
         }
@@ -291,23 +294,40 @@ class AgentsImportSeeder extends Seeder
 
     private function detectSexe(string $prenom, string $situation): string
     {
-        $prenomLower = mb_strtolower(trim($prenom));
         $situationLower = mb_strtolower($situation);
 
+        // Seul le premier prénom est significatif : « Modou Astou Djeumb » est un homme,
+        // « Mame Libass Laye » et « Sadio DIALLO » aussi (prénoms masculins du tableau).
+        $firstName = mb_strtolower(trim(preg_split('/\s+/u', trim($prenom))[0] ?? ''));
+
+        // Prénoms masculins du tableau 2026. Le tableau écrit « Mariée » pour
+        // Baboucar COLY (coquille) : le prénom masculin prime sur la situation
+        // familiale. « Yandé » n'y figure pas : Yandé NDIAYE (DAF) est une femme.
+        $maleNames = [
+            'baboucar', 'babou', 'aliou', 'alioune', 'ibrahima', 'ousmane', 'oumar',
+            'moussa', 'lamine', 'modou', 'mamadou', 'mouhamed', 'mohamed', 'moustapha', 'soumaïla',
+            'sidate', 'bassirou', 'cheikhou', 'cheikh', 'djiby', 'djimis', 'saliou', 'thierno',
+            'demba', 'abdou', 'abdoulaye', 'el', 'insa', 'sohibou', 'ernest', 'waly', 'issac',
+            'issa', 'joseph', 'seyni', 'tidiane', 'boubacar', 'youssouph', 'souleymane', 'serigne',
+            'gade', 'papa', 'mame', 'sadio', 'adama', 'daour', 'iba', 'inadone', 'abou', 'bidji',
+            'asse', 'dame',
+        ];
         $femaleNames = [
-            'awa', 'bineta', 'coumba', 'khoudia', 'ndéye', 'ndeye', 'ndèye', 'fatou', 'mame', 'marie',
-            'souadou', 'khady', 'aïssatou', 'aissatou', 'sadio', 'sophiatou', 'khadissatou', 'adama',
-            'maty', 'yandé', 'dieynaba', 'marème', 'maryame', 'mereme', 'adji', 'adicke', 'astou', 'mariama',
+            'awa', 'bineta', 'coumba', 'khoudia', 'ndéye', 'ndeye', 'ndèye', 'fatou', 'marie',
+            'souadou', 'khady', 'khadissatou', 'aïssatou', 'aissatou', 'sophiatou', 'maty',
+            'dieynaba', 'marème', 'maryame', 'mereme', 'astou', 'mariama', 'hawa', 'aida',
+            'adji', 'adicke',
         ];
 
-        if (str_contains($situationLower, 'mariée') || str_contains($situationLower, 'veuve')) {
+        if (in_array($firstName, $maleNames, true)) {
+            return 'Masculin';
+        }
+        if (in_array($firstName, $femaleNames, true)) {
             return 'Feminin';
         }
 
-        foreach ($femaleNames as $name) {
-            if (str_contains($prenomLower, $name)) {
-                return 'Feminin';
-            }
+        if (str_contains($situationLower, 'mariée') || str_contains($situationLower, 'veuve')) {
+            return 'Feminin';
         }
 
         return 'Masculin';

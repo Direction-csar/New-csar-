@@ -5,7 +5,7 @@
 @section('titre', 'Décision de Congé')
 
 @section('corps')
-    <p>Le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</p>
+    <p>Madame le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</p>
 
     <p>Vu le Code du Travail ; vu le règlement intérieur ; vu la demande de l'intéressé(e),</p>
 

@@ -82,7 +82,7 @@
                         </div>
                         <div class="info-item">
                             <strong>Téléphone :</strong>
-                            <span>{{ $about->phone ?? '+221 33 123 45 67' }}</span>
+                            <span>{{ $about->phone ?? '+221 77 645 92 42' }}</span>
                         </div>
                         <div class="info-item">
                             <strong>Email :</strong>

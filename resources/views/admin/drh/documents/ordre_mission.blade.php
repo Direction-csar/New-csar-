@@ -7,7 +7,7 @@
 @section('corps')
     <p>Objet : <strong>Déplacement en mission</strong></p>
 
-    <p>Par la présente, le Directeur Général du CSAR ordonne à
+    <p>Par la présente, Madame le Directeur Général du CSAR ordonne à
         Monsieur/Madame <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
         matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
         <strong>{{ $personnel?->poste_actuel ?? '__________' }}</strong>

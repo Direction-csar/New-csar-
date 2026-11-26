@@ -1,612 +1,700 @@
 @extends('layouts.admin')
 
-@section('title', 'Tableau de Bord')
-@section('page-title', 'Tableau de Bord Administrateur')
+@section('title', 'Tableau de bord')
+@section('page-title', 'Tableau de bord')
 
 @section('content')
-<div class="container-fluid px-3">
-    <!-- Header compact -->
-    <div class="row mb-2">
-        <div class="col-12">
-            <div class="card-modern p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <h1 class="h4 mb-1 text-dark fw-bold">📊 Tableau de Bord</h1>
-                        <p class="text-muted mb-0 small">Vue d'ensemble du système CSAR - {{ now()->format('d/m/Y H:i') }}</p>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-primary btn-sm" onclick="refreshDashboard()">
-                            <i class="fas fa-sync-alt me-1"></i>Actualiser
-                        </button>
-                        <button class="btn btn-primary btn-sm" onclick="generateReport()">
-                            <i class="fas fa-download me-1"></i>Rapport
-                        </button>
-                    </div>
-                </div>
-            </div>
+@php
+    $totalStats = ($stats['total_users'] ?? 0) + ($stats['total_requests'] ?? 0) + ($stats['total_warehouses'] ?? 0) + ($stats['total_stock'] ?? 0) + ($stats['unread_notifications'] ?? 0) + ($stats['unread_messages'] ?? 0);
+    $hasData = $totalStats > 0;
+
+    $wf = $stats['workflow'] ?? [];
+    $dashRole = auth()->user()->role ?? 'admin';
+    $canDgValidate = in_array($dashRole, ['admin', 'super_admin', 'dg']);
+
+    $workflowSteps = [
+        ['key' => 'soumise', 'label' => 'Soumises', 'hint' => 'Reçues du site public', 'icon' => 'fa-inbox', 'url' => null],
+        ['key' => 'en_revue', 'label' => 'En revue', 'hint' => 'Analyse en cours', 'icon' => 'fa-magnifying-glass', 'url' => null],
+        ['key' => 'document_attente', 'label' => 'À signer', 'hint' => 'Attente document', 'icon' => 'fa-file-signature', 'url' => route('admin.demandes.dg-dashboard')],
+        ['key' => 'signee', 'label' => 'À scanner', 'hint' => 'Document signé', 'icon' => 'fa-print', 'url' => route('admin.demandes.dg-dashboard')],
+        ['key' => 'scannee', 'label' => 'À valider DG', 'hint' => 'Document scanné', 'icon' => 'fa-stamp', 'url' => $canDgValidate ? route('admin.demandes.dg-pending') : route('admin.demandes.dg-dashboard')],
+        ['key' => 'validee_dg', 'label' => 'Validées DG', 'hint' => 'Approuvées par la DG', 'icon' => 'fa-circle-check', 'url' => null],
+        ['key' => 'approuvee', 'label' => 'Approuvées', 'hint' => 'Prêtes à servir', 'icon' => 'fa-thumbs-up', 'url' => null],
+        ['key' => 'cloturee', 'label' => 'Clôturées', 'hint' => 'Traitement terminé', 'icon' => 'fa-flag-checkered', 'url' => null],
+    ];
+    $wfRejected = $wf['rejetee'] ?? 0;
+
+    $statusLabels = [
+        'pending' => ['En attente', 'warning'],
+        'processing' => ['En cours', 'info'],
+        'approved' => ['Approuvée', 'success'],
+        'completed' => ['Terminée', 'success'],
+        'rejected' => ['Rejetée', 'danger'],
+    ];
+@endphp
+
+<div class="dash">
+    {{-- En-tête --}}
+    <div class="dash-header">
+        <div>
+            <h2 class="dash-title">Tableau de bord</h2>
+            <p class="dash-subtitle">Vue d’ensemble de l’activité de la plateforme CSAR — données au {{ now()->format('d/m/Y à H:i') }}</p>
+        </div>
+        <div class="dash-header-actions">
+            <button class="btn btn-outline-primary btn-sm" type="button" onclick="refreshDashboard()">
+                <i class="fas fa-rotate me-1"></i>Actualiser
+            </button>
+            <button class="btn btn-primary btn-sm" type="button" onclick="generateReport()">
+                <i class="fas fa-file-arrow-down me-1"></i>Générer un rapport
+            </button>
         </div>
     </div>
 
-    @php
-        $totalStats = ($stats['total_users'] ?? 0) + ($stats['total_requests'] ?? 0) + ($stats['total_warehouses'] ?? 0) + ($stats['total_stock'] ?? 0) + ($stats['unread_notifications'] ?? 0) + ($stats['unread_messages'] ?? 0);
-        $hasData = $totalStats > 0;
-    @endphp
-
     @if(!$hasData)
-        <!-- Message d'état vide -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="card-modern p-4 text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-database fa-3x text-muted mb-3"></i>
-                        <h4 class="text-muted">Aucune donnée disponible pour le moment</h4>
-                        <p class="text-muted mb-4">Votre base de données MySQL est vide. Commencez par ajouter des données via les formulaires ci-dessous.</p>
-                    </div>
-                    <div class="d-flex justify-content-center gap-3 flex-wrap">
-                        <a href="{{ route('admin.users.create') }}" class="btn btn-primary">
-                            <i class="fas fa-user-plus me-2"></i>Ajouter un Utilisateur
-                        </a>
-                        <a href="{{ route('admin.entrepots.create') }}" class="btn btn-success">
-                            <i class="fas fa-warehouse me-2"></i>Ajouter un Entrepôt
-                        </a>
-                    </div>
-                </div>
+        <div class="dash-card dash-empty">
+            <div class="dash-empty-icon"><i class="fas fa-database"></i></div>
+            <h3 class="h6 mb-1">Aucune donnée disponible pour le moment</h3>
+            <p class="text-muted small mb-3">La base de données ne contient encore aucun enregistrement exploitable pour le tableau de bord.</p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a href="{{ route('admin.users.create') }}" class="btn btn-primary btn-sm"><i class="fas fa-user-plus me-1"></i>Ajouter un utilisateur</a>
+                <a href="{{ route('admin.entrepots.create') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-warehouse me-1"></i>Ajouter un entrepôt</a>
             </div>
         </div>
     @endif
 
-    <!-- Statistiques principales compactes -->
-    <div class="row mb-2">
-        <div class="col-lg-3 col-md-6 mb-2">
-            <div class="card-modern p-2 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="icon-3d me-2" style="background: var(--gradient-primary); width: 45px; height: 45px;">
-                        <i class="fas fa-users" style="font-size: 18px;"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h4 class="mb-0 fw-bold text-primary" id="total-users" data-stat="total_users">{{ $stats['total_users'] ?? 0 }}</h4>
-                        <p class="text-muted mb-0 small">👥 Utilisateurs</p>
-                    </div>
-                </div>
-            </div>
+    {{-- Indicateurs clés --}}
+    <div class="dash-kpis">
+        <a href="{{ route('admin.demandes.index', ['statut' => 'pending']) }}" class="dash-kpi is-link">
+            <span class="dash-kpi-icon tone-warning"><i class="fas fa-clipboard-list"></i></span>
+            <span class="dash-kpi-body">
+                <span class="dash-kpi-label">Demandes en attente</span>
+                <span class="dash-kpi-value" id="pending-requests" data-stat="pending_requests">{{ $stats['pending_requests'] ?? 0 }}</span>
+                <span class="dash-kpi-meta">sur {{ number_format($stats['total_requests'] ?? 0, 0, ',', ' ') }} demandes au total</span>
+            </span>
+        </a>
+
+        <a href="{{ route('admin.users.index') }}" class="dash-kpi is-link">
+            <span class="dash-kpi-icon tone-navy"><i class="fas fa-users"></i></span>
+            <span class="dash-kpi-body">
+                <span class="dash-kpi-label">Utilisateurs</span>
+                <span class="dash-kpi-value" id="total-users" data-stat="total_users">{{ $stats['total_users'] ?? 0 }}</span>
+                <span class="dash-kpi-meta">{{ number_format($stats['active_users'] ?? 0, 0, ',', ' ') }} actifs</span>
+            </span>
+        </a>
+
+        <a href="{{ route('admin.entrepots.index') }}" class="dash-kpi is-link">
+            <span class="dash-kpi-icon tone-green"><i class="fas fa-warehouse"></i></span>
+            <span class="dash-kpi-body">
+                <span class="dash-kpi-label">Entrepôts</span>
+                <span class="dash-kpi-value" id="total-warehouses" data-stat="total_warehouses">{{ $stats['total_warehouses'] ?? 0 }}</span>
+                <span class="dash-kpi-meta">{{ number_format($stats['active_warehouses'] ?? 0, 0, ',', ' ') }} actifs</span>
+            </span>
+        </a>
+
+        <a href="{{ route('admin.stock.index') }}" class="dash-kpi is-link">
+            <span class="dash-kpi-icon tone-danger"><i class="fas fa-triangle-exclamation"></i></span>
+            <span class="dash-kpi-body">
+                <span class="dash-kpi-label">Articles en stock faible</span>
+                <span class="dash-kpi-value" id="low-stock" data-stat="low_stock_items">{{ $stats['low_stock_items'] ?? 0 }}</span>
+                <span class="dash-kpi-meta">à réapprovisionner</span>
+            </span>
+        </a>
+
+        <a href="{{ route('admin.stock.index') }}" class="dash-kpi is-link">
+            <span class="dash-kpi-icon tone-slate"><i class="fas fa-boxes-stacked"></i></span>
+            <span class="dash-kpi-body">
+                <span class="dash-kpi-label">Lignes de stock</span>
+                <span class="dash-kpi-value" id="total-stock" data-stat="total_stock">{{ $stats['total_stock'] ?? 0 }}</span>
+                <span class="dash-kpi-meta">enregistrements de stock</span>
+            </span>
+        </a>
+
+        <div class="dash-kpi">
+            <span class="dash-kpi-icon tone-info"><i class="fas fa-gas-pump"></i></span>
+            <span class="dash-kpi-body">
+                <span class="dash-kpi-label">Carburant disponible</span>
+                <span class="dash-kpi-value"><span id="fuel-available" data-stat="fuel_available">{{ $stats['fuel_available'] ?? 0 }}</span><small class="dash-kpi-unit">L</small></span>
+                <span class="dash-kpi-meta">tous entrepôts confondus</span>
+            </span>
         </div>
-        
-        <div class="col-lg-3 col-md-6 mb-2">
-            <div class="card-modern p-2 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="icon-3d me-2" style="background: var(--gradient-warning); width: 45px; height: 45px;">
-                        <i class="fas fa-clipboard-list" style="font-size: 18px;"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h4 class="mb-0 fw-bold text-warning" id="pending-requests" data-stat="pending_requests">{{ $stats['pending_requests'] ?? 0 }}</h4>
-                        <p class="text-muted mb-0 small">📋 Demandes</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-2">
-            <div class="card-modern p-2 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="icon-3d me-2" style="background: var(--gradient-success); width: 45px; height: 45px;">
-                        <i class="fas fa-warehouse" style="font-size: 18px;"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h4 class="mb-0 fw-bold text-success" id="total-warehouses" data-stat="total_warehouses">{{ $stats['total_warehouses'] ?? 0 }}</h4>
-                        <p class="text-muted mb-0 small">🏢 Entrepôts</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-2">
-            <div class="card-modern p-2 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="icon-3d me-2" style="background: var(--gradient-danger); width: 45px; height: 45px;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 18px;"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h4 class="mb-0 fw-bold text-danger" id="low-stock" data-stat="low_stock_items">{{ $stats['low_stock_items'] ?? 0 }}</h4>
-                        <p class="text-muted mb-0 small">⚠️ Stock Faible</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+
+        <a href="{{ route('admin.notifications.index') }}" class="dash-kpi is-link">
+            <span class="dash-kpi-icon tone-navy"><i class="fas fa-bell"></i></span>
+            <span class="dash-kpi-body">
+                <span class="dash-kpi-label">Notifications non lues</span>
+                <span class="dash-kpi-value" id="unread-notifications">{{ $stats['unread_notifications'] ?? 0 }}</span>
+                <span class="dash-kpi-meta">centre de notifications</span>
+            </span>
+        </a>
+
+        <a href="{{ route('admin.messages.index') }}" class="dash-kpi is-link">
+            <span class="dash-kpi-icon tone-green"><i class="fas fa-envelope"></i></span>
+            <span class="dash-kpi-body">
+                <span class="dash-kpi-label">Messages non lus</span>
+                <span class="dash-kpi-value" id="unread-messages">{{ $stats['unread_messages'] ?? 0 }}</span>
+                <span class="dash-kpi-meta">formulaire de contact</span>
+            </span>
+        </a>
     </div>
 
-    <!-- Métriques secondaires compactes -->
-    <div class="row mb-2">
-        <div class="col-lg-3 col-md-6 mb-2">
-            <div class="card-modern p-2 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="icon-3d me-2" style="background: var(--gradient-secondary); width: 45px; height: 45px;">
-                        <i class="fas fa-gas-pump" style="font-size: 18px;"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h4 class="mb-0 fw-bold text-info" id="fuel-available" data-stat="fuel_available">{{ $stats['fuel_available'] ?? 0 }}L</h4>
-                        <p class="text-muted mb-0 small">⛽ Carburant</p>
-                    </div>
-                </div>
+    {{-- Workflow des demandes --}}
+    <section class="dash-card">
+        <div class="dash-card-header">
+            <div>
+                <h3 class="dash-card-title">Circuit de traitement des demandes</h3>
+                <p class="dash-card-subtitle">Répartition des demandes par étape du workflow</p>
             </div>
+            <a href="{{ route('admin.demandes.index') }}" class="btn btn-light btn-sm">Toutes les demandes <i class="fas fa-arrow-right ms-1"></i></a>
         </div>
-        
-        <div class="col-lg-3 col-md-6 mb-2">
-            <div class="card-modern p-2 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="icon-3d me-2" style="background: var(--gradient-primary); width: 45px; height: 45px;">
-                        <i class="fas fa-bell" style="font-size: 18px;"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h4 class="mb-0 fw-bold text-primary" id="unread-notifications">{{ session('notifications', collect())->where('read', false)->count() }}</h4>
-                        <p class="text-muted mb-0 small">🔔 Notifications</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-2">
-            <div class="card-modern p-2 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="icon-3d me-2" style="background: var(--gradient-success); width: 45px; height: 45px;">
-                        <i class="fas fa-envelope" style="font-size: 18px;"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h4 class="mb-0 fw-bold text-success" id="unread-messages">{{ session('messages', collect())->where('read', false)->count() }}</h4>
-                        <p class="text-muted mb-0 small">💬 Messages</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-3 col-md-6 mb-2">
-            <div class="card-modern p-2 h-100">
-                <div class="d-flex align-items-center">
-                    <div class="icon-3d me-2" style="background: var(--gradient-warning); width: 45px; height: 45px;">
-                        <i class="fas fa-chart-line" style="font-size: 18px;"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h4 class="mb-0 fw-bold text-warning" id="total-stock" data-stat="total_stock">{{ $stats['total_stock'] ?? 0 }}</h4>
-                        <p class="text-muted mb-0 small">📦 Stock Total</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Graphiques compacts -->
-    <div class="row mb-2">
-        <div class="col-lg-6 mb-2">
-            <div class="card-modern p-2">
-                <h6 class="mb-1 fw-bold">📈 Demandes (7j)</h6>
-                <div class="chart-container" style="position: relative; height: 180px;">
-                    @if($hasData)
-                        <canvas id="requestsChart"></canvas>
-                    @else
-                        <div class="d-flex align-items-center justify-content-center h-100 text-muted">
-                            <div class="text-center">
-                                <i class="fas fa-chart-line fa-2x mb-2"></i>
-                                <p class="mb-0 small">Aucune donnée disponible</p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            </div>
+        <div class="dash-flow">
+            @foreach($workflowSteps as $step)
+                @php $count = $wf[$step['key']] ?? 0; @endphp
+                @if($step['url'])
+                    <a href="{{ $step['url'] }}" class="dash-flow-step is-link {{ $count > 0 && in_array($step['key'], ['document_attente', 'signee', 'scannee']) ? 'is-pending' : '' }}">
+                @else
+                    <div class="dash-flow-step">
+                @endif
+                        <span class="dash-flow-icon"><i class="fas {{ $step['icon'] }}"></i></span>
+                        <span class="dash-flow-count">{{ number_format($count, 0, ',', ' ') }}</span>
+                        <span class="dash-flow-label">{{ $step['label'] }}</span>
+                        <span class="dash-flow-hint">{{ $step['hint'] }}</span>
+                @if($step['url'])
+                    </a>
+                @else
+                    </div>
+                @endif
+            @endforeach
         </div>
-        
-        <div class="col-lg-6 mb-2">
-            <div class="card-modern p-2">
-                <h6 class="mb-1 fw-bold">📊 Entrepôts</h6>
-                <div class="chart-container" style="position: relative; height: 180px;">
-                    @if($hasData)
-                        <canvas id="warehousesChart"></canvas>
-                    @else
-                        <div class="d-flex align-items-center justify-content-center h-100 text-muted">
-                            <div class="text-center">
-                                <i class="fas fa-warehouse fa-2x mb-2"></i>
-                                <p class="mb-0 small">Aucune donnée disponible</p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="row mb-2">
-        <div class="col-lg-6 mb-2">
-            <div class="card-modern p-2">
-                <h6 class="mb-1 fw-bold">⛽ Carburant</h6>
-                <div class="chart-container" style="position: relative; height: 180px;">
-                    @if($hasData)
-                        <canvas id="fuelChart"></canvas>
-                    @else
-                        <div class="d-flex align-items-center justify-content-center h-100 text-muted">
-                            <div class="text-center">
-                                <i class="fas fa-gas-pump fa-2x mb-2"></i>
-                                <p class="mb-0 small">Aucune donnée disponible</p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
+        <div class="dash-flow-summary">
+            <div class="dash-summary-item">
+                <span class="dash-summary-label">Reçues aujourd’hui</span>
+                <span class="dash-summary-value">{{ number_format($stats['today_requests'] ?? 0, 0, ',', ' ') }}</span>
+            </div>
+            <div class="dash-summary-item">
+                <span class="dash-summary-label">Reçues ce mois</span>
+                <span class="dash-summary-value">{{ number_format($stats['month_requests'] ?? 0, 0, ',', ' ') }}</span>
+            </div>
+            <a href="{{ route('admin.demandes.index', ['statut' => 'approved']) }}" class="dash-summary-item is-link">
+                <span class="dash-summary-label"><span class="dash-dot bg-success"></span>Approuvées</span>
+                <span class="dash-summary-value">{{ number_format($stats['approved_requests'] ?? 0, 0, ',', ' ') }}</span>
+            </a>
+            <a href="{{ route('admin.demandes.index', ['statut' => 'rejected']) }}" class="dash-summary-item is-link">
+                <span class="dash-summary-label"><span class="dash-dot bg-danger"></span>Rejetées</span>
+                <span class="dash-summary-value">{{ number_format($stats['rejected_requests'] ?? 0, 0, ',', ' ') }}</span>
+            </a>
+            <div class="dash-summary-item">
+                <span class="dash-summary-label">Rejetées (workflow)</span>
+                <span class="dash-summary-value">{{ number_format($wfRejected, 0, ',', ' ') }}</span>
             </div>
         </div>
-        
-        <div class="col-lg-6 mb-2">
-            <div class="card-modern p-2">
-                <h6 class="mb-1 fw-bold">📦 Stock</h6>
-                <div class="chart-container" style="position: relative; height: 180px;">
-                    @if($hasData)
-                        <canvas id="stockChart"></canvas>
-                    @else
-                        <div class="d-flex align-items-center justify-content-center h-100 text-muted">
-                            <div class="text-center">
-                                <i class="fas fa-boxes fa-2x mb-2"></i>
-                                <p class="mb-0 small">Aucune donnée disponible</p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
 
-    <!-- Activités récentes et actions rapides -->
-    <div class="row mb-2">
-        <div class="col-lg-8 mb-2">
-            <div class="card-modern p-2">
-                <h6 class="mb-2 fw-bold">📋 Demandes Récentes</h6>
-                <div class="list-group list-group-flush">
-                    @forelse($recentActivities['recent_requests'] ?? [] as $request)
-                        <div class="list-group-item border-0 px-0 py-1">
-                            <div class="d-flex justify-content-between align-items-center">
+    @include('admin.partials.stock-alerts', [
+        'stockAlertPanel' => $stockAlertPanel ?? null,
+        'stockAlertAction' => route('admin.dashboard'),
+        'stockAlertLimit' => 10,
+        'stockAlertShowStockLink' => true,
+    ])
+
+    {{-- Alertes, demandes récentes, actions --}}
+    <div class="dash-grid dash-grid-3">
+        <section class="dash-card dash-span-2">
+            <div class="dash-card-header">
+                <div>
+                    <h3 class="dash-card-title">Demandes récentes</h3>
+                    <p class="dash-card-subtitle">Les 5 dernières demandes reçues</p>
+                </div>
+                <a href="{{ route('admin.demandes.index') }}" class="btn btn-light btn-sm">Voir tout</a>
+            </div>
+            <div class="dash-list">
+                @forelse($recentActivities['recent_requests'] ?? [] as $request)
+                    @php
+                        $st = $statusLabels[$request->status] ?? [ucfirst($request->status ?? 'En attente'), 'secondary'];
+                    @endphp
+                    <a href="{{ route('admin.demandes.show', $request->id) }}" class="dash-list-item">
+                        <span class="dash-list-main">
+                            <span class="dash-list-title">{{ $request->tracking_code ?? $request->reference ?? 'REQ-' . $request->id }}</span>
+                            <span class="dash-list-meta">
+                                {{ $request->full_name ?? $request->name ?? ($request->user->name ?? 'Demandeur') }}
+                                @if($request->region) · {{ $request->region }} @endif
+                                @if($request->created_at) · {{ $request->created_at->diffForHumans() }} @endif
+                            </span>
+                        </span>
+                        <span class="badge bg-{{ $st[1] }}-subtle text-{{ $st[1] }}-emphasis border border-{{ $st[1] }}-subtle">{{ $st[0] }}</span>
+                    </a>
+                @empty
+                    <div class="dash-list-empty">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Aucune demande récente</span>
+                    </div>
+                @endforelse
+            </div>
+        </section>
+
+        <div class="dash-stack">
+            <section class="dash-card">
+                <div class="dash-card-header">
+                    <div>
+                        <h3 class="dash-card-title">Alertes</h3>
+                        <p class="dash-card-subtitle">Points d’attention détectés</p>
+                    </div>
+                    @if(!empty($alerts))
+                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">{{ count($alerts) }}</span>
+                    @endif
+                </div>
+                @if(!empty($alerts))
+                    <div class="dash-alerts">
+                        @foreach($alerts as $alert)
+                            @php $tone = in_array($alert['type'] ?? 'info', ['danger', 'warning', 'success', 'info']) ? $alert['type'] : 'info'; @endphp
+                            <div class="dash-alert tone-{{ $tone }}">
+                                <i class="fas fa-{{ $alert['icon'] ?? 'circle-info' }}"></i>
                                 <div>
-                                    <h6 class="mb-0 small">{{ $request->reference ?? 'REQ-' . $request->id }}</h6>
-                                    <p class="mb-0 text-muted small">{{ $request->user->name ?? 'Utilisateur' }}</p>
-                                    <small class="text-muted">{{ $request->created_at->diffForHumans() ?? 'Il y a 2h' }}</small>
+                                    <div class="dash-alert-title">{{ $alert['title'] ?? 'Alerte' }}</div>
+                                    @if(!empty($alert['message']))
+                                        <div class="dash-alert-text">{{ $alert['message'] }}</div>
+                                    @endif
                                 </div>
-                                <span class="badge bg-{{ $request->status === 'approved' ? 'success' : ($request->status === 'rejected' ? 'danger' : 'warning') }} small">
-                                    {{ ucfirst($request->status ?? 'En attente') }}
-                                </span>
                             </div>
-                        </div>
-                    @empty
-                        <div class="text-center py-2 text-muted">
-                            <i class="fas fa-clipboard-list fa-lg mb-1"></i>
-                            <p class="small mb-0">Aucune demande récente</p>
-                        </div>
-                    @endforelse
+                        @endforeach
+                    </div>
+                @else
+                    <div class="dash-list-empty">
+                        <i class="fas fa-circle-check text-success"></i>
+                        <span>Aucune alerte en cours</span>
+                    </div>
+                @endif
+            </section>
+
+            <section class="dash-card">
+                <div class="dash-card-header">
+                    <h3 class="dash-card-title">Actions rapides</h3>
                 </div>
+                <div class="dash-actions">
+                    <a href="{{ route('admin.users.create') }}" class="dash-action"><i class="fas fa-user-plus"></i>Nouvel utilisateur</a>
+                    <a href="{{ route('admin.entrepots.create') }}" class="dash-action"><i class="fas fa-warehouse"></i>Nouvel entrepôt</a>
+                    <a href="{{ route('admin.donations.index') }}" class="dash-action"><i class="fas fa-hand-holding-heart"></i>Gérer les dons</a>
+                    <button type="button" class="dash-action" onclick="generateReport()"><i class="fas fa-file-pdf"></i>Générer un rapport</button>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    {{-- Graphiques --}}
+    <div class="dash-grid dash-grid-2">
+        <section class="dash-card">
+            <div class="dash-card-header"><h3 class="dash-card-title">Demandes sur 7 jours</h3></div>
+            <div class="chart-container">
+                @if(!empty($chartsData['last7Days']))
+                    <canvas id="requestsChart"></canvas>
+                @else
+                    <div class="dash-chart-empty"><i class="fas fa-chart-line"></i><span>Aucune donnée disponible</span></div>
+                @endif
+            </div>
+        </section>
+        <section class="dash-card">
+            <div class="dash-card-header"><h3 class="dash-card-title">Entrepôts par région</h3></div>
+            <div class="chart-container">
+                @if(!empty($chartsData['entrepotsByRegion']))
+                    <canvas id="warehousesChart"></canvas>
+                @else
+                    <div class="dash-chart-empty"><i class="fas fa-warehouse"></i><span>Aucune donnée disponible</span></div>
+                @endif
+            </div>
+        </section>
+        <section class="dash-card">
+            <div class="dash-card-header"><h3 class="dash-card-title">Carburant par entrepôt</h3></div>
+            <div class="chart-container">
+                @if(!empty($chartsData['fuelByEntrepot']))
+                    <canvas id="fuelChart"></canvas>
+                @else
+                    <div class="dash-chart-empty"><i class="fas fa-gas-pump"></i><span>Aucune donnée disponible</span></div>
+                @endif
+            </div>
+        </section>
+        <section class="dash-card">
+            <div class="dash-card-header"><h3 class="dash-card-title">Stock par catégorie</h3></div>
+            <div class="chart-container">
+                @if(!empty($chartsData['stockByCategory']))
+                    <canvas id="stockChart"></canvas>
+                @else
+                    <div class="dash-chart-empty"><i class="fas fa-boxes-stacked"></i><span>Aucune donnée disponible</span></div>
+                @endif
+            </div>
+        </section>
+    </div>
+
+    {{-- Demandes par région --}}
+    <section class="dash-card">
+        <div class="dash-card-header">
+            <div>
+                <h3 class="dash-card-title">Demandes d’aide alimentaire par région</h3>
+                <p class="dash-card-subtitle">Zones à forte demande</p>
             </div>
         </div>
-        
-        <div class="col-lg-4 mb-2">
-            <div class="card-modern p-2">
-                <h6 class="mb-2 fw-bold">⚡ Actions Rapides</h6>
-                <div class="d-grid gap-1">
-                    <a href="{{ route('admin.users.create') }}" class="btn btn-success btn-sm">
-                        <i class="fas fa-user-plus me-1"></i>Nouvel Utilisateur
-                    </a>
-                    <a href="{{ route('admin.entrepots.create') }}" class="btn btn-info btn-sm">
-                        <i class="fas fa-warehouse me-1"></i>Nouvel Entrepôt
-                    </a>
-                    <a href="{{ route('admin.donations.index') }}" class="btn btn-danger btn-sm">
-                        <i class="fas fa-hand-holding-heart me-1"></i>Gérer les Dons
-                    </a>
-                    <button class="btn btn-warning btn-sm" onclick="generateReport()">
-                        <i class="fas fa-file-pdf me-1"></i>Générer Rapport
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Région</th>
+                        <th class="text-end">Total</th>
+                        <th class="text-end">En attente</th>
+                        <th class="text-end">Approuvées</th>
+                        <th class="text-end">Rejetées</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($chartsData['demandesByRegion'] ?? [] as $r)
+                    <tr>
+                        <td class="fw-medium">{{ $r['region'] }}</td>
+                        <td class="text-end fw-semibold">{{ $r['total'] }}</td>
+                        <td class="text-end">{{ $r['pending'] }}</td>
+                        <td class="text-end">{{ $r['approved'] }}</td>
+                        <td class="text-end">{{ $r['rejected'] }}</td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="5" class="text-center text-muted py-4">Aucune donnée par région.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    {{-- Carte --}}
+    <section class="dash-card">
+        <div class="dash-card-header">
+            <div>
+                <h3 class="dash-card-title">Carte des entrepôts et des demandes d’aide</h3>
+                <p class="dash-card-subtitle">Géolocalisation des entrepôts CSAR et des demandes reçues</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <button class="btn btn-light btn-sm" type="button" onclick="toggleFilters()">
+                    <i class="fas fa-filter me-1"></i>Filtres
+                </button>
+                <button class="btn btn-light btn-sm" type="button" onclick="exportMapToPDF()">
+                    <i class="fas fa-file-pdf me-1"></i>Export PDF
+                </button>
+                <button class="btn btn-light btn-sm" type="button" onclick="refreshMapData()">
+                    <i class="fas fa-rotate me-1"></i>Actualiser
+                </button>
+            </div>
+        </div>
+
+        <div id="filterPanel" class="dash-filters" style="display: none;">
+            <div class="row g-2">
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1" for="filterYear">Année</label>
+                    <select id="filterYear" class="form-select form-select-sm" onchange="applyMapFilters()">
+                        <option value="">Toutes</option>
+                        @if(isset($chartsData['availableYears']) && count($chartsData['availableYears']) > 0)
+                            @foreach($chartsData['availableYears'] as $year)
+                                <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
+                            @endforeach
+                        @else
+                            @for($year = date('Y'); $year >= 2020; $year--)
+                                <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
+                            @endfor
+                        @endif
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1" for="filterMonth">Mois</label>
+                    <select id="filterMonth" class="form-select form-select-sm" onchange="applyMapFilters()">
+                        <option value="">Tous</option>
+                        <option value="1">Janvier</option>
+                        <option value="2">Février</option>
+                        <option value="3">Mars</option>
+                        <option value="4">Avril</option>
+                        <option value="5">Mai</option>
+                        <option value="6">Juin</option>
+                        <option value="7">Juillet</option>
+                        <option value="8">Août</option>
+                        <option value="9">Septembre</option>
+                        <option value="10">Octobre</option>
+                        <option value="11">Novembre</option>
+                        <option value="12">Décembre</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1" for="filterRegion">Région</label>
+                    <select id="filterRegion" class="form-select form-select-sm" onchange="applyMapFilters()">
+                        <option value="">Toutes</option>
+                        @if(isset($chartsData['availableRegions']) && count($chartsData['availableRegions']) > 0)
+                            @foreach($chartsData['availableRegions'] as $region)
+                                <option value="{{ $region }}">{{ $region }}</option>
+                            @endforeach
+                        @else
+                            <option value="Dakar">Dakar</option>
+                            <option value="Saint-Louis">Saint-Louis</option>
+                            <option value="Thiès">Thiès</option>
+                            <option value="Diourbel">Diourbel</option>
+                            <option value="Kaolack">Kaolack</option>
+                            <option value="Ziguinchor">Ziguinchor</option>
+                            <option value="Louga">Louga</option>
+                            <option value="Fatick">Fatick</option>
+                            <option value="Kolda">Kolda</option>
+                            <option value="Matam">Matam</option>
+                            <option value="Tambacounda">Tambacounda</option>
+                            <option value="Kaffrine">Kaffrine</option>
+                            <option value="Kédougou">Kédougou</option>
+                            <option value="Sédhiou">Sédhiou</option>
+                        @endif
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1" for="filterStatus">Statut</label>
+                    <select id="filterStatus" class="form-select form-select-sm" onchange="applyMapFilters()">
+                        <option value="">Tous</option>
+                        <option value="en_attente">En attente</option>
+                        <option value="traitee">Traitée</option>
+                        <option value="rejetee">Rejetée</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small mb-1" for="filterType">Type</label>
+                    <select id="filterType" class="form-select form-select-sm" onchange="applyMapFilters()">
+                        <option value="all">Tout afficher</option>
+                        <option value="warehouses">Entrepôts uniquement</option>
+                        <option value="demandes">Demandes (points)</option>
+                        <option value="zones">Zones par région (demandes)</option>
+                    </select>
+                </div>
+                <div class="col-6 col-md-2 d-flex align-items-end">
+                    <button class="btn btn-outline-primary btn-sm w-100" type="button" onclick="resetMapFilters()">
+                        <i class="fas fa-rotate-left me-1"></i>Réinitialiser
                     </button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Statistiques des demandes par région (zones à forte demande) -->
-    <div class="row mb-2">
-        <div class="col-12">
-            <div class="card-modern p-3">
-                <h6 class="mb-3 fw-bold">📊 Demandes d'aide alimentaire par région</h6>
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Région</th>
-                                <th class="text-end">Total</th>
-                                <th class="text-end">En attente</th>
-                                <th class="text-end">Approuvées</th>
-                                <th class="text-end">Rejetées</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse($chartsData['demandesByRegion'] ?? [] as $r)
-                            <tr>
-                                <td class="fw-medium">{{ $r['region'] }}</td>
-                                <td class="text-end">{{ $r['total'] }}</td>
-                                <td class="text-end">{{ $r['pending'] }}</td>
-                                <td class="text-end">{{ $r['approved'] }}</td>
-                                <td class="text-end">{{ $r['rejected'] }}</td>
-                            </tr>
-                            @empty
-                            <tr><td colspan="5" class="text-center text-muted">Aucune donnée par région.</td></tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+        <div class="dash-map-stats">
+            <div class="dash-map-stat">
+                <i class="fas fa-warehouse text-primary"></i>
+                <span><strong id="mapStatWarehouses">0</strong> Entrepôts</span>
+            </div>
+            <div class="dash-map-stat">
+                <i class="fas fa-location-dot text-danger"></i>
+                <span><strong id="mapStatDemandes">0</strong> Demandes</span>
+            </div>
+            <div class="dash-map-stat">
+                <i class="fas fa-clock text-warning"></i>
+                <span><strong id="mapStatPending">0</strong> En attente</span>
+            </div>
+            <div class="dash-map-stat">
+                <i class="fas fa-circle-check text-success"></i>
+                <span><strong id="mapStatApproved">0</strong> Traitées</span>
+            </div>
+        </div>
+
+        <div class="position-relative">
+            <div id="warehouseMap" class="dash-map"></div>
+            <div id="mapLegend" class="dash-map-legend">
+                <div class="fw-semibold small mb-2">Légende</div>
+                <div class="d-flex align-items-center mb-1">
+                    <i class="fas fa-warehouse text-primary me-2"></i>
+                    <span class="small">Entrepôts CSAR</span>
+                </div>
+                <div class="d-flex align-items-center mb-2">
+                    <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" width="16" height="16" class="me-2" alt="Logo CSAR">
+                    <span class="small">Demandes d’aide</span>
+                </div>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge bg-warning-subtle text-warning-emphasis">En attente</span>
+                    <span class="badge bg-success-subtle text-success-emphasis">Traitée</span>
+                    <span class="badge bg-danger-subtle text-danger-emphasis">Rejetée</span>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Carte interactive avec filtres et géolocalisation des demandes -->
-    <div class="row mb-2">
-        <div class="col-12">
-            <div class="card-modern p-3">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0 fw-bold">🗺️ Carte des Entrepôts et Demandes d'Aide Alimentaire</h6>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-info" onclick="toggleFilters()">
-                            <i class="fas fa-filter me-1"></i>Filtres
-                        </button>
-                        <button class="btn btn-sm btn-success" onclick="exportMapToPDF()">
-                            <i class="fas fa-file-pdf me-1"></i>Export PDF
-                        </button>
-                        <button class="btn btn-sm btn-primary" onclick="refreshMapData()">
-                            <i class="fas fa-sync-alt me-1"></i>Actualiser
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Panneau de filtres (masqué par défaut) -->
-                <div id="filterPanel" class="card border mb-3" style="display: none;">
-                    <div class="card-body p-2">
-                        <div class="row g-2">
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1">Année</label>
-                                <select id="filterYear" class="form-select form-select-sm" onchange="applyMapFilters()">
-                                    <option value="">Toutes</option>
-                                    @if(isset($chartsData['availableYears']) && count($chartsData['availableYears']) > 0)
-                                        @foreach($chartsData['availableYears'] as $year)
-                                            <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
-                                        @endforeach
-                                    @else
-                                        @for($year = date('Y'); $year >= 2020; $year--)
-                                            <option value="{{ $year }}" {{ $year == date('Y') ? 'selected' : '' }}>{{ $year }}</option>
-                                        @endfor
-                                    @endif
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1">Mois</label>
-                                <select id="filterMonth" class="form-select form-select-sm" onchange="applyMapFilters()">
-                                    <option value="">Tous</option>
-                                    <option value="1">Janvier</option>
-                                    <option value="2">Février</option>
-                                    <option value="3">Mars</option>
-                                    <option value="4">Avril</option>
-                                    <option value="5">Mai</option>
-                                    <option value="6">Juin</option>
-                                    <option value="7">Juillet</option>
-                                    <option value="8">Août</option>
-                                    <option value="9">Septembre</option>
-                                    <option value="10">Octobre</option>
-                                    <option value="11">Novembre</option>
-                                    <option value="12">Décembre</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1">Région</label>
-                                <select id="filterRegion" class="form-select form-select-sm" onchange="applyMapFilters()">
-                                    <option value="">Toutes</option>
-                                    @if(isset($chartsData['availableRegions']) && count($chartsData['availableRegions']) > 0)
-                                        @foreach($chartsData['availableRegions'] as $region)
-                                            <option value="{{ $region }}">{{ $region }}</option>
-                                        @endforeach
-                                    @else
-                                        <option value="Dakar">Dakar</option>
-                                        <option value="Saint-Louis">Saint-Louis</option>
-                                        <option value="Thiès">Thiès</option>
-                                        <option value="Diourbel">Diourbel</option>
-                                        <option value="Kaolack">Kaolack</option>
-                                        <option value="Ziguinchor">Ziguinchor</option>
-                                        <option value="Louga">Louga</option>
-                                        <option value="Fatick">Fatick</option>
-                                        <option value="Kolda">Kolda</option>
-                                        <option value="Matam">Matam</option>
-                                        <option value="Tambacounda">Tambacounda</option>
-                                        <option value="Kaffrine">Kaffrine</option>
-                                        <option value="Kédougou">Kédougou</option>
-                                        <option value="Sédhiou">Sédhiou</option>
-                                    @endif
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1">Statut</label>
-                                <select id="filterStatus" class="form-select form-select-sm" onchange="applyMapFilters()">
-                                    <option value="">Tous</option>
-                                    <option value="en_attente">En attente</option>
-                                    <option value="traitee">Traitée</option>
-                                    <option value="rejetee">Rejetée</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label small mb-1">Type</label>
-                                <select id="filterType" class="form-select form-select-sm" onchange="applyMapFilters()">
-                                    <option value="all">Tout afficher</option>
-                                    <option value="warehouses">Entrepôts uniquement</option>
-                                    <option value="demandes">Demandes (points)</option>
-                                    <option value="zones">Zones par région (demandes)</option>
-                                </select>
-                            </div>
-                            <div class="col-md-2 d-flex align-items-end">
-                                <button class="btn btn-sm btn-secondary w-100" onclick="resetMapFilters()">
-                                    <i class="fas fa-redo me-1"></i>Réinitialiser
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Statistiques rapides de la carte -->
-                <div class="row g-2 mb-2">
-                    <div class="col-md-3">
-                        <div class="card border-0 bg-light">
-                            <div class="card-body p-2 text-center">
-                                <i class="fas fa-warehouse text-primary mb-1"></i>
-                                <h6 class="mb-0" id="mapStatWarehouses">0</h6>
-                                <small class="text-muted">Entrepôts</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 bg-light">
-                            <div class="card-body p-2 text-center">
-                                <i class="fas fa-map-marker-alt text-danger mb-1"></i>
-                                <h6 class="mb-0" id="mapStatDemandes">0</h6>
-                                <small class="text-muted">Demandes</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 bg-light">
-                            <div class="card-body p-2 text-center">
-                                <i class="fas fa-clock text-warning mb-1"></i>
-                                <h6 class="mb-0" id="mapStatPending">0</h6>
-                                <small class="text-muted">En attente</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card border-0 bg-light">
-                            <div class="card-body p-2 text-center">
-                                <i class="fas fa-check-circle text-success mb-1"></i>
-                                <h6 class="mb-0" id="mapStatApproved">0</h6>
-                                <small class="text-muted">Traitées</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Carte avec légende intégrée -->
-                <div class="position-relative">
-                    <div id="warehouseMap" style="height: 500px; border-radius: 8px; overflow: hidden; z-index: 1;"></div>
-                    
-                    <!-- Légende flottante -->
-                    <div id="mapLegend" class="position-absolute bg-white p-2 shadow-sm" 
-                         style="top: 10px; right: 10px; border-radius: 8px; z-index: 1000; font-size: 0.85rem;">
-                        <h6 class="mb-2 small fw-bold">Légende</h6>
-                        <div class="d-flex align-items-center mb-1">
-                            <i class="fas fa-warehouse text-primary me-2"></i>
-                            <span class="small">Entrepôts CSAR</span>
-                        </div>
-                        <div class="d-flex align-items-center mb-1">
-                            <img src="{{ asset('images/logos/LOGO CSAR vectoriel-01.png') }}" width="16" height="16" class="me-2" alt="Logo CSAR">
-                            <span class="small">Demandes d'aide</span>
-                        </div>
-                        <hr class="my-2">
-                        <div class="small">
-                            <div class="mb-1"><span class="badge bg-warning">En attente</span></div>
-                            <div class="mb-1"><span class="badge bg-success">Traitée</span></div>
-                            <div class="mb-1"><span class="badge bg-danger">Rejetée</span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Alertes système compactes -->
-    @if(!empty($alerts))
-    <div class="row mb-2">
-        <div class="col-12">
-            <div class="card-modern p-2">
-                <h6 class="mb-2 fw-bold">🚨 Alertes Système</h6>
-                <div class="row">
-                    @foreach($alerts as $alert)
-                        <div class="col-md-6 mb-1">
-                            <div class="alert alert-{{ $alert['type'] ?? 'info' }} alert-dismissible fade show border-0 py-1" role="alert" style="border-radius: 8px;">
-                                <div class="d-flex align-items-center">
-                                    <div class="icon-3d me-2" style="width: 25px; height: 25px; background: var(--gradient-{{ $alert['type'] ?? 'primary' }});">
-                                        <i class="fas fa-{{ $alert['icon'] ?? 'info-circle' }}" style="font-size: 10px;"></i>
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <strong style="font-size: 0.8rem;">{{ $alert['title'] ?? 'Alerte' }}</strong><br>
-                                        <small style="font-size: 0.7rem;">{{ $alert['message'] ?? '' }}</small>
-                                    </div>
-                                    <button type="button" class="btn-close btn-close-sm" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-
+    </section>
 </div>
-
 @endsection
 
 @push('styles')
 <style>
-  /* Optimisation de l'espace */
-  .container-fluid { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
-  
-  /* Cards plus compactes */
-  .card-modern { margin-bottom: 0.5rem !important; }
-  
-  /* Graphiques optimisés */
-  .chart-container { position: relative; height: 180px; }
-  .chart-container canvas { width: 100% !important; height: 100% !important; }
-  
-  /* Réduction des marges */
-  .row { margin-bottom: 0.5rem !important; }
-  .mb-2 { margin-bottom: 0.5rem !important; }
-  .mb-3 { margin-bottom: 0.75rem !important; }
-  
-  /* Icônes plus petites */
-  .icon-3d { width: 45px !important; height: 45px !important; }
-  .icon-3d i { font-size: 18px !important; }
-  
-  /* Textes plus compacts */
-  .h4 { font-size: 1.25rem !important; }
-  .h6 { font-size: 0.9rem !important; }
-  
-  /* Boutons plus petits et cliquables */
-  .btn-sm { 
-    padding: 0.25rem 0.5rem !important; 
-    font-size: 0.8rem !important; 
-    cursor: pointer !important;
-    pointer-events: auto !important;
-    z-index: 10 !important;
-  }
-  
-  /* Assurer que tous les liens sont cliquables */
-  a { 
-    cursor: pointer !important; 
-    pointer-events: auto !important; 
-    z-index: 10 !important;
-  }
-  
-  /* Listes plus compactes */
-  .list-group-item { padding: 0.25rem 0 !important; }
-  
-  /* Alertes plus petites */
-  .alert { padding: 0.5rem !important; margin-bottom: 0.25rem !important; }
-  
-  /* S'assurer que les cartes sont cliquables */
-  .card-modern {
-    cursor: default !important;
-    pointer-events: auto !important;
-  }
-  
-  /* Boutons d'action dans les cartes */
-  .card-modern .btn {
-    cursor: pointer !important;
-    pointer-events: auto !important;
-    z-index: 15 !important;
-  }
+    .dash { display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .dash-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+    .dash-title { font-size: 1.5rem; font-weight: 700; margin: 0 0 .25rem; color: var(--adm-text); }
+    .dash-subtitle { margin: 0; color: var(--adm-muted); font-size: .875rem; }
+    .dash-header-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+    .dash-card {
+        background: var(--adm-surface);
+        border: 1px solid var(--adm-border);
+        border-radius: var(--adm-radius);
+        box-shadow: var(--adm-shadow);
+        padding: 1.25rem;
+        min-width: 0;
+    }
+    .dash-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .dash-card-title { font-size: 1rem; font-weight: 600; margin: 0; color: var(--adm-text); }
+    .dash-card-subtitle { font-size: .8125rem; color: var(--adm-muted); margin: .125rem 0 0; }
+
+    .dash-empty { text-align: center; padding: 2rem 1.25rem; }
+    .dash-empty-icon { width: 48px; height: 48px; border-radius: 50%; background: var(--adm-subtle); color: var(--adm-muted); display: inline-flex; align-items: center; justify-content: center; margin-bottom: .75rem; }
+
+    /* KPI */
+    .dash-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+    .dash-kpi {
+        display: flex; align-items: flex-start; gap: .875rem;
+        background: var(--adm-surface);
+        border: 1px solid var(--adm-border);
+        border-radius: var(--adm-radius);
+        box-shadow: var(--adm-shadow);
+        padding: 1rem 1.125rem;
+        color: inherit;
+        text-decoration: none;
+        min-width: 0;
+    }
+    .dash-kpi.is-link { transition: border-color .15s ease, box-shadow .15s ease; }
+    .dash-kpi.is-link:hover { border-color: #CBD5E1; box-shadow: var(--adm-shadow-md); color: inherit; }
+    .dash-kpi.is-link:focus-visible { outline: 2px solid var(--adm-navy); outline-offset: 2px; }
+    .dash-kpi-icon {
+        width: 40px; height: 40px; border-radius: var(--adm-radius-sm);
+        display: inline-flex; align-items: center; justify-content: center;
+        font-size: 1rem; flex-shrink: 0;
+    }
+    .tone-navy { background: #E7ECF1; color: var(--adm-navy); }
+    .tone-green { background: var(--adm-green-50); color: var(--adm-green); }
+    .tone-warning { background: var(--adm-warning-50); color: var(--adm-warning); }
+    .tone-danger { background: var(--adm-danger-50); color: var(--adm-danger); }
+    .tone-info { background: var(--adm-info-50); color: var(--adm-info); }
+    .tone-slate { background: #EEF2F6; color: #475569; }
+    .dash-kpi-body { display: flex; flex-direction: column; min-width: 0; }
+    .dash-kpi-label { font-size: .8125rem; color: var(--adm-muted); font-weight: 500; }
+    .dash-kpi-value { font-size: 1.625rem; font-weight: 700; line-height: 1.2; color: var(--adm-text); font-variant-numeric: tabular-nums; margin: .125rem 0; }
+    .dash-kpi-unit { font-size: .875rem; font-weight: 600; color: var(--adm-muted); margin-left: .25rem; }
+    .dash-kpi-meta { font-size: .75rem; color: var(--adm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Workflow */
+    .dash-flow { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: .75rem; }
+    .dash-flow-step {
+        position: relative;
+        display: flex; flex-direction: column; align-items: flex-start;
+        padding: .875rem;
+        border: 1px solid var(--adm-border);
+        border-radius: var(--adm-radius-sm);
+        background: var(--adm-subtle);
+        color: inherit; text-decoration: none;
+        min-width: 0;
+    }
+    .dash-flow-step:not(:last-child)::after {
+        content: '';
+        position: absolute; top: 50%; right: -.5rem;
+        width: .25rem; height: 1px; background: #CBD5E1;
+    }
+    .dash-flow-step.is-link { background: var(--adm-surface); transition: border-color .15s ease; }
+    .dash-flow-step.is-link:hover { border-color: var(--adm-navy); color: inherit; }
+    .dash-flow-step.is-pending { border-color: #E9C46A; background: var(--adm-warning-50); }
+    .dash-flow-icon { font-size: .875rem; color: var(--adm-muted); margin-bottom: .5rem; }
+    .dash-flow-step.is-pending .dash-flow-icon { color: var(--adm-warning); }
+    .dash-flow-count { font-size: 1.375rem; font-weight: 700; line-height: 1.1; color: var(--adm-text); font-variant-numeric: tabular-nums; }
+    .dash-flow-label { font-size: .8125rem; font-weight: 600; color: var(--adm-text); margin-top: .125rem; }
+    .dash-flow-hint { font-size: .6875rem; color: var(--adm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+
+    .dash-flow-summary {
+        display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .75rem;
+        margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--adm-border);
+    }
+    .dash-summary-item { display: flex; flex-direction: column; color: inherit; text-decoration: none; padding: .25rem .5rem; border-radius: 6px; }
+    .dash-summary-item.is-link:hover { background: var(--adm-subtle); color: inherit; }
+    .dash-summary-label { font-size: .75rem; color: var(--adm-muted); display: flex; align-items: center; gap: .375rem; }
+    .dash-summary-value { font-size: 1.125rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .dash-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+    /* Grilles */
+    .dash-grid { display: grid; gap: 1.25rem; }
+    .dash-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dash-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .dash-span-2 { grid-column: span 2; }
+    .dash-stack { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
+
+    /* Listes */
+    .dash-list { display: flex; flex-direction: column; }
+    .dash-list-item {
+        display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+        padding: .75rem .5rem; margin: 0 -.5rem;
+        border-bottom: 1px solid var(--adm-border);
+        color: inherit; text-decoration: none; border-radius: 6px;
+    }
+    .dash-list-item:last-child { border-bottom: 0; }
+    .dash-list-item:hover { background: var(--adm-subtle); color: inherit; }
+    .dash-list-main { display: flex; flex-direction: column; min-width: 0; }
+    .dash-list-title { font-weight: 600; font-size: .875rem; }
+    .dash-list-meta { font-size: .75rem; color: var(--adm-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-list-empty { display: flex; flex-direction: column; align-items: center; gap: .5rem; padding: 1.5rem 0; color: var(--adm-muted); font-size: .875rem; }
+    .dash-list-empty i { font-size: 1.25rem; }
+
+    /* Alertes */
+    .dash-alerts { display: flex; flex-direction: column; gap: .5rem; }
+    .dash-alert { display: flex; gap: .75rem; align-items: flex-start; padding: .75rem; border-radius: var(--adm-radius-sm); border: 1px solid transparent; }
+    .dash-alert i { margin-top: .15rem; }
+    .dash-alert.tone-danger { border-color: #F2C9C4; }
+    .dash-alert.tone-warning { border-color: #EED9A8; }
+    .dash-alert.tone-success { background: var(--adm-green-50); color: var(--adm-green); border-color: #BFE3D3; }
+    .dash-alert.tone-info { border-color: #C5DBEC; }
+    .dash-alert-title { font-size: .8125rem; font-weight: 600; color: var(--adm-text); }
+    .dash-alert-text { font-size: .75rem; color: var(--adm-muted); }
+
+    /* Actions */
+    .dash-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+    .dash-action {
+        display: flex; flex-direction: column; align-items: flex-start; gap: .375rem;
+        padding: .75rem; border: 1px solid var(--adm-border); border-radius: var(--adm-radius-sm);
+        background: var(--adm-surface); color: var(--adm-text); text-decoration: none;
+        font-size: .8125rem; font-weight: 500; text-align: left;
+        transition: border-color .15s ease, background-color .15s ease;
+    }
+    .dash-action i { color: var(--adm-green); }
+    .dash-action:hover { border-color: #CBD5E1; background: var(--adm-subtle); color: var(--adm-navy); }
+
+    /* Graphiques */
+    .chart-container { position: relative; height: 240px; }
+    .chart-container canvas { width: 100% !important; height: 100% !important; }
+    .dash-chart-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem; color: var(--adm-muted); font-size: .875rem; }
+    .dash-chart-empty i { font-size: 1.5rem; }
+
+    /* Carte */
+    .dash-filters { border: 1px solid var(--adm-border); border-radius: var(--adm-radius-sm); background: var(--adm-subtle); padding: .875rem; margin-bottom: 1rem; }
+    .dash-map-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+    .dash-map-stat { display: flex; align-items: center; gap: .625rem; padding: .625rem .875rem; border: 1px solid var(--adm-border); border-radius: var(--adm-radius-sm); font-size: .8125rem; color: var(--adm-muted); }
+    .dash-map-stat strong { color: var(--adm-text); font-size: 1rem; margin-right: .25rem; }
+    .dash-map { height: 500px; border-radius: var(--adm-radius-sm); overflow: hidden; z-index: 1; border: 1px solid var(--adm-border); }
+    .dash-map-legend {
+        position: absolute; top: 10px; right: 10px; z-index: 1000;
+        background: var(--adm-surface); border: 1px solid var(--adm-border);
+        border-radius: var(--adm-radius-sm); box-shadow: var(--adm-shadow);
+        padding: .75rem; max-width: 200px;
+    }
+
+    @media (max-width: 1399.98px) {
+        .dash-flow { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .dash-flow-step::after { display: none; }
+    }
+    @media (max-width: 1199.98px) {
+        .dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .dash-grid-3 { grid-template-columns: 1fr; }
+        .dash-span-2 { grid-column: auto; }
+        .dash-flow-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 767.98px) {
+        .dash-grid-2 { grid-template-columns: 1fr; }
+        .dash-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .dash-flow-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .dash-map-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .dash-map { height: 380px; }
+        .dash-map-legend { position: static; max-width: none; margin-top: .75rem; box-shadow: none; }
+    }
+    @media (max-width: 479.98px) {
+        .dash-kpis { grid-template-columns: 1fr; }
+        .dash-actions { grid-template-columns: 1fr; }
+        .dash-header-actions { width: 100%; }
+        .dash-header-actions .btn { flex: 1; }
+    }
 </style>
 @endpush
 
@@ -629,7 +717,7 @@ if (requestsCtx) {
     const chartData = @json($chartsData['last7Days'] ?? []);
     const labels = chartData.map(item => item.label);
     const data = chartData.map(item => item.requests);
-    
+
     requestsChart = new Chart(requestsCtx, {
         type: 'line',
         data: {
@@ -637,15 +725,15 @@ if (requestsCtx) {
             datasets: [{
                 label: 'Demandes',
                 data: data.length > 0 ? data : [0, 0, 0, 0, 0, 0, 0],
-                borderColor: '#667eea',
-                backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                borderWidth: 3,
+                borderColor: '#12304A',
+                backgroundColor: 'rgba(18, 48, 74, 0.06)',
+                borderWidth: 2,
                 fill: true,
-                tension: 0.4,
-                pointBackgroundColor: '#667eea',
+                tension: 0.3,
+                pointBackgroundColor: '#12304A',
                 pointBorderColor: '#ffffff',
                 pointBorderWidth: 2,
-                pointRadius: 5
+                pointRadius: 4
             }]
         },
         options: {
@@ -660,7 +748,7 @@ if (requestsCtx) {
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: 'rgba(0,0,0,0.1)'
+                        color: '#E2E8F0'
                     }
                 },
                 x: {
@@ -680,7 +768,7 @@ if (warehousesCtx) {
     const entrepotsData = @json($chartsData['entrepotsByRegion'] ?? []);
     const labels = Object.keys(entrepotsData);
     const data = Object.values(entrepotsData);
-    
+
     warehousesChart = new Chart(warehousesCtx, {
         type: 'doughnut',
         data: {
@@ -688,11 +776,11 @@ if (warehousesCtx) {
             datasets: [{
                 data: data.length > 0 ? data : [1],
                 backgroundColor: [
-                    '#667eea',
-                    '#764ba2',
-                    '#f093fb',
-                    '#f5576c',
-                    '#4facfe'
+                    '#12304A',
+                    '#16845B',
+                    '#1D6FA5',
+                    '#B7791F',
+                    '#64748B'
                 ],
                 borderWidth: 2,
                 borderColor: '#fff'
@@ -722,7 +810,7 @@ if (fuelCtx) {
     const fuelData = @json($chartsData['fuelByEntrepot'] ?? []);
     const labels = Object.keys(fuelData);
     const data = Object.values(fuelData);
-    
+
     fuelChart = new Chart(fuelCtx, {
         type: 'bar',
         data: {
@@ -730,28 +818,15 @@ if (fuelCtx) {
             datasets: [{
                 label: 'Carburant (L)',
                 data: data.length > 0 ? data : [0],
-                backgroundColor: [
-                    'rgba(102, 126, 234, 0.8)',
-                    'rgba(118, 75, 162, 0.8)',
-                    'rgba(240, 147, 251, 0.8)',
-                    'rgba(245, 87, 108, 0.8)',
-                    'rgba(79, 172, 254, 0.8)'
-                ],
-                borderColor: [
-                    '#667eea',
-                    '#764ba2',
-                    '#f093fb',
-                    '#f5576c',
-                    '#4facfe'
-                ],
-                borderWidth: 2,
-                borderRadius: 6
+                backgroundColor: '#1D6FA5',
+                borderWidth: 0,
+                borderRadius: 4,
+                maxBarThickness: 36
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: true,
-            aspectRatio: 2,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     display: false
@@ -784,7 +859,7 @@ if (stockCtx) {
     const stockData = @json($chartsData['stockByCategory'] ?? []);
     const labels = Object.keys(stockData);
     const data = Object.values(stockData);
-    
+
     stockChart = new Chart(stockCtx, {
         type: 'bar',
         data: {
@@ -792,22 +867,10 @@ if (stockCtx) {
             datasets: [{
                 label: 'Stock (tonnes)',
                 data: data.length > 0 ? data : [0],
-                backgroundColor: [
-                    'rgba(79, 172, 254, 0.8)',
-                    'rgba(0, 242, 254, 0.8)',
-                    'rgba(67, 233, 123, 0.8)',
-                    'rgba(56, 249, 215, 0.8)',
-                    'rgba(250, 112, 154, 0.8)'
-                ],
-                borderColor: [
-                    '#4facfe',
-                    '#00f2fe',
-                    '#43e97b',
-                    '#38f9d7',
-                    '#fa709a'
-                ],
-                borderWidth: 2,
-                borderRadius: 6
+                backgroundColor: '#16845B',
+                borderWidth: 0,
+                borderRadius: 4,
+                maxBarThickness: 28
             }]
         },
         options: {
@@ -863,11 +926,11 @@ const demandeIcon = L.divIcon({
 function initWarehouseMap() {
     // Centré sur le Sénégal
     warehouseMap = L.map('warehouseMap').setView([14.4974, -14.4524], 7);
-    
+
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | CSAR Admin'
     }).addTo(warehouseMap);
-    
+
     // Initialiser le groupe de marqueurs avec clustering
     markersLayer = L.markerClusterGroup({
         chunkedLoading: true,
@@ -876,7 +939,7 @@ function initWarehouseMap() {
         zoomToBoundsOnClick: true,
         maxClusterRadius: 50
     });
-    
+
     // Charger les données initiales
     const initialData = @json($chartsData['mapData'] ?? []);
     currentMapData = initialData;
@@ -889,17 +952,17 @@ function renderMapMarkers(data) {
     if (markersLayer) {
         markersLayer.clearLayers();
     }
-    
+
     // Compteurs pour les statistiques
     let warehouseCount = 0;
     let demandeCount = 0;
     let pendingCount = 0;
     let approvedCount = 0;
-    
+
     if (data && data.length > 0) {
         data.forEach(item => {
             let icon, popupContent, statusBadge;
-            
+
             if (item.type === 'warehouse') {
                 warehouseCount++;
                 icon = warehouseIcon;
@@ -922,7 +985,7 @@ function renderMapMarkers(data) {
             } else if (item.type === 'demande') {
                 demandeCount++;
                 icon = demandeIcon;
-                
+
                 // Déterminer le badge de statut
                 let badgeClass = 'warning';
                 let statusText = item.status;
@@ -938,9 +1001,9 @@ function renderMapMarkers(data) {
                     statusText = 'En attente';
                     pendingCount++;
                 }
-                
+
                 statusBadge = `<span class="badge bg-${badgeClass}">${statusText}</span>`;
-                
+
                 popupContent = `
                     <div style="min-width: 220px;">
                         <div class="d-flex align-items-center mb-2">
@@ -984,16 +1047,16 @@ function renderMapMarkers(data) {
                 markersLayer.addLayer(marker);
                 return;
             }
-            
+
             if (item.type !== 'zone') {
                 const marker = L.marker([item.lat, item.lng], { icon: icon });
                 marker.bindPopup(popupContent);
                 markersLayer.addLayer(marker);
             }
         });
-        
+
         warehouseMap.addLayer(markersLayer);
-        
+
         // Ajuster la vue pour englober tous les marqueurs
         if (markersLayer.getLayers().length > 0) {
             warehouseMap.fitBounds(markersLayer.getBounds(), { padding: [50, 50] });
@@ -1011,7 +1074,7 @@ function renderMapMarkers(data) {
         markersLayer.addLayer(centerMarker);
         warehouseMap.addLayer(markersLayer);
     }
-    
+
     // Mettre à jour les statistiques
     document.getElementById('mapStatWarehouses').textContent = warehouseCount;
     document.getElementById('mapStatDemandes').textContent = demandeCount;
@@ -1021,25 +1084,25 @@ function renderMapMarkers(data) {
 
 function updateMapStats(data) {
     if (!data) return;
-    
+
     const warehouses = data.filter(item => item.type === 'warehouse').length;
     const demandesPoints = data.filter(item => item.type === 'demande').length;
     const zones = data.filter(item => item.type === 'zone');
     const demandesFromZones = zones.reduce((s, z) => s + (z.total || 0), 0);
     const demandes = demandesPoints + (zones.length ? demandesFromZones : 0);
-    let pending = data.filter(item => 
-        item.type === 'demande' && 
+    let pending = data.filter(item =>
+        item.type === 'demande' &&
         (item.status === 'en_attente' || item.status === 'pending')
     ).length;
-    let approved = data.filter(item => 
-        item.type === 'demande' && 
+    let approved = data.filter(item =>
+        item.type === 'demande' &&
         (item.status === 'traitee' || item.status === 'approved')
     ).length;
     if (zones.length) {
         pending += zones.reduce((s, z) => s + (z.pending || 0), 0);
         approved += zones.reduce((s, z) => s + (z.approved || 0), 0);
     }
-    
+
     document.getElementById('mapStatWarehouses').textContent = warehouses;
     document.getElementById('mapStatDemandes').textContent = demandes;
     document.getElementById('mapStatPending').textContent = pending;
@@ -1062,10 +1125,10 @@ function applyMapFilters() {
     const region = document.getElementById('filterRegion').value;
     const status = document.getElementById('filterStatus').value;
     const type = document.getElementById('filterType').value;
-    
+
     // Afficher un loader
     showToast('Application des filtres...', 'info');
-    
+
     // Appeler l'API avec les filtres
     fetch('{{ route("admin.dashboard.filter-map") }}', {
         method: 'POST',
@@ -1103,7 +1166,7 @@ function resetMapFilters() {
     document.getElementById('filterRegion').value = '';
     document.getElementById('filterStatus').value = '';
     document.getElementById('filterType').value = 'all';
-    
+
     // Recharger les données initiales
     const initialData = @json($chartsData['mapData'] ?? []);
     currentMapData = initialData;
@@ -1118,12 +1181,12 @@ function refreshMapData() {
 // ==================== EXPORT PDF ====================
 function exportMapToPDF() {
     showToast('Génération du PDF en cours...', 'info');
-    
+
     // Cacher temporairement les contrôles de la carte pour un PDF propre
     const legend = document.getElementById('mapLegend');
     const legendDisplay = legend.style.display;
     legend.style.display = 'none';
-    
+
     // Capturer la carte avec html2canvas
     html2canvas(document.getElementById('warehouseMap'), {
         useCORS: true,
@@ -1132,56 +1195,56 @@ function exportMapToPDF() {
     }).then(canvas => {
         // Restaurer la légende
         legend.style.display = legendDisplay;
-        
+
         const imgData = canvas.toDataURL('image/png');
-        
+
         // Créer le PDF
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('l', 'mm', 'a4'); // landscape, millimeters, A4
-        
+
         // Dimensions
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const imgWidth = pdfWidth - 20;
         const imgHeight = (canvas.height * imgWidth) / canvas.width;
-        
+
         // En-tête
         pdf.setFontSize(18);
         pdf.setTextColor(59, 130, 246);
         pdf.text('CSAR - Carte des Entrepots et Demandes', pdfWidth / 2, 15, { align: 'center' });
-        
+
         // Date et filtres
         pdf.setFontSize(10);
         pdf.setTextColor(100, 100, 100);
-        const dateStr = new Date().toLocaleDateString('fr-FR', { 
-            year: 'numeric', 
-            month: 'long', 
+        const dateStr = new Date().toLocaleDateString('fr-FR', {
+            year: 'numeric',
+            month: 'long',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
         });
         pdf.text('Genere le: ' + dateStr, 10, 22);
-        
+
         // Statistiques
         const warehouses = currentMapData.filter(item => item.type === 'warehouse').length;
         const demandes = currentMapData.filter(item => item.type === 'demande').length;
         pdf.text('Entrepots: ' + warehouses + ' | Demandes: ' + demandes, pdfWidth - 10, 22, { align: 'right' });
-        
+
         // Image de la carte
         pdf.addImage(imgData, 'PNG', 10, 28, imgWidth, Math.min(imgHeight, pdfHeight - 40));
-        
+
         // Légende
         let legendY = Math.min(imgHeight + 35, pdfHeight - 35);
         pdf.setFontSize(12);
         pdf.setTextColor(0, 0, 0);
         pdf.text('Legende:', 10, legendY);
-        
+
         pdf.setFontSize(10);
         pdf.setTextColor(59, 130, 246);
         pdf.text('- Entrepots CSAR', 15, legendY + 6);
         pdf.setTextColor(220, 53, 69);
         pdf.text('- Demandes d\'aide alimentaire', 50, legendY + 6);
-        
+
         // Statuts
         pdf.setFontSize(9);
         pdf.setTextColor(100, 100, 100);
@@ -1192,16 +1255,16 @@ function exportMapToPDF() {
         pdf.text('- Traitee', 45, legendY + 17);
         pdf.setTextColor(220, 53, 69);
         pdf.text('- Rejetee', 70, legendY + 17);
-        
+
         // Pied de page
         pdf.setFontSize(8);
         pdf.setTextColor(150, 150, 150);
         pdf.text('(c) CSAR - Commissariat a la Securite Alimentaire et a la Resilience', pdfWidth / 2, pdfHeight - 5, { align: 'center' });
-        
+
         // Télécharger le PDF
         const filename = `carte_csar_${new Date().getTime()}.pdf`;
         pdf.save(filename);
-        
+
         showToast('PDF genere avec succes!', 'success');
     }).catch(error => {
         legend.style.display = legendDisplay;
@@ -1222,24 +1285,24 @@ function updateStats() {
                     animateValue(element, parseInt(element.textContent), data[statName], 1000);
                 }
             });
-            
+
             // Update notifications and messages
             const unreadNotificationsEl = document.getElementById('unread-notifications');
             const unreadMessagesEl = document.getElementById('unread-messages');
-            
+
             if (unreadNotificationsEl) {
                 animateValue(unreadNotificationsEl, parseInt(unreadNotificationsEl.textContent), data.unread_notifications || 0, 1000);
             }
             if (unreadMessagesEl) {
                 animateValue(unreadMessagesEl, parseInt(unreadMessagesEl.textContent), data.unread_messages || 0, 1000);
             }
-            
+
             // Mettre à jour les graphiques avec les nouvelles données
             updateCharts(data);
-            
+
             // Mettre à jour la carte
             updateMap(data.map_data || []);
-            
+
         })
         .catch(error => console.error('Erreur lors de la mise à jour des statistiques:', error));
 }
@@ -1249,7 +1312,7 @@ function animateValue(element, start, end, duration) {
     const range = end - start;
     const increment = range / (duration / 16);
     let current = start;
-    
+
     const timer = setInterval(() => {
         current += increment;
         if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
@@ -1264,23 +1327,23 @@ function animateValue(element, start, end, duration) {
 function refreshDashboard() {
     const refreshBtn = document.querySelector('button[onclick="refreshDashboard()"]');
     const icon = refreshBtn.querySelector('i');
-    
+
     // Animation de rotation
     icon.style.animation = 'spin 1s linear infinite';
-    
+
     // Actualiser les données
     updateStats();
-    
+
     // Actualiser les graphiques
     setTimeout(() => {
         if (typeof requestsChart !== 'undefined') requestsChart.update();
         if (typeof warehousesChart !== 'undefined') warehousesChart.update();
         if (typeof fuelChart !== 'undefined') fuelChart.update();
         if (typeof stockChart !== 'undefined') stockChart.update();
-        
+
         // Arrêter l'animation
         icon.style.animation = '';
-        
+
         // Afficher un message de succès
         showToast('Dashboard actualisé avec succès!', 'success');
     }, 1000);
@@ -1297,11 +1360,11 @@ function showToast(message, type = 'info') {
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     `;
-    
+
     document.body.appendChild(toast);
     const bsToast = new bootstrap.Toast(toast);
     bsToast.show();
-    
+
     // Supprimer le toast après 3 secondes
     setTimeout(() => {
         toast.remove();
@@ -1318,7 +1381,7 @@ function updateCharts(data) {
         requestsChart.data.datasets[0].data = chartData;
         requestsChart.update('none'); // Mise à jour sans animation pour éviter les clignotements
     }
-    
+
     // Mettre à jour le graphique des entrepôts
     if (typeof warehousesChart !== 'undefined' && data.entrepotsByRegion) {
         const labels = Object.keys(data.entrepotsByRegion);
@@ -1327,7 +1390,7 @@ function updateCharts(data) {
         warehousesChart.data.datasets[0].data = chartData;
         warehousesChart.update('none');
     }
-    
+
     // Mettre à jour le graphique du carburant
     if (typeof fuelChart !== 'undefined' && data.fuelByEntrepot) {
         const labels = Object.keys(data.fuelByEntrepot);
@@ -1336,7 +1399,7 @@ function updateCharts(data) {
         fuelChart.data.datasets[0].data = chartData;
         fuelChart.update('none');
     }
-    
+
     // Mettre à jour le graphique des stocks
     if (typeof stockChart !== 'undefined' && data.stockByCategory) {
         const labels = Object.keys(data.stockByCategory);
@@ -1359,10 +1422,10 @@ function updateMap(mapData) {
 // Initialiser la carte et les mises à jour automatiques
 document.addEventListener('DOMContentLoaded', function() {
     initWarehouseMap();
-    
+
     // Mise à jour automatique toutes les 30 secondes
     setInterval(updateStats, 30000);
-    
+
     // Animation CSS pour la rotation
     const style = document.createElement('style');
     style.textContent = `
@@ -1377,17 +1440,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // Générer un rapport
 function generateReport(type = 'dashboard', format = 'pdf') {
     console.log('Début de génération du rapport...');
-    
+
     // Afficher un indicateur de chargement
     showToast('Génération du rapport en cours...', 'info');
-    
-    // Message de debug visible
-    alert('Début de génération du rapport - Vérifiez la console (F12) pour les détails');
-    
+
     // Vérifier que la route existe
     const url = '{{ route("admin.dashboard.generate-report") }}';
     console.log('URL de la route:', url);
-    
+
     fetch(url, {
         method: 'POST',
         headers: {
@@ -1440,7 +1500,7 @@ function generateReportWithOptions() {
     const type = document.getElementById('report-type')?.value || 'dashboard';
     const format = document.getElementById('report-format')?.value || 'pdf';
     const period = document.getElementById('report-period')?.value || 'month';
-    
+
     generateReport(type, format, period);
 }
 </script>

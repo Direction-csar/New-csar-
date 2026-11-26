@@ -13,7 +13,7 @@
                 <div class="card-body">
                     <h3>Informations de Contact</h3>
                     <p><strong>Adresse:</strong> Rue El Hadji Amadou Assane Ndoye, 29, Dakar, Sénégal</p>
-                    <p><strong>Téléphone:</strong> +221 33 123 45 67</p>
+                    <p><strong>Téléphone:</strong> +221 77 645 92 42</p>
                     <p><strong>Email:</strong> contact@csar.sn</p>
                     <p><strong>Site web:</strong> www.csar.sn</p>
                 </div>

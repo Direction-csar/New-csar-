@@ -17,6 +17,10 @@ return Application::configure(basePath: dirname(__DIR__))
             Route::middleware('api')
                 ->prefix('api/warehouse')
                 ->group(base_path('routes/warehouse-api.php'));
+
+            Route::middleware('api')
+                ->prefix('api/comptable')
+                ->group(base_path('routes/comptable-api.php'));
         },
         health: '/up',
     )
@@ -47,12 +51,17 @@ return Application::configure(basePath: dirname(__DIR__))
             'ctc-admin' => \App\Http\Middleware\CTCAdminMiddleware::class,
             'supervisor' => \App\Http\Middleware\SupervisorMiddleware::class,
             'enforce.2fa' => \App\Http\Middleware\EnforceTwoFactor::class,
+            'collector-tracking' => \App\Http\Middleware\CollectorTrackingAuth::class,
+            'sim.collector' => \App\Http\Middleware\EnsureActiveSimCollector::class,
+            'distribution.user' => \App\Http\Middleware\EnsureDistributionUser::class,
             'http-cache' => \App\Http\Middleware\HttpCache::class,
             'workflow.role' => \App\Http\Middleware\CheckWorkflowRole::class,
             'direction' => \App\Http\Middleware\DirectionPortalMiddleware::class,
+            'any-portal' => \App\Http\Middleware\AnyPortalMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        $exceptions->dontFlash(['current_password', 'password', 'password_confirmation', 'verification_code']);
         // Intégration Sentry (capture des exceptions en production)
         // Activée uniquement si le DSN est configuré dans .env (SENTRY_LARAVEL_DSN)
         if (app()->bound('sentry') && config('sentry.dsn')) {

@@ -88,7 +88,7 @@
                                 <td><span class="badge bg-info">{{ ucfirst($demande->type ?? 'N/A') }}</span></td>
                                 <td>
                                     @if($demande->scan_file)
-                                    <a href="{{ asset('storage/' . $demande->scan_file) }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                    <a href="{{ route('admin.demandes.document', [$demande->id, 'scan']) }}" target="_blank" class="btn btn-sm btn-outline-info">
                                         <i class="fas fa-file-pdf"></i> Voir
                                     </a>
                                     @else
@@ -97,7 +97,7 @@
                                 </td>
                                 <td>
                                     @if($demande->dg_signature_file)
-                                    <a href="{{ asset('storage/' . $demande->dg_signature_file) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <a href="{{ route('admin.demandes.document', [$demande->id, 'signature']) }}" target="_blank" class="btn btn-sm btn-outline-primary">
                                         <i class="fas fa-signature"></i> Voir
                                     </a>
                                     @else

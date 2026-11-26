@@ -114,7 +114,7 @@
           <li style="margin-bottom:8px;"><a href="{{ route('action', ['locale' => app()->getLocale()]) }}" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">{{ __('messages.home.request_button') }}</a></li>
           <li style="margin-bottom:10px;"><a href="{{ route('contact', ['locale' => app()->getLocale()]) }}" style="color:#fff; text-decoration:none; text-shadow: 0 1px 2px rgba(0,0,0,0.2);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">{{ __('messages.nav.contact_us') }}</a></li>
           <li style="margin-bottom:8px; font-size:14px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"><i class="fas fa-envelope" style="margin-right:8px;"></i>contact@csar.sn</li>
-          <li style="margin-bottom:8px; font-size:14px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"><i class="fas fa-phone" style="margin-right:8px;"></i>+221 33 123 45 67</li>
+          <li style="margin-bottom:8px; font-size:14px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"><i class="fas fa-phone" style="margin-right:8px;"></i>+221 77 645 92 42</li>
           <li style="font-size:14px; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"><i class="fas fa-map-marker-alt" style="margin-right:8px;"></i>Dakar, Sénégal</li>
         </ul>
       </div>

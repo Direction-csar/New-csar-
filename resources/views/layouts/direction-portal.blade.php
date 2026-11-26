@@ -264,10 +264,105 @@ $directionSlug = strtolower($direction);
             <span class="menu-text">Tableau de bord</span>
         </a>
 
+        @if($directionSlug === 'dtl' && Route::has('dtl.demandes.index'))
+        <a href="{{ route('dtl.demandes.index') }}" class="menu-link {{ str_contains($currentRoute, 'dtl.demandes') ? 'active' : '' }}">
+            <i class="fas fa-inbox"></i>
+            <span class="menu-text">Dossiers approuvés</span>
+        </a>
+        @endif
+
+        @if(Route::has($directionSlug . '.stock-operations.index'))
+        <a href="{{ route($directionSlug . '.stock-operations.index') }}" class="menu-link {{ str_contains($currentRoute, 'stock-operations') && !str_contains($currentRoute, 'stock-operations.pending') ? 'active' : '' }}">
+            <i class="fas fa-dolly"></i>
+            <span class="menu-text">Opérations de stock</span>
+        </a>
+        @endif
+        @if(Route::has($directionSlug . '.stock-operations.pending'))
+        <a href="{{ route($directionSlug . '.stock-operations.pending') }}" class="menu-link {{ str_contains($currentRoute, 'stock-operations.pending') ? 'active' : '' }}">
+            <i class="fas fa-clock"></i>
+            <span class="menu-text">Mouvements en attente</span>
+        </a>
+        @endif
+        @if(in_array($directionSlug, ['dtl', 'dg']) && Route::has($directionSlug . '.inspector-assignments.index'))
+        <a href="{{ route($directionSlug . '.inspector-assignments.index') }}" class="menu-link {{ str_contains($currentRoute, 'inspector-assignments') ? 'active' : '' }}">
+            <i class="fas fa-user-shield"></i>
+            <span class="menu-text">Affectations inspecteurs</span>
+        </a>
+        @endif
+        @if(in_array($directionSlug, ['dtl', 'dg']) && Route::has($directionSlug . '.stock-staff.index'))
+        <a href="{{ route($directionSlug . '.stock-staff.index') }}" class="menu-link {{ str_contains($currentRoute, 'stock-staff') ? 'active' : '' }}">
+            <i class="fas fa-users-gear"></i>
+            <span class="menu-text">Personnel stock</span>
+        </a>
+        @endif
+
+        @if($directionSlug === 'comptable')
+            @if(Route::has('comptable.mouvements.index'))
+            <a href="{{ route('comptable.mouvements.index') }}" class="menu-link {{ str_contains($currentRoute, 'comptable.mouvements') ? 'active' : '' }}">
+                <i class="fas fa-calculator"></i>
+                <span class="menu-text">Validation mouvements</span>
+            </a>
+            @endif
+            @if(Route::has('comptable.stocks'))
+            <a href="{{ route('comptable.stocks') }}" class="menu-link {{ str_contains($currentRoute, 'comptable.stocks') ? 'active' : '' }}">
+                <i class="fas fa-warehouse"></i>
+                <span class="menu-text">Stocks & magasins</span>
+            </a>
+            @endif
+            @if(Route::has('comptable.carburant'))
+            <a href="{{ route('comptable.carburant') }}" class="menu-link {{ str_contains($currentRoute, 'comptable.carburant') ? 'active' : '' }}">
+                <i class="fas fa-gas-pump"></i>
+                <span class="menu-text">Carburant</span>
+            </a>
+            @endif
+            @if(Route::has('comptable.materiel'))
+            <a href="{{ route('comptable.materiel') }}" class="menu-link {{ str_contains($currentRoute, 'comptable.materiel') ? 'active' : '' }}">
+                <i class="fas fa-hand-holding"></i>
+                <span class="menu-text">Matériel</span>
+            </a>
+            @endif
+        @endif
+
+        @if($directionSlug === 'magasinier')
+            @if(Route::has('magasinier.warehouses.index'))
+            <a href="{{ route('magasinier.warehouses.index') }}" class="menu-link {{ str_contains($currentRoute, 'magasinier.warehouses') ? 'active' : '' }}">
+                <i class="fas fa-warehouse"></i>
+                <span class="menu-text">Mes magasins</span>
+            </a>
+            @endif
+            @if(Route::has('magasinier.missions.index'))
+            <a href="{{ route('magasinier.missions.index') }}" class="menu-link {{ str_contains($currentRoute, 'magasinier.missions') ? 'active' : '' }}">
+                <i class="fas fa-truck-loading"></i>
+                <span class="menu-text">Missions DTL</span>
+            </a>
+            @endif
+            @if(Route::has('magasinier.transferts.create'))
+            <a href="{{ route('magasinier.transferts.create') }}" class="menu-link {{ str_contains($currentRoute, 'magasinier.transferts') ? 'active' : '' }}">
+                <i class="fas fa-exchange-alt"></i>
+                <span class="menu-text">Transfert</span>
+            </a>
+            @endif
+            @if(Route::has('magasinier.inventaires.create'))
+            <a href="{{ route('magasinier.inventaires.create') }}" class="menu-link {{ str_contains($currentRoute, 'magasinier.inventaires') ? 'active' : '' }}">
+                <i class="fas fa-clipboard-list"></i>
+                <span class="menu-text">Inventaire</span>
+            </a>
+            @endif
+        @endif
+
+        @if($directionSlug === 'inspecteur' && Route::has('inspecteur.missions.index'))
+        <a href="{{ route('inspecteur.missions.index') }}" class="menu-link {{ str_contains($currentRoute, 'inspecteur.missions') ? 'active' : '' }}">
+            <i class="fas fa-clipboard-check"></i>
+            <span class="menu-text">Mes missions</span>
+        </a>
+        @endif
+
+        @if(Route::has('archives.' . $directionSlug . '.index'))
         <a href="{{ route('archives.' . $directionSlug . '.index') }}" class="menu-link {{ str_contains($currentRoute, 'archives.' . $directionSlug) ? 'active' : '' }}">
             <i class="fas fa-archive"></i>
             <span class="menu-text">Archives {{ strtoupper($direction) }}</span>
         </a>
+        @endif
 
         <a href="{{ url('/') }}" target="_blank" class="menu-link">
             <i class="fas fa-external-link-alt"></i>

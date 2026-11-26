@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import 'qr_ticket_screen.dart';
+import '../utils/json_num.dart';
 
 class PlanningBeneficiariesScreen extends StatefulWidget {
   final dynamic planning;
@@ -45,9 +46,23 @@ class _PlanningBeneficiariesScreenState extends State<PlanningBeneficiariesScree
           _beneficiaries = raw is List ? raw : (raw?['data'] ?? []);
           _stats = Map<String, dynamic>.from(res['stats'] ?? {});
         });
+      } else if (ApiService.isAuthError(res) && mounted) {
+        await _sessionExpired();
+        return;
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _sessionExpired() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Session expirée ou compte désactivé : reconnectez-vous.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    await context.read<AuthService>().logout();
   }
 
   List<dynamic> get _filtered {
@@ -63,7 +78,7 @@ class _PlanningBeneficiariesScreenState extends State<PlanningBeneficiariesScree
     }).toList();
   }
 
-  int _count(String key) => (_stats[key] as int?) ?? _beneficiaries.where((b) => b['status'] == key).length;
+  int _count(String key) => jsonInt(_stats[key], _beneficiaries.where((b) => b['status'] == key).length);
 
   String _fmtDate(dynamic iso) {
     if (iso == null) return '';
@@ -262,7 +277,7 @@ class _PlanningBeneficiariesScreenState extends State<PlanningBeneficiariesScree
                     itemCount: _filtered.length,
                     itemBuilder: (context, index) {
                       final b = _filtered[index];
-                      final status = b['status'] as String? ?? 'pending';
+                      final status = b['status']?.toString() ?? 'pending';
                       final hasTicket = b['ticket'] != null;
 
                       return Container(

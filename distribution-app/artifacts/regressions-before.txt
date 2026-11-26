@@ -1,0 +1,186 @@
+00:00 +0: loading C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart
+00:00 +0: connexion réussie → tableau de bord affiché (quotas décimaux en chaînes)
+00:02 +1: quotas numériques, nuls ou absents ne cassent pas l'écran
+00:03 +2: compteurs reçus en chaînes ou décimaux ne cassent pas l'écran
+00:03 +3: planning sans événement ni lieu : écran affiché
+00:03 +4: aucun planning assigné : tableau de bord vide, pas d'écran blanc
+00:04 +5: identifiants incorrects : message explicite, reste sur la connexion
+00:04 +6: API indisponible : message réseau explicite
+00:04 +7: réponse de connexion invalide (HTML) : message explicite
+00:04 +8: connexion « réussie » sans jeton : message explicite, pas d'écran blanc
+00:04 +9: connexion « réussie » sans utilisateur : tableau de bord affiché
+00:05 +10: jeton expiré (401) après connexion : retour à la connexion avec message
+00:05 +11: serveur en erreur 500 sur les plannings : message + bouton Réessayer
+00:05 +12: format de plannings inattendu : message, pas d'écran blanc
+00:05 +13: date courte : le planning reste affichable
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: RangeError:<RangeError (end): Invalid value: Only valid value is 0: 10>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart:224:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1682:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart line 224
+The test description was:
+  date courte : le planning reste affichable
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:06 +13 -1: date courte : le planning reste affichable [E]
+  Test failed. See exception logs above.
+  The test description was: date courte : le planning reste affichable
+
+00:06 +13 -1: nombre non fini : aucune exception de construction
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: UnsupportedError:<Unsupported operation: Infinity or NaN toInt>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart:230:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1682:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart line 230
+The test description was:
+  nombre non fini : aucune exception de construction
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:06 +13 -2: nombre non fini : aucune exception de construction [E]
+  Test failed. See exception logs above.
+  The test description was: nombre non fini : aucune exception de construction
+
+00:06 +13 -2: élément planning malformé : erreur récupérable
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: null
+  Actual: NoSuchMethodError:<NoSuchMethodError: The method '[]' was called on null.
+          Receiver: null
+          Tried calling: []("beneficiaires")>
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart:238:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1682:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart line 238
+The test description was:
+  élément planning malformé : erreur récupérable
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:06 +13 -3: élément planning malformé : erreur récupérable [E]
+  Test failed. See exception logs above.
+  The test description was: élément planning malformé : erreur récupérable
+
+00:06 +13 -3: 401 HTML : purge de la session et retour connexion
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TypeWidgetFinder:<Found 0 widgets with type "LoginScreen": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart:248:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1682:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart line 248
+The test description was:
+  401 HTML : purge de la session et retour connexion
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:06 +13 -4: 401 HTML : purge de la session et retour connexion [E]
+  Test failed. See exception logs above.
+  The test description was: 401 HTML : purge de la session et retour connexion
+
+00:06 +13 -4: 403 : accès refusé explicite sans invalider le jeton
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TypeWidgetFinder:<Found 0 widgets with type "HomeScreen": []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart:257:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1682:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart line 257
+The test description was:
+  403 : accès refusé explicite sans invalider le jeton
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:07 +13 -5: 403 : accès refusé explicite sans invalider le jeton [E]
+  Test failed. See exception logs above.
+  The test description was: 403 : accès refusé explicite sans invalider le jeton
+
+00:07 +13 -5: historique bloqué : délai borné et bouton de reprise
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: at least one matching candidate
+  Actual: _TextContainingWidgetFinder:<Found 0 widgets with text containing Le serveur ne répond
+pas: []>
+   Which: means none were found but some were expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure>.<anonymous closure> (file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart:274:7)
+<asynchronous suspension>
+#5      _loginThrough.<anonymous closure> (file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart:85:29)
+<asynchronous suspension>
+#6      _loginThrough (file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart:72:3)
+<asynchronous suspension>
+#7      main.<anonymous closure> (file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart:263:5)
+<asynchronous suspension>
+#8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1682:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///C:/xampp/csar.sn/distribution-app/test/login_flow_test.dart line 274
+The test description was:
+  historique bloqué : délai borné et bouton de reprise
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:08 +13 -6: historique bloqué : délai borné et bouton de reprise [E]
+  Test failed. See exception logs above.
+  The test description was: historique bloqué : délai borné et bouton de reprise
+
+00:08 +13 -6: les erreurs HTTP conservent leur statut même sans JSON
+00:08 +13 -7: les erreurs HTTP conservent leur statut même sans JSON [E]
+  Expected: <401>
+    Actual: <null>
+
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\login_flow_test.dart 285:9                     main.<fn>.<fn>
+
+00:08 +13 -7: Some tests failed.

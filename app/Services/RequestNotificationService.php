@@ -11,75 +11,30 @@ class RequestNotificationService
     /**
      * Envoyer une notification au demandeur quand le workflow avance
      */
-    public static function notifyWorkflowUpdate(PublicRequest $request, string $oldStatus, string $newStatus): void
+    public static function prepare(PublicRequest $request, string $eventId, string $oldStatus, string $newStatus): void
     {
-        try {
-            $statusLabels = [
-                'soumise' => 'soumise',
-                'en_revue' => 'en cours de revue',
-                'document_attente' => 'en attente de documents',
-                'signee' => 'signée',
-                'scannee' => 'scannée',
-                'validee_dg' => 'validée par la Direction Générale',
-                'approuvee' => 'approuvée',
-                'rejetee' => 'rejetée',
-                'cloturee' => 'clôturée',
-            ];
-
-            $label = $statusLabels[$newStatus] ?? $newStatus;
-            $subject = 'Mise à jour de votre demande CSAR - ' . strtoupper($request->tracking_code);
-
-            // Email
-            if (filter_var($request->email, FILTER_VALIDATE_EMAIL)) {
-                Mail::send('emails.request-workflow-update', [
-                    'request' => $request,
-                    'oldStatus' => $oldStatus,
-                    'newStatus' => $newStatus,
-                    'label' => $label,
-                    'trackingUrl' => route('track.request.form', ['locale' => app()->getLocale()]),
-                ], function ($message) use ($request, $subject) {
-                    $message->to($request->email, $request->full_name)
-                        ->subject($subject);
-                });
-            }
-
-            // SMS si configuré
-            self::sendSmsNotification($request, $label);
-
-        } catch (\Exception $e) {
-            Log::error('Erreur notification workflow demande: ' . $e->getMessage(), [
-                'request_id' => $request->id,
-                'tracking_code' => $request->tracking_code,
-            ]);
-        }
+        \Illuminate\Support\Facades\DB::table('request_notification_deliveries')->insertOrIgnore([
+            'id' => $eventId, 'public_request_id' => $request->id,
+            'from_status' => $oldStatus, 'to_status' => $newStatus,
+            'state' => 'prepared', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        \Illuminate\Support\Facades\DB::afterCommit(fn () => self::dispatchPrepared($eventId));
     }
 
     /**
      * Envoyer un SMS de notification (si service SMS configuré)
      */
-    private static function sendSmsNotification(PublicRequest $request, string $statusLabel): void
+    public static function dispatchPrepared(string $eventId): void
     {
-        $phone = preg_replace('/[^0-9]/', '', $request->phone);
-        if (empty($phone) || strlen($phone) < 9) {
+        $query = \Illuminate\Support\Facades\DB::table('request_notification_deliveries')->where('id', $eventId);
+        if (!(clone $query)->where('state', 'prepared')->update(['state' => 'queued', 'updated_at' => now()])) {
             return;
         }
-
         try {
-            $message = "CSAR: Votre demande {$request->tracking_code} est maintenant {$statusLabel}. "
-                     . "Suivez son avancement sur: " . route('track.request.form', ['locale' => app()->getLocale()]);
-
-            // Si un service SMS est configuré, l'utiliser ici
-            // Exemple avec Twilio ou autre:
-            // self::sendViaTwilio($phone, $message);
-
-            // Pour l'instant, on log juste
-            Log::info('SMS notification préparé', [
-                'phone' => $phone,
-                'message' => $message,
-                'tracking_code' => $request->tracking_code,
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Erreur SMS workflow: ' . $e->getMessage());
+            \App\Jobs\SendRequestWorkflowNotification::dispatch($eventId);
+        } catch (\Throwable) {
+            (clone $query)->where('state', 'queued')->update(['state' => 'prepared', 'updated_at' => now()]);
+            Log::warning('request_notification_queue_failed', ['delivery_id' => $eventId]);
         }
     }
 
@@ -107,7 +62,7 @@ class RequestNotificationService
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Erreur notification signataires: ' . $e->getMessage());
+            Log::error('Erreur notification signataires', ['exception_type' => get_class($e)]);
         }
     }
 
@@ -135,7 +90,7 @@ class RequestNotificationService
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Erreur notification scanneurs: ' . $e->getMessage());
+            Log::error('Erreur notification scanneurs', ['exception_type' => get_class($e)]);
         }
     }
 
@@ -152,7 +107,7 @@ class RequestNotificationService
                     Mail::send('emails.request-dg-pending', [
                         'request' => $request,
                         'dgName' => $dg->name,
-                        'approvalUrl' => route('admin.demandes.edit', $request->id),
+                        'approvalUrl' => route('dg.demandes.show', $request->id),
                     ], function ($message) use ($dg, $request) {
                         $message->to($dg->email, $dg->name)
                             ->subject('Validation DG requise - Demande ' . $request->tracking_code);
@@ -160,7 +115,49 @@ class RequestNotificationService
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Erreur notification DG: ' . $e->getMessage());
+            Log::error('Erreur notification DG', ['exception_type' => get_class($e)]);
+        }
+    }
+
+    /**
+     * Notifier le DTL quand un dossier approuvé lui est transmis
+     */
+    public static function notifyDtl(PublicRequest $request): void
+    {
+        try {
+            $dtlUsers = \App\Models\User::whereIn('role', ['dtl'])->get();
+
+            foreach ($dtlUsers as $dtl) {
+                // Notification interne persistante
+                try {
+                    \App\Models\Notification::create([
+                        'type' => 'demande_transmise_dtl',
+                        'title' => 'Dossier approuvé à instruire',
+                        'message' => "La demande {$request->tracking_code} a été validée par la Directrice et transmise au DTL.",
+                        'user_id' => $dtl->id,
+                    ]);
+                } catch (\Exception $e) {
+                    Log::warning('Notification interne DTL échouée', ['exception_type' => get_class($e)]);
+                }
+
+                if (filter_var($dtl->email, FILTER_VALIDATE_EMAIL)) {
+                    try {
+                        Mail::raw(
+                            "Bonjour,\n\nLe dossier {$request->tracking_code} ({$request->full_name}) a été approuvé et signé par la Direction Générale. "
+                            . "Il vous est transmis pour instruction opérationnelle (missions inspecteur / sorties magasin).\n\n"
+                            . "Espace DTL : " . route('dtl.dashboard') . "\n\nCSAR",
+                            function ($message) use ($dtl, $request) {
+                                $message->to($dtl->email, $dtl->name)
+                                    ->subject('Dossier approuvé à instruire - ' . $request->tracking_code);
+                            }
+                        );
+                    } catch (\Exception $e) {
+                        Log::warning('Email DTL échoué', ['exception_type' => get_class($e)]);
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            Log::error('Erreur notification DTL', ['exception_type' => get_class($e)]);
         }
     }
 
@@ -194,7 +191,7 @@ class RequestNotificationService
                 }
             }
         } catch (\Exception $e) {
-            Log::error('Erreur résumé quotidien: ' . $e->getMessage());
+            Log::error('Erreur résumé quotidien', ['exception_type' => get_class($e)]);
         }
     }
 }

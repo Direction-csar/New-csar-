@@ -20,11 +20,23 @@ abstract class DirectionArchiveController extends Controller
 
     /**
      * Retourne le nom du layout Blade a utiliser pour les vues archives.
-     * Surcharger dans les sous-classes ayant un portail dedie (ex: Cpm, Dpse, Dtl).
+     * Le choix dépend du guard actif (contexte portail), pas du rôle :
+     * un compte admin connecté via /dtl/login reste dans l'espace DTL.
      */
     protected function getLayout(): string
     {
-        return 'layouts.admin';
+        return \Illuminate\Support\Facades\Auth::getDefaultDriver() === 'admin'
+            ? 'layouts.admin'
+            : $this->getPortalLayout();
+    }
+
+    /**
+     * Layout du portail dédié de la direction. Surcharger pour les
+     * portails ayant un layout spécifique (ex : DRH).
+     */
+    protected function getPortalLayout(): string
+    {
+        return 'layouts.direction-portal';
     }
 
     public function index(Request $request)
@@ -105,6 +117,13 @@ abstract class DirectionArchiveController extends Controller
             'description' => 'nullable|string',
             'file' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,jpg,jpeg,png|max:51200',
         ]);
+
+        // Le dossier cible doit appartenir à la direction courante
+        // (folder_id est fourni par le formulaire, donc falsifiable).
+        if ($request->filled('folder_id')) {
+            $targetFolder = \App\Models\ArchiveFolder::findOrFail($request->folder_id);
+            abort_unless($targetFolder->direction === $direction, 422, 'Le dossier cible appartient à une autre direction.');
+        }
 
         $file = $request->file('file');
         $path = $file->store('archives/' . strtolower($direction), 'public');

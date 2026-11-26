@@ -39,8 +39,14 @@
                             <td>{{ $p->tickets_count }}</td>
                             <td><span class="badge {{ $p->execution_rate >= 80 ? 'bg-success' : ($p->execution_rate > 0 ? 'bg-warning' : 'bg-danger') }}">{{ $p->execution_rate }}%</span></td>
                             <td>{{ $p->assignee?->name ?? '—' }}</td>
-                            <td><span class="badge bg-secondary">{{ $p->status }}</span></td>
+                            <td><span class="badge {{ $p->status === 'active' ? 'bg-success' : ($p->status === 'draft' ? 'bg-warning' : 'bg-secondary') }}">{{ $p->status }}</span></td>
                             <td>
+                                @if($p->status === 'draft')
+                                <form action="{{ route('admin.distribution.plannings.activate', $p->id) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit" class="btn btn-success btn-sm py-0 px-2" title="Activer : rendre visible dans l'APK"><i class="fas fa-play"></i></button>
+                                </form>
+                                @endif
                                 <a href="{{ route('admin.distribution.plannings.show', $p->id) }}" class="btn btn-outline-info btn-sm py-0 px-2"><i class="fas fa-eye"></i></a>
                                 <a href="{{ route('admin.distribution.plannings.edit', $p->id) }}" class="btn btn-outline-warning btn-sm py-0 px-2"><i class="fas fa-edit"></i></a>
                                 <form action="{{ route('admin.distribution.plannings.destroy', $p->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Supprimer ce planning et tous ses bénéficiaires et tickets ?')">

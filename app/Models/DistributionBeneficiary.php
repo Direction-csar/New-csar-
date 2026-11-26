@@ -20,7 +20,7 @@ class DistributionBeneficiary extends Model
         'planning_id', 'full_name', 'phone', 'cni', 'address',
         'category', 'quantity_kg',
         'is_vulnerable', 'is_pregnant', 'is_elderly', 'is_disabled',
-        'status', 'validated_at', 'validated_by',
+        'status', 'validated_at', 'validated_by', 'registered_by',
     ];
 
     protected $casts = [
@@ -40,6 +40,11 @@ class DistributionBeneficiary extends Model
     public function validator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'validated_by');
+    }
+
+    public function registrar(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'registered_by');
     }
 
     public function tickets(): HasMany

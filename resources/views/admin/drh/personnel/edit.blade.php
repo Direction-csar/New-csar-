@@ -296,8 +296,15 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="department" class="form-label">Direction/Service</label>
-                            <input type="text" class="form-control form-control-3d" id="department" name="direction_service"
-                                   value="{{ $personnel->direction_service }}">
+                            @php $entites = config('organigramme'); $actuelle = old('direction_service', $personnel->direction_service); @endphp
+                            <select class="form-select form-control-3d" id="department" name="direction_service" required>
+                                @if($actuelle && !in_array($actuelle, $entites, true))
+                                    <option value="{{ $actuelle }}" selected>{{ $actuelle }} (ancien libellé)</option>
+                                @endif
+                                @foreach($entites as $entite)
+                                    <option value="{{ $entite }}" {{ $actuelle === $entite ? 'selected' : '' }}>{{ $entite }}</option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="status" class="form-label">Statut</label>

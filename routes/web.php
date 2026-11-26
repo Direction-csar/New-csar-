@@ -15,10 +15,14 @@ Route::redirect('/about', '/a-propos', 302);
 // Route directe pour /demande (sans préfixe de locale) - utilise directement le contrôleur
 Route::get('/demande', [\App\Http\Controllers\Public\DemandeController::class, 'create'])->name('demande.create.direct');
 Route::post('/demande', [\App\Http\Controllers\Public\DemandeController::class, 'store'])->name('demande.store.direct');
+Route::post('/demande/lettre', [\App\Http\Controllers\Public\DemandeController::class, 'storeLettre'])->name('demande.store.lettre');
 // Route directe pour /suivi et PDF (sans préfixe de locale)
-Route::get('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'index'])->name('suivi.direct');
-Route::post('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'track'])->name('suivi.track.direct');
-Route::get('/telecharger-pdf/{code}', [\App\Http\Controllers\Public\TrackController::class, 'download'])->where('code', '[A-Za-z0-9\-]+')->name('track.download.direct')->middleware('throttle:10,1');
+Route::middleware([\App\Http\Middleware\PrivateRequestTracking::class, 'throttle:request-tracking'])->group(function () {
+    Route::get('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'index'])->name('suivi.direct');
+    Route::post('/suivi', [\App\Http\Controllers\Public\TrackController::class, 'track'])->name('suivi.track.direct');
+    Route::get('/suivi/etat-envoi', [\App\Http\Controllers\Public\TrackController::class, 'deliveryState'])->name('suivi.delivery');
+    Route::get('/telecharger-pdf/{code}', [\App\Http\Controllers\Public\TrackController::class, 'download'])->where('code', '[A-Za-z0-9\-]+')->name('track.download.direct');
+});
 Route::get('/missions', [\App\Http\Controllers\Public\GalleryController::class, 'missions'])->name('missions_static');
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\AboutController;
@@ -89,8 +93,8 @@ use App\Http\Controllers\Public\GalerieController as PublicGalerieController;
 // Password reset routes (global)
 use App\Http\Controllers\Auth\PasswordResetController;
 
-// Routes de connexion simplifiées
-require_once __DIR__ . '/simple-auth.php';
+// Connexions legacy /simple-login et /universal-login désactivées : aucune limitation de tentatives
+// ni contrôle is_active (audit sécurité). Utiliser les portails dédiés.
 
 // Endpoint pour collecter les violations CSP (utilisé par report-uri)
 Route::post('/csp-violations', \App\Http\Controllers\Security\CspReportController::class)
@@ -100,26 +104,83 @@ Route::post('/csp-violations', \App\Http\Controllers\Security\CspReportControlle
 // Language switching routes
 Route::get('/set-locale/{locale}', [LanguageController::class, 'setLocale'])->name('set-locale');
 
-// Téléchargement de l'application mobile SIM
+// Téléchargement des applications mobiles CSAR
 Route::get('/telecharger-app', function () {
-    return view('public.download-app');
+    $applications = [
+        [
+            'name' => 'SIM Collecte',
+            'role' => 'Collecte hebdomadaire des prix sur les marchés',
+            'version' => '1.0.0',
+            'files' => ['sim-collecte.apk', 'sim-csar.apk'],
+            'route' => 'app.download.apk',
+            'size' => '≈ 49 Mo',
+        ],
+        [
+            'name' => 'CSAR Distribution',
+            'role' => 'Distribution alimentaire et tickets QR des bénéficiaires',
+            'version' => '1.0.0',
+            'files' => ['csar-distribution.apk'],
+            'route' => 'app.distribution.download.apk',
+            'size' => '≈ 73 Mo',
+        ],
+        [
+            'name' => 'CSAR Scanner',
+            'role' => 'Scan des tickets QR et suivi des collectes',
+            'version' => '1.0.0',
+            'files' => ['csar-scanner.apk'],
+            'route' => 'app.scanner.download.apk',
+            'size' => '≈ 65 Mo',
+        ],
+        [
+            'name' => 'CSAR Magasinier',
+            'role' => 'Gestion des stocks, mouvements et missions DTL',
+            'version' => '1.0.1',
+            'files' => ['csar-warehouse.apk'],
+            'route' => 'app.magasinier.download.apk',
+            'size' => '≈ 68 Mo',
+        ],
+        [
+            'name' => 'CSAR Comptable',
+            'role' => 'Comptabilité des matières : mouvements, carburant, matériel',
+            'version' => '1.0.0',
+            'files' => ['csar-comptable.apk'],
+            'route' => 'app.comptable.download.apk',
+            'size' => '≈ 51 Mo',
+        ],
+    ];
+
+    foreach ($applications as &$app) {
+        $app['available'] = false;
+        foreach ($app['files'] as $name) {
+            if (file_exists(public_path('downloads/' . $name))) {
+                $app['available'] = true;
+                break;
+            }
+        }
+    }
+    unset($app);
+
+    return view('public.download-app', ['applications' => $applications]);
 })->name('app.download');
 
 Route::get('/telecharger-app/apk', function () {
-    $file = public_path('downloads/sim-collecte.apk');
-    if (!file_exists($file)) {
-        abort(404, 'Fichier APK non disponible');
+    // Le fichier peut porter l'un des deux noms selon l'environnement.
+    foreach (['sim-collecte.apk', 'sim-csar.apk'] as $name) {
+        $file = public_path('downloads/' . $name);
+        if (file_exists($file)) {
+            return response()->download($file, 'CSAR-SIM-Collecte.apk', [
+                'Content-Type' => 'application/vnd.android.package-archive',
+            ]);
+        }
     }
-    return response()->download($file, 'CSAR-SIM-Collecte.apk', [
-        'Content-Type' => 'application/vnd.android.package-archive',
-    ]);
+    abort(404, "L'application SIM Collecte n'est pas encore disponible au téléchargement.");
 })->name('app.download.apk');
 
 // Téléchargement de l'application Distribution
 Route::get('/telecharger-distribution/apk', function () {
     $file = public_path('downloads/csar-distribution.apk');
     if (!file_exists($file)) {
-        abort(404, 'Fichier APK non disponible');
+        abort(404, "L'application CSAR Distribution n'est pas encore disponible au téléchargement.");
     }
     return response()->download($file, 'CSAR-Distribution.apk', [
         'Content-Type' => 'application/vnd.android.package-archive',
@@ -130,12 +191,34 @@ Route::get('/telecharger-distribution/apk', function () {
 Route::get('/telecharger-scanner/apk', function () {
     $file = public_path('downloads/csar-scanner.apk');
     if (!file_exists($file)) {
-        abort(404, 'Fichier APK non disponible');
+        abort(404, "L'application CSAR Scanner n'est pas encore disponible au téléchargement.");
     }
     return response()->download($file, 'CSAR-Scanner.apk', [
         'Content-Type' => 'application/vnd.android.package-archive',
     ]);
 })->name('app.scanner.download.apk');
+
+// Téléchargement de l'application Magasinier
+Route::get('/telecharger-magasinier/apk', function () {
+    $file = public_path('downloads/csar-warehouse.apk');
+    if (!file_exists($file)) {
+        abort(404, "L'application CSAR Magasinier n'est pas encore disponible au téléchargement.");
+    }
+    return response()->download($file, 'CSAR-Magasinier.apk', [
+        'Content-Type' => 'application/vnd.android.package-archive',
+    ]);
+})->name('app.magasinier.download.apk');
+
+// Téléchargement de l'application Comptable
+Route::get('/telecharger-comptable/apk', function () {
+    $file = public_path('downloads/csar-comptable.apk');
+    if (!file_exists($file)) {
+        abort(404, "L'application CSAR Comptable n'est pas encore disponible au téléchargement.");
+    }
+    return response()->download($file, 'CSAR-Comptable.apk', [
+        'Content-Type' => 'application/vnd.android.package-archive',
+    ]);
+})->name('app.comptable.download.apk');
 
 // Redirect root to French by default
 Route::get('/', function () {
@@ -180,10 +263,12 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     Route::post('/effectuer-une-action', [ActionController::class, 'submit'])->name('request.submit');
 
     // Track routes
-    Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
-    Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request')->middleware('throttle:10,1');
-    Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download')->middleware('throttle:10,1');
-    Route::get('/verifier/{code}', [TrackController::class, 'verify'])->name('track.verify')->middleware('throttle:10,1');
+    Route::middleware([\App\Http\Middleware\PrivateRequestTracking::class, 'throttle:request-tracking'])->group(function () {
+        Route::get('/suivre-ma-demande', [TrackController::class, 'index'])->name('track');
+        Route::post('/suivre-ma-demande', [TrackController::class, 'track'])->name('track.request');
+        Route::get('/suivre-ma-demande/{code}/pdf', [TrackController::class, 'download'])->name('track.download');
+        Route::get('/verifier/{code}', [TrackController::class, 'verify'])->name('track.verify');
+    });
 
     // Gallery routes
     Route::get('/missions-en-images', [GalleryController::class, 'index'])->name('gallery');
@@ -296,6 +381,7 @@ Route::group(['prefix' => '{locale}', 'where' => ['locale' => 'fr|en|ar'], 'midd
     // Public Routes - Formulaire de demande
     Route::get('/demande', [DemandeController::class, 'create'])->name('demande.create');
     Route::post('/demande', [DemandeController::class, 'store'])->name('demande.store');
+    Route::post('/demande/lettre', [DemandeController::class, 'storeLettre'])->name('demande.lettre.store');
     Route::get('/demande-succes', [DemandeController::class, 'success'])->name('demande.success');
 
     // Alias pour les routes requests (compatibilité avec la navigation)
@@ -359,12 +445,48 @@ Route::prefix('dg')->name('dg.')->group(function () {
         Route::get('/demandes', [App\Http\Controllers\DG\DemandeController::class, 'index'])->name('demandes.index');
         Route::get('/demandes/{id}', [App\Http\Controllers\DG\DemandeController::class, 'show'])->name('demandes.show');
         Route::put('/demandes/{id}', [App\Http\Controllers\DG\DemandeController::class, 'update'])->name('demandes.update');
+        Route::post('/demandes/{id}/signature', [App\Http\Controllers\DG\DemandeController::class, 'uploadSignature'])->name('demandes.signature');
+        Route::post('/demandes/{id}/scan', [App\Http\Controllers\DG\DemandeController::class, 'uploadScan'])->name('demandes.scan');
+        Route::get('/demandes/{id}/document/{type}', [App\Http\Controllers\DG\DemandeController::class, 'document'])->name('demandes.document');
 
         // Consultation des entrepôts (lecture seule)
         Route::get('/warehouses', [App\Http\Controllers\DG\WarehouseController::class, 'index'])->name('warehouses.index');
         Route::get('/warehouses/{id}', [App\Http\Controllers\DG\WarehouseController::class, 'show'])->name('warehouses.show');
 
         // Consultation des stocks (lecture seule)
+        Route::get('/situation-stocks', [App\Http\Controllers\DG\StockSituationController::class, 'index'])->name('situation-stocks.index');
+        Route::get('/situation-stocks/data', [App\Http\Controllers\DG\StockSituationController::class, 'data'])->name('situation-stocks.data');
+        Route::get('/situation-stocks/export.csv', [App\Http\Controllers\DG\StockSituationController::class, 'exportCsv'])->name('situation-stocks.export-csv');
+        Route::get('/situation-stocks/export.pdf', [App\Http\Controllers\DG\StockSituationController::class, 'exportPdf'])->name('situation-stocks.export-pdf');
+
+        // Vue nationale des stocks (pilotage exécutif DG)
+        Route::get('/stocks-national', [App\Http\Controllers\DG\StockNationalController::class, 'index'])->name('stock-national');
+
+        // Circuit opérationnel des stocks : instructions DG → DTL → Inspecteur → Magasinier
+        Route::get('/stock-operations', [App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
+        Route::get('/stock-operations/create', [App\Http\Controllers\StockOperations\OperationController::class, 'create'])->name('stock-operations.create');
+        Route::post('/stock-operations', [App\Http\Controllers\StockOperations\OperationController::class, 'store'])->name('stock-operations.store');
+        Route::get('/stock-operations/{id}', [App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
+        Route::get('/stock-operations-pending', [App\Http\Controllers\StockOperations\OperationController::class, 'pending'])->name('stock-operations.pending');
+        Route::post('/stock-operations-pending/{id}/verify', [App\Http\Controllers\StockOperations\OperationController::class, 'verifyMovement'])->name('stock-operations.pending.verify');
+        Route::post('/stock-operations-pending/{id}/reject', [App\Http\Controllers\StockOperations\OperationController::class, 'rejectMovement'])->name('stock-operations.pending.reject');
+        Route::post('/stock-operations-pending/{id}/confirm', [App\Http\Controllers\StockOperations\OperationController::class, 'confirmReceipt'])->name('stock-operations.pending.confirm');
+        Route::post('/stock-operations/{id}/cancel', [App\Http\Controllers\StockOperations\OperationController::class, 'cancel'])->name('stock-operations.cancel');
+        Route::post('/stock-operations/{id}/reject', [App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
+
+        // Affectations inspecteurs ↔ magasins (périmètre de contrôle)
+        Route::get('/inspecteur-affectations', [App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'index'])->name('inspector-assignments.index');
+        Route::post('/inspecteur-affectations', [App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'store'])->name('inspector-assignments.store');
+        Route::delete('/inspecteur-affectations/{assignment}', [App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'revoke'])->name('inspector-assignments.revoke');
+        Route::get('/personnel-stock', [App\Http\Controllers\StockOperations\StockStaffController::class, 'index'])->name('stock-staff.index');
+        Route::post('/personnel-stock', [App\Http\Controllers\StockOperations\StockStaffController::class, 'store'])->name('stock-staff.store');
+        Route::put('/personnel-stock/{id}', [App\Http\Controllers\StockOperations\StockStaffController::class, 'update'])->name('stock-staff.update');
+        Route::post('/personnel-stock/{id}/toggle', [App\Http\Controllers\StockOperations\StockStaffController::class, 'toggle'])->name('stock-staff.toggle');
+
+        // Rapports et statistiques stocks (PDF + XLSX + historique)
+        Route::get('/stock-reports', [App\Http\Controllers\Reports\StockReportController::class, 'index'])->name('stock-reports.index');
+        Route::post('/stock-reports/generate', [App\Http\Controllers\Reports\StockReportController::class, 'generate'])->name('stock-reports.generate');
+        Route::get('/stock-reports/{export}/download', [App\Http\Controllers\Reports\StockReportController::class, 'download'])->name('stock-reports.download');
         Route::get('/stocks', [App\Http\Controllers\DG\StockController::class, 'index'])->name('stocks.index');
         Route::get('/stocks/{id}', [App\Http\Controllers\DG\StockController::class, 'show'])->name('stocks.show');
 
@@ -513,6 +635,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/carte-demandes', [\App\Http\Controllers\Admin\CarteDemandesController::class, 'index'])->name('carte-demandes.index');
         Route::get('/carte-demandes/api', [\App\Http\Controllers\Admin\CarteDemandesController::class, 'getMapData'])->name('carte-demandes.api');
         Route::get('/demandes/{id}/pdf', [DemandesController::class, 'downloadPdf'])->name('demandes.pdf');
+        Route::get('/demandes/{id}/lettre', [DemandesController::class, 'lettre'])->name('demandes.lettre');
+        Route::get('/demandes/{id}/piece/{index}', [DemandesController::class, 'piece'])->name('demandes.piece');
+        Route::get('/demandes/{id}/document/{type}', [DemandesController::class, 'document'])->name('demandes.document');
         Route::post('/demandes/export', [DemandesController::class, 'export'])->name('demandes.export');
         Route::post('/demandes/bulk-delete', [DemandesController::class, 'bulkDelete'])->name('demandes.bulk-delete');
 
@@ -821,6 +946,15 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('/warehouses/{warehouse}', [\App\Http\Controllers\Admin\WarehouseController::class, 'update'])->name('warehouses.update');
         Route::delete('/warehouses/{warehouse}', [\App\Http\Controllers\Admin\WarehouseController::class, 'destroy'])->name('warehouses.destroy');
 
+        // Affectations inspecteurs ↔ magasins (périmètre de contrôle)
+        Route::get('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'index'])->name('inspector-assignments.index');
+        Route::post('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'store'])->name('inspector-assignments.store');
+        Route::delete('/inspecteur-affectations/{assignment}', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'revoke'])->name('inspector-assignments.revoke');
+        Route::get('/personnel-stock', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'index'])->name('stock-staff.index');
+        Route::post('/personnel-stock', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'store'])->name('stock-staff.store');
+        Route::put('/personnel-stock/{id}', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'update'])->name('stock-staff.update');
+        Route::post('/personnel-stock/{id}/toggle', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'toggle'])->name('stock-staff.toggle');
+
         // Messages
         // Routes messages déjà définies plus haut dans le groupe admin (lignes 454-459)
         // Route::resource('messages', MessagesController::class); // CONFLIT - routes définies manuellement avec {id}
@@ -906,7 +1040,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/beneficiaries', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesIndex'])->name('beneficiaries.index');
             Route::get('/beneficiaries/create', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesCreate'])->name('beneficiaries.create');
             Route::post('/beneficiaries', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesStore'])->name('beneficiaries.store');
+            Route::get('/beneficiaries/import', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesImport'])->name('beneficiaries.import');
+            Route::post('/beneficiaries/import', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesImportStore'])->name('beneficiaries.import.store');
+            Route::post('/beneficiaries/import/confirm', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesImportConfirm'])->name('beneficiaries.import.confirm');
+            Route::get('/beneficiaries/import/template', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesImportTemplate'])->name('beneficiaries.import.template');
+            Route::post('/plannings/{id}/activate', [\App\Http\Controllers\Admin\DistributionController::class, 'planningsActivate'])->name('plannings.activate');
             Route::get('/beneficiaries/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesShow'])->name('beneficiaries.show');
+            Route::post('/beneficiaries/{id}/validate', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesValidate'])->name('beneficiaries.validate');
+            Route::post('/beneficiaries/{id}/generate-ticket', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesGenerateTicket'])->name('beneficiaries.generate-ticket');
             Route::get('/beneficiaries/{id}/edit', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesEdit'])->name('beneficiaries.edit');
             Route::put('/beneficiaries/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesUpdate'])->name('beneficiaries.update');
             Route::delete('/beneficiaries/{id}', [\App\Http\Controllers\Admin\DistributionController::class, 'beneficiariesDestroy'])->name('beneficiaries.destroy');
@@ -921,13 +1062,17 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/reports/print', [\App\Http\Controllers\Admin\DistributionController::class, 'printReport'])->name('reports.print');
             Route::get('/alerts', [\App\Http\Controllers\Admin\DistributionController::class, 'alerts'])->name('alerts');
         });
+
+        // Déblocage administratif du rate-limiter de connexion CTC (POST, throttlé, journalisé)
+        Route::post('/ctc-login/reset-rate-limit', [\App\Http\Controllers\Auth\CTCLoginController::class, 'resetRateLimitForUser'])
+            ->middleware('throttle:20,1')
+            ->name('ctc.reset-rate-limit');
     });
 });
 
 // Routes CTC - Conseil Technique de la Communication (publications, actualités, rapports, newsletter, galerie)
 Route::prefix('ctc')->name('ctc.')->group(function () {
     Route::get('/login', [\App\Http\Controllers\Auth\CTCLoginController::class, 'showLoginForm'])->name('login');
-    Route::get('/login/reset-rate-limit', [\App\Http\Controllers\Auth\CTCLoginController::class, 'resetRateLimit'])->name('login.reset-rate-limit');
     Route::post('/login', [\App\Http\Controllers\Auth\CTCLoginController::class, 'login'])->name('login.submit');
     Route::post('/logout', [\App\Http\Controllers\Auth\CTCLoginController::class, 'logout'])->name('logout');
 
@@ -1108,7 +1253,8 @@ Route::match(['get', 'post'], '/entrepot/{path}', fn () => view('auth.interface-
 Route::match(['get', 'post'], '/collecteur/{path?}', fn () => view('auth.interface-desactivee'))->where('path', '.*');
 
 // API temps réel collecteurs (utilisée par dashboard superviseur + app mobile)
-Route::prefix('api/mobile')->name('api.mobile.')->group(function () {
+// Protégée : token Sanctum (app) ou session staff (admin/superviseur) — voir CollectorTrackingAuth
+Route::prefix('api/mobile')->name('api.mobile.')->middleware('collector-tracking')->group(function () {
     Route::get('/collectors/locations', [App\Http\Controllers\Api\Mobile\CollectorLocationController::class, 'getActiveCollectors'])->name('collectors.locations');
     Route::post('/collectors/location', [App\Http\Controllers\Api\Mobile\CollectorLocationController::class, 'updateLocation'])->name('collectors.location.update');
 });
@@ -1156,10 +1302,29 @@ Route::prefix('admin/drh')->name('admin.drh.')->middleware(['drh-access', 'enfor
     Route::get('/recrutement', [\App\Http\Controllers\Drh\RessourcesHumainesController::class, 'recrutement'])->name('recrutement');
     Route::get('/relations',   [\App\Http\Controllers\Drh\RessourcesHumainesController::class, 'relations'])->name('relations');
 
+    // Actualisation des rémunérations (import TXT avec prévisualisation obligatoire)
+    Route::get('/remunerations',                  [\App\Http\Controllers\Drh\SalaryImportController::class, 'index'])->name('remunerations.index');
+    Route::post('/remunerations',                 [\App\Http\Controllers\Drh\SalaryImportController::class, 'store'])->name('remunerations.store');
+    Route::get('/remunerations/{import}',         [\App\Http\Controllers\Drh\SalaryImportController::class, 'show'])->whereNumber('import')->name('remunerations.show');
+    Route::post('/remunerations/{import}/valider', [\App\Http\Controllers\Drh\SalaryImportController::class, 'apply'])->whereNumber('import')->name('remunerations.apply');
+
+    // Contrats de travail versionnés (génération en lot, aperçu, ZIP, signature, avenants)
+    Route::get('/contrats',                        [\App\Http\Controllers\Drh\ContractBatchController::class, 'index'])->name('contrats.index');
+    Route::post('/contrats/generer',               [\App\Http\Controllers\Drh\ContractBatchController::class, 'generate'])->name('contrats.generate');
+    Route::post('/contrats/tout-generer',          [\App\Http\Controllers\Drh\ContractBatchController::class, 'generateAllZip'])->name('contrats.generate-all');
+    Route::post('/contrats/pdf-unique',            [\App\Http\Controllers\Drh\ContractBatchController::class, 'generateAllPdf'])->name('contrats.pdf-unique');
+    Route::post('/contrats/zip',                   [\App\Http\Controllers\Drh\ContractBatchController::class, 'zip'])->name('contrats.zip');
+    Route::get('/contrats/apercu/{personnel}',     [\App\Http\Controllers\Drh\ContractBatchController::class, 'preview'])->whereNumber('personnel')->name('contrats.preview');
+    Route::get('/contrats/{document}/pdf',         [\App\Http\Controllers\Drh\ContractBatchController::class, 'download'])->whereNumber('document')->name('contrats.download');
+    Route::post('/contrats/{document}/signer',     [\App\Http\Controllers\Drh\ContractBatchController::class, 'sign'])->whereNumber('document')->name('contrats.sign');
+    Route::post('/contrats/{document}/valider',    [\App\Http\Controllers\Drh\ContractBatchController::class, 'validateAvenant'])->whereNumber('document')->name('contrats.validate');
+
     // �📝 Documents RH
     Route::get('/documents',                    [\App\Http\Controllers\Drh\DocumentController::class, 'selection'])->name('documents');
     Route::get('/documents/{type}/form',       [\App\Http\Controllers\Drh\DocumentController::class, 'showForm'])->name('documents.form');
     Route::post('/documents/{type}/save',      [\App\Http\Controllers\Drh\DocumentController::class, 'saveDocument'])->name('documents.save');
+    Route::post('/documents/declaration-mouvement-travailleur/generer-tous', [\App\Http\Controllers\Drh\DocumentController::class, 'generateAllDmt'])->name('documents.dmt.generate-all');
+    Route::post('/documents/{type}/generer-tous', [\App\Http\Controllers\Drh\DocumentController::class, 'generateAllDocuments'])->name('documents.generate-all');
     Route::get('/documents/historique',        [\App\Http\Controllers\Drh\DocumentController::class, 'historique'])->name('documents.historique');
     Route::delete('/documents/historique/{document}', [\App\Http\Controllers\Drh\DocumentController::class, 'destroyDocument'])->name('documents.destroy');
     Route::delete('/documents/historique', [\App\Http\Controllers\Drh\DocumentController::class, 'destroyAllDocuments'])->name('documents.destroyAll');
@@ -1261,6 +1426,12 @@ Route::middleware(['admin'])->group(function () {
         Route::get('/{archive}/print', [App\Http\Controllers\Dfc\ArchiveController::class, 'print'])->name('print');
     });
 
+});
+
+// Dossiers d'archives : création possible par chaque direction dans SON
+// espace (contrôle serveur dans ArchiveFolderController), renommage et
+// suppression réservés aux admins par les vérifications du contrôleur.
+Route::middleware(['any-portal'])->group(function () {
     Route::post('/archive-folders', [App\Http\Controllers\ArchiveFolderController::class, 'store'])->name('folders.store');
     Route::put('/archive-folders/{folder}', [App\Http\Controllers\ArchiveFolderController::class, 'update'])->name('folders.update');
     Route::delete('/archive-folders/{folder}', [App\Http\Controllers\ArchiveFolderController::class, 'destroy'])->name('folders.destroy');
@@ -1286,7 +1457,7 @@ foreach (['cpm', 'dpse', 'dtl'] as $directionSlug) {
     });
 
     Route::middleware(["direction:{$directionSlug}"])->group(function () use ($directionSlug) {
-        Route::get("/admin/{$directionSlug}", fn () => app(\App\Http\Controllers\DirectionDashboardController::class)->index($directionSlug))->name("{$directionSlug}.dashboard");
+        Route::get("/admin/{$directionSlug}", fn () => app(\App\Http\Controllers\DirectionDashboardController::class)->index($directionSlug))->name($directionSlug === 'dtl' ? 'dtl.portal-dashboard' : "{$directionSlug}.dashboard");
 
         Route::prefix("archives/{$directionSlug}")->name("archives.{$directionSlug}.")->group(function () use ($directionSlug) {
             $controller = 'App\\Http\\Controllers\\' . ucfirst($directionSlug) . '\\ArchiveController';
@@ -1300,6 +1471,181 @@ foreach (['cpm', 'dpse', 'dtl'] as $directionSlug) {
         });
     });
 }
+
+// === PORTAIL DTL : DOSSIERS TRANSMI & MISSIONS ===
+Route::middleware(['direction:dtl'])->prefix('dtl')->name('dtl.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Dtl\StockDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/demandes', [\App\Http\Controllers\Dtl\DemandeController::class, 'index'])->name('demandes.index');
+    Route::get('/demandes/{id}', [\App\Http\Controllers\Dtl\DemandeController::class, 'show'])->name('demandes.show');
+    Route::get('/demandes/{id}/document/{type}', [\App\Http\Controllers\Admin\DemandesController::class, 'document'])->name('demandes.document');
+    Route::post('/demandes/{id}/instruct', [\App\Http\Controllers\Dtl\DemandeController::class, 'instruct'])->name('demandes.instruct');
+    Route::post('/demandes/{id}/missions', [\App\Http\Controllers\Dtl\DemandeController::class, 'storeMission'])->name('demandes.missions.store');
+    Route::post('/demandes/{id}/cloture', [\App\Http\Controllers\Dtl\DemandeController::class, 'cloture'])->name('demandes.cloture');
+    Route::post('/missions/{missionId}/cancel', [\App\Http\Controllers\Dtl\DemandeController::class, 'cancelMission'])->name('missions.cancel');
+    Route::post('/missions/{missionId}/validate', [\App\Http\Controllers\Dtl\DemandeController::class, 'validateMission'])->name('missions.validate');
+    Route::post('/missions/{missionId}/correct', [\App\Http\Controllers\Dtl\DemandeController::class, 'requestCorrection'])->name('missions.correct');
+
+    // Circuit opérationnel des stocks : le DTL affecte les instructions de la DG aux inspecteurs
+    Route::get('/stock-operations', [\App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
+    Route::get('/stock-operations/{id}', [\App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
+    Route::get('/stock-operations-pending', [\App\Http\Controllers\StockOperations\OperationController::class, 'pending'])->name('stock-operations.pending');
+    Route::post('/stock-operations-pending/{id}/verify', [\App\Http\Controllers\StockOperations\OperationController::class, 'verifyMovement'])->name('stock-operations.pending.verify');
+    Route::post('/stock-operations-pending/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'rejectMovement'])->name('stock-operations.pending.reject');
+    Route::post('/stock-operations-pending/{id}/confirm', [\App\Http\Controllers\StockOperations\OperationController::class, 'confirmReceipt'])->name('stock-operations.pending.confirm');
+    Route::post('/stock-operations/{id}/assign-inspector', [\App\Http\Controllers\StockOperations\OperationController::class, 'assignInspector'])->name('stock-operations.assign-inspector');
+    Route::post('/stock-operations/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
+
+    // Affectations inspecteurs ↔ magasins (périmètre de contrôle)
+    Route::get('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'index'])->name('inspector-assignments.index');
+    Route::post('/inspecteur-affectations', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'store'])->name('inspector-assignments.store');
+    Route::delete('/inspecteur-affectations/{assignment}', [\App\Http\Controllers\StockOperations\InspectorAssignmentController::class, 'revoke'])->name('inspector-assignments.revoke');
+    Route::get('/personnel-stock', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'index'])->name('stock-staff.index');
+    Route::post('/personnel-stock', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'store'])->name('stock-staff.store');
+    Route::put('/personnel-stock/{id}', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'update'])->name('stock-staff.update');
+    Route::post('/personnel-stock/{id}/toggle', [\App\Http\Controllers\StockOperations\StockStaffController::class, 'toggle'])->name('stock-staff.toggle');
+
+    // Rapports et statistiques stocks (PDF + XLSX + historique)
+    Route::get('/stock-reports', [\App\Http\Controllers\Reports\StockReportController::class, 'index'])->name('stock-reports.index');
+    Route::post('/stock-reports/generate', [\App\Http\Controllers\Reports\StockReportController::class, 'generate'])->name('stock-reports.generate');
+    Route::get('/stock-reports/{export}/download', [\App\Http\Controllers\Reports\StockReportController::class, 'download'])->name('stock-reports.download');
+});
+
+// === PORTAIL COMPTABLE DES MATIÈMES ===
+Route::prefix('comptable')->name('comptable.')->group(function () {
+    Route::get('/login', fn () => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->showLoginForm('comptable'))->name('login');
+    Route::post('/login', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->login($request, 'comptable'))->name('login.submit');
+    Route::post('/logout', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->logout($request, 'comptable'))->name('logout');
+});
+
+Route::middleware(['direction:comptable'])->prefix('comptable')->name('comptable.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Comptable\PortailController::class, 'dashboard'])->name('dashboard');
+    Route::get('/stocks', [\App\Http\Controllers\Comptable\PortailController::class, 'stocks'])->name('stocks');
+    Route::get('/carburant', [\App\Http\Controllers\Comptable\FuelController::class, 'index'])->name('carburant');
+
+// Gestion du carburant (entrées / sorties / remboursements / justificatifs)
+Route::prefix('carburant')->name('carburant.')->group(function () {
+    Route::get('/entrees', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesIndex'])->name('entries.index');
+    Route::get('/entrees/create', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesCreate'])->name('entries.create');
+    Route::post('/entrees', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesStore'])->name('entries.store');
+    Route::get('/entrees/{id}', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesShow'])->name('entries.show');
+    Route::post('/entrees/{id}/valider', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesValidate'])->name('entries.validate');
+    Route::post('/entrees/{id}/rejeter', [\App\Http\Controllers\Comptable\FuelController::class, 'entriesReject'])->name('entries.reject');
+
+    Route::get('/sorties', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsIndex'])->name('exits.index');
+    Route::get('/sorties/create', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsCreate'])->name('exits.create');
+    Route::post('/sorties', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsStore'])->name('exits.store');
+    Route::get('/sorties/{id}', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsShow'])->name('exits.show');
+    Route::post('/sorties/{id}/autoriser', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsAuthorize'])->name('exits.authorize');
+    Route::post('/sorties/{id}/valider', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsValidate'])->name('exits.validate');
+    Route::post('/sorties/{id}/rejeter', [\App\Http\Controllers\Comptable\FuelController::class, 'exitsReject'])->name('exits.reject');
+
+    Route::get('/remboursements', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsIndex'])->name('reimbs.index');
+    Route::get('/remboursements/create', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsCreate'])->name('reimbs.create');
+    Route::post('/remboursements', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsStore'])->name('reimbs.store');
+    Route::get('/remboursements/{id}', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsShow'])->name('reimbs.show');
+    Route::post('/remboursements/{id}/soumettre', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsSubmit'])->name('reimbs.submit');
+    Route::post('/remboursements/{id}/instruction', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsReview'])->name('reimbs.review');
+    Route::post('/remboursements/{id}/approuver', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsApprove'])->name('reimbs.approve');
+    Route::post('/remboursements/{id}/rejeter', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsReject'])->name('reimbs.reject');
+    Route::post('/remboursements/{id}/payer', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsPay'])->name('reimbs.pay');
+    Route::post('/remboursements/{id}/cloturer', [\App\Http\Controllers\Comptable\FuelController::class, 'reimbsClose'])->name('reimbs.close');
+
+    Route::post('/{type}/{id}/pieces', [\App\Http\Controllers\Comptable\FuelController::class, 'attachmentStore'])
+        ->where('type', 'entry|exit|reimb')->name('attachments.store');
+    Route::get('/pieces/{id}/telecharger', [\App\Http\Controllers\Comptable\FuelController::class, 'attachmentDownload'])->name('attachments.download');
+    Route::delete('/pieces/{id}', [\App\Http\Controllers\Comptable\FuelController::class, 'attachmentDelete'])->name('attachments.delete');
+
+    Route::get('/{type}/{id}/pdf', [\App\Http\Controllers\Comptable\FuelController::class, 'pdf'])
+        ->where('type', 'entry|exit|reimb')->name('pdf');
+    Route::get('/export/{type}.csv', [\App\Http\Controllers\Comptable\FuelController::class, 'exportCsv'])
+        ->where('type', 'entry|exit|reimb')->name('export');
+});
+    Route::get('/materiel', [\App\Http\Controllers\Comptable\PortailController::class, 'materiel'])->name('materiel');
+    Route::post('/materiel', [\App\Http\Controllers\Comptable\PortailController::class, 'storeMateriel'])->name('materiel.store');
+    Route::post('/materiel/{id}/cloturer', [\App\Http\Controllers\Comptable\PortailController::class, 'cloturerMateriel'])->name('materiel.cloturer');
+    Route::get('/mouvements', [\App\Http\Controllers\Comptable\MouvementController::class, 'index'])->name('mouvements.index');
+    Route::get('/mouvements/export-csv', [\App\Http\Controllers\Comptable\MouvementController::class, 'exportCsv'])->name('mouvements.export');
+    Route::get('/mouvements/{id}', [\App\Http\Controllers\Comptable\MouvementController::class, 'show'])->name('mouvements.show');
+    Route::post('/mouvements/{id}/valider', [\App\Http\Controllers\Comptable\MouvementController::class, 'validateMovement'])->name('mouvements.valider');
+    Route::post('/mouvements/{id}/rejeter', [\App\Http\Controllers\Comptable\MouvementController::class, 'reject'])->name('mouvements.rejeter');
+});
+
+Route::middleware(['direction:comptable'])->prefix('archives/comptable')->name('archives.comptable.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Comptable\ArchiveController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\Comptable\ArchiveController::class, 'store'])->name('store');
+    Route::get('/{archive}', [\App\Http\Controllers\Comptable\ArchiveController::class, 'show'])->name('show');
+    Route::put('/{archive}', [\App\Http\Controllers\Comptable\ArchiveController::class, 'update'])->name('update');
+    Route::delete('/{archive}', [\App\Http\Controllers\Comptable\ArchiveController::class, 'destroy'])->name('destroy');
+    Route::get('/{archive}/download', [\App\Http\Controllers\Comptable\ArchiveController::class, 'download'])->name('download');
+    Route::get('/{archive}/print', [\App\Http\Controllers\Comptable\ArchiveController::class, 'print'])->name('print');
+});
+
+// === PORTAIL MAGASINIER (miroir de l'APK CSAR Magasin) ===
+Route::prefix('magasinier')->name('magasinier.')->group(function () {
+    Route::get('/login', fn () => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->showLoginForm('magasinier'))->name('login');
+    Route::post('/login', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->login($request, 'magasinier'))->name('login.submit');
+    Route::post('/logout', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->logout($request, 'magasinier'))->name('logout');
+});
+
+Route::middleware(['direction:magasinier'])->prefix('magasinier')->name('magasinier.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Magasinier\PortailController::class, 'dashboard'])->name('dashboard');
+    Route::get('/magasins', [\App\Http\Controllers\Magasinier\PortailController::class, 'warehouses'])->name('warehouses.index');
+    Route::get('/magasins/{warehouse}', [\App\Http\Controllers\Magasinier\PortailController::class, 'warehouseShow'])->name('warehouses.show');
+    Route::get('/magasins/{warehouse}/etat-stock', [\App\Http\Controllers\Magasinier\PortailController::class, 'stockStatus'])->name('warehouses.stock-status');
+    Route::get('/magasins/{warehouse}/mouvements/create', [\App\Http\Controllers\Magasinier\PortailController::class, 'movementCreate'])->name('mouvements.create');
+    Route::post('/magasins/{warehouse}/mouvements', [\App\Http\Controllers\Magasinier\PortailController::class, 'movementStore'])->name('mouvements.store');
+    Route::get('/transferts/create', [\App\Http\Controllers\Magasinier\PortailController::class, 'transferCreate'])->name('transferts.create');
+    Route::post('/transferts', [\App\Http\Controllers\Magasinier\PortailController::class, 'transferStore'])->name('transferts.store');
+    Route::get('/inventaires/create', [\App\Http\Controllers\Magasinier\PortailController::class, 'inventoryCreate'])->name('inventaires.create');
+    Route::post('/inventaires', [\App\Http\Controllers\Magasinier\PortailController::class, 'inventoryStore'])->name('inventaires.store');
+    Route::get('/missions', [\App\Http\Controllers\Magasinier\PortailController::class, 'missions'])->name('missions.index');
+    Route::post('/missions/{id}/report', [\App\Http\Controllers\Magasinier\PortailController::class, 'missionReport'])->name('missions.report');
+    Route::get('/recus/{reference}', [\App\Http\Controllers\Magasinier\PortailController::class, 'receipt'])->name('receipts.show');
+
+    // Opérations de stock transmises par l'inspecteur (circuit DG→DTL→Inspecteur→Magasinier)
+    Route::get('/operations', [\App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
+    Route::get('/operations/{id}', [\App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
+    Route::post('/operations/{id}/execute', [\App\Http\Controllers\StockOperations\OperationController::class, 'execute'])->name('stock-operations.execute');
+    Route::get('/operations-pending', [\App\Http\Controllers\StockOperations\OperationController::class, 'pending'])->name('stock-operations.pending');
+    Route::post('/operations-pending/{id}/confirm-receipt', [\App\Http\Controllers\StockOperations\OperationController::class, 'confirmReceipt'])->name('stock-operations.pending.confirm');
+});
+
+// === PORTAIL INSPECTEUR ===
+Route::prefix('inspecteur')->name('inspecteur.')->group(function () {
+    Route::get('/login', fn () => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->showLoginForm('inspecteur'))->name('login');
+    Route::post('/login', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->login($request, 'inspecteur'))->name('login.submit');
+    Route::post('/logout', fn (\Illuminate\Http\Request $request) => app(\App\Http\Controllers\Auth\DirectionLoginController::class)->logout($request, 'inspecteur'))->name('logout');
+});
+
+Route::middleware(['direction:inspecteur'])->prefix('inspecteur')->name('inspecteur.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Inspecteur\StockDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/missions', [\App\Http\Controllers\Inspecteur\MissionController::class, 'index'])->name('missions.index');
+    Route::get('/missions/{id}', [\App\Http\Controllers\Inspecteur\MissionController::class, 'show'])->name('missions.show');
+    Route::post('/missions/{id}/start', [\App\Http\Controllers\Inspecteur\MissionController::class, 'start'])->name('missions.start');
+    Route::post('/missions/{id}/report', [\App\Http\Controllers\Inspecteur\MissionController::class, 'submitReport'])->name('missions.report');
+
+    // Opérations de stock affectées : consignes magasinier, vérification, anomalies
+    Route::get('/operations', [\App\Http\Controllers\StockOperations\OperationController::class, 'index'])->name('stock-operations.index');
+    Route::get('/operations/{id}', [\App\Http\Controllers\StockOperations\OperationController::class, 'show'])->name('stock-operations.show');
+    Route::post('/operations/{id}/transmit', [\App\Http\Controllers\StockOperations\OperationController::class, 'transmit'])->name('stock-operations.transmit');
+    Route::post('/operations/{id}/verify', [\App\Http\Controllers\StockOperations\OperationController::class, 'verify'])->name('stock-operations.verify');
+    Route::post('/operations/{id}/anomaly', [\App\Http\Controllers\StockOperations\OperationController::class, 'anomaly'])->name('stock-operations.anomaly');
+    Route::post('/operations/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'reject'])->name('stock-operations.reject');
+    Route::get('/operations-pending', [\App\Http\Controllers\StockOperations\OperationController::class, 'pending'])->name('stock-operations.pending');
+    Route::post('/operations-pending/{id}/verify', [\App\Http\Controllers\StockOperations\OperationController::class, 'verifyMovement'])->name('stock-operations.pending.verify');
+    Route::post('/operations-pending/{id}/reject', [\App\Http\Controllers\StockOperations\OperationController::class, 'rejectMovement'])->name('stock-operations.pending.reject');
+    Route::post('/operations-pending/{id}/confirm-receipt', [\App\Http\Controllers\StockOperations\OperationController::class, 'confirmReceipt'])->name('stock-operations.pending.confirm');
+});
+
+Route::middleware(['direction:inspecteur'])->prefix('archives/inspecteur')->name('archives.inspecteur.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'index'])->name('index');
+    Route::post('/', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'store'])->name('store');
+    Route::get('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'show'])->name('show');
+    Route::put('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'update'])->name('update');
+    Route::delete('/{archive}', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'destroy'])->name('destroy');
+    Route::get('/{archive}/download', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'download'])->name('download');
+    Route::get('/{archive}/print', [\App\Http\Controllers\Inspecteur\ArchiveController::class, 'print'])->name('print');
+});
 
 // === ADMIN : CONTRÔLE TOTAL ===
 Route::middleware(['admin'])->prefix('admin/archives')->name('admin.archives.')->group(function () {
@@ -1316,5 +1662,4 @@ Route::prefix('linkedin')->name('linkedin.')->group(function () {
     Route::get('/posts',    [LinkedInController::class, 'posts'])->name('posts');
     Route::post('/refresh', [LinkedInController::class, 'refresh'])->name('refresh');
 });
-
 

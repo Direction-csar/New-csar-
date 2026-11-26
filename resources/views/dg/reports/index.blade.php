@@ -23,9 +23,9 @@
                         <button class="btn btn-primary-modern btn-modern btn-sm" onclick="refreshData()">
                             <i class="fas fa-sync-alt me-1"></i>Actualiser
                         </button>
-                        <button class="btn btn-success-modern btn-modern btn-sm" onclick="generateReport()">
+                        <a href="{{ route('dg.reports.generate', ['report_type' => 'requests', 'format' => 'pdf']) }}" class="btn btn-success-modern btn-modern btn-sm">
                             <i class="fas fa-file-pdf me-1"></i>Nouveau Rapport
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -41,12 +41,12 @@
                 </div>
                 <h6 class="fw-bold">Rapport Demandes</h6>
                 <p class="text-muted small">Analyse des demandes d'aide</p>
-                <button class="btn btn-primary-modern btn-modern btn-sm" onclick="generateRequestReport()">
+                <a href="{{ route('dg.reports.generate', ['report_type' => 'requests', 'format' => 'pdf']) }}" class="btn btn-primary-modern btn-modern btn-sm">
                     <i class="fas fa-download me-1"></i>Générer
-                </button>
+                </a>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="card-modern p-3 text-center">
                 <div class="icon-3d mx-auto mb-3" style="width: 60px; height: 60px; background: var(--gradient-success);">
@@ -54,12 +54,12 @@
                 </div>
                 <h6 class="fw-bold">Rapport Entrepôts</h6>
                 <p class="text-muted small">État des entrepôts</p>
-                <button class="btn btn-success-modern btn-modern btn-sm" onclick="generateWarehouseReport()">
+                <a href="{{ route('dg.reports.generate', ['report_type' => 'warehouses', 'format' => 'pdf']) }}" class="btn btn-success-modern btn-modern btn-sm">
                     <i class="fas fa-download me-1"></i>Générer
-                </button>
+                </a>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="card-modern p-3 text-center">
                 <div class="icon-3d mx-auto mb-3" style="width: 60px; height: 60px; background: var(--gradient-info);">
@@ -67,12 +67,12 @@
                 </div>
                 <h6 class="fw-bold">Rapport Stocks</h6>
                 <p class="text-muted small">Gestion des stocks</p>
-                <button class="btn btn-info-modern btn-modern btn-sm" onclick="generateStockReport()">
+                <a href="{{ route('dg.reports.generate', ['report_type' => 'stocks', 'format' => 'pdf']) }}" class="btn btn-info-modern btn-modern btn-sm">
                     <i class="fas fa-download me-1"></i>Générer
-                </button>
+                </a>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="card-modern p-3 text-center">
                 <div class="icon-3d mx-auto mb-3" style="width: 60px; height: 60px; background: var(--gradient-warning);">
@@ -80,9 +80,9 @@
                 </div>
                 <h6 class="fw-bold">Rapport Personnel</h6>
                 <p class="text-muted small">Effectifs et performance</p>
-                <button class="btn btn-warning-modern btn-modern btn-sm" onclick="generatePersonnelReport()">
+                <a href="{{ route('dg.reports.generate', ['report_type' => 'personnel', 'format' => 'pdf']) }}" class="btn btn-warning-modern btn-modern btn-sm">
                     <i class="fas fa-download me-1"></i>Générer
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -100,7 +100,7 @@
                         <span class="badge bg-primary">{{ $reports->count() }} rapport(s)</span>
                     </div>
                 </div>
-                
+
                 @if($reports->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -180,7 +180,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-4 mb-3">
             <div class="card-modern p-3">
                 <h6 class="mb-3 fw-bold">
@@ -192,14 +192,14 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-4 mb-3">
             <div class="card-modern p-3">
                 <h6 class="mb-3 fw-bold">
                     <i class="fas fa-info-circle me-2 text-warning"></i>
                     Informations
                 </h6>
-                
+
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small">Rapports générés</span>
@@ -209,7 +209,7 @@
                         <div class="progress-bar bg-primary" style="width: 75%"></div>
                     </div>
                 </div>
-                
+
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small">Taille totale</span>
@@ -219,7 +219,7 @@
                         <div class="progress-bar bg-success" style="width: 60%"></div>
                     </div>
                 </div>
-                
+
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small">Dernière génération</span>
@@ -321,23 +321,23 @@
     }
 
     function generateReport() {
-        alert('Génération d\'un nouveau rapport...');
+        window.location.href = '{{ route('dg.reports.generate', ['report_type' => 'requests', 'format' => 'pdf']) }}';
     }
 
     function generateRequestReport() {
-        alert('Génération du rapport des demandes...');
+        window.location.href = '{{ route('dg.reports.generate', ['report_type' => 'requests', 'format' => 'pdf']) }}';
     }
 
     function generateWarehouseReport() {
-        alert('Génération du rapport des entrepôts...');
+        window.location.href = '{{ route('dg.reports.generate', ['report_type' => 'warehouses', 'format' => 'pdf']) }}';
     }
 
     function generateStockReport() {
-        alert('Génération du rapport des stocks...');
+        window.location.href = '{{ route('dg.reports.generate', ['report_type' => 'stocks', 'format' => 'pdf']) }}';
     }
 
     function generatePersonnelReport() {
-        alert('Génération du rapport du personnel...');
+        window.location.href = '{{ route('dg.reports.generate', ['report_type' => 'personnel', 'format' => 'pdf']) }}';
     }
 </script>
 @endsection

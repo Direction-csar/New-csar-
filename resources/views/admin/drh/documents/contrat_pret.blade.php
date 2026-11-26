@@ -6,7 +6,7 @@
 
 @section('corps')
     <p>Entre le <strong>Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR)</strong>,
-        représenté par son Directeur Général, ci-après dénommé <strong>« le Prêteur »</strong>, d'une part,</p>
+        représenté par Madame le Directeur Général, ci-après dénommé <strong>« le Prêteur »</strong>, d'une part,</p>
 
     <p>Et Monsieur/Madame <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,
         matricule <strong>{{ $personnel?->matricule ?? '________' }}</strong>,
@@ -33,4 +33,4 @@
     <p>Fait à Dakar, en deux (02) exemplaires, le {{ now()->format('d/m/Y') }}.</p>
 @endsection
 
-@section('signataire-role', 'L\'Emprunteur                                          Le Directeur Général')
+@section('signataire-role', 'L\'Emprunteur                                    Madame le Directeur Général')

@@ -38,3 +38,14 @@ if (!function_exists('locale_url')) {
         return '/' . $locale . $path . ($query ? '?' . $query : '');
     }
 }
+
+if (!function_exists('senegal_departements')) {
+    /**
+     * Référentiel administratif : région => [départements].
+     * Source : config/senegal_geo.php (décret 2008-748 amendé, ANSD).
+     */
+    function senegal_departements(): array
+    {
+        return config('senegal_geo', []);
+    }
+}

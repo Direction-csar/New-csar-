@@ -20,7 +20,7 @@ class DistributionTicket extends Model
         'beneficiary_id', 'planning_id',
         'ticket_code', 'qr_token',
         'status', 'issued_at', 'scanned_at', 'collected_at',
-        'scanned_by', 'scan_location',
+        'scanned_by', 'scan_location', 'issued_by',
     ];
 
     protected $casts = [
@@ -42,6 +42,11 @@ class DistributionTicket extends Model
     public function scanner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'scanned_by');
+    }
+
+    public function issuer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'issued_by');
     }
 
     public function scanLogs(): HasMany

@@ -3,9 +3,9 @@
  * Implements caching strategies for optimal performance
  */
 
-const CACHE_NAME = 'csar-v1.0.0';
-const STATIC_CACHE_NAME = 'csar-static-v1.0.0';
-const DYNAMIC_CACHE_NAME = 'csar-dynamic-v1.0.0';
+const CACHE_NAME = 'csar-v1.0.1';
+const STATIC_CACHE_NAME = 'csar-static-v1.0.1';
+const DYNAMIC_CACHE_NAME = 'csar-dynamic-v1.0.1';
 
 // Resources to cache immediately
 const STATIC_ASSETS = [
@@ -85,6 +85,12 @@ self.addEventListener('fetch', event => {
         return;
     }
     
+    // Pages HTML avec formulaires/jeton CSRF : jamais servies depuis le cache
+    // (un jeton périmé provoque « 419 Page Expired »).
+    if (isHTMLRequest(request) || url.pathname.includes('login') || url.pathname.includes('logout')) {
+        return;
+    }
+
     // Handle different types of requests
     if (isStaticAsset(request)) {
         event.respondWith(cacheFirst(request));
@@ -165,7 +171,7 @@ function isAPIRequest(request) {
 }
 
 function isHTMLRequest(request) {
-    return request.headers.get('accept').includes('text/html');
+    return (request.headers.get('accept') || '').includes('text/html');
 }
 
 // Background sync for offline form submissions

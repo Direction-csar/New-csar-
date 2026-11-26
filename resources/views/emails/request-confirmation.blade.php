@@ -48,7 +48,7 @@
                 <h3>📞 Contact d'urgence</h3>
                 <p>Pour toute question urgente concernant votre demande :</p>
                 <p><strong>📧 Email :</strong> contact@csar.sn<br>
-                <strong>📞 Téléphone :</strong> +221 33 123 45 67</p>
+                <strong>📞 Téléphone :</strong> +221 77 645 92 42</p>
             </div>
             
             <p>Nous vous remercions de votre confiance et nous nous engageons à traiter votre demande dans les meilleurs délais.</p>
@@ -59,7 +59,7 @@
         
         <div class="footer">
             <p>CSAR - Commissariat à la Sécurité Alimentaire et à la Résilience<br>
-            📧 contact@csar.sn | 📞 +221 33 123 45 67<br>
+            📧 contact@csar.sn | 📞 +221 77 645 92 42<br>
             🌐 www.csar.sn</p>
         </div>
     </div>

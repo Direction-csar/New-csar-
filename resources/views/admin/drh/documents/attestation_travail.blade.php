@@ -5,7 +5,7 @@
 @section('titre', 'Attestation de Travail')
 
 @section('corps')
-    <p>Je soussigné, le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),
+    <p>Je soussignée, Madame le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),
         atteste par la présente que :</p>
 
     <p><strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,

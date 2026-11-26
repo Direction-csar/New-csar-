@@ -48,7 +48,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -63,7 +63,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -78,7 +78,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -157,7 +157,7 @@
                         <span class="badge bg-primary">{{ $requests->count() }} résultat(s)</span>
                     </div>
                 </div>
-                
+
                 @if($requests->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -239,7 +239,7 @@
     }
 
     function exportRequests() {
-        alert('Export des demandes en cours...');
+        window.location.href = '{{ route('dg.reports.export', ['type' => 'requests', 'format' => 'csv']) }}';
     }
 
     function applyFilters() {
@@ -247,7 +247,7 @@
         const status = document.getElementById('statusFilter').value;
         const type = document.getElementById('typeFilter').value;
         const date = document.getElementById('dateFilter').value;
-        
+
         // Ici vous pouvez ajouter la logique de filtrage
         console.log('Filtres appliqués:', { search, status, type, date });
     }

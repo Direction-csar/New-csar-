@@ -36,6 +36,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Illuminate\Support\Facades\RateLimiter::for('request-tracking', function (\Illuminate\Http\Request $request) {
+            return \Illuminate\Cache\RateLimiting\Limit::perMinute($request->isMethod('GET') ? 60 : 10)
+                ->by('tracking:'.$request->ip().':'.($request->isMethod('GET') ? 'read' : 'write'));
+        });
         Mail::extend('brevo-api', function () {
             return new BrevoApiTransport();
         });
@@ -48,9 +52,23 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
 
+        // Valeur par défaut du paramètre {locale} des routes localisées :
+        // évite UrlGenerationException hors middleware SetLocale
+        // (routes directes /demande, appels route() en CLI/tests).
+        // SetLocale surcharge cette valeur pour les requêtes localisées.
+        URL::defaults(['locale' => config('app.locale', 'fr')]);
+
         // Partager la route courante avec toutes les vues utilisant le layout DRH
         View::composer('layouts.drh-portal', function ($view) {
             $view->with('currentRoute', request()->route()?->getName());
+        });
+
+        // Notifications réelles de la Direction générale (cloche de la barre supérieure)
+        View::composer('layouts.dg-modern', function ($view) {
+            $user = auth('dg')->user();
+            $view->with('dgNotifications', $user
+                ? app(\App\Services\DgDashboardService::class)->notificationsFor($user)
+                : ['items' => [], 'total' => 0]);
         });
 
         // Directive Blade @lazyImage pour images optimisées (lazy-loading + dimensions)

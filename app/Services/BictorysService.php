@@ -14,11 +14,11 @@ class BictorysService
 
     public function __construct()
     {
-        $this->mode = config('services.bictorys.mode', 'test');
-        $this->apiKey = config('services.bictorys.api_key', '');
+        $this->mode = config('services.bictorys.mode') ?? 'test';
+        $this->apiKey = config('services.bictorys.api_key') ?? '';
         $this->baseUrl = $this->mode === 'live'
-            ? config('services.bictorys.base_url_live', 'https://api.bictorys.com')
-            : config('services.bictorys.base_url_test', 'https://api.test.bictorys.com');
+            ? (config('services.bictorys.base_url_live') ?? 'https://api.bictorys.com')
+            : (config('services.bictorys.base_url_test') ?? 'https://api.test.bictorys.com');
     }
 
     /**

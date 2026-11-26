@@ -7,10 +7,15 @@ use App\Models\PublicRequest;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use PHPUnit\Framework\Attributes\Group;
 
-#[Group('legacy')]
 class PublicRequestSubmissionTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\Mail::fake();
+    }
 
     /**
      * Test que le formulaire de demande peut être soumis avec succès
@@ -25,7 +30,7 @@ class PublicRequestSubmissionTest extends TestCase
             'telephone' => '+221701234567',
             'objet' => 'Demande d\'assistance alimentaire',
             'description' => 'Je sollicite votre aide pour ma famille de 5 personnes en situation difficile depuis 2 mois.',
-            'type' => 'aide_alimentaire',
+            'type_demande' => 'aide_alimentaire','demandeur_type' => 'particulier','departement' => 'Dakar','exactitude' => '1',
             'region' => 'Dakar',
             'latitude' => 14.7167,
             'longitude' => -17.4677,
@@ -54,7 +59,7 @@ class PublicRequestSubmissionTest extends TestCase
         $publicRequest = PublicRequest::where('email', 'mamadou.diallo@test.com')->first();
         $this->assertNotNull($publicRequest);
         $this->assertNotNull($publicRequest->tracking_code);
-        $this->assertStringStartsWith('DEM', $publicRequest->tracking_code);
+        $this->assertStringStartsWith('CSAR-', $publicRequest->tracking_code);
     }
 
     /**
@@ -71,7 +76,8 @@ class PublicRequestSubmissionTest extends TestCase
             'telephone' => '+221775554433',
             'objet' => 'Aide matérielle',
             'description' => 'Besoin urgent de matériel pour ma famille.',
-            'type' => 'aide_materielle',
+            'type_demande' => 'autre','demandeur_type' => 'particulier','departement' => 'Thiès','exactitude' => '1',
+            'type_demande_autre' => 'Aide matérielle',
             'region' => 'Thiès',
         ];
 
@@ -105,7 +111,7 @@ class PublicRequestSubmissionTest extends TestCase
             'prenom' => 'Mamadou',
             'email' => 'email-invalide', // Email invalide
             'telephone' => '+221701234567',
-            'objet' => 'Test',
+            'objet' => 'Test','type_demande' => 'information_generale','demandeur_type' => 'particulier','departement' => 'Dakar','exactitude' => '1',
             'description' => 'Test description avec plus de 10 caractères',
         ];
 
@@ -124,7 +130,7 @@ class PublicRequestSubmissionTest extends TestCase
             'prenom' => 'Mamadou',
             'email' => 'test@test.com',
             'telephone' => '+221701234567',
-            'objet' => 'Test',
+            'objet' => 'Test','type_demande' => 'information_generale','demandeur_type' => 'particulier','departement' => 'Dakar','exactitude' => '1',
             'description' => str_repeat('a', 2001), // Plus de 2000 caractères
         ];
 
@@ -143,8 +149,10 @@ class PublicRequestSubmissionTest extends TestCase
             'prenom' => 'Mamadou',
             'email' => 'gps@test.com',
             'telephone' => '+221701234567',
-            'objet' => 'Test GPS',
+            'objet' => 'Test GPS','demandeur_type' => 'particulier','departement' => 'Dakar','exactitude' => '1',
             'description' => 'Test avec coordonnées GPS',
+            'type_demande' => 'aide_alimentaire','demandeur_type' => 'particulier','departement' => 'Dakar','exactitude' => '1',
+            'region' => 'Dakar',
             'latitude' => 14.7167,
             'longitude' => -17.4677,
         ];
@@ -168,8 +176,10 @@ class PublicRequestSubmissionTest extends TestCase
             'prenom' => 'Mamadou',
             'email' => 'ip@test.com',
             'telephone' => '+221701234567',
-            'objet' => 'Test',
+            'objet' => 'Test','type_demande' => 'information_generale','demandeur_type' => 'particulier','departement' => 'Dakar','exactitude' => '1',
             'description' => 'Test IP et User Agent',
+            'type_demande' => 'aide_alimentaire','demandeur_type' => 'particulier','departement' => 'Dakar','exactitude' => '1',
+            'region' => 'Dakar',
         ];
 
         $response = $this->post('/demande', $requestData);
@@ -179,7 +189,6 @@ class PublicRequestSubmissionTest extends TestCase
         $this->assertNotNull($publicRequest->user_agent);
     }
 }
-
 
 
 

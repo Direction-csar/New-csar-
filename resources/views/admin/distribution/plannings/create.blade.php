@@ -55,13 +55,24 @@
                             <input type="text" class="form-control form-control-sm" name="location" value="{{ old('location') }}">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold">Distributeur assigné</label>
-                            <select class="form-select form-select-sm" name="assigned_to">
-                                <option value="">Aucun (non assigné)</option>
+                            <label class="form-label small fw-bold">Agents distributeurs</label>
+                            <select class="form-select form-select-sm" name="distributor_ids[]" multiple size="5">
                                 @foreach($distributors as $id => $name)
-                                <option value="{{ $id }}" {{ old('assigned_to') == $id ? 'selected' : '' }}>{{ $name }}</option>
+                                <option value="{{ $id }}" {{ in_array($id, (array) old('distributor_ids', [])) ? 'selected' : '' }}>{{ $name }}</option>
                                 @endforeach
                             </select>
+                            <div class="form-text">Sélection multiple (Ctrl / Cmd). Tout compte « distributeur » peut recevoir ce planning.</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold">Agents scanners</label>
+                            <select class="form-select form-select-sm" name="scanner_ids[]" multiple size="5">
+                                @foreach($scanners as $id => $name)
+                                <option value="{{ $id }}" {{ in_array($id, (array) old('scanner_ids', [])) ? 'selected' : '' }}>{{ $name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="form-text">Indépendant des distributeurs : rôles scanner / magasinier en tête, tout agent actif peut être autorisé.</div>
                         </div>
                     </div>
                     <div class="mb-3">

@@ -4,70 +4,86 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\PublicRequest;
+use App\Services\RequestTrackingService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class TrackController extends Controller
 {
-    public function index()
+    public function __construct(private RequestTrackingService $tracking)
     {
-        $view = request()->is('suivi') || request()->is('*/suivi') ? 'public.suivi' : 'public.track';
-        return view($view);
+    }
+
+    public function index(Request $request)
+    {
+        $reference = (string) $request->query('code', '');
+        $dossier = $this->tracking->authorized($request, $reference);
+        return view('public.track', [
+            'reference' => $reference,
+            'dossier' => $dossier?->publicSummary(),
+            'mailAvailable' => RequestTrackingService::mailChannelAvailable(),
+            'deliveryState' => $this->tracking->deliveryState($request),
+        ]);
+    }
+
+    /** État d'envoi du code (JSON neutre) pour l'écran de saisie du code. */
+    public function deliveryState(Request $request)
+    {
+        return response()->json(['state' => $this->tracking->deliveryState($request)]);
     }
 
     public function track(Request $request)
     {
-        $request->validate([
-            'tracking_code' => 'required|string|max:20',
-            'phone' => 'nullable|string|max:20',
-        ]);
-
-        Log::info('TRACK DEBUG: code=[' . $request->tracking_code . '] len=' . strlen($request->tracking_code));
-        $publicRequest = PublicRequest::where('tracking_code', $request->tracking_code)->first();
-
-        $view = request()->is('suivi') || request()->is('*/suivi') ? 'public.suivi' : 'public.track';
-
-        if (!$publicRequest) {
-            return view($view, ['notFound' => true]);
+        if ($request->input('action') === 'confirm') {
+            $request->validate(['verification_code' => 'required|digits:6']);
+            $dossier = $this->tracking->confirm($request, $request->input('verification_code'));
+            if (!$dossier) {
+                return back()->with('tracking_error', 'Code invalide ou expiré. Demandez un nouveau code si nécessaire.');
+            }
+            return redirect()->route('suivi.direct', ['code' => $dossier->tracking_code]);
         }
 
-        if ($request->phone && $publicRequest->phone !== $request->phone) {
-            return view($view, ['notFound' => true]);
+        if ($request->input('action') === 'lookup') {
+            $request->validate(['tracking_code' => 'required|string|max:40']);
+            $reference = RequestTrackingService::normalizeReference((string) $request->input('tracking_code'));
+            if (!PublicRequest::where('tracking_code', $reference)->exists()) {
+                return back()->with('tracking_error', 'Référence introuvable. Vérifiez le numéro indiqué sur votre récépissé.')
+                    ->withInput(['tracking_code' => $reference]);
+            }
+            if (!RequestTrackingService::mailChannelAvailable()) {
+                return back()->with('tracking_error', RequestTrackingService::UNAVAILABLE)->withInput(['tracking_code' => $reference]);
+            }
+            // Nouvelle saisie d'adresse : l'ancien défi est abandonné pour revenir à l'écran de l'adresse.
+            $request->session()->forget(['request_tracking_challenge', 'request_tracking_reference']);
+            return back()->with('tracking_verify', true)->withInput(['tracking_code' => $reference]);
         }
 
-        return view($view, ['request' => $publicRequest]);
+        $request->validate(['tracking_code' => 'required|string|max:40', 'email' => 'required|email|max:255']);
+        $reference = RequestTrackingService::normalizeReference((string) $request->input('tracking_code'));
+        $request->session()->put('request_tracking_reference', $reference);
+        return match ($this->tracking->issue($request, $reference, $request->input('email'))) {
+            'unavailable' => back()->with('tracking_error', RequestTrackingService::UNAVAILABLE),
+            'throttled' => back()->with('tracking_error', 'Trop de demandes de code pour cette référence. Réessayez dans une heure.')
+                ->with('tracking_verify', true)->withInput(['tracking_code' => $reference]),
+            default => back()->with('tracking_prompt', true)->with('tracking_message', RequestTrackingService::MESSAGE),
+        };
     }
 
-    public function verify(Request $request, $code)
+    public function verify(Request $request, $locale, $code = null)
     {
-        $publicRequest = PublicRequest::where('tracking_code', $code)->first();
-        $view = 'public.track';
-        if (!$publicRequest) {
-            return view($view, ['notFound' => true]);
-        }
-
-        if (!$request->has('phone') || $publicRequest->phone !== $request->input('phone')) {
-            return view($view, ['notFound' => true]);
-        }
-
-        return view($view, ['request' => $publicRequest]);
+        // The localized route is /{locale}/verifier/{code}: the first segment is
+        // the locale, never a dossier reference.
+        return redirect()->route('suivi.direct', ['code' => $code ?? $locale]);
     }
 
     public function download(Request $request, $code)
     {
-        $publicRequest = PublicRequest::where('tracking_code', $code)->first();
-
-        if (!$publicRequest) {
-            abort(404);
+        $dossier = $this->tracking->authorized($request, $code);
+        if (!$dossier) {
+            return redirect()->route('suivi.direct', ['code' => $code])
+                ->with('tracking_error', 'Vérifiez votre adresse email pour accéder au récépissé.');
         }
-
-        if (!$request->has('phone') || $publicRequest->phone !== $request->input('phone')) {
-            return back()->with('error', 'Veuillez fournir le numéro de téléphone associé à la demande pour télécharger le PDF.');
-        }
-
-        $pdf = Pdf::loadView('public.pdf.request', ['request' => $publicRequest]);
-
-        return $pdf->download("demande-{$publicRequest->tracking_code}.pdf");
+        return Pdf::loadView('public.pdf.request', ['request' => $dossier->publicSummary()])
+            ->download("demande-{$dossier->tracking_code}.pdf");
     }
 }

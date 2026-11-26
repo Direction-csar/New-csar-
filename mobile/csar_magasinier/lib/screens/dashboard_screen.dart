@@ -6,6 +6,8 @@ import '../services/api_service.dart';
 import '../services/database_service.dart';
 import '../models/warehouse.dart';
 import '../models/stock_movement.dart';
+import '../theme/csar_theme.dart';
+import '../widgets/csar_ui.dart';
 import 'movement_form_screen.dart';
 import 'sync_screen.dart';
 import 'transfer_form_screen.dart';
@@ -45,10 +47,6 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
-  static const _green = Color(0xFF1B5E20);
-  static const _greenLight = Color(0xFF2E7D32);
-  static const _bg = Color(0xFFF6F8F5);
-
   List<Warehouse> _warehouses = [];
   Warehouse? _selectedWarehouse;
   List<StockMovement> _recentMovements = [];
@@ -120,7 +118,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       List<_AlertItem> alerts = [];
 
       if (hasNet) {
-        // Alertes seuil serveur (par magasin)
         try {
           final res = await ApiService.getAlerts();
           for (final a in (res['alerts'] ?? [])) {
@@ -135,7 +132,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         } catch (_) {}
 
         if (selected != null) {
-          // Mouvements récents du magasin sélectionné
           try {
             final sheet = await ApiService.getStockSheet(selected.id);
             recent = (sheet['movements']?['data'] as List? ?? [])
@@ -143,7 +139,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 .toList();
           } catch (_) {}
 
-          // Alertes par produit (stock-status)
           try {
             final status = await ApiService.getStockStatus(selected.id);
             for (final p in (status['products'] ?? [])) {
@@ -184,7 +179,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
           } catch (_) {}
         }
 
-        // Écarts d'inventaire → anomalie
         for (final m in recent) {
           if (m.movementType == 'adjustment' &&
               m.inventoryDiff != null &&
@@ -199,14 +193,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
           }
         }
       } else {
-        // Hors ligne : mouvements locaux du magasin
         if (selected != null) {
           recent = await DatabaseService.getMovementsByWarehouse(selected.id)
               .timeout(const Duration(seconds: 10), onTimeout: () => <StockMovement>[]);
         }
       }
 
-      // Compteurs du jour (données réelles)
       final today = DateTime.now().toIso8601String().substring(0, 10);
       _entriesToday = recent.where((m) {
         final d = m.movementDate.isNotEmpty ? m.movementDate : (m.createdAt ?? '');
@@ -259,7 +251,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return (parts.first.substring(0, 1) + parts.last.substring(0, 1)).toUpperCase();
   }
 
-  /// 1 sac = 50 kg (convention serveur) → conversion fiable kg/tonnes.
   String _formatTonnage(double sacs) {
     final kg = sacs * 50;
     if (kg >= 1000) {
@@ -285,19 +276,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
   }
 
-  Widget _seeAll(VoidCallback onTap) {
-    return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(foregroundColor: _green),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Voir tout', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-          SizedBox(width: 2),
-          Icon(Icons.chevron_right, size: 20),
-        ],
-      ),
-    );
+  Future<void> _open(Widget Function() builder) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => builder()));
+    _loadData();
   }
 
   @override
@@ -305,32 +286,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final user = context.watch<AuthProvider>().user;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: CsarColors.bg,
       body: _loading && _warehouses.isEmpty
-          ? const Center(child: CircularProgressIndicator(color: _green))
+          ? const Center(child: CircularProgressIndicator(color: CsarColors.blue))
           : RefreshIndicator(
               onRefresh: _loadData,
-              color: _green,
+              color: CsarColors.blue,
               child: CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
-                  _buildHeader(user),
+                  SliverToBoxAdapter(child: _buildHeader(user)),
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (_offline) _offlineBanner(),
-                          if (_error != null) _errorBanner(),
+                          OfflineBanner(offline: _offline, message: _error, onRetry: _error != null ? _loadData : null),
                           const SizedBox(height: 14),
-                          _buildStatsRow(),
+                          _buildStatsGrid(),
                           const SizedBox(height: 16),
                           _buildAlertsSection(),
                           const SizedBox(height: 16),
-                          _buildRecentMovements(),
-                          const SizedBox(height: 16),
                           _buildQuickActions(),
+                          const SizedBox(height: 16),
+                          _buildRecentMovements(),
                         ],
                       ),
                     ),
@@ -343,182 +323,117 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   // ---------- EN-TÊTE ----------
   Widget _buildHeader(Map<String, dynamic>? user) {
-    return SliverToBoxAdapter(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return CsarHeader(
+      title: 'Bonjour, ${_firstName(user?['name']?.toString())}',
+      subtitle: _selectedWarehouse != null
+          ? '${_selectedWarehouse!.name} — ${_selectedWarehouse!.location ?? 'Magasin CSAR'}'
+          : 'Gestion des stocks alimentaires',
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Barre verte : logo + titre + notifications + profil
-          Container(
-            color: _green,
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 8, 12),
-                child: Row(
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                onPressed: _showAlerts,
+                icon: const Icon(Icons.notifications_none_rounded, color: Colors.white, size: 26),
+              ),
+              if (_alerts.isNotEmpty)
+                Positioned(
+                  right: 4,
+                  top: 4,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(color: CsarColors.orange, shape: BoxShape.circle),
+                    constraints: const BoxConstraints(minWidth: 17, minHeight: 17),
+                    child: Text(
+                      '${_alerts.length}',
+                      style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          PopupMenuButton<String>(
+            offset: const Offset(0, 46),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            onSelected: _onMenu,
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                enabled: false,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.warehouse, color: Colors.white, size: 42),
-                    const SizedBox(width: 12),
-                    const Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'CSAR MAGASINIER',
-                            style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: 0.3),
-                          ),
-                          Text(
-                            'Gestion des stocks',
-                            style: TextStyle(color: Colors.white, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        IconButton(
-                          onPressed: _showAlerts,
-                          icon: const Icon(Icons.notifications_none, color: Colors.white, size: 28),
-                        ),
-                        if (_alerts.isNotEmpty)
-                          Positioned(
-                            right: 6,
-                            top: 4,
-                            child: Container(
-                              padding: const EdgeInsets.all(3),
-                              decoration: const BoxDecoration(color: Color(0xFFE53935), shape: BoxShape.circle),
-                              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
-                              child: Text(
-                                '${_alerts.length}',
-                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(width: 4),
-                    PopupMenuButton<String>(
-                      offset: const Offset(0, 52),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      onSelected: _onMenu,
-                      itemBuilder: (_) => [
-                        PopupMenuItem(
-                          enabled: false,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(user?['name']?.toString() ?? 'Magasinier',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1B2E1F))),
-                              Text(user?['email']?.toString() ?? '',
-                                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
-                            ],
-                          ),
-                        ),
-                        const PopupMenuDivider(),
-                        const PopupMenuItem(value: 'sync', child: ListTile(leading: Icon(Icons.sync), title: Text('Synchroniser'), contentPadding: EdgeInsets.zero)),
-                        const PopupMenuItem(value: 'receipts', child: ListTile(leading: Icon(Icons.receipt_long), title: Text('Mes reçus'), contentPadding: EdgeInsets.zero)),
-                        const PopupMenuItem(value: 'logout', child: ListTile(leading: Icon(Icons.logout, color: Colors.red), title: Text('Se déconnecter', style: TextStyle(color: Colors.red)), contentPadding: EdgeInsets.zero)),
-                      ],
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                            child: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: const Color(0xFFE8F5E9),
-                              child: Text(
-                                _initials(user?['name']?.toString()),
-                                style: const TextStyle(color: _green, fontWeight: FontWeight.bold, fontSize: 14),
-                              ),
-                            ),
-                          ),
-                          const Icon(Icons.keyboard_arrow_down, color: Colors.white),
-                        ],
-                      ),
-                    ),
+                    Text(user?['name']?.toString() ?? 'Magasinier',
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: CsarColors.text)),
+                    Text(user?['email']?.toString() ?? '',
+                        style: const TextStyle(fontSize: 12, color: CsarColors.textMuted)),
                   ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem(value: 'sync', child: ListTile(leading: Icon(Icons.sync_rounded), title: Text('Synchroniser'), contentPadding: EdgeInsets.zero, dense: true)),
+              const PopupMenuItem(value: 'receipts', child: ListTile(leading: Icon(Icons.receipt_long_rounded), title: Text('Mes reçus'), contentPadding: EdgeInsets.zero, dense: true)),
+              const PopupMenuItem(value: 'logout', child: ListTile(leading: Icon(Icons.logout_rounded, color: CsarColors.red), title: Text('Se déconnecter', style: TextStyle(color: CsarColors.red)), contentPadding: EdgeInsets.zero, dense: true)),
+            ],
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
+              ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: Colors.white,
+                child: Text(
+                  _initials(user?['name']?.toString()),
+                  style: const TextStyle(color: CsarColors.navy, fontWeight: FontWeight.w800, fontSize: 13),
                 ),
               ),
             ),
           ),
-          // Salutation + sélecteur de magasin (fond clair)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.only(top: 2),
-                  child: Icon(Icons.wb_sunny_outlined, color: Color(0xFF1B2E1F), size: 30),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text.rich(
-                        TextSpan(
-                          style: const TextStyle(color: Color(0xFF1B2E1F), fontSize: 22),
-                          children: [
-                            const TextSpan(text: 'Bonjour, '),
-                            TextSpan(
-                              text: _firstName(user?['name']?.toString()),
-                              style: const TextStyle(fontWeight: FontWeight.w800, color: _green),
-                            ),
-                          ],
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Vue d\'ensemble du magasin',
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_warehouses.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F1E9),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<Warehouse>(
-                        value: _selectedWarehouse,
-                        icon: const Icon(Icons.keyboard_arrow_down, color: _green, size: 20),
-                        style: const TextStyle(color: Color(0xFF1B2E1F), fontSize: 13, fontWeight: FontWeight.w600),
-                        isDense: true,
-                        selectedItemBuilder: (_) => _warehouses
-                            .map((w) => Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.apartment, color: _green, size: 18),
-                                    const SizedBox(width: 6),
-                                    ConstrainedBox(
-                                      constraints: const BoxConstraints(maxWidth: 110),
-                                      child: Text(w.name, overflow: TextOverflow.ellipsis),
-                                    ),
-                                  ],
-                                ))
-                            .toList(),
-                        items: _warehouses
-                            .map((w) => DropdownMenuItem(value: w, child: Text(w.name, overflow: TextOverflow.ellipsis)))
-                            .toList(),
-                        onChanged: (w) {
-                          if (w != null) _selectWarehouse(w);
-                        },
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
         ],
+      ),
+    );
+  }
+
+  // Sélecteur de magasin sous l'en-tête
+  Widget _buildWarehouseSelector() {
+    if (_warehouses.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: CsarColors.border),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<Warehouse>(
+            value: _selectedWarehouse,
+            isExpanded: true,
+            icon: const Icon(Icons.keyboard_arrow_down_rounded, color: CsarColors.blue),
+            style: const TextStyle(color: CsarColors.text, fontSize: 14, fontWeight: FontWeight.w600),
+            items: _warehouses
+                .map((w) => DropdownMenuItem(
+                      value: w,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.storefront_rounded, color: CsarColors.blue, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(w.name, overflow: TextOverflow.ellipsis)),
+                        ],
+                      ),
+                    ))
+                .toList(),
+            onChanged: (w) {
+              if (w != null) _selectWarehouse(w);
+            },
+          ),
+        ),
       ),
     );
   }
@@ -539,7 +454,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             content: const Text('Voulez-vous vraiment vous déconnecter ?'),
             actions: [
               TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Annuler')),
-              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Déconnexion', style: TextStyle(color: Colors.red))),
+              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Déconnexion', style: TextStyle(color: CsarColors.red))),
             ],
           ),
         );
@@ -550,7 +465,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  /// Nom du produit extrait du libellé (« Riz [25kg] … » ou « Produit: Riz | … »).
   String? _productFromLabel(String label) {
     final a = RegExp(r'^(.+?)\s*\[\d+\s*kg\]', caseSensitive: false).firstMatch(label);
     if (a != null) return a.group(1)!.trim();
@@ -559,158 +473,86 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return null;
   }
 
-  // ---------- BANDEAUX ----------
-  Widget _offlineBanner() {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.orange.shade50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.orange.shade300),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.wifi_off, color: Colors.orange.shade800, size: 18),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Hors connexion — données locales affichées',
-              style: TextStyle(fontSize: 12, color: Colors.orange.shade800, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _errorBanner() {
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.red.shade300),
-      ),
-      child: Row(
-        children: [
-          Icon(Icons.error_outline, color: Colors.red.shade800, size: 18),
-          const SizedBox(width: 8),
-          Expanded(child: Text(_error!, style: TextStyle(fontSize: 12, color: Colors.red.shade800))),
-          TextButton(onPressed: _loadData, child: const Text('Réessayer')),
-        ],
-      ),
-    );
-  }
-
-  // ---------- 4 CARTES STATISTIQUES ----------
-  Widget _buildStatsRow() {
+  // ---------- GRILLE KPI ----------
+  Widget _buildStatsGrid() {
     final stockSacs = _selectedWarehouse?.currentStock ?? 0;
-    const orange = Color(0xFFF59E0B);
-    const blue = Color(0xFF3B82F6);
-    return IntrinsicHeight(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _statCard('Stock disponible', _formatTonnage(stockSacs), null, Icons.inventory_2_outlined,
-              _greenLight, const Color(0xFFF4FAF4), const Color(0xFF1B2E1F),
-              () => _open(() => StockStatusScreen(warehouse: _selectedWarehouse))),
-          const SizedBox(width: 8),
-          _statCard('Entrées aujourd\'hui', '$_entriesToday', 'mouvements', Icons.arrow_downward,
-              _greenLight, const Color(0xFFF4FAF4), const Color(0xFF1B2E1F),
-              () => _open(() => MovementFormScreen(warehouse: _selectedWarehouse))),
-          const SizedBox(width: 8),
-          _statCard('Sorties aujourd\'hui', '$_exitsToday', 'mouvements', Icons.arrow_upward,
-              orange, const Color(0xFFFFF8EC), orange,
-              () => _open(() => MovementFormScreen(warehouse: _selectedWarehouse))),
-          const SizedBox(width: 8),
-          _statCard('À valider', '$_pendingSync', 'à synchroniser', Icons.assignment_outlined,
-              blue, const Color(0xFFF0F6FF), blue,
-              () => _open(() => const SyncScreen())),
-        ],
-      ),
-    );
-  }
-
-  Widget _statCard(String label, String value, String? sub, IconData icon, Color color, Color bg,
-      Color valueColor, VoidCallback onTap) {
-    return Expanded(
-      child: Material(
-        color: bg,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.withValues(alpha: 0.18)),
+    return Column(
+      children: [
+        _buildWarehouseSelector(),
+        const SizedBox(height: 14),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 1.55,
+          children: [
+            KpiCard(
+              icon: Icons.inventory_2_rounded,
+              value: _formatTonnage(stockSacs),
+              label: 'Stock officiel',
+              subtitle: _selectedWarehouse?.name ?? 'Tous magasins',
+              color: CsarColors.green,
+              onTap: () => _open(() => StockStatusScreen(warehouse: _selectedWarehouse)),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircleAvatar(
-                  radius: 17,
-                  backgroundColor: color,
-                  child: Icon(icon, color: Colors.white, size: 19),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  label,
-                  style: const TextStyle(fontSize: 10.5, color: Color(0xFF1B2E1F), fontWeight: FontWeight.w500),
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 4),
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(value, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: valueColor)),
-                ),
-                if (sub != null)
-                  Text(sub, style: TextStyle(fontSize: 9.5, color: Colors.grey.shade600), textAlign: TextAlign.center),
-              ],
+            KpiCard(
+              icon: Icons.south_west_rounded,
+              value: '$_entriesToday',
+              label: 'Entrées aujourd\'hui',
+              subtitle: 'mouvements',
+              color: CsarColors.green,
+              onTap: () => _open(() => MovementFormScreen(warehouse: _selectedWarehouse)),
             ),
-          ),
+            KpiCard(
+              icon: Icons.north_east_rounded,
+              value: '$_exitsToday',
+              label: 'Sorties aujourd\'hui',
+              subtitle: 'mouvements',
+              color: CsarColors.orange,
+              onTap: () => _open(() => MovementFormScreen(warehouse: _selectedWarehouse)),
+            ),
+            KpiCard(
+              icon: Icons.cloud_upload_outlined,
+              value: '$_pendingSync',
+              label: 'À synchroniser',
+              subtitle: 'mouvements hors ligne',
+              color: CsarColors.blue,
+              onTap: () => _open(() => const SyncScreen()),
+            ),
+          ],
         ),
-      ),
+      ],
     );
   }
 
-  // ---------- ALERTES STOCK ----------
+  // ---------- ALERTES ----------
   Widget _buildAlertsSection() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFFAFA),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFF8DADA)),
-      ),
+    return Card(
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 4, 4),
-            child: Row(
-              children: [
-                const Icon(Icons.warning_rounded, color: Color(0xFFDC2626), size: 30),
-                const SizedBox(width: 10),
-                const Text(
-                  'ALERTES STOCK',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFFDC2626)),
-                ),
-                const Spacer(),
-                _seeAll(_showAlerts),
-              ],
+          SectionHeader(
+            title: 'Alertes stock',
+            icon: Icons.warning_amber_rounded,
+            trailing: TextButton(
+              onPressed: _showAlerts,
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Tout voir', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: CsarColors.blue)),
+                  Icon(Icons.chevron_right, size: 16, color: CsarColors.blue),
+                ],
+              ),
             ),
           ),
           if (_alerts.isEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Row(
                 children: [
-                  Icon(Icons.check_circle_outline, color: Colors.green.shade600, size: 20),
-                  const SizedBox(width: 8),
-                  Text('Aucun problème de stock détecté', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                  Icon(Icons.check_circle_outline_rounded, color: CsarColors.green, size: 18),
+                  SizedBox(width: 8),
+                  Text('Aucun problème de stock détecté', style: TextStyle(color: CsarColors.textMuted, fontSize: 13)),
                 ],
               ),
             )
@@ -723,102 +565,71 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _alertTile(_AlertItem a) {
-    Color textColor;
-    Color chipBg;
+    Color color;
     String chipLabel;
-    Color tileColor;
     switch (a.severity) {
       case 'critical':
-        textColor = const Color(0xFFDC2626);
-        chipBg = const Color(0xFFFBCFCF);
+        color = CsarColors.red;
         chipLabel = 'Critique';
-        tileColor = const Color(0xFFFDECEC);
         break;
       case 'anomaly':
-        textColor = const Color(0xFF7C3AED);
-        chipBg = const Color(0xFFE4D7FB);
+        color = const Color(0xFF7C3AED);
         chipLabel = 'Anomalie';
-        tileColor = const Color(0xFFF5F0FE);
         break;
       case 'info':
-        textColor = const Color(0xFF2563EB);
-        chipBg = const Color(0xFFD3E4FD);
+        color = CsarColors.blue;
         chipLabel = 'À surveiller';
-        tileColor = const Color(0xFFEEF4FE);
         break;
       default:
-        textColor = const Color(0xFFEA7A0C);
-        chipBg = const Color(0xFFFDDFA8);
+        color = CsarColors.amber;
         chipLabel = 'Attention';
-        tileColor = const Color(0xFFFEF4E6);
     }
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
-      child: Material(
-        color: tileColor,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(10),
-          onTap: _showAlerts,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            child: Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: a.imageUrl != null && a.imageUrl!.isNotEmpty
-                      ? Image.network(
-                          a.imageUrl!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Icon(a.icon, color: textColor, size: 28),
-                        )
-                      : Icon(a.icon, color: textColor, size: 28),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 5,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(a.title,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Color(0xFF1B2E1F)),
-                          overflow: TextOverflow.ellipsis),
-                      const SizedBox(height: 2),
-                      Text(a.subtitle,
-                          style: TextStyle(fontSize: 13, color: textColor, fontWeight: FontWeight.w500),
-                          overflow: TextOverflow.ellipsis),
-                    ],
-                  ),
-                ),
-                Container(width: 1, height: 40, color: Colors.black12, margin: const EdgeInsets.symmetric(horizontal: 10)),
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(a.quantity,
-                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF1B2E1F)),
-                          overflow: TextOverflow.ellipsis),
-                      Text('disponibles', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(color: chipBg, borderRadius: BorderRadius.circular(14)),
-                  child: Text(chipLabel, style: TextStyle(color: textColor, fontSize: 11, fontWeight: FontWeight.w700)),
-                ),
-                Icon(Icons.chevron_right, color: Colors.grey.shade600, size: 20),
-              ],
+    return InkWell(
+      onTap: _showAlerts,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: a.imageUrl != null && a.imageUrl!.isNotEmpty
+                  ? Image.network(a.imageUrl!, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Icon(a.icon, color: color, size: 22))
+                  : Icon(a.icon, color: color, size: 22),
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(a.title,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: CsarColors.text),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                  const SizedBox(height: 2),
+                  Text(a.subtitle,
+                      style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(chipLabel, style: TextStyle(color: color, fontSize: 10.5, fontWeight: FontWeight.w700)),
+            ),
+          ],
         ),
       ),
     );
@@ -828,6 +639,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (ctx) => DraggableScrollableSheet(
         initialChildSize: 0.55,
@@ -840,30 +652,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade300, borderRadius: BorderRadius.circular(2))),
+                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: CsarColors.border, borderRadius: BorderRadius.circular(2))),
               ),
-              const SizedBox(height: 16),
-              Text(
-                'ALERTES STOCK (${_alerts.length})',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.red.shade700),
-              ),
+              const SizedBox(height: 14),
+              Text('Alertes stock (${_alerts.length})',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: CsarColors.text)),
               const SizedBox(height: 12),
               Expanded(
                 child: _alerts.isEmpty
-                    ? Center(
+                    ? const Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.check_circle_outline, size: 48, color: Colors.green.shade400),
-                            const SizedBox(height: 8),
-                            const Text('Aucun problème de stock détecté'),
+                            Icon(Icons.check_circle_outline_rounded, size: 48, color: CsarColors.green),
+                            SizedBox(height: 8),
+                            Text('Aucun problème de stock détecté', style: TextStyle(color: CsarColors.textMuted)),
                           ],
                         ),
                       )
-                    : ListView(
-                        controller: scroll,
-                        children: _alerts.map(_alertTile).toList(),
-                      ),
+                    : ListView(controller: scroll, children: _alerts.map(_alertTile).toList()),
               ),
             ],
           ),
@@ -875,76 +682,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ---------- ACTIONS RAPIDES ----------
   Widget _buildQuickActions() {
     final actions = <({String label, IconData icon, Color color, VoidCallback onTap})>[
-      (
-        label: 'Entrée',
-        icon: Icons.arrow_downward,
-        color: _greenLight,
-        onTap: () => _open(() => MovementFormScreen(warehouse: _selectedWarehouse)),
-      ),
-      (
-        label: 'Sortie',
-        icon: Icons.arrow_upward,
-        color: Colors.orange.shade700,
-        onTap: () => _open(() => MovementFormScreen(warehouse: _selectedWarehouse)),
-      ),
-      (
-        label: 'Transfert',
-        icon: Icons.swap_horiz,
-        color: Colors.blue.shade700,
-        onTap: () => _open(() => TransferFormScreen(warehouse: _selectedWarehouse)),
-      ),
-      (
-        label: 'Inventaire',
-        icon: Icons.fact_check,
-        color: Colors.deepPurple,
-        onTap: () => _open(() => InventoryFormScreen(warehouse: _selectedWarehouse)),
-      ),
-      (
-        label: 'Stocks',
-        icon: Icons.bar_chart,
-        color: Colors.teal,
-        onTap: () => _open(() => StockStatusScreen(warehouse: _selectedWarehouse)),
-      ),
-      (
-        label: 'Sync',
-        icon: Icons.sync,
-        color: Colors.cyan.shade700,
-        onTap: () => _open(() => const SyncScreen()),
-      ),
-      (
-        label: 'Reçus',
-        icon: Icons.receipt_long,
-        color: Colors.indigo,
-        onTap: () => _open(() => const ReceiptHistoryScreen()),
-      ),
-      (
-        label: 'Reçu n°',
-        icon: Icons.search,
-        color: Colors.grey.shade700,
-        onTap: _showReceiptDialog,
-      ),
+      (label: 'Entrée', icon: Icons.south_west_rounded, color: CsarColors.green, onTap: () => _open(() => MovementFormScreen(warehouse: _selectedWarehouse))),
+      (label: 'Sortie', icon: Icons.north_east_rounded, color: CsarColors.orange, onTap: () => _open(() => MovementFormScreen(warehouse: _selectedWarehouse))),
+      (label: 'Transfert', icon: Icons.swap_horiz_rounded, color: CsarColors.blue, onTap: () => _open(() => TransferFormScreen(warehouse: _selectedWarehouse))),
+      (label: 'Inventaire', icon: Icons.fact_check_outlined, color: const Color(0xFF7C3AED), onTap: () => _open(() => InventoryFormScreen(warehouse: _selectedWarehouse))),
+      (label: 'Stocks', icon: Icons.bar_chart_rounded, color: const Color(0xFF0D9488), onTap: () => _open(() => StockStatusScreen(warehouse: _selectedWarehouse))),
+      (label: 'Sync', icon: Icons.sync_rounded, color: CsarColors.amber, onTap: () => _open(() => const SyncScreen())),
+      (label: 'Reçus', icon: Icons.receipt_long_rounded, color: const Color(0xFF6366F1), onTap: () => _open(() => const ReceiptHistoryScreen())),
+      (label: 'Reçu n°', icon: Icons.search_rounded, color: CsarColors.textMuted, onTap: _showReceiptDialog),
     ];
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
-      padding: const EdgeInsets.all(14),
+    return Card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('ACTIONS RAPIDES', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 0.5)),
-          const SizedBox(height: 12),
-          GridView.count(
-            crossAxisCount: 4,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 0.85,
-            children: actions.map(_quickAction).toList(),
+          const SectionHeader(title: 'Actions rapides', icon: Icons.bolt_rounded),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            child: GridView.count(
+              crossAxisCount: 4,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: 10,
+              crossAxisSpacing: 10,
+              childAspectRatio: 0.82,
+              children: actions.map(_quickAction).toList(),
+            ),
           ),
         ],
       ),
@@ -952,60 +715,58 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _quickAction(({String label, IconData icon, Color color, VoidCallback onTap}) a) {
-    return InkWell(
-      onTap: a.onTap,
+    return Material(
+      color: a.color.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(12),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 22,
-            backgroundColor: a.color.withValues(alpha: 0.12),
-            child: Icon(a.icon, color: a.color, size: 22),
-          ),
-          const SizedBox(height: 6),
-          Text(a.label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
-        ],
+      child: InkWell(
+        onTap: a.onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(a.icon, color: a.color, size: 24),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(a.label,
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: CsarColors.text),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Future<void> _open(Widget Function() builder) async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => builder()));
-    _loadData();
-  }
-
   // ---------- MOUVEMENTS RÉCENTS ----------
   Widget _buildRecentMovements() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 2))],
-      ),
+    return Card(
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 4, 4),
-            child: Row(
-              children: [
-                const Icon(Icons.schedule, color: _green, size: 30),
-                const SizedBox(width: 10),
-                const Text('Mouvements récents',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF1B2E1F))),
-                const Spacer(),
-                _seeAll(() => Navigator.push(context, MaterialPageRoute(builder: (_) => const MovementHistoryScreen()))),
-              ],
+          SectionHeader(
+            title: 'Mouvements récents',
+            icon: Icons.history_rounded,
+            trailing: TextButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MovementHistoryScreen())),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Voir tout', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: CsarColors.blue)),
+                  Icon(Icons.chevron_right, size: 16, color: CsarColors.blue),
+                ],
+              ),
             ),
           ),
           if (_recentMovements.isEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Row(
                 children: [
-                  Icon(Icons.inbox_outlined, color: Colors.grey.shade400, size: 20),
-                  const SizedBox(width: 8),
-                  Text('Aucun mouvement récent', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                  Icon(Icons.inbox_outlined, color: CsarColors.textMuted, size: 18),
+                  SizedBox(width: 8),
+                  Text('Aucun mouvement récent', style: TextStyle(color: CsarColors.textMuted, fontSize: 13)),
                 ],
               ),
             )
@@ -1026,20 +787,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
     IconData icon;
     String typeLabel;
     if (isTransfer) {
-      color = Colors.blue.shade700;
-      icon = Icons.swap_horiz;
+      color = CsarColors.blue;
+      icon = Icons.swap_horiz_rounded;
       typeLabel = 'Transfert';
     } else if (isAdjustment) {
-      color = Colors.deepPurple;
-      icon = Icons.fact_check;
+      color = const Color(0xFF7C3AED);
+      icon = Icons.fact_check_outlined;
       typeLabel = 'Ajustement';
     } else if (isEntry) {
-      color = _greenLight;
-      icon = Icons.arrow_downward;
+      color = CsarColors.green;
+      icon = Icons.south_west_rounded;
       typeLabel = 'Entrée';
     } else {
-      color = Colors.orange.shade700;
-      icon = Icons.arrow_upward;
+      color = CsarColors.orange;
+      icon = Icons.north_east_rounded;
       typeLabel = 'Sortie';
     }
 
@@ -1047,7 +808,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final kgRaw = isEntry ? m.entryKg : (isAdjustment ? 0.0 : m.exitKg);
     final kg = kgRaw > 0 ? kgRaw : sacs * 50;
     final sign = isEntry ? '+' : (isAdjustment ? (m.inventoryDiff != null && m.inventoryDiff! >= 0 ? '+' : '−') : '−');
-    final qtyColor = isEntry ? _green : color;
+    final qtyColor = isEntry ? CsarColors.green : color;
 
     String time = '';
     String date = m.movementDate;
@@ -1062,63 +823,53 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return InkWell(
       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReceiptScreen(reference: m.reference))),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 14),
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: Colors.grey.shade200)),
+          border: Border(top: BorderSide(color: CsarColors.border)),
         ),
         child: Row(
           children: [
-            CircleAvatar(radius: 22, backgroundColor: color, child: Icon(icon, color: Colors.white, size: 24)),
-            const SizedBox(width: 14),
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(width: 12),
             Expanded(
-              flex: 5,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(m.label,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5, color: Color(0xFF1B2E1F)),
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: CsarColors.text),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(color: color.withValues(alpha: 0.85), borderRadius: BorderRadius.circular(6)),
-                    child: Text(typeLabel, style: const TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600)),
+                    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(6)),
+                    child: Text(typeLabel, style: TextStyle(fontSize: 10.5, color: color, fontWeight: FontWeight.w700)),
                   ),
-                ],
-              ),
-            ),
-            Container(width: 1, height: 40, color: Colors.grey.shade300, margin: const EdgeInsets.symmetric(horizontal: 10)),
-            Expanded(
-              flex: 4,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('$sign${_fmtNum(kg)} kg',
-                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: qtyColor),
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 2),
-                  Text(_productFromLabel(m.label) ?? '${_fmtNum(sacs)} sacs',
-                      style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
-                      overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.access_time, size: 15, color: Colors.grey.shade600),
-                    const SizedBox(width: 4),
-                    Text(time.isEmpty ? '--:--' : time,
-                        style: const TextStyle(fontSize: 12.5, color: Color(0xFF1B2E1F))),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(_fmtDate(date), style: TextStyle(fontSize: 10.5, color: Colors.grey.shade600)),
+                Text('$sign${_fmtNum(kg)} kg',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: qtyColor)),
+                const SizedBox(height: 2),
+                Text(_productFromLabel(m.label) ?? '${_fmtNum(sacs)} sacs',
+                    style: const TextStyle(fontSize: 11, color: CsarColors.textMuted),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+                const SizedBox(height: 2),
+                Text('${time.isEmpty ? '--:--' : time} · ${_fmtDate(date)}',
+                    style: const TextStyle(fontSize: 10.5, color: CsarColors.textMuted)),
               ],
             ),
           ],
@@ -1127,7 +878,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  // ---------- RECHERCHE REÇU ----------
   void _showReceiptDialog() {
     final ctrl = TextEditingController();
     showDialog(

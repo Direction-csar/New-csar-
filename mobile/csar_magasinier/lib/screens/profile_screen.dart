@@ -94,7 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 CircleAvatar(
                   radius: 32,
-                  backgroundColor: const Color(0xFF1B5E20),
+                  backgroundColor: const Color(0xFF1D4ED8),
                   child: Text(
                     _initials(name),
                     style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
@@ -112,12 +112,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1B5E20).withValues(alpha: 0.1),
+                          color: const Color(0xFF1D4ED8).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           _roleLabel(role),
-                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20)),
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1D4ED8)),
                         ),
                       ),
                     ],
@@ -189,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
           Center(
             child: Text(
-              'CSAR Magasinier v1.0.0',
+              'CSAR Magasinier v2.0.0',
               style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
             ),
           ),

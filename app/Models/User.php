@@ -46,6 +46,8 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     /**
@@ -153,6 +155,25 @@ class User extends Authenticatable
     public function assignedRequests()
     {
         return $this->hasMany(PublicRequest::class, 'assigned_to');
+    }
+
+    /**
+     * Affectations inspecteur ↔ magasins (historique complet conservé).
+     */
+    public function inspectorAssignments()
+    {
+        return $this->hasMany(InspectorWarehouseAssignment::class, 'inspector_id');
+    }
+
+    /**
+     * Magasins actuellement affectés à cet inspecteur (affectations actives).
+     */
+    public function inspectionWarehouses()
+    {
+        return $this->belongsToMany(Warehouse::class, 'inspector_warehouse_assignments', 'inspector_id', 'warehouse_id')
+            ->wherePivot('is_active', true)
+            ->withPivot(['assigned_by', 'note', 'revoked_at', 'revoked_by'])
+            ->withTimestamps();
     }
 
     /**

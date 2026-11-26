@@ -38,7 +38,7 @@
     transition: all 0.3s ease;
     margin-bottom: 1rem;
     padding: 1rem;
-    border-left: 4px solid var(--primary-color, #667eea);
+    border-left: 4px solid var(--primary-color, #1e3a5f);
 }
 
 .mobile-card:hover {
@@ -57,7 +57,7 @@
 .mobile-card-icon {
     width: 35px;
     height: 35px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -65,7 +65,7 @@
     color: white;
     font-size: 14px;
     margin-right: 0.75rem;
-    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 3px 10px rgba(30, 58, 95, 0.3);
 }
 
 .mobile-card-title {
@@ -169,8 +169,8 @@
 
 .filters-mobile .form-control:focus,
 .filters-mobile .form-select:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    border-color: #1e3a5f;
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 95, 0.25);
 }
 
 .filters-mobile .btn-group {
@@ -215,7 +215,7 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
 }
 
 .stats-card-responsive:hover {
@@ -240,10 +240,7 @@
     font-size: 2rem;
     font-weight: 700;
     margin: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #1e3a5f;
 }
 
 .stats-card-responsive .stats-label {
@@ -286,60 +283,60 @@
     .responsive-table-desktop {
         display: none !important;
     }
-    
+
     .responsive-table-mobile {
         display: block !important;
     }
-    
+
     .filters-desktop {
         display: none !important;
     }
-    
+
     .filters-mobile {
         display: block !important;
     }
-    
+
     .stats-responsive {
         grid-template-columns: 1fr;
         gap: 0.75rem;
     }
-    
+
     .stats-card-responsive {
         padding: 1rem;
     }
-    
+
     .stats-card-responsive .stats-number {
         font-size: 1.5rem;
     }
-    
+
     .stats-card-responsive .stats-icon {
         width: 40px;
         height: 40px;
         font-size: 1.2rem;
     }
-    
+
     .mobile-card {
         padding: 0.75rem;
     }
-    
+
     .mobile-card-icon {
         width: 30px;
         height: 30px;
         font-size: 12px;
     }
-    
+
     .mobile-card-title h6 {
         font-size: 0.9rem;
     }
-    
+
     .mobile-card-title small {
         font-size: 0.75rem;
     }
-    
+
     .mobile-card-content p {
         font-size: 0.8rem;
     }
-    
+
     .mobile-card-actions .btn {
         font-size: 0.75rem;
         padding: 0.2rem 0.4rem;
@@ -352,23 +349,23 @@
     .responsive-table-desktop {
         display: none !important;
     }
-    
+
     .responsive-table-mobile {
         display: block !important;
     }
-    
+
     .filters-desktop {
         display: none !important;
     }
-    
+
     .filters-mobile {
         display: block !important;
     }
-    
+
     .stats-responsive {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .mobile-card {
         padding: 1rem;
     }
@@ -379,19 +376,19 @@
     .responsive-table-desktop {
         display: block !important;
     }
-    
+
     .responsive-table-mobile {
         display: none !important;
     }
-    
+
     .filters-desktop {
         display: flex !important;
     }
-    
+
     .filters-mobile {
         display: none !important;
     }
-    
+
     .stats-responsive {
         grid-template-columns: repeat(4, 1fr);
     }
@@ -403,11 +400,11 @@
         grid-template-columns: repeat(4, 1fr);
         gap: 1.5rem;
     }
-    
+
     .stats-card-responsive {
         padding: 2rem;
     }
-    
+
     .stats-card-responsive .stats-number {
         font-size: 2.5rem;
     }
@@ -464,7 +461,7 @@
     .text-responsive {
         font-size: 0.9rem;
     }
-    
+
     .btn-responsive {
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
@@ -475,7 +472,7 @@
     .text-responsive {
         font-size: 0.85rem;
     }
-    
+
     .btn-responsive {
         padding: 0.4rem 0.8rem;
         font-size: 0.85rem;

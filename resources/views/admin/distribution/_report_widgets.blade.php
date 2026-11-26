@@ -135,6 +135,25 @@
     <div class="rep-caption">Courbe d'évolution du stock, planning après planning, jusqu'à la projection après reste à servir.</div>
 </div>
 
+{{-- Activité par agent --}}
+@if(!empty($report['by_agent']))
+<h5 class="fw-bold mb-2" style="color:#1f3864">4. ACTIVITÉ PAR AGENT</h5>
+<table class="rep-table rep-controls mb-4" style="max-width:820px">
+    <thead><tr><th style="text-align:left">Agent</th><th>Rôle</th><th>Bénéficiaires validés</th><th>Tickets émis</th><th>Kits remis</th></tr></thead>
+    <tbody>
+        @foreach($report['by_agent'] as $a)
+        <tr>
+            <td>{{ $a['name'] }}</td>
+            <td>{{ $a['role'] }}</td>
+            <td>{{ $a['validated'] }}</td>
+            <td>{{ $a['issued'] }}</td>
+            <td>{{ $a['collected'] }}</td>
+        </tr>
+        @endforeach
+    </tbody>
+</table>
+@endif
+
 <script>
 (function () {
     function initReportCharts() {

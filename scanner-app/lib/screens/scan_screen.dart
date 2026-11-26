@@ -6,7 +6,10 @@ import '../services/api_service.dart';
 import 'history_screen.dart';
 
 class ScanScreen extends StatefulWidget {
-  const ScanScreen({super.key});
+  /// Planning sur lequel l'agent controle les remises (null = accueil direct).
+  final Map<String, dynamic>? planning;
+
+  const ScanScreen({super.key, this.planning});
 
   @override
   State<ScanScreen> createState() => _ScanScreenState();
@@ -43,7 +46,7 @@ class _ScanScreenState extends State<ScanScreen> {
     final token = context.read<AuthService>().token;
     if (token == null) return;
     try {
-      final res = await ApiService.getScanHistory(token);
+      final res = await ApiService.getScanHistory(token, planningId: widget.planning?['id']);
       if (res['success'] == true && mounted) {
         final List items = res['data'] ?? [];
         final today = DateTime.now();
@@ -80,6 +83,8 @@ class _ScanScreenState extends State<ScanScreen> {
     await _validate(code);
   }
 
+  /// Etape 1 : verification du ticket SANS effet de bord, puis apercu.
+  /// Etape 2 : la confirmation de remise n'a lieu que sur action de l'agent.
   Future<void> _validate(String code) async {
     if (_processing) return;
     setState(() => _processing = true);
@@ -90,48 +95,161 @@ class _ScanScreenState extends State<ScanScreen> {
     }
 
     try {
-      final res = await ApiService.collectKit(token, code);
+      final res = await ApiService.verifyTicket(token, code);
       if (!mounted) return;
-      final now = DateTime.now();
-      final timeStr = '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+      setState(() => _processing = false);
 
+      if (ApiService.isAuthError(res)) {
+        await _sessionExpired();
+        return;
+      }
       if (res['success'] == true) {
-        final beneficiary = res['data']?['beneficiaire']?['full_name'] ?? res['data']?['beneficiaire'] ?? 'N/A';
-        final qty = res['data']?['beneficiaire']?['quantity_kg'] ?? res['data']?['quantite_kg'] ?? '?';
-        setState(() {
-          _scanCount++;
-          _successCount++;
-          _recentScans.insert(0, '[$timeStr] OK - $beneficiary ($qty kg)');
-          if (_recentScans.length > 10) _recentScans.removeLast();
-        });
-        _loadDashboard();
-        _showResultDialog(
-          success: true,
-          title: 'Kit recupere!',
-          beneficiaire: beneficiary,
-          quantite: qty,
-          ticketCode: res['data']?['ticket_code'] ?? code,
-        );
+        _showConfirmDialog(code, res['data'] ?? {});
       } else {
-        setState(() {
-          _scanCount++;
-          _failCount++;
-          _recentScans.insert(0, '[$timeStr] ECHEC - ${res['message'] ?? 'Ticket invalide'}');
-          if (_recentScans.length > 10) _recentScans.removeLast();
-        });
+        _countFailure('[$_time] ECHEC - ${res['message'] ?? 'Ticket invalide'}');
         _showResultDialog(success: false, title: res['message'] ?? 'Ticket invalide');
       }
     } catch (_) {
       if (!mounted) return;
-      setState(() {
-        _scanCount++;
-        _failCount++;
-        _recentScans.insert(0, '[ERREUR] Erreur reseau');
-        if (_recentScans.length > 10) _recentScans.removeLast();
-      });
-      _showResultDialog(success: false, title: 'Erreur reseau. Verifiez votre connexion.');
+      setState(() => _processing = false);
+      _countFailure('[$_time] ERREUR - Erreur reseau');
+      _showResultDialog(success: false, title: 'Connexion requise : impossible de verifier le ticket.');
     }
-    setState(() => _processing = false);
+  }
+
+  String get _time {
+    final now = DateTime.now();
+    return '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}';
+  }
+
+  void _countFailure(String entry) {
+    setState(() {
+      _scanCount++;
+      _failCount++;
+      _recentScans.insert(0, entry);
+      if (_recentScans.length > 10) _recentScans.removeLast();
+    });
+  }
+
+  /// Apercu du ticket avant confirmation : identite du beneficiaire, quantite, planning.
+  void _showConfirmDialog(String code, Map<String, dynamic> data) {
+    final b = data['beneficiary'] ?? {};
+    final pl = data['planning'] ?? {};
+    bool confirming = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          icon: const Icon(Icons.verified_user, color: Color(0xFF1565C0), size: 48),
+          title: const Text('Confirmer la remise ?', textAlign: TextAlign.center, style: TextStyle(fontSize: 18)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Ticket : ${data['ticket_code'] ?? code}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+              const SizedBox(height: 10),
+              Text('${b['full_name'] ?? 'N/A'}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              if (b['phone_masked'] != null) Text('Tel : ${b['phone_masked']}'),
+              const SizedBox(height: 6),
+              Text('${b['quantity_kg'] ?? '?'} kg — ${pl['name'] ?? ''}', style: const TextStyle(color: Colors.blueGrey)),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: confirming
+                  ? null
+                  : () {
+                      Navigator.pop(dialogCtx);
+                      setState(() {
+                        _scannerPaused = false;
+                        _codeCtrl.clear();
+                      });
+                    },
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green, foregroundColor: Colors.white),
+              onPressed: confirming
+                  ? null
+                  : () {
+                      setDialogState(() => confirming = true);
+                      _confirmCollect(code).then((_) {
+                        if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                      });
+                    },
+              child: confirming
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Confirmer'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Etape 2 : remise effective (en ligne uniquement).
+  Future<void> _confirmCollect(String code) async {
+    setState(() => _processing = true);
+    final token = context.read<AuthService>().token;
+    if (token == null) {
+      setState(() => _processing = false);
+      return;
+    }
+
+    try {
+      final res = await ApiService.collectKit(token, code);
+      if (!mounted) return;
+
+      if (ApiService.isAuthError(res)) {
+        if (mounted) setState(() => _processing = false);
+        await _sessionExpired();
+        return;
+      }
+      if (res['success'] == true) {
+        final beneficiary = res['data']?['beneficiaire']?['full_name'] ?? res['data']?['beneficiaire'] ?? 'N/A';
+        final qtyRaw = res['data']?['beneficiaire']?['quantity_kg'] ?? res['data']?['quantite_kg'] ?? 0;
+        final kg = int.tryParse(qtyRaw.toString()) ?? 0;
+        // Mise a jour immediate des compteurs : pas de rechargement complet
+        // du tableau de bord, qui ralentissait la confirmation.
+        setState(() {
+          _scanCount++;
+          _successCount++;
+          _totalCollected++;
+          _todayCollected++;
+          _totalKg += kg;
+          _dashLoading = false;
+          _recentScans.insert(0, '[$_time] OK - $beneficiary ($qtyRaw kg)');
+          if (_recentScans.length > 10) _recentScans.removeLast();
+        });
+        _showResultDialog(
+          success: true,
+          title: 'Kit recupere!',
+          beneficiaire: beneficiary,
+          quantite: qtyRaw,
+          ticketCode: res['data']?['ticket_code'] ?? code,
+        );
+      } else {
+        _countFailure('[$_time] ECHEC - ${res['message'] ?? 'Ticket invalide'}');
+        _showResultDialog(success: false, title: res['message'] ?? 'Ticket invalide');
+      }
+    } catch (_) {
+      if (!mounted) return;
+      _countFailure('[$_time] ERREUR - Erreur reseau');
+      _showResultDialog(success: false, title: 'Connexion requise : la remise n\'a PAS ete enregistree.');
+    }
+    if (mounted) setState(() => _processing = false);
+  }
+
+  Future<void> _sessionExpired() async {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Session expirée ou compte désactivé : reconnectez-vous.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    await context.read<AuthService>().logout();
   }
 
   void _showResultDialog({required bool success, required String title, String? beneficiaire, dynamic quantite, String? ticketCode}) {

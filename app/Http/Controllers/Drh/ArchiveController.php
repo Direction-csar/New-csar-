@@ -11,12 +11,8 @@ class ArchiveController extends DirectionArchiveController
         return 'DRH';
     }
 
-    protected function getLayout(): string
+    protected function getPortalLayout(): string
     {
-        $user = auth()->user();
-        if ($user && in_array($user->role, ['admin', 'super_admin'], true)) {
-            return 'layouts.admin';
-        }
         return 'layouts.drh-portal';
     }
 }

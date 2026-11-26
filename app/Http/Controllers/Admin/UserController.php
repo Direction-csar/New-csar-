@@ -18,19 +18,11 @@ class UserController extends Controller
      */
     private function getRoleIdFromRoleName($roleName)
     {
-        $roleMap = [
-            'admin' => 1,
-            'dg' => 2,
-            'responsable' => 3,
-            'agent' => 4,
-            'drh' => 5,
-            'entrepot' => 3, // Alias pour responsable
-            'magasinier' => 3, // Magasinier rattaché à un magasin
-            'distributeur' => 4, // Distributeur d'aide (app mobile distribution)
-            'scanner' => 4 // Scanner de tickets QR (app mobile scanner)
-        ];
-
-        return $roleMap[$roleName] ?? 4; // Par défaut: agent
+        // La table roles est la source de vérité : un role_id incorrect
+        // ferait écraser la colonne users.role par le boot hook du modèle.
+        // Les rôles absents de la table gardent role_id = null, ce qui
+        // préserve le libellé 'role' choisi dans le formulaire.
+        return \App\Models\Role::where('name', $roleName)->value('id');
     }
 
     /**
@@ -111,7 +103,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email|max:255',
             'phone' => 'required|string|max:20',
-            'role' => 'required|string|in:admin,dg,drh,entrepot,agent,magasinier,distributeur,scanner',
+            'role' => 'required|string|in:admin,dg,drh,entrepot,responsable,agent,magasinier,distributeur,scanner,dtl,cpm,dpse,inspecteur,comptable,superviseur,ctc',
             'status' => 'required|string|in:actif,inactif',
             'password' => 'required|string|min:8|confirmed',
             'warehouse_id' => 'required_if:role,magasinier|nullable|exists:warehouses,id',
@@ -199,8 +191,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $id,
             'phone' => 'required|string|max:20',
-            'role' => 'required|string|in:admin,dg,drh,entrepot,agent,distributeur,scanner',
-            'is_active' => 'required|boolean'
+            'role' => 'required|string|in:admin,dg,drh,entrepot,responsable,agent,magasinier,distributeur,scanner,dtl,cpm,dpse,inspecteur,comptable,superviseur,ctc',
+            'status' => 'required|string|in:actif,inactif'
         ]);
 
         try {
@@ -211,7 +203,8 @@ class UserController extends Controller
                 'name' => $request->name,
                 'email' => $request->email,
                 'phone' => $request->phone,
-                'is_active' => $request->is_active
+                'status' => $request->status,
+                'is_active' => $request->status === 'actif' ? 1 : 0
             ]);
             $user->role = $request->role;
             $user->role_id = $this->getRoleIdFromRoleName($request->role);

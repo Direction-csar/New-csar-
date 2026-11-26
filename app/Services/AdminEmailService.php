@@ -60,12 +60,11 @@ class AdminEmailService
             
             Log::info('Email de notification de demande envoyé', [
                 'request_id' => $request->id,
-                'admin_emails' => $adminEmails
             ]);
             
         } catch (\Exception $e) {
             Log::error('Erreur envoi email notification demande', [
-                'error' => $e->getMessage(),
+                'exception_type' => get_class($e),
                 'request_id' => $request->id ?? null
             ]);
         }
@@ -162,14 +161,12 @@ class AdminEmailService
             });
             
             Log::info('Email de confirmation utilisateur envoyé', [
-                'user_email' => $userEmail,
                 'type' => $type
             ]);
             
         } catch (\Exception $e) {
             Log::error('Erreur envoi email confirmation utilisateur', [
-                'error' => $e->getMessage(),
-                'user_email' => $userEmail,
+                'exception_type' => get_class($e),
                 'type' => $type
             ]);
         }

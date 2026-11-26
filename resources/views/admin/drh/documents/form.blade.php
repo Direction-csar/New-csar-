@@ -22,8 +22,34 @@
 <div class="card shadow-sm border-0">
     <div class="card-body p-4">
         @if(is_array($fields) && count($fields) > 0)
+            @if($savedDocument && ($savedDocument->isSigned() || $savedDocument->superseded_at))
+                <div class="alert alert-warning">
+                    <i class="fas fa-lock me-1"></i>
+                    Ce document est {{ $savedDocument->isSigned() ? 'signé' : 'archivé' }} : il ne peut plus être modifié.
+                </div>
+            @endif
+            <div class="d-flex justify-content-end mb-3">
+                <form action="{{ route('admin.drh.documents.form', $type) }}" method="GET" class="d-flex align-items-center gap-2">
+                    @if($savedDocument)
+                        <input type="hidden" name="document_id" value="{{ $savedDocument->id }}">
+                    @endif
+                    <label class="form-label small mb-0 text-muted">Agent :</label>
+                    <select name="personnel_id" class="form-select form-select-sm" style="width:auto;" onchange="this.form.submit()">
+                        <option value="">-- Choisir un agent --</option>
+                        @foreach($agents ?? [] as $a)
+                            <option value="{{ $a->id }}" {{ $agent && $agent->id === $a->id ? 'selected' : '' }}>{{ $a->prenoms_nom }}{{ $a->poste_actuel ? ' — ' . $a->poste_actuel : '' }}</option>
+                        @endforeach
+                    </select>
+                </form>
+            </div>
             <form action="{{ route('admin.drh.documents.save', $type) }}" method="POST">
                 @csrf
+                @if($savedDocument)
+                    <input type="hidden" name="document_id" value="{{ $savedDocument->id }}">
+                @endif
+                @if($agent)
+                    <input type="hidden" name="personnel_id" value="{{ $agent->id }}">
+                @endif
                 <div class="row g-3">
                     @foreach($fields as $field)
                         @php
@@ -52,7 +78,11 @@
                     <button type="submit" class="btn btn-success">
                         <i class="fas fa-save me-2"></i>Enregistrer
                     </button>
-                    @if($agent)
+                    @if($savedDocument)
+                        <a href="{{ route('admin.drh.documents.export', $savedDocument) }}" class="btn btn-primary" target="_blank">
+                            <i class="fas fa-file-pdf me-2"></i>Générer PDF
+                        </a>
+                    @elseif($agent)
                         <a href="{{ route('admin.drh.documents.' . $type) }}" class="btn btn-primary" target="_blank">
                             <i class="fas fa-file-pdf me-2"></i>Générer PDF
                         </a>

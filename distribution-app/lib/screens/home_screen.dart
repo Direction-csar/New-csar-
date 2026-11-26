@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/auth_service.dart';
+import '../utils/json_num.dart';
 import '../services/api_service.dart';
 import '../services/sync_service.dart';
 import '../services/local_db_service.dart';
+import '../services/diagnostics.dart';
 import 'beneficiaire_form_screen.dart';
+import 'bulk_beneficiaries_screen.dart';
 import 'planning_beneficiaries_screen.dart';
 import 'tickets_history_screen.dart';
 
@@ -17,9 +20,10 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<dynamic> _plannings = [];
   bool _loading = true;
+  String? _loadError;
   bool _syncing = false;
   int _pendingCount = 0;
   String _search = '';
@@ -27,13 +31,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Timer? _pollTimer;
   String? _lastCheck;
   int _newCollections = 0;
+  bool _loadingPlannings = false;
+  bool _polling = false;
+  bool _active = true;
 
   Future<void> _pollCollections() async {
+    if (!mounted || !_active || _polling || _loadingPlannings) return;
     final token = context.read<AuthService>().token;
     if (token == null) return;
+    _polling = true;
     try {
       final res = await ApiService.getTicketsHistory(token, collectedSince: _lastCheck);
-      if (res['success'] != true || !mounted) return;
+      if (!mounted || context.read<AuthService>().token != token) return;
+      if (ApiService.isAuthError(res)) {
+        await _sessionExpired();
+        return;
+      }
+      if (res['success'] != true) return;
       final serverTime = res['server_time']?.toString();
       if (_lastCheck != null) {
         final List items = res['data'] ?? [];
@@ -58,7 +72,11 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
       if (serverTime != null) _lastCheck = serverTime;
-    } catch (_) {}
+    } catch (error, stack) {
+      Diagnostics.error('poll-collections', error, stack);
+    } finally {
+      _polling = false;
+    }
   }
 
   void _openHistory() {
@@ -82,99 +100,182 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       _loadPlannings();
       _refreshPendingCount();
-      _pollCollections();
       _pollTimer = Timer.periodic(const Duration(seconds: 30), (_) => _pollCollections());
     });
     _connectivitySub = Connectivity().onConnectivityChanged.listen((result) {
-      if (result != ConnectivityResult.none) {
+      if (mounted && _active && result != ConnectivityResult.none) {
         _sync(silent: true);
       }
+    }, onError: (Object error, StackTrace stack) {
+      Diagnostics.error('connectivity', error, stack);
     });
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _active = state == AppLifecycleState.resumed;
+    if (_active) {
+      _loadPlannings();
+      _refreshPendingCount();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _connectivitySub?.cancel();
     _pollTimer?.cancel();
     super.dispose();
   }
 
   Future<void> _refreshPendingCount() async {
-    final count = await LocalDbService.countPendingBeneficiaires();
-    if (mounted) setState(() => _pendingCount = count);
+    try {
+      final count = await LocalDbService.countPendingBeneficiaires();
+      if (mounted) setState(() => _pendingCount = count);
+    } catch (_) {} // base locale indisponible : l'ecran reste utilisable
   }
 
   Future<void> _loadPlannings() async {
-    setState(() => _loading = true);
+    if (!mounted || _loadingPlannings) return;
+    _loadingPlannings = true;
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
     final token = context.read<AuthService>().token;
     if (token == null) {
-      if (mounted) setState(() => _loading = false);
+      _loadingPlannings = false;
+      setState(() {
+        _loading = false;
+        _loadError = 'Session expirée. Reconnectez-vous.';
+      });
       return;
     }
     try {
       final res = await ApiService.getMyPlannings(token);
+      if (!mounted || context.read<AuthService>().token != token) return;
       if (res['success'] == true) {
-        setState(() => _plannings = res['data'] ?? []);
+        final data = res['data'];
+        // Valider avant setState : une exception dans build() échappe au
+        // try/catch de la requête et produit l'écran gris en release.
+        if (data is! List || data.any((p) =>
+            p is! Map<String, dynamic> ||
+            p['id'] is! int ||
+            (p['event'] != null && p['event'] is! Map<String, dynamic>))) {
+          throw const FormatException('planning-shape');
+        }
+        setState(() {
+          _plannings = data;
+        });
+      } else if (ApiService.isAuthError(res)) {
+        await _sessionExpired();
+        return;
+      } else {
+        final message = res['message'];
+        setState(() => _loadError = message is String && message.isNotEmpty ? message : 'Le serveur a refusé la demande');
       }
-    } catch (_) {}
-    if (mounted) setState(() => _loading = false);
+    } on TimeoutException {
+      if (mounted) setState(() => _loadError = 'Le serveur ne répond pas. Réessayez dans un instant.');
+    } on FormatException catch (error, stack) {
+      Diagnostics.error('planning-data', error, stack);
+      if (mounted) setState(() => _loadError = 'Format de réponse inattendu du serveur');
+    } catch (error, stack) {
+      Diagnostics.error('load-plannings', error, stack);
+      if (mounted) {
+        setState(() => _loadError = 'Impossible de joindre le serveur. Vérifiez la connexion.');
+      }
+    } finally {
+      _loadingPlannings = false;
+      if (mounted) setState(() => _loading = false);
+    }
+    if (mounted && _loadError == null) unawaited(_pollCollections());
+  }
+
+  /// Jeton refuse ou expire cote serveur : purge locale + message + retour au login.
+  Future<void> _sessionExpired() async {
+    if (!mounted) return;
+    final navigator = Navigator.of(context);
+    setState(() => _loading = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Session expirée ou compte désactivé : reconnectez-vous.'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    await context.read<AuthService>().clearSession();
+    if (navigator.mounted) navigator.popUntil((route) => route.isFirst);
   }
 
   Future<void> _sync({bool silent = false}) async {
-    if (_syncing) return;
+    if (!mounted || _syncing) return;
     final token = context.read<AuthService>().token;
     if (token == null) return;
 
-    final connectivity = await Connectivity().checkConnectivity();
-    if (connectivity == ConnectivityResult.none) {
-      if (!silent && mounted) {
+    setState(() => _syncing = true);
+    try {
+      final connectivity = await Connectivity().checkConnectivity().timeout(ApiService.requestTimeout);
+      if (!mounted || context.read<AuthService>().token != token) return;
+      if (connectivity == ConnectivityResult.none) {
+        if (!silent) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Aucune connexion reseau'), backgroundColor: Colors.orange),
+          );
+        }
+        return;
+      }
+
+      final result = await SyncService.syncPendingBeneficiaires(token);
+      if (!mounted || context.read<AuthService>().token != token) return;
+      setState(() {
+        _pendingCount = result.remaining;
+      });
+      if (result.synced > 0) await _loadPlannings();
+
+      if (!mounted) return;
+      if (result.synced > 0 || !silent) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Aucune connexion reseau'), backgroundColor: Colors.orange),
+          SnackBar(
+            content: Text(
+              result.synced > 0
+                  ? '${result.synced} beneficiaire(s) synchronise(s)${result.remaining > 0 ? ', ${result.remaining} restant(s)' : ''}'
+                  : (result.remaining > 0 ? '${result.remaining} en attente' : 'Aucun element a synchroniser'),
+            ),
+            backgroundColor: result.synced > 0 ? Colors.green : Colors.blueGrey,
+          ),
         );
       }
-      return;
-    }
-
-    setState(() => _syncing = true);
-    final result = await SyncService.syncPendingBeneficiaires(token);
-    setState(() {
-      _syncing = false;
-      _pendingCount = result.remaining;
-    });
-    await _loadPlannings();
-
-    if (!mounted) return;
-    if (result.synced > 0 || !silent) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            result.synced > 0
-                ? '${result.synced} beneficiaire(s) synchronise(s)${result.remaining > 0 ? ', ${result.remaining} restant(s)' : ''}'
-                : (result.remaining > 0 ? '${result.remaining} en attente' : 'Aucun element a synchroniser'),
-          ),
-          backgroundColor: result.synced > 0 ? Colors.green : Colors.blueGrey,
-        ),
-      );
+    } catch (error, stack) {
+      Diagnostics.error('sync', error, stack);
+      if (mounted && !silent) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Synchronisation impossible. Les saisies en attente sont conservées. Réessayez.'),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _syncing = false);
     }
   }
 
   int _beneficiaireCount(dynamic planning) {
-    return planning['beneficiaries_count'] as int? ?? (planning['beneficiaires'] as List<dynamic>?)?.length ?? 0;
+    final list = planning['beneficiaires'];
+    return jsonInt(planning['beneficiaries_count'], list is List ? list.length : 0);
   }
 
   int _validatedCount(dynamic planning) {
-    return planning['validated_count'] as int? ?? 0;
+    return jsonInt(planning['validated_count']);
   }
 
   int _ticketsCount(dynamic planning) {
-    return planning['tickets_count'] as int? ?? 0;
+    return jsonInt(planning['tickets_count']);
   }
 
   int _collectedCount(dynamic planning) {
-    return planning['collected_count'] as int? ?? 0;
+    return jsonInt(planning['collected_count']);
   }
 
   Widget _buildDashboard() {
@@ -185,8 +286,8 @@ class _HomeScreenState extends State<HomeScreen> {
       totalValidated += _validatedCount(p);
       totalTickets += _ticketsCount(p);
       totalCollected += _collectedCount(p);
-      plannedKg += (p['planned_quota_kg'] as int?) ?? 0;
-      executedKg += (p['executed_kg'] as int?) ?? 0;
+      plannedKg += jsonInt(p['planned_quota_kg']);
+      executedKg += jsonInt(p['executed_kg']);
     }
     final collectRate = totalTickets > 0 ? (totalCollected / totalTickets * 100).round() : 0;
     final execRate = plannedKg > 0 ? (executedKg / plannedKg * 100).round() : 0;
@@ -315,7 +416,24 @@ class _HomeScreenState extends State<HomeScreen> {
         onRefresh: _loadPlannings,
         child: _loading
             ? const Center(child: CircularProgressIndicator(color: Color(0xFFD84315)))
-            : ListView(
+            : _loadError != null
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.cloud_off, size: 56, color: Colors.grey),
+                        const SizedBox(height: 12),
+                        Text(_loadError!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.grey)),
+                        const SizedBox(height: 14),
+                        ElevatedButton.icon(
+                          onPressed: _loadPlannings,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Réessayer'),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
                   Container(
@@ -424,13 +542,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                   _refreshPendingCount();
                                   _loadPlannings();
                                 }),
+                                onQuickList: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => BulkBeneficiariesScreen(planning: p)),
+                                ).then((_) {
+                                  _refreshPendingCount();
+                                  _loadPlannings();
+                                }),
                                 onViewBeneficiaries: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => PlanningBeneficiariesScreen(planning: p)),
                                 ).then((_) => _loadPlannings()),
                                 onViewTickets: () => Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => TicketsHistoryScreen(planningId: p['id'], planningName: p['name'])),
+                                  MaterialPageRoute(builder: (_) => TicketsHistoryScreen(planningId: p['id'], planningName: p['name']?.toString())),
                                 ).then((_) => _loadPlannings()),
                               )),
                           const SizedBox(height: 10),
@@ -450,6 +575,7 @@ class _PlanningCard extends StatelessWidget {
   final int ticketsCount;
   final int collectedCount;
   final VoidCallback onRegister;
+  final VoidCallback onQuickList;
   final VoidCallback onViewBeneficiaries;
   final VoidCallback onViewTickets;
 
@@ -460,6 +586,7 @@ class _PlanningCard extends StatelessWidget {
     required this.ticketsCount,
     required this.collectedCount,
     required this.onRegister,
+    required this.onQuickList,
     required this.onViewBeneficiaries,
     required this.onViewTickets,
   });
@@ -482,6 +609,7 @@ class _PlanningCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final event = planning['event'];
+    final date = DateTime.tryParse(planning['distribution_date']?.toString() ?? '');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
@@ -496,15 +624,15 @@ class _PlanningCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            planning['name'] ?? event?['name'] ?? 'Planning #${planning['id']}',
+            (planning['name'] ?? event?['name'] ?? 'Planning #${planning['id']}').toString(),
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
           ),
           if (planning['location'] != null) ...[
             const SizedBox(height: 4),
             Text('Lieu : ${planning['location']}', style: const TextStyle(fontSize: 12, color: Colors.grey)),
           ],
-          if (planning['distribution_date'] != null)
-            Text('Date : ${planning['distribution_date'].toString().substring(0, 10)}',
+          if (date != null)
+            Text('Date : ${date.toIso8601String().split('T').first}',
                 style: const TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 8),
           ClipRRect(
@@ -542,7 +670,7 @@ class _PlanningCard extends StatelessWidget {
                     side: const BorderSide(color: Color(0xFFD84315)),
                   ),
                   icon: const Icon(Icons.person_add_alt_1),
-                  label: const Text('Beneficiaire'),
+                  label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Beneficiaire')),
                   onPressed: onRegister,
                 ),
               ),
@@ -554,7 +682,7 @@ class _PlanningCard extends StatelessWidget {
                     side: BorderSide(color: Colors.blue.shade700),
                   ),
                   icon: const Icon(Icons.list_alt),
-                  label: const Text('Liste'),
+                  label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Liste')),
                   onPressed: onViewBeneficiaries,
                 ),
               ),
@@ -566,11 +694,26 @@ class _PlanningCard extends StatelessWidget {
                     side: BorderSide(color: Colors.teal.shade700),
                   ),
                   icon: const Icon(Icons.confirmation_number_outlined),
-                  label: const Text('Tickets'),
+                  label: const FittedBox(fit: BoxFit.scaleDown, child: Text('Tickets')),
                   onPressed: onViewTickets,
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFFD84315),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              icon: const Icon(Icons.playlist_add, size: 18),
+              label: const Text('Saisie rapide (liste)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+              onPressed: onQuickList,
+            ),
           ),
         ],
       ),

@@ -19,6 +19,9 @@ class DirectionLoginController extends Controller
         'cpm' => 'Cellule Passation des Marchés',
         'dpse' => 'Direction Planification & Suivi Évaluation',
         'dtl' => 'Direction Technique et Logistique',
+        'inspecteur' => 'Inspections terrain',
+        'comptable' => 'Comptabilité des matières',
+        'magasinier' => 'Magasin & Gestion des stocks',
     ];
 
     public function showLoginForm(string $direction)
@@ -29,7 +32,7 @@ class DirectionLoginController extends Controller
             return redirect()->route("{$direction}.dashboard");
         }
 
-        return view('auth.direction-login', [
+        return view($direction === 'inspecteur' ? 'auth.inspecteur-login' : 'auth.direction-login', [
             'direction' => $direction,
             'directionLabel' => self::DIRECTIONS[$direction],
         ]);

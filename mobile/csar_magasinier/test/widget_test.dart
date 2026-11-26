@@ -16,5 +16,8 @@ void main() {
     final hasLogin =
         find.byType(TextFormField).evaluate().isNotEmpty;
     expect(hasLoader || hasLogin, isTrue);
+
+    // Laisse écouler le watchdog de démarrage (12 s) pour éviter un timer pendant.
+    await tester.pump(const Duration(seconds: 13));
   });
 }

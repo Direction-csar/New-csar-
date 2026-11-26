@@ -48,7 +48,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -63,7 +63,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -78,7 +78,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-3 col-md-6 mb-3">
             <div class="stats-card">
                 <div class="d-flex align-items-center">
@@ -114,14 +114,14 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="col-lg-4 mb-3">
             <div class="card-modern p-3">
                 <h6 class="mb-3 fw-bold">
                     <i class="fas fa-chart-line me-2 text-success"></i>
                     Performance
                 </h6>
-                
+
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small">Taux de Présence</span>
@@ -131,7 +131,7 @@
                         <div class="progress-bar bg-success" style="width: {{ is_numeric($stats['presence_rate'] ?? null) ? (float)$stats['presence_rate'] : 0 }}%"></div>
                     </div>
                 </div>
-                
+
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small">Formations Complétées</span>
@@ -141,7 +141,7 @@
                         <div class="progress-bar bg-info" style="width: {{ is_numeric($stats['training_rate'] ?? null) ? (float)$stats['training_rate'] : 0 }}%"></div>
                     </div>
                 </div>
-                
+
                 <div class="mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="small">Satisfaction</span>
@@ -168,7 +168,7 @@
                         <span class="badge bg-primary">{{ $personnel->count() }} employé(s)</span>
                     </div>
                 </div>
-                
+
                 @if($personnel->count() > 0)
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -288,7 +288,7 @@
     }
 
     function exportPersonnel() {
-        alert('Export du personnel en cours...');
+        window.location.href = '{{ route('dg.reports.export', ['type' => 'personnel', 'format' => 'csv']) }}';
     }
 
     function updatePersonnelChart(type) {

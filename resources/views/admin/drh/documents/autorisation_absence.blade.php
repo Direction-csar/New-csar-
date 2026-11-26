@@ -7,7 +7,7 @@
 @section('corps')
     <p>Objet : <strong>Autorisation d'absence</strong></p>
 
-    <p>Le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</p>
+    <p>Madame le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</p>
 
     <p>Vu la demande de Monsieur/Madame
         <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,

@@ -8,10 +8,12 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
     // Authentification (publiques)
     Route::post('/login', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'login'])->name('login')
         ->middleware('throttle:5,1');
-    Route::post('/logout', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'logout'])->name('logout');
-
     // Routes protégées (token Sanctum)
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/logout', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'logout'])->name('logout');
+
+        // Endpoints collecteur : jeton d'un collecteur SIM actif uniquement
+        Route::middleware('sim.collector')->group(function () {
         // Données de référence (marchés, produits)
         Route::get('/markets', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getMarkets'])->name('markets');
         Route::get('/products', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getProducts'])->name('products');
@@ -34,13 +36,17 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
 
         // Stats du collecteur
         Route::get('/stats', [App\Http\Controllers\Api\Mobile\SimCollectionController::class, 'getCollectorStats'])->name('stats');
+        });
 
         // Distribution (aide alimentaire / bons-matière)
-        Route::prefix('distribution')->group(function () {
+        // distribution.user : jeton d'un membre du personnel actif et non expiré (jamais un collecteur SIM).
+        Route::prefix('distribution')->middleware('distribution.user')->group(function () {
+            Route::post('/logout', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'logout']);
             Route::get('/sync', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'sync']);
             Route::post('/beneficiaires', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'storeBeneficiaire']);
             Route::post('/beneficiaries', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'storeBeneficiaryV2']);
             Route::post('/beneficiaires/batch', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'batch']);
+            Route::post('/beneficiaries/batch', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'batchBeneficiaries']);
             Route::post('/scan', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scan']);
             Route::get('/tickets/history', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'ticketsHistory']);
             Route::get('/scans/history', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scansHistory']);
@@ -49,11 +55,17 @@ Route::prefix('v1')->name('mobile.api.v1.')->group(function () {
             // Nouvelles routes pour le système complet
             Route::get('/events', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'events']);
             Route::get('/events/{id}/plannings', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'eventPlannings']);
+            Route::get('/my-plannings', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'myPlannings']);
             Route::get('/plannings', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'myPlannings']);
             Route::get('/plannings/{id}/beneficiaries', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'planningBeneficiaries']);
             Route::post('/beneficiaries/{id}/validate', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'validateBeneficiary']);
             Route::post('/beneficiaries/{id}/generate-ticket', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'generateTicket']);
+            Route::post('/tickets/{code}/verify', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'verifyTicket']);
             Route::post('/tickets/{qrToken}/collect', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'collectKit']);
+
+            // APK Scanner : plannings affectes comme scanner (indépendant de l'affectation distributeur)
+            Route::get('/scan/plannings', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'myScanPlannings']);
+            Route::get('/scan/plannings/{id}/tickets', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'scanPlanningTickets']);
             Route::post('/check-duplicate', [App\Http\Controllers\Api\Mobile\DistributionController::class, 'checkDuplicate']);
         });
     });

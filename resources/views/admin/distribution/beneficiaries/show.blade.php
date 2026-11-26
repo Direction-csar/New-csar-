@@ -11,6 +11,18 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <h1 class="h4 mb-0 fw-bold">👤 {{ $beneficiary->full_name }}</h1>
                     <div class="d-flex gap-2">
+                        @if($beneficiary->status === 'pending')
+                        <form action="{{ route('admin.distribution.beneficiaries.validate', $beneficiary->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-info btn-sm text-white"><i class="fas fa-check me-1"></i>Valider</button>
+                        </form>
+                        @endif
+                        @if($beneficiary->status === 'validated')
+                        <form action="{{ route('admin.distribution.beneficiaries.generate-ticket', $beneficiary->id) }}" method="POST" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-warning btn-sm"><i class="fas fa-qrcode me-1"></i>Générer ticket</button>
+                        </form>
+                        @endif
                         <a href="{{ route('admin.distribution.beneficiaries.edit', $beneficiary->id) }}" class="btn btn-outline-warning btn-sm"><i class="fas fa-edit me-1"></i>Modifier</a>
                         <form action="{{ route('admin.distribution.beneficiaries.destroy', $beneficiary->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Supprimer ce bénéficiaire ?')">
                             @csrf @method('DELETE')

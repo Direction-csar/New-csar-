@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laravel\Sanctum\HasApiTokens;
 
-class SimCollector extends Model
+class SimCollector extends Model implements AuthenticatableContract
 {
-    use HasApiTokens;
+    use Authenticatable, HasApiTokens;
+
+    protected $hidden = ['password_hash', 'remember_token'];
     protected $fillable = [
         'name',
         'email',
@@ -35,6 +39,16 @@ class SimCollector extends Model
     public function syncLogs(): HasMany
     {
         return $this->hasMany(SimSyncLog::class, 'collector_id');
+    }
+
+    public function getAuthPasswordName(): string
+    {
+        return 'password_hash';
+    }
+
+    public function getRememberTokenName(): string
+    {
+        return '';
     }
 
     public function isActive(): bool

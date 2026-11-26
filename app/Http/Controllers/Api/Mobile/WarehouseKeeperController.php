@@ -29,6 +29,11 @@ class WarehouseKeeperController extends Controller
 
         $user = Auth::guard('admin')->user();
 
+        if (!$user->is_active) {
+            \Illuminate\Support\Facades\Auth::guard('admin')->logout();
+            return response()->json(['message' => 'Compte désactivé.'], 403);
+        }
+
         // Accepter : magasinier, admin, super_admin
         if (!in_array($user->role, ['magasinier', 'admin', 'super_admin'])) {
             Auth::guard('admin')->logout();
@@ -127,6 +132,9 @@ class WarehouseKeeperController extends Controller
         ]);
 
         $user = $request->user();
+        if ($resp = $this->warehouseWriteGuard($user)) {
+            return $resp;
+        }
         $type = $request->movement_type;
         $sacs = (float) $request->sacs;
         $kg   = (float) $request->kg;
@@ -165,6 +173,9 @@ class WarehouseKeeperController extends Controller
                             'message' => 'Solde insuffisant. Disponible : ' . $balance['sacs'] . ' contenants'
                         ], 422));
                     }
+                    if ($manque = app(\App\Services\Magasin\WarehouseStockService::class)->productShortage((int) $request->warehouse_id, (string) $request->label, (float) $sacs)) {
+                        abort(response()->json(['message' => $manque], 422));
+                    }
                 }
 
                 // Réutiliser la référence client (idempotence) sinon en générer une
@@ -189,6 +200,7 @@ class WarehouseKeeperController extends Controller
                     'reason'          => $request->label,
                     'reference'       => $ref,
                     'created_by'      => $user->id,
+                    'status'          => 'en_attente',
                 ]);
 
                 $movement->metadata = json_encode([
@@ -207,10 +219,9 @@ class WarehouseKeeperController extends Controller
                 ]);
                 $movement->save();
 
-                Warehouse::where('id', $request->warehouse_id)
-                    ->update(['current_stock' => $newBalanceSacs]);
+                // Stock officiel inchangé : en attente de vérification inspecteur/DTL/DG.
 
-                Log::info('Mouvement de stock créé', [
+                Log::info('Mouvement de stock créé (en attente de vérification)', [
                     'user_id' => $user->id,
                     'warehouse_id' => $request->warehouse_id,
                     'reference' => $ref,
@@ -284,6 +295,9 @@ class WarehouseKeeperController extends Controller
         ]);
 
         $user = $request->user();
+        if ($resp = $this->warehouseWriteGuard($user)) {
+            return $resp;
+        }
         $results = [];
         $errors = [];
 
@@ -319,6 +333,9 @@ class WarehouseKeeperController extends Controller
                         if ($data['sacs'] > $balance['sacs']) {
                             throw new \RuntimeException('Solde insuffisant (' . $balance['sacs'] . ')');
                         }
+                        if ($manque = app(\App\Services\Magasin\WarehouseStockService::class)->productShortage((int) $data['warehouse_id'], (string) $data['label'], (float) $data['sacs'])) {
+                            throw new \RuntimeException($manque);
+                        }
                         $newBalanceSacs -= $data['sacs'];
                         $newBalanceKg   -= $data['kg'];
                     }
@@ -334,6 +351,7 @@ class WarehouseKeeperController extends Controller
                         'reason'          => $data['label'],
                         'reference'       => $ref,
                         'created_by'      => $user->id,
+                        'status'          => 'en_attente',
                         'metadata'        => json_encode([
                             'entry_sacs' => in_array($data['movement_type'], ['entry', 'report']) ? $data['sacs'] : 0,
                             'entry_kg'   => in_array($data['movement_type'], ['entry', 'report']) ? $data['kg'] : 0,
@@ -348,8 +366,7 @@ class WarehouseKeeperController extends Controller
                         ]),
                     ]);
 
-                    Warehouse::where('id', $data['warehouse_id'])
-                        ->update(['current_stock' => $newBalanceSacs]);
+                    // Stock officiel inchangé : en attente de vérification.
 
                     return $ref;
                 });
@@ -424,15 +441,17 @@ class WarehouseKeeperController extends Controller
         ]);
 
         $user = $request->user();
+        if ($resp = $this->warehouseWriteGuard($user)) {
+            return $resp;
+        }
         $sacs = (float) $request->sacs;
         $kg   = (float) $request->kg;
 
         if ($resp = $this->denyWarehouseAccess($user, (int) $request->warehouse_id)) {
             return $resp;
         }
-        if ($resp = $this->denyWarehouseAccess($user, (int) $request->destination_warehouse_id)) {
-            return $resp;
-        }
+        // Pas de contrôle d'accès sur la destination : la réception
+        // sera confirmée par le magasinier du magasin destinataire.
 
         // Idempotence : un client_ref déjà utilisé renvoie le transfert existant
         $clientRef = $request->client_ref;
@@ -478,6 +497,7 @@ class WarehouseKeeperController extends Controller
                 'numero_transfert' => $numeroTransfert,
                 'entrepot_destination_id' => $request->destination_warehouse_id,
                 'created_by'      => $user->id,
+                'status'          => 'en_attente',
                 'metadata'        => json_encode([
                     'transfer_type' => 'out',
                     'client_ref' => $clientRef,
@@ -510,6 +530,7 @@ class WarehouseKeeperController extends Controller
                 'numero_transfert' => $numeroTransfert,
                 'entrepot_destination_id' => $request->warehouse_id,
                 'created_by'      => $user->id,
+                'status'          => 'en_attente',
             ]);
             $movementDest->metadata = json_encode([
                 'transfer_type' => 'in',
@@ -527,16 +548,14 @@ class WarehouseKeeperController extends Controller
             ]);
             $movementDest->save();
 
-            // Mise à jour des stocks courants
-            Warehouse::where('id', $request->warehouse_id)
-                ->update(['current_stock' => $newBalanceSource]);
-            Warehouse::where('id', $request->destination_warehouse_id)
-                ->update(['current_stock' => $newBalanceDest]);
+            // Stock officiel inchangé : les deux jambes restent 'en_attente'
+            // (sortie vérifiée par l'inspecteur, réception confirmée par le
+            // magasin destinataire, puis vérification).
 
             DB::commit();
 
             return response()->json([
-                'message' => 'Transfert effectué avec succès.',
+                'message' => 'Transfert enregistré — en attente de vérification et de confirmation de réception.',
                 'reference' => $ref,
                 'numero_transfert' => $numeroTransfert,
                 'source_balance_sacs' => $newBalanceSource,
@@ -563,6 +582,9 @@ class WarehouseKeeperController extends Controller
         ]);
 
         $user = $request->user();
+        if ($resp = $this->warehouseWriteGuard($user)) {
+            return $resp;
+        }
 
         if ($resp = $this->denyWarehouseAccess($user, (int) $request->warehouse_id)) {
             return $resp;
@@ -578,22 +600,27 @@ class WarehouseKeeperController extends Controller
             $movement = DB::transaction(function () use ($request, $user, $theoretical, $actual, $diff, $ref) {
                 Warehouse::where('id', $request->warehouse_id)->lockForUpdate()->first();
 
+                // Référence = stock officiel (mouvements vérifiés) au moment du comptage.
+                $official = $this->calculateBalance($request->warehouse_id)['sacs'];
+
                 $movement = StockMovement::create([
                     'warehouse_id'    => $request->warehouse_id,
                     'stock_id'        => null,
                     'type'            => 'adjustment',
-                    'quantity'        => abs($diff),
-                    'quantity_before' => $theoretical,
+                    'quantity'        => abs($actual - $official),
+                    'quantity_before' => $official,
                     'quantity_after'  => $actual,
                     'reason'          => $request->label . ' (Inventaire)',
                     'reference'       => $ref,
                     'raison_ajustement' => 'Inventaire physique',
                     'created_by'      => $user->id,
+                    'status'          => 'en_attente',
                 ]);
 
                 $movement->metadata = json_encode([
                     'inventory_type' => true,
                     'theoretical_sacs' => $theoretical,
+                    'official_sacs' => $official,
                     'actual_sacs' => $actual,
                     'difference_sacs' => $diff,
                     'observation' => $request->observation,
@@ -601,8 +628,8 @@ class WarehouseKeeperController extends Controller
                 ]);
                 $movement->save();
 
-                Warehouse::where('id', $request->warehouse_id)
-                    ->update(['current_stock' => $actual]);
+                // Stock officiel inchangé : correction appliquée après
+                // vérification par un responsable habilité (DTL/DG).
 
                 return $movement;
             });
@@ -635,9 +662,12 @@ class WarehouseKeeperController extends Controller
             return $resp;
         }
 
-        // Tous les types de mouvements : entry/exit/adjustment/transfer/report
-        // (mobile) et in/out (back-office web)
+        // Stock officiel : mouvements vérifiés uniquement (les 'en_attente',
+        // 'rejetee', 'anomalie' ne comptent pas encore).
         $movements = StockMovement::where('warehouse_id', $warehouseId)
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhereNotIn('status', ['en_attente', 'rejetee', 'anomalie', 'rejected']);
+            })
             ->get(['type', 'quantity', 'quantity_before', 'quantity_after', 'reason', 'metadata', 'stock_id']);
 
         // Analyser les métadonnées pour extraire produit et format
@@ -874,6 +904,19 @@ class WarehouseKeeperController extends Controller
      * Refuse l'accès à un magasin pour un magasinier qui n'y est pas rattaché.
      * Retourne une réponse 403 ou null si l'accès est autorisé.
      */
+    /**
+     * Garde d'écriture : seuls les acteurs « magasin » (magasinier, admin,
+     * super_admin) peuvent saisir des mouvements. Un token inspecteur
+     * (login/inspecteur) ne doit jamais créer de mouvement directement.
+     */
+    private function warehouseWriteGuard($user): ?\Illuminate\Http\JsonResponse
+    {
+        if (!$user || !in_array($user->role, ['magasinier', 'admin', 'super_admin'], true)) {
+            return response()->json(['message' => 'Accès réservé aux acteurs magasin.'], 403);
+        }
+        return null;
+    }
+
     private function denyWarehouseAccess($user, int $warehouseId): ?\Illuminate\Http\JsonResponse
     {
         if (!$user || $user->role !== 'magasinier') {
@@ -943,7 +986,11 @@ class WarehouseKeeperController extends Controller
 
     private function calculateBalance($warehouseId)
     {
+        // Solde officiel : uniquement les mouvements vérifiés (hors attentes/rejets).
         $movements = StockMovement::where('warehouse_id', $warehouseId)
+            ->where(function ($q) {
+                $q->whereNull('status')->orWhereNotIn('status', ['en_attente', 'rejetee', 'anomalie', 'rejected']);
+            })
             ->get(['type', 'quantity', 'quantity_before', 'quantity_after', 'reason']);
 
         $sacs = 0;
@@ -963,5 +1010,110 @@ class WarehouseKeeperController extends Controller
             'kg'    => max(0, $units['kg'] ?? 0),
             'units' => $units,
         ];
+    }
+
+    /**
+     * Missions de sortie de stock affectées au magasinier par le DTL.
+     * Admin/super_admin voient toutes les missions stock_exit actives.
+     */
+    public function getMissions(Request $request)
+    {
+        $user = $request->user();
+
+        $query = \App\Models\RequestMission::where('type', \App\Models\RequestMission::TYPE_STOCK_EXIT)
+            ->with('request:id,tracking_code,full_name,region,workflow_status');
+
+        if ($user->role === 'magasinier') {
+            $query->where('assigned_to', $user->id);
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        } else {
+            $query->whereIn('status', ['affectee', 'en_cours']);
+        }
+
+        $missions = $query->orderBy('created_at', 'desc')->limit(50)->get()->map(function ($m) {
+            return [
+                'id' => $m->id,
+                'tracking_code' => $m->request?->tracking_code,
+                'demandeur' => $m->request?->full_name,
+                'region' => $m->request?->region,
+                'instructions' => $m->instructions,
+                'status' => $m->status,
+                'assigned_at' => $m->created_at?->toIso8601String(),
+            ];
+        });
+
+        return response()->json(['missions' => $missions]);
+    }
+
+    /**
+     * Déclarer l'exécution d'une mission de sortie de stock.
+     * Le mouvement de stock doit avoir été enregistré via /movements ;
+     * ce endpoint rattache le justificatif (référence mouvement) à la mission.
+     */
+    public function reportMission(Request $request, $id)
+    {
+        $request->validate([
+            'movement_reference' => 'nullable|string|max:100',
+            'report' => 'required|string|min:10|max:5000',
+        ]);
+
+        $user = $request->user();
+        if ($resp = $this->warehouseWriteGuard($user)) {
+            return $resp;
+        }
+        $mission = \App\Models\RequestMission::where('type', \App\Models\RequestMission::TYPE_STOCK_EXIT)
+            ->findOrFail($id);
+
+        // Seul le magasinier assigné (ou admin) peut clôturer la mission
+        if ($user->role === 'magasinier' && $mission->assigned_to !== $user->id) {
+            return response()->json(['message' => 'Mission non affectée à cet utilisateur.'], 403);
+        }
+        if (in_array($mission->status, ['terminee', 'annulee'], true)) {
+            return response()->json(['message' => 'Mission déjà clôturée.'], 409);
+        }
+
+        // Vérifier que la référence de mouvement existe si fournie
+        $movementId = null;
+        if ($request->filled('movement_reference')) {
+            $movement = StockMovement::where('reference', $request->movement_reference)->first();
+            if (!$movement) {
+                return response()->json(['message' => 'Référence de mouvement introuvable.'], 422);
+            }
+            // Le justificatif doit être une sortie de stock
+            if (!in_array($movement->type, ['out', 'exit'], true)) {
+                return response()->json(['message' => 'La référence doit correspondre à une sortie de stock.'], 422);
+            }
+            // Magasinier : le mouvement doit appartenir à un de ses magasins
+            if ($resp = $this->denyWarehouseAccess($user, (int) $movement->warehouse_id)) {
+                return $resp;
+            }
+            $movementId = $movement->id;
+        }
+
+        DB::transaction(function () use ($mission, $request, $movementId, $user) {
+            $mission->update([
+                'status' => 'terminee',
+                'report' => $request->report,
+                'completed_at' => now(),
+            ]);
+
+            if ($movementId) {
+                StockMovement::where('id', $movementId)->update([
+                    'public_request_id' => $mission->public_request_id,
+                    'request_mission_id' => $mission->id,
+                ]);
+            }
+
+            $mission->request?->logWorkflowAction(
+                'Sortie de stock exécutée',
+                "Mission #{$mission->id} clôturée par {$user->name} : {$request->report}",
+                $user->id
+            );
+        });
+
+        return response()->json(['message' => 'Mission clôturée avec justificatif.']);
     }
 }

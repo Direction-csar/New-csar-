@@ -5,7 +5,7 @@
 @section('titre', 'Attestation de Domiciliation de Salaire')
 
 @section('corps')
-    <p>Le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</p>
+    <p>Madame le Directeur Général du Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</p>
 
     <p>Atteste que le salaire de Monsieur/Madame
         <strong>{{ $personnel?->prenoms_nom ?? '____________________' }}</strong>,

@@ -34,6 +34,16 @@ class RoleSeeder extends Seeder
                 'name' => 'ctc',
                 'display_name' => 'Conseil Technique de la Communication',
                 'description' => 'Gestion des publications, actualités, rapports, newsletter et contenu public'
+            ],
+            [
+                'name' => 'distributeur',
+                'display_name' => 'Distributeur d\'aide',
+                'description' => 'APK Distribution : validation des bénéficiaires et émission des tickets QR'
+            ],
+            [
+                'name' => 'scanner',
+                'display_name' => 'Scanner de tickets',
+                'description' => 'APK Scanner : scan et enregistrement de la remise des kits'
             ]
         ];
 
@@ -41,4 +51,4 @@ class RoleSeeder extends Seeder
             Role::create($role);
         }
     }
-} 
+}

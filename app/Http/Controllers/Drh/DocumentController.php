@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Drh;
 use App\Http\Controllers\Controller;
 use App\Models\Personnel;
 use App\Models\RhDocument;
+use App\Services\Drh\ContractService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,7 +15,8 @@ class DocumentController extends Controller
 {
     public function selection(Request $request)
     {
-        if ($request->filled('personnel_id')) {
+        $tousAgents = $request->input('personnel_id') === '__all__';
+        if ($request->filled('personnel_id') && !$tousAgents) {
             session(['documents_personnel_id' => $request->input('personnel_id')]);
         }
         $agents = Personnel::select('id', 'prenoms_nom', 'poste_actuel')->orderBy('prenoms_nom')->get();
@@ -38,12 +40,12 @@ class DocumentController extends Controller
             ['label' => 'Bon de sortie',             'slug' => 'bon-sortie',             'icon' => 'fa-door-open', 'color' => '#6b7280'],
             ['label' => 'Déclaration de mouvement du travailleur', 'slug' => 'declaration-mouvement-travailleur', 'icon' => 'fa-file-signature', 'color' => '#1e40af'],
         ];
-        return view('admin.drh.documents.selection', compact('agents', 'types'));
+        return view('admin.drh.documents.selection', compact('agents', 'types', 'tousAgents'));
     }
 
     private function getPersonnel(Request $request): ?Personnel
     {
-        $id = $request->input('personnel_id') ?? session('documents_personnel_id');
+        $id = $request->input('personnel_id') ?: session('documents_personnel_id');
         if ($id) {
             return Personnel::find($id);
         }
@@ -52,71 +54,7 @@ class DocumentController extends Controller
 
     private function contractDefaults(?Personnel $agent): array
     {
-        if (!$agent) {
-            return [];
-        }
-
-        $noms = $this->splitNomPrenoms($agent->prenoms_nom);
-
-        return [
-            'date_embauche'        => $agent->date_recrutement_csar?->format('Y-m-d'),
-            'date_debut'           => $agent->date_recrutement_csar?->format('Y-m-d'),
-            'date_fin'             => $agent->type_contrat === 'CDD' ? '2026-12-31' : null,
-            'salaire_base'         => $agent->salaire_base,
-            'sursalaire'           => $agent->sursalaire,
-            'indemnite_transport'  => $agent->indemnite_transport,
-            'indemnite_fonction'   => $agent->indemnite_fonction,
-            'salaire_brut'         => $agent->salaire_brut,
-            'poste'                => $agent->poste_actuel,
-            'direction'            => $agent->direction_service,
-            'categorie'            => $agent->categorie,
-            'diplome'              => $agent->formations_professionnelles ?? $agent->diplome_academique,
-            'filiation'            => $agent->filiation,
-            'numero_identification'=> $agent->numero_cni,
-            'date_delivrance_id'   => $agent->date_delivrance_id?->format('Y-m-d'),
-            'domicile_actuel'      => $agent->adresse_complete,
-            'situation_famille'    => $agent->situation_matrimoniale,
-            'nombre_epouses'       => $agent->nombre_epouses,
-            // Champs déclaration de mouvement du travailleur
-            'numero_immatriculation' => $agent->matricule,
-            'nom'                    => $noms['nom'] ?? '',
-            'prenoms'                => $noms['prenoms'] ?? '',
-            'sexe'                   => $agent->sexe,
-            'date_naissance'         => $agent->date_naissance?->format('Y-m-d'),
-            'lieu_naissance'         => $agent->lieu_naissance,
-            'nationalite'            => $agent->nationalite,
-            'adresse'                => $agent->adresse_complete,
-            'carte_identite_numero'  => $agent->numero_cni,
-            'date_delivrance_id'     => $agent->date_delivrance_id?->format('Y-m-d'),
-            'numero_cfp_at'          => $agent->numero_cni,
-            'nombre_enfants'         => $agent->nombre_enfants,
-            'date_entree'            => $agent->date_recrutement_csar?->format('Y-m-d'),
-            'profession'             => $agent->poste_actuel,
-            'emploi_dans_entreprise' => $agent->poste_actuel,
-            'type_contrat'           => $agent->type_contrat,
-            'date_contrat'           => $agent->date_recrutement_csar?->format('Y-m-d'),
-            'categorie'              => $agent->categorie,
-            'convention_collective'  => 'du commerce et grille salariale CSAR',
-            'raison_sociale_employeur' => 'Stocks de sécurité alimentaire, Régulation du marché céréalier, Gérer les risques à l\'insécurité alimentaire par des actions de résilience',
-            'activite_etablissement' => 'Sécurité alimentaire et résilience',
-            'salaire_base'           => $agent->salaire_base,
-            'sursalaire'             => $agent->sursalaire,
-            'indemnite_transport'    => $agent->indemnite_transport,
-            'indemnite_fonction'     => $agent->indemnite_fonction,
-            'salaire_brut_global'    => $agent->salaire_brut,
-        ];
-    }
-
-    private function splitNomPrenoms(?string $fullName): array
-    {
-        if (!$fullName) {
-            return ['nom' => '', 'prenoms' => ''];
-        }
-        $parts = explode(' ', $fullName, 2);
-        return [
-            'nom' => $parts[0] ?? '',
-            'prenoms' => $parts[1] ?? '',
-        ];
+        return app(\App\Services\Drh\AgentDocumentData::class)->defaults($agent);
     }
 
     private function pdf(string $view, array $data, string $filename)
@@ -127,7 +65,6 @@ class DocumentController extends Controller
 
     public function showForm(Request $request, string $type)
     {
-        $agent = $this->getPersonnel($request);
         $savedDocument = null;
         $savedData = [];
 
@@ -135,8 +72,19 @@ class DocumentController extends Controller
             $savedDocument = RhDocument::find($request->input('document_id'));
             if ($savedDocument && $savedDocument->type === $type) {
                 $savedData = $savedDocument->data ?? [];
+            } else {
+                $savedDocument = null;
             }
         }
+
+        // L'agent choisi dans le formulaire devient l'agent de session :
+        // le bouton « Générer PDF » (routes directes) l'utilise aussi.
+        if ($request->filled('personnel_id')) {
+            session(['documents_personnel_id' => $request->input('personnel_id')]);
+        }
+
+        // En modification, l'agent du document est proposé par défaut.
+        $agent = $this->getPersonnel($request) ?? $savedDocument?->personnel;
 
         $types = [
             'contrat-cdi'              => ['label' => 'Contrat CDI', 'fields' => ['date_embauche', 'salaire_base', 'sursalaire', 'indemnite_transport', 'indemnite_fonction', 'salaire_brut', 'poste', 'categorie', 'diplome', 'filiation', 'numero_identification', 'date_delivrance_id', 'domicile_actuel', 'situation_famille', 'nombre_epouses']],
@@ -163,11 +111,14 @@ class DocumentController extends Controller
             abort(404);
         }
 
+        $agents = Personnel::orderBy('prenoms_nom')->get(['id', 'prenoms_nom', 'poste_actuel']);
+
         if ($type === 'declaration-mouvement-travailleur') {
             return view('admin.drh.documents.declaration_mouvement.form', [
                 'type'      => $type,
                 'docInfo'   => $types[$type],
                 'agent'     => $agent,
+                'agents'    => $agents,
                 'savedDocument' => $savedDocument,
                 'savedData' => $savedData,
                 'defaults'  => $this->contractDefaults($agent),
@@ -179,6 +130,7 @@ class DocumentController extends Controller
             'docInfo'   => $types[$type],
             'fields'    => $types[$type]['fields'] ?? [],
             'agent'     => $agent,
+            'agents'    => $agents,
             'savedDocument' => $savedDocument,
             'savedData' => $savedData,
             'defaults'  => $this->contractDefaults($agent),
@@ -325,8 +277,35 @@ class DocumentController extends Controller
             abort(404);
         }
 
-        $data = $request->except(['_token', 'personnel_id']);
+        $data = $request->except(['_token', 'personnel_id', 'document_id']);
         $personnelId = $request->input('personnel_id') ?: session('documents_personnel_id');
+
+        if (!$personnelId) {
+            return back()->with('error', 'Sélectionnez d\'abord un agent.');
+        }
+
+        // Modification d'un document existant : mise à jour en place (sauf signé/archivé).
+        if ($request->filled('document_id')) {
+            $document = RhDocument::findOrFail($request->input('document_id'));
+            abort_unless($document->type === $type, 404);
+            if ($document->isSigned() || $document->superseded_at) {
+                return redirect()->route('admin.drh.documents.form', ['type' => $type, 'document_id' => $document->id])
+                    ->with('error', 'Un document signé ou archivé ne peut pas être modifié.');
+            }
+
+            $document->fill([
+                'data' => $data,
+                'personnel_id' => $personnelId ?: $document->personnel_id,
+            ])->save();
+
+            // Contrat : régénérer le PDF archivé pour que les exports/ZIP reflètent les modifications.
+            if ($document->isContract()) {
+                app(ContractService::class)->refreshStoredPdf($document->fresh());
+            }
+
+            return redirect()->route('admin.drh.documents.form', ['type' => $type, 'document_id' => $document->id])
+                ->with('success', 'Document mis à jour.');
+        }
 
         $document = RhDocument::create([
             'personnel_id' => $personnelId ?: null,
@@ -386,6 +365,11 @@ class DocumentController extends Controller
 
     public function destroyDocument(RhDocument $document)
     {
+        if ($document->isContract() && ($document->isSigned() || $document->superseded_at)) {
+            return redirect()->route('admin.drh.documents.historique')
+                ->with('error', 'Un contrat signé ou une version archivée ne peut pas être supprimé.');
+        }
+
         $document->delete();
 
         return redirect()->route('admin.drh.documents.historique')
@@ -394,15 +378,207 @@ class DocumentController extends Controller
 
     public function destroyAllDocuments()
     {
-        RhDocument::query()->delete();
+        // Les contrats signés et les versions archivées sont conservés.
+        RhDocument::query()->where(fn ($q) => $q
+            ->whereNotIn('type', RhDocument::CONTRACT_TYPES)
+            ->orWhere(fn ($c) => $c->whereNull('signed_at')->whereNull('superseded_at')
+                ->where('statut', '!=', RhDocument::STATUT_A_VALIDER)))
+            ->delete();
 
         return redirect()->route('admin.drh.documents.historique')
-            ->with('success', 'Tout l\'historique des documents RH a été supprimé.');
+            ->with('success', 'Historique supprimé (les contrats signés et les versions archivées sont conservés).');
+    }
+
+    /**
+     * Génération groupée des déclarations de mouvement : crée les documents
+     * manquants pour tous les agents puis télécharge un ZIP de tous les PDF.
+     */
+    public function generateAllDmt()
+    {
+        @set_time_limit(900);
+        $type = 'declaration-mouvement-travailleur';
+
+        $existing = RhDocument::where('type', $type)->whereNull('superseded_at')
+            ->whereNull('signed_at')->pluck('personnel_id')->all();
+
+        $defaults = app(\App\Services\Drh\AgentDocumentData::class);
+        $created = 0;
+        Personnel::orderBy('prenoms_nom')->get()->each(function (Personnel $agent) use ($existing, $defaults, $type, &$created) {
+            if (in_array($agent->id, $existing, true)) {
+                return;
+            }
+            RhDocument::create([
+                'personnel_id' => $agent->id,
+                'type' => $type,
+                'label' => 'Déclaration de mouvement du travailleur',
+                'data' => $defaults->defaults($agent),
+                'statut' => 'Enregistré',
+                'created_by' => Auth::id(),
+            ]);
+            $created++;
+        });
+
+        // Une seule déclaration par agent : la plus récente est conservée,
+        // les doublons non signés sont archivés (superseded_at).
+        $documents = RhDocument::where('type', $type)->whereNull('superseded_at')
+            ->whereNull('signed_at')->with('personnel')->orderByDesc('id')->get();
+        $seen = [];
+        $duplicates = [];
+        $documents = $documents->filter(function (RhDocument $doc) use (&$seen, &$duplicates) {
+            if (!$doc->personnel_id || isset($seen[$doc->personnel_id])) {
+                $duplicates[] = $doc->id;
+                return false;
+            }
+            $seen[$doc->personnel_id] = true;
+            return true;
+        })->sortBy('id')->values();
+        if ($duplicates) {
+            RhDocument::whereIn('id', $duplicates)->update(['superseded_at' => now()]);
+        }
+        if ($documents->isEmpty()) {
+            return back()->with('error', 'Aucune déclaration n\'a pu être générée.');
+        }
+
+        // Un seul PDF pour toute la série : le HTML de chaque déclaration
+        // (2 pages `.page`) est concaténé, Dompdf gère les sauts de page.
+        @ini_set('memory_limit', '1024M');
+        $style = '';
+        $body = '';
+        $count = 0;
+        foreach ($documents as $doc) {
+            $agent = $doc->personnel;
+            if (!$agent) {
+                continue;
+            }
+            // Les immatriculations C.C.P.F.-A.T. et A.G.R.O.M. doivent rester
+            // vides : purge des anciennes valeurs (ex. CIN pré-rempli).
+            // « Directeur Général » saisi dans la signature employeur est un
+            // titre, pas une signature : il est retiré.
+            $docData = $doc->data ?? [];
+            $dirty = false;
+            if (($docData['numero_cfp_at'] ?? '') !== '' || ($docData['numero_agrom'] ?? '') !== '') {
+                $docData['numero_cfp_at'] = '';
+                $docData['numero_agrom'] = '';
+                $dirty = true;
+            }
+            if (preg_match('/directeur|g[ée]n[ée]ral/iu', (string) ($docData['signature_employeur'] ?? ''))) {
+                $docData['signature_employeur'] = '';
+                $dirty = true;
+            }
+            if ($dirty) {
+                $doc->update(['data' => $docData]);
+            }
+            $data = array_merge(['personnel' => $agent], $docData);
+            $html = view('admin.drh.documents.declaration_mouvement.pdf', ['data' => $data] + $data)->render();
+
+            if ($style === '' && preg_match('/<style>(.*?)<\/style>/s', $html, $sm)) {
+                $style = $sm[1];
+            }
+            if (preg_match('/<body>(.*)<\/body>/s', $html, $bm)) {
+                $body .= $bm[1];
+                $count++;
+            }
+        }
+
+        if ($count === 0) {
+            return back()->with('error', 'Aucun PDF n\'a pu être généré.');
+        }
+
+        session()->flash('success', "Déclarations de mouvement : {$created} créée(s), {$count} document(s) dans le PDF.");
+
+        $pdf = Pdf::loadHTML('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $style . '</style></head><body>' . $body . '</body></html>')
+            ->setPaper('a4', 'portrait')
+            ->output();
+
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="dmt-csar-' . now()->format('Ymd-His') . '.pdf"',
+        ]);
+    }
+
+    /**
+     * Génération groupée d'un type de document simple pour tous les agents :
+     * crée les documents manquants puis retourne un PDF unique prêt à imprimer.
+     */
+    public function generateAllDocuments(string $type)
+    {
+        $allowed = [
+            'certificat-travail' => ['label' => 'Certificat de travail', 'view' => 'admin.drh.documents.certificat_travail'],
+            'attestation-travail' => ['label' => 'Attestation de travail', 'view' => 'admin.drh.documents.attestation_travail'],
+            'attestation-travail-salaire' => ['label' => 'Attestation travail & salaire', 'view' => 'admin.drh.documents.attestation_travail_salaire'],
+        ];
+        abort_unless(isset($allowed[$type]), 404);
+
+        @set_time_limit(900);
+        @ini_set('memory_limit', '1024M');
+
+        $defaults = app(\App\Services\Drh\AgentDocumentData::class);
+        $created = 0;
+        Personnel::orderBy('prenoms_nom')->get()->each(function (Personnel $agent) use ($allowed, $type, $defaults, &$created) {
+            $exists = RhDocument::where('type', $type)->where('personnel_id', $agent->id)
+                ->whereNull('superseded_at')->whereNull('signed_at')->exists();
+            if ($exists) {
+                return;
+            }
+            RhDocument::create([
+                'personnel_id' => $agent->id,
+                'type' => $type,
+                'label' => $allowed[$type]['label'],
+                'data' => $defaults->defaults($agent),
+                'statut' => 'Enregistré',
+                'created_by' => Auth::id(),
+            ]);
+            $created++;
+        });
+
+        // Une seule déclaration par agent dans le PDF (plus récente conservée).
+        $documents = RhDocument::where('type', $type)->whereNull('superseded_at')
+            ->whereNull('signed_at')->with('personnel')->orderByDesc('id')->get()
+            ->unique('personnel_id')->sortBy('id')->values();
+        if ($documents->isEmpty()) {
+            return back()->with('error', 'Aucun document n\'a pu être généré.');
+        }
+
+        $style = '';
+        $body = '';
+        $count = 0;
+        foreach ($documents as $doc) {
+            $agent = $doc->personnel;
+            if (!$agent) {
+                continue;
+            }
+            $data = array_merge(['personnel' => $agent], $doc->data ?? []);
+            $html = view($allowed[$type]['view'], ['data' => $data] + $data)->render();
+
+            if ($style === '' && preg_match('/<style>(.*?)<\/style>/s', $html, $sm)) {
+                $style = $sm[1];
+            }
+            if (preg_match('/<body>(.*)<\/body>/s', $html, $bm)) {
+                $body .= '<div style="page-break-after: always;">' . $bm[1] . '</div>';
+                $count++;
+            }
+        }
+
+        if ($count === 0) {
+            return back()->with('error', 'Aucun PDF n\'a pu être généré.');
+        }
+
+        session()->flash('success', "{$allowed[$type]['label']} : {$created} créé(s), {$count} document(s) dans le PDF.");
+
+        $pdf = Pdf::loadHTML('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' . $style . '</style></head><body>' . $body . '</body></html>')
+            ->setPaper('a4', 'portrait')
+            ->output();
+
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="' . \Illuminate\Support\Str::slug($allowed[$type]['label']) . '-csar-' . now()->format('Ymd-His') . '.pdf"',
+        ]);
     }
 
     public function exportDocument(RhDocument $document)
     {
-        $agent = $document->personnel;
+        $agent = $document->personnel
+            ?? (session('documents_personnel_id') ? Personnel::find(session('documents_personnel_id')) : null);
         $data = array_merge(['personnel' => $agent], $document->data ?? []);
 
         $viewMap = [
@@ -430,7 +606,8 @@ class DocumentController extends Controller
         $view = $viewMap[$document->type] ?? abort(404);
         $filename = str_replace(' ', '-', strtolower($document->label)) . '-' . $document->id . '.pdf';
 
-        $document->update([
+        $keepStatut = $document->isContract() && ($document->isSigned() || $document->isPendingValidation() || $document->superseded_at);
+        $document->update($keepStatut ? ['exported_at' => now()] : [
             'statut' => 'Exporté',
             'exported_at' => now(),
         ]);

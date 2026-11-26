@@ -6,12 +6,81 @@
     $money = function ($m) {
         return ($m !== null && $m !== '') ? number_format((float) $m, 0, ',', ' ') : '..........................';
     };
+    // Les 4 recrutements de 2026 (Faye DIENG, Cheikh Bou DIOP, THIAW, SALL) gardent un contrat ;
+    // tous les autres agents reçoivent un avenant à leur contrat à durée indéterminée.
+    $matriculesContrat = ['202609', '202608', '202610', '202606'];
+    $estAvenant = !in_array(trim((string) ($personnel->matricule ?? '')), $matriculesContrat, true);
     $nomComplet = $personnel->prenoms_nom ?? '';
     $parts = preg_split('/\s+/', trim($nomComplet));
     $nomFamille = count($parts) > 1 ? array_pop($parts) : $nomComplet;
     $prenoms = implode(' ', $parts);
     $civilite = isset($personnel) && $personnel && str_starts_with($personnel->sexe ?? '', 'F') ? 'Madame' : 'Monsieur';
+    $feminin = isset($personnel) && $personnel && str_starts_with($personnel->sexe ?? '', 'F');
+    $engage = $feminin ? 'engagée' : 'engagé';
+    $appelle = $feminin ? 'appelée' : 'appelé';
     $posteLibelle = $poste ?? ($personnel->poste_actuel ?? '..........................');
+    // Affectation : inspection régionale le cas échéant, siège sinon.
+    $dirAffect = $direction ?? ($personnel->direction_service ?? null);
+    $regAffect = $personnel->localisation_region ?? null;
+    $inspection = null;
+    if (preg_match('/^Inspection r[ée]gionale de\s+(.+)$/iu', trim((string) $dirAffect), $m)) {
+        $inspection = 'Inspection régionale de ' . trim($m[1]);
+    } elseif (strtoupper(trim((string) $dirAffect)) === 'IR' && $regAffect && strcasecmp($regAffect, 'Dakar') !== 0) {
+        $inspection = 'Inspection régionale de ' . $regAffect;
+    }
+    $estSiege = ($personnel->matricule ?? null) === '020075' || !$inspection;
+    $lieuEntite = $estSiege
+        ? 'au Commissariat à la Sécurité Alimentaire et à la Résilience'
+        : "à l'$inspection du Commissariat à la Sécurité Alimentaire et à la Résilience";
+    $orgEntite = $estSiege
+        ? 'du Commissariat à la Sécurité Alimentaire et à la Résilience'
+        : "à l'$inspection du Commissariat à la Sécurité Alimentaire et à la Résilience";
+    // Si la fonction mentionne déjà l'inspection ou la région, éviter les doublons.
+    $fold = function ($s) {
+        return strtr(mb_strtolower((string) $s), [
+            'à' => 'a', 'â' => 'a', 'ä' => 'a', 'á' => 'a', 'é' => 'e', 'è' => 'e', 'ê' => 'e', 'ë' => 'e',
+            'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ó' => 'o', 'ô' => 'o', 'ö' => 'o', 'ú' => 'u', 'ù' => 'u',
+            'û' => 'u', 'ü' => 'u', 'ç' => 'c', 'ñ' => 'n',
+        ]);
+    };
+    $regionAffect = $inspection ? trim((string) preg_replace('/^Inspection régionale de\s+/iu', '', $inspection)) : '';
+    $posteRole = $posteLibelle;
+    $mentionneInspection = $fold($posteRole) !== '' && str_contains($fold($posteRole), 'inspection');
+    if (!$mentionneInspection && $regionAffect !== '' && str_contains($fold($posteRole), $fold($regionAffect))) {
+        $pat = '';
+        foreach (preg_split('//u', $regionAffect, -1, PREG_SPLIT_NO_EMPTY) as $ch) {
+            $var = ['a' => 'aàâäá', 'e' => 'eéèêë', 'i' => 'iîïí', 'o' => 'oôöó', 'u' => 'uùûüú', 'c' => 'cç', 'n' => 'nñ'][$fold($ch)] ?? null;
+            $pat .= $var ? '[' . $var . ']' : preg_quote($ch, '/');
+        }
+        $nettoye = trim(preg_replace('/(?:\s+(?:de|du|des|d\'|à|au|aux|en|le|la|les|l\'|d))*\s*' . $pat . '\s*$/iu', '', $posteRole));
+        if ($nettoye !== '' && $nettoye !== $posteRole) {
+            $posteRole = $nettoye;
+        }
+    }
+    // Gardiens et magasiniers : formulation directe demandée par la DRH.
+    $posteLower = mb_strtolower((string) $posteLibelle);
+    if (str_contains($posteLower, 'gardien')) {
+        $rolePhrase = 'en qualité de gardien ' . $lieuEntite;
+        $sansDiplome = true;
+    } elseif (str_contains($posteLower, 'magasinier')) {
+        $rolePhrase = 'en qualité de magasinier ' . $lieuEntite;
+        $sansDiplome = true;
+    } else {
+        $prep = preg_match('/^[aeiouyéèêàâîïôûh]/iu', $posteRole) ? "d'" : 'de ';
+        $orgFinal = $mentionneInspection
+            ? 'du Commissariat à la Sécurité Alimentaire et à la Résilience'
+            : $orgEntite;
+        if (!$mentionneInspection && str_contains($fold($posteRole), 'chauffeur')) {
+            $orgFinal = $lieuEntite;
+        }
+        $rolePhrase = 'pour servir en qualité ' . $prep . $posteRole . ' ' . $orgFinal;
+    }
+    // Le libellé du tableau commence souvent par « d'un… » : ne pas le préfixer deux fois.
+    $diplomeTexte = '';
+    if (!empty($diplome)) {
+        $d = trim($diplome);
+        $diplomeTexte = preg_match("/^d['’]|^d[eu]s?\s/iu", $d) ? $d : "d'un(e) $d";
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="fr">
@@ -38,7 +107,7 @@
 
     {{-- ================= PAGE 1 ================= --}}
     <div class="title">
-        CONTRAT DE TRAVAIL<br>
+        {{ $estAvenant ? 'AVENANT AU CONTRAT DE TRAVAIL' : 'CONTRAT DE TRAVAIL' }}<br>
         A DUREE INDETERMINEE
     </div>
 
@@ -49,7 +118,7 @@
     <p style="text-align: justify;">
         <strong>Le Commissariat à la Sécurité Alimentaire et à la Résilience (CSAR),</strong> sis au
         2 Rue Amadou Assane NDOYE X Bérenger Ferraud, Dakar représenté par
-        <strong>Madame Mame Ndeye SENE, en sa qualité de Directrice générale ;</strong>
+        <strong>Madame Mame Ndeye SENE, en sa qualité de Directeur Général ;</strong>
     </p>
 
     <p class="right">D'UNE PART</p>
@@ -63,7 +132,7 @@
         <p>N° Identification Nationale : {{ $numero_identification ?? ($personnel->numero_cni ?? '') }}</p>
         <p>Domicile actuel : {{ $domicile_actuel ?? ($personnel->adresse_complete ?? '') }}</p>
         <p>Nationalité : {{ $personnel->nationalite ?? 'Sénégalaise' }}</p>
-        <p>Situation de Famille : {{ $situation_famille ?? ($personnel->situation_matrimoniale ?? '') }}</p>
+        <p>Situation de Famille : {{ \App\Models\Personnel::libelleSituation($situation_famille ?? ($personnel->situation_matrimoniale ?? ''), $personnel->sexe ?? null) }}</p>
         <p>Nombre d'épouses : {{ $nombre_epouses ?? '' }}</p>
         <p>Nombre d'enfants : {{ $personnel->nombre_enfants ?? '' }}</p>
     </div>
@@ -74,11 +143,10 @@
 
     <div class="article-title">ARTICLE 1 :</div>
     <p style="text-align: justify;">
-        {{ $civilite }} <strong>{{ $nomComplet }}</strong>, titulaire {{ !empty($diplome) ? 'd\'un(e) ' . $diplome : '……………………………' }}, est
-        engagé pour servir en qualité de {{ $posteLibelle }} au Commissariat à
-        la Sécurité Alimentaire et à la Résilience pour une durée indéterminée depuis le {{ $fmt($date_embauche ?? null) }}.
+        {{ $civilite }} <strong>{{ $nomComplet }}</strong>{{ empty($sansDiplome) ? ', titulaire ' . ($diplomeTexte !== '' ? $diplomeTexte : '……………………………') : '' }}, est
+        {{ $engage }} {!! $rolePhrase !!} pour une durée indéterminée depuis le {{ $fmt($date_embauche ?? null) }}.
     </p>
-    <p>Il sera classé à la catégorie {{ $categorie ?? '………' }} conformément à la grille salariale du CSAR</p>
+    <p>{{ $feminin ? 'Elle sera classée' : 'Il sera classé' }} à la catégorie {{ $categorie ?? '………' }} conformément à la grille salariale du CSAR</p>
 
     <div class="article-title">ARTICLE 2 :</div>
     <p style="margin-bottom: 2px;">Rémunération :</p>
@@ -105,13 +173,13 @@
 
     <div class="article-title">ARTICLE 4 :</div>
     <p style="text-align: justify;">
-        Le lieu d'exécution du présent contrat de travail est situé à : Dakar, 22 Rue
-        Amadou Assane NDOYE x Bérenger Ferraud
+        Le lieu d'exécution du présent contrat de travail est situé à :
+        {{ ($personnel->matricule ?? null) === '020075' ? 'au Commissariat à la Sécurité Alimentaire et à la Résilience' : \App\Models\Personnel::lieuAffectation($direction ?? ($personnel->direction_service ?? null), $personnel->localisation_region ?? null) }}
     </p>
 
     <div class="article-title">ARTICLE 5 :</div>
     <p style="text-align: justify;">
-        {{ $civilite }} <strong>{{ $nomComplet }}</strong> est appelé à servir dans tous les services du CSAR
+        {{ $civilite }} <strong>{{ $nomComplet }}</strong> est {{ $appelle }} à servir dans tous les services du CSAR
         partout où besoin sera.
     </p>
 
@@ -130,20 +198,20 @@
         <li>Code du travail et décret d'application</li>
         <li>Convention collective nationale interprofessionnelle</li>
         <li>Convention collective du commerce</li>
-        <li>Eventuellement grille interne du CSAR</li>
+        <li>Grille salariale du CSAR</li>
     </ul>
 
     <div class="article-title">ARTICLE 8 :</div>
     <p style="text-align: justify;">
         Toute modification aux dispositions du présent contrat de travail fera l'objet
-        d'un avenant qui sera notifié à l'intéressé.
+        d'un avenant qui sera notifié à l'{{ $feminin ? 'intéressée' : 'intéressé' }}.
     </p>
 
     <table class="signatures">
         <tr>
             <td style="width: 40%; vertical-align: top;"><strong>Le Travailleur</strong></td>
             <td style="width: 60%; text-align: center; vertical-align: top;">
-                <strong>La Directrice générale<br>
+                <strong>Madame le Directeur Général<br>
                 du Commissariat à la Sécurité Alimentaire et à la Résilience<br>
                 Mame Ndeye SENE</strong>
             </td>

@@ -7,8 +7,12 @@ use App\Models\DistributionEvent;
 use App\Models\DistributionPlanning;
 use App\Models\DistributionBeneficiary;
 use App\Models\DistributionTicket;
+use App\Models\DistributionScanAttempt;
 use App\Models\User;
+use App\Services\Distribution\BeneficiaryImportService;
+use App\Services\Distribution\ImportException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -140,8 +144,8 @@ class DistributionController extends Controller
     public function planningsCreate()
     {
         $events = DistributionEvent::where('status', '!=', 'closed')->pluck('name', 'id');
-        $distributors = User::where('role', 'distributeur')->where('is_active', 1)->pluck('name', 'id');
-        return view('admin.distribution.plannings.create', compact('events', 'distributors'));
+        [$distributors, $scanners] = $this->assignableUsers();
+        return view('admin.distribution.plannings.create', compact('events', 'distributors', 'scanners'));
     }
 
     public function planningsStore(Request $request)
@@ -155,12 +159,23 @@ class DistributionController extends Controller
             'distribution_date' => 'nullable|date',
             'location' => 'nullable|string|max:255',
             'assigned_to' => 'nullable|exists:users,id',
+            'distributor_ids' => 'nullable|array',
+            'distributor_ids.*' => 'integer|exists:users,id',
+            'scanner_ids' => 'nullable|array',
+            'scanner_ids.*' => 'integer|exists:users,id',
         ]);
 
-        DistributionPlanning::create($request->only([
+        $planning = DistributionPlanning::create($request->only([
             'event_id', 'name', 'description', 'planned_quota_kg',
-            'expected_beneficiaries', 'distribution_date', 'location', 'assigned_to'
+            'expected_beneficiaries', 'distribution_date', 'location'
         ]) + ['status' => 'draft']);
+
+        $distributorIds = collect($request->input('distributor_ids', []));
+        if ($request->filled('assigned_to')) {
+            $distributorIds->push($request->assigned_to);
+        }
+        $planning->syncAgents('distributor', $distributorIds->unique()->values()->all(), (int) Auth::id());
+        $planning->syncAgents('scanner', $request->input('scanner_ids', []), (int) Auth::id());
 
         return redirect()->route('admin.distribution.plannings.index')
             ->with('success', 'Planning créé avec succès.');
@@ -168,17 +183,20 @@ class DistributionController extends Controller
 
     public function planningsShow($id)
     {
-        $planning = DistributionPlanning::with(['event', 'assignee', 'beneficiaries.tickets'])
+        $planning = DistributionPlanning::with(['event', 'assignee', 'beneficiaries.tickets', 'distributors', 'scanners'])
             ->withCount(['beneficiaries', 'tickets'])->findOrFail($id);
-        return view('admin.distribution.plannings.show', compact('planning'));
+        $agentStats = $this->planningAgentStats($planning);
+        return view('admin.distribution.plannings.show', compact('planning', 'agentStats'));
     }
 
     public function planningsEdit($id)
     {
         $planning = DistributionPlanning::findOrFail($id);
         $events = DistributionEvent::where('status', '!=', 'closed')->pluck('name', 'id');
-        $distributors = User::where('role', 'distributeur')->where('is_active', 1)->pluck('name', 'id');
-        return view('admin.distribution.plannings.edit', compact('planning', 'events', 'distributors'));
+        [$distributors, $scanners] = $this->assignableUsers($planning);
+        $assignedDistributors = $planning->agents()->where('type', 'distributor')->pluck('user_id')->all();
+        $assignedScanners = $planning->agents()->where('type', 'scanner')->pluck('user_id')->all();
+        return view('admin.distribution.plannings.edit', compact('planning', 'events', 'distributors', 'scanners', 'assignedDistributors', 'assignedScanners'));
     }
 
     public function planningsUpdate(Request $request, $id)
@@ -193,13 +211,24 @@ class DistributionController extends Controller
             'distribution_date' => 'nullable|date',
             'location' => 'nullable|string|max:255',
             'assigned_to' => 'nullable|exists:users,id',
+            'distributor_ids' => 'nullable|array',
+            'distributor_ids.*' => 'integer|exists:users,id',
+            'scanner_ids' => 'nullable|array',
+            'scanner_ids.*' => 'integer|exists:users,id',
             'status' => 'required|in:draft,active,completed,cancelled',
         ]);
 
         $planning->update($request->only([
             'event_id', 'name', 'description', 'planned_quota_kg',
-            'expected_beneficiaries', 'distribution_date', 'location', 'assigned_to', 'status'
+            'expected_beneficiaries', 'distribution_date', 'location', 'status'
         ]));
+
+        $distributorIds = collect($request->input('distributor_ids', []));
+        if ($request->filled('assigned_to')) {
+            $distributorIds->push($request->assigned_to);
+        }
+        $planning->syncAgents('distributor', $distributorIds->unique()->values()->all(), (int) Auth::id());
+        $planning->syncAgents('scanner', $request->input('scanner_ids', []), (int) Auth::id());
 
         return redirect()->route('admin.distribution.plannings.index')
             ->with('success', 'Planning mis à jour.');
@@ -261,6 +290,102 @@ class DistributionController extends Controller
             ->with('success', 'Bénéficiaire ajouté.');
     }
 
+    /**
+     * Import en masse (Excel XLS/XLSX, CSV ou liste collee) en deux temps :
+     * 1) beneficiariesImportStore  : analyse + APERCU, aucune ecriture en base ;
+     * 2) beneficiariesImportConfirm: import definitif des lignes valides.
+     */
+    public function beneficiariesImport()
+    {
+        $plannings = DistributionPlanning::whereIn('status', ['draft', 'active'])
+            ->with('event:id,name')
+            ->get()
+            ->mapWithKeys(fn ($p) => [$p->id => $p->name . ' (' . ($p->event->name ?? 'sans événement') . ' — ' . $p->status . ')']);
+        return view('admin.distribution.beneficiaries.import', compact('plannings'));
+    }
+
+    public function beneficiariesImportStore(Request $request, BeneficiaryImportService $importer)
+    {
+        $request->validate([
+            'planning_id' => 'required|exists:distribution_plannings,id',
+            'category' => 'nullable|string|max:100',
+            'default_quantity_kg' => 'nullable|numeric|min:0',
+            'list_text' => 'nullable|string|max:500000',
+            'import_file' => 'nullable|file|mimes:xlsx,xls,csv,txt|max:' . BeneficiaryImportService::MAX_FILE_KB,
+        ], [
+            'import_file.mimes' => 'Format non pris en charge : utilisez un fichier Excel (.xlsx, .xls) ou CSV.',
+            'import_file.max' => 'Fichier trop volumineux (5 Mo maximum).',
+        ]);
+
+        $hasFile = $request->hasFile('import_file');
+        $hasText = $request->filled('list_text');
+
+        if ($hasFile && $hasText) {
+            return back()->withInput()->with('error', 'Choisissez soit un fichier, soit une liste collée, pas les deux.');
+        }
+        if (!$hasFile && !$hasText) {
+            return back()->withInput()->with('error', 'Joignez un fichier Excel/CSV ou collez une liste.');
+        }
+
+        $planning = DistributionPlanning::with('event:id,name')->findOrFail($request->planning_id);
+
+        try {
+            $raw = $hasFile
+                ? $importer->readFile($request->file('import_file'))
+                : $importer->readDelimited((string) $request->list_text);
+
+            $analysis = $importer->analyze(
+                $raw,
+                $planning->id,
+                $request->category ?: 'general',
+                (float) ($request->default_quantity_kg ?? 0)
+            );
+        } catch (ImportException $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        $token = $analysis['counts']['ok'] > 0
+            ? $importer->storePending((int) Auth::id(), $planning->id, $analysis)
+            : null;
+
+        return view('admin.distribution.beneficiaries.import_preview', [
+            'planning' => $planning,
+            'analysis' => $analysis,
+            'token' => $token,
+            'sourceName' => $hasFile ? $request->file('import_file')->getClientOriginalName() : 'Liste collée',
+        ]);
+    }
+
+    public function beneficiariesImportConfirm(Request $request, BeneficiaryImportService $importer)
+    {
+        $request->validate(['token' => 'required|string']);
+
+        $pending = $importer->loadPending($request->token, (int) Auth::id());
+        if (!$pending) {
+            return redirect()->route('admin.distribution.beneficiaries.import')
+                ->with('error', 'Aperçu expiré ou introuvable : relancez l\'analyse du fichier.');
+        }
+
+        $result = $importer->commit($pending, (int) Auth::id());
+        $importer->discardPending($request->token);
+
+        $msg = "{$result['created']} bénéficiaire(s) importé(s).";
+        if ($result['skipped']) {
+            $msg .= ' ' . count($result['skipped']) . ' ligne(s) ignorée(s) à la confirmation : '
+                . implode(' | ', array_slice($result['skipped'], 0, 5));
+        }
+
+        return redirect()->route('admin.distribution.beneficiaries.index', ['planning_id' => $pending['planning_id']])
+            ->with($result['created'] > 0 ? 'success' : 'error', $msg);
+    }
+
+    public function beneficiariesImportTemplate(BeneficiaryImportService $importer)
+    {
+        $path = $importer->templateXlsx();
+
+        return response()->download($path, 'modele-import-beneficiaires.xlsx')->deleteFileAfterSend(true);
+    }
+
     public function beneficiariesShow($id)
     {
         $beneficiary = DistributionBeneficiary::with('planning.event', 'tickets.scanner', 'validator')->findOrFail($id);
@@ -292,15 +417,99 @@ class DistributionController extends Controller
             'status' => 'required|in:pending,validated,ticket_issued,kit_collected',
         ]);
 
-        $beneficiary->update($request->only([
+        $data = $request->only([
             'planning_id', 'full_name', 'phone', 'cni', 'address', 'category', 'quantity_kg',
             'is_vulnerable', 'is_pregnant', 'is_elderly', 'is_disabled', 'status',
-        ]));
+        ]);
+
+        // Traçabilité : le passage à « validated » enregistre qui et quand,
+        // comme le fait l'endpoint mobile validateBeneficiary.
+        if ($request->status === 'validated' && $beneficiary->status !== 'validated'
+            && is_null($beneficiary->validated_at)) {
+            $data['validated_at'] = now();
+            $data['validated_by'] = Auth::id();
+        }
+
+        $beneficiary->update($data);
 
         $this->recomputeExecuted($beneficiary->planning_id);
 
         return redirect()->route('admin.distribution.beneficiaries.index')
             ->with('success', 'Bénéficiaire mis à jour.');
+    }
+
+    /**
+     * Valider un bénéficiaire depuis l'admin : même écriture que
+     * l'API mobile (statut + validated_at + validated_by).
+     */
+    public function beneficiariesValidate($id)
+    {
+        $beneficiary = DistributionBeneficiary::findOrFail($id);
+
+        if ($beneficiary->status !== 'pending') {
+            return redirect()->back()->with('error', 'Ce bénéficiaire est déjà validé.');
+        }
+
+        $beneficiary->update([
+            'status' => 'validated',
+            'validated_at' => now(),
+            'validated_by' => Auth::id(),
+        ]);
+
+        return redirect()->back()->with('success', 'Bénéficiaire validé.');
+    }
+
+    /**
+     * Générer un ticket QR depuis l'admin : mêmes règles que
+     * l'API mobile generateTicket (bénéficiaire validé, pas de ticket actif).
+     */
+    public function beneficiariesGenerateTicket($id)
+    {
+        return DB::transaction(function () use ($id) {
+            $beneficiary = DistributionBeneficiary::where('id', $id)->lockForUpdate()->firstOrFail();
+
+            if (!in_array($beneficiary->status, ['validated', 'ticket_issued'], true)) {
+                return redirect()->back()
+                    ->with('error', 'Le bénéficiaire doit être validé avant de générer un ticket.');
+            }
+
+            $existing = $beneficiary->tickets()->whereIn('status', ['issued', 'scanned', 'collected'])->first();
+            if ($existing) {
+                return redirect()->back()
+                    ->with('error', "Un ticket actif existe déjà : {$existing->ticket_code}.");
+            }
+
+            $ticket = DistributionTicket::create([
+                'beneficiary_id' => $beneficiary->id,
+                'planning_id' => $beneficiary->planning_id,
+                'ticket_code' => 'CSAR-' . strtoupper(Str::random(8)),
+                'qr_token' => Str::uuid()->toString(),
+                'status' => 'issued',
+                'issued_at' => now(),
+                'issued_by' => Auth::id(),
+            ]);
+
+            $beneficiary->update(['status' => 'ticket_issued']);
+
+            return redirect()->route('admin.distribution.tickets.show', $ticket->id)
+                ->with('success', "Ticket {$ticket->ticket_code} généré.");
+        });
+    }
+
+    /**
+     * Activer un planning : sans cette étape il reste en 'draft' et est
+     * invisible dans l'APK (myPlannings exige status='active').
+     */
+    public function planningsActivate($id)
+    {
+        $planning = DistributionPlanning::findOrFail($id);
+
+        if ($planning->status === 'draft') {
+            $planning->update(['status' => 'active']);
+            return redirect()->back()->with('success', "Planning « {$planning->name} » activé : visible dans l'APK.");
+        }
+
+        return redirect()->back()->with('error', "Le planning est déjà « {$planning->status} ».");
     }
 
     public function beneficiariesDestroy($id)
@@ -595,6 +804,7 @@ class DistributionController extends Controller
             'dup_phone' => $dupPhoneCount,
             'dup_cni' => $dupCniCount,
             'dup_name' => $dupNameCount,
+            'by_agent' => $this->eventAgentStats($planningIds),
             'stock_evolution' => $stockEvolution,
             'donut' => [
                 'executed' => $executed,
@@ -738,5 +948,87 @@ class DistributionController extends Controller
             if ($match) return $match;
         }
         return null;
+    }
+
+    /**
+     * Deux listes d'agents affectables, independantes :
+     * - distributeurs : comptes actifs de role « distributeur » (+ les agents deja affectes au planning) ;
+     * - scanners : tout compte actif (roles « scanner » et « magasinier » en tete,
+     *   les autres agents peuvent etre autorises explicitement par l'administration).
+     *
+     * @return array{0: \Illuminate\Support\Collection, 1: \Illuminate\Support\Collection}
+     */
+    private function assignableUsers(?DistributionPlanning $planning = null): array
+    {
+        $distributors = User::where('is_active', 1)->where('role', 'distributeur')
+            ->orderBy('name')->get()->keyBy('id');
+        $scanners = User::where('is_active', 1)
+            ->orderByRaw("CASE WHEN role IN ('scanner','magasinier') THEN 0 ELSE 1 END")
+            ->orderBy('name')->get()->keyBy('id');
+
+        if ($planning) {
+            $planning->loadMissing('distributors', 'scanners');
+            $distributors = $distributors->union($planning->distributors->keyBy('id'));
+            $scanners = $scanners->union($planning->scanners->keyBy('id'));
+        }
+
+        $label = fn ($u) => $u->name . ' (' . ($u->role ?? 'agent') . ($u->is_active ? '' : ' — inactif') . ')';
+
+        return [
+            $distributors->sortBy('name')->mapWithKeys(fn ($u) => [$u->id => $label($u)]),
+            $scanners->mapWithKeys(fn ($u) => [$u->id => $label($u)]),
+        ];
+    }
+
+    /** Statistiques par agent pour la fiche d'un planning. */
+    /** Statistiques par agent consolidees sur tous les plannings de l'evenement. */
+    private function eventAgentStats($planningIds): array
+    {
+        $validated = DistributionBeneficiary::whereIn('planning_id', $planningIds)->whereNotNull('validated_by')
+            ->selectRaw('validated_by, COUNT(*) total')->groupBy('validated_by')->pluck('total', 'validated_by');
+        $issued = DistributionTicket::whereIn('planning_id', $planningIds)->whereNotNull('issued_by')
+            ->selectRaw('issued_by, COUNT(*) total')->groupBy('issued_by')->pluck('total', 'issued_by');
+        $collected = DistributionTicket::whereIn('planning_id', $planningIds)->whereNotNull('scanned_by')
+            ->selectRaw('scanned_by, COUNT(*) total')->groupBy('scanned_by')->pluck('total', 'scanned_by');
+        $uids = $validated->keys()->merge($issued->keys())->merge($collected->keys())->unique()->values();
+        $users = User::whereIn('id', $uids)->get()->keyBy('id');
+
+        return $uids->map(fn ($uid) => [
+            'name' => $users[$uid]->name ?? 'Agent #' . $uid,
+            'role' => $users[$uid]->role ?? '?',
+            'validated' => (int) ($validated[$uid] ?? 0),
+            'issued' => (int) ($issued[$uid] ?? 0),
+            'collected' => (int) ($collected[$uid] ?? 0),
+        ])->all();
+    }
+
+    private function planningAgentStats(DistributionPlanning $planning): array
+    {
+        $validated = DistributionBeneficiary::where('planning_id', $planning->id)->whereNotNull('validated_by')
+            ->selectRaw('validated_by, COUNT(*) total')->groupBy('validated_by')->pluck('total', 'validated_by');
+        $issued = DistributionTicket::where('planning_id', $planning->id)->whereNotNull('issued_by')
+            ->selectRaw('issued_by, COUNT(*) total')->groupBy('issued_by')->pluck('total', 'issued_by');
+        $collected = DistributionTicket::where('planning_id', $planning->id)->whereNotNull('scanned_by')
+            ->selectRaw('scanned_by, COUNT(*) total')->groupBy('scanned_by')->pluck('total', 'scanned_by');
+        $attempts = DistributionScanAttempt::where('planning_id', $planning->id)->whereNotNull('user_id')
+            ->selectRaw("user_id, SUM(CASE WHEN result != 'ok' THEN 1 ELSE 0 END) refused, SUM(CASE WHEN action = 'verify' AND result = 'ok' THEN 1 ELSE 0 END) verified")
+            ->groupBy('user_id')->get()->keyBy('user_id');
+
+        $uids = $planning->agents()->pluck('user_id')
+            ->merge($validated->keys())->merge($issued->keys())
+            ->merge($collected->keys())->merge($attempts->keys())
+            ->unique()->values();
+        $names = User::whereIn('id', $uids)->pluck('name', 'id');
+
+        return $uids->mapWithKeys(fn ($uid) => [$uid => [
+            'name' => $names[$uid] ?? 'Agent #' . $uid,
+            'is_distributor' => $planning->distributors->contains('id', $uid),
+            'is_scanner' => $planning->scanners->contains('id', $uid),
+            'validated' => (int) ($validated[$uid] ?? 0),
+            'issued' => (int) ($issued[$uid] ?? 0),
+            'collected' => (int) ($collected[$uid] ?? 0),
+            'verified' => (int) ($attempts[$uid]->verified ?? 0),
+            'refused' => (int) ($attempts[$uid]->refused ?? 0),
+        ]])->all();
     }
 }

@@ -4,4 +4,7 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- DEBUG uniquement : autorise le HTTP clair pour joindre le serveur
+         local de dev (http://<IP-LAN>:8000). Jamais en release. -->
+    <application android:usesCleartextTraffic="true"/>
 </manifest>
