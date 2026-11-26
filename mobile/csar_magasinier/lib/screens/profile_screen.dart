@@ -189,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
           Center(
             child: Text(
-              'CSAR Magasinier v1.0.0',
+              'CSAR Magasinier v2.0.0',
               style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
             ),
           ),

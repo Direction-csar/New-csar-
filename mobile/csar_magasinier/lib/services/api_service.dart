@@ -9,7 +9,11 @@ import '../models/mission.dart';
 import '../models/stock_operation.dart';
 
 class ApiService {
-  static const String baseUrl = 'https://www.csar.sn/api/warehouse/v1';
+  static const String _apiHost = String.fromEnvironment(
+    'API_HOST',
+    defaultValue: 'https://www.csar.sn',
+  );
+  static const String baseUrl = '$_apiHost/api/warehouse/v1';
   static const _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: false),
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
