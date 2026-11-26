@@ -21,7 +21,7 @@ class OperationsScreen extends StatefulWidget {
 }
 
 class _OperationsScreenState extends State<OperationsScreen> {
-  static const green = Color(0xFF1B5E20);
+  static const green = Color(0xFF1D4ED8);
 
   List<StockOperation> _operations = [];
   bool _loading = true;
@@ -228,7 +228,7 @@ class OperationDetailScreen extends StatefulWidget {
 }
 
 class _OperationDetailScreenState extends State<OperationDetailScreen> {
-  static const green = Color(0xFF1B5E20);
+  static const green = Color(0xFF1D4ED8);
 
   final _qtyCtrl = TextEditingController();
   final _kgCtrl = TextEditingController();

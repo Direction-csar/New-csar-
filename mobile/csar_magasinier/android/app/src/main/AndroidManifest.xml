@@ -1,4 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Réseau (API CSAR, synchronisation) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Accès réseau en arrière-plan pour la synchronisation -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <!-- Appareil photo (scan QR, photos de justificatifs) -->
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:label="CSAR Magasinier"
         android:name="${applicationName}"

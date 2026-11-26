@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
 import 'services/auth_service.dart';
+import 'theme/csar_theme.dart';
 
 void main() {
   runApp(
@@ -21,10 +22,7 @@ class CsarInspectorApp extends StatelessWidget {
     return MaterialApp(
       title: 'CSAR Inspecteur',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1B4F8A)),
-        useMaterial3: true,
-      ),
+      theme: CsarTheme.light(),
       home: const _Gate(),
     );
   }
@@ -37,7 +35,28 @@ class _Gate extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthService>();
     if (auth.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [CsarColors.navy, CsarColors.navyLight],
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('CSAR',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 22, letterSpacing: 3)),
+                SizedBox(height: 24),
+                CircularProgressIndicator(color: CsarColors.orange, strokeWidth: 3),
+              ],
+            ),
+          ),
+        ),
+      );
     }
     return auth.isAuthenticated ? const HomeScreen() : const LoginScreen();
   }

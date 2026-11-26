@@ -13,7 +13,7 @@ class MissionsScreen extends StatefulWidget {
 }
 
 class _MissionsScreenState extends State<MissionsScreen> {
-  static const green = Color(0xFF1B5E20);
+  static const green = Color(0xFF1D4ED8);
 
   List<Mission> _missions = [];
   bool _loading = true;
@@ -201,7 +201,7 @@ class MissionDetailScreen extends StatefulWidget {
 }
 
 class _MissionDetailScreenState extends State<MissionDetailScreen> {
-  static const green = Color(0xFF1B5E20);
+  static const green = Color(0xFF1D4ED8);
   final _reportCtrl = TextEditingController();
   final _refCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();

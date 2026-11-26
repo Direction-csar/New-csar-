@@ -76,7 +76,7 @@ Motif: ${_receipt['reason']}
                               children: [
                                 Image.asset('assets/images/logo_csar.png', height: 60),
                                 const SizedBox(height: 8),
-                                const Text('REÇU MOUVEMENT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1B5E20))),
+                                const Text('REÇU MOUVEMENT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1D4ED8))),
                                 const SizedBox(height: 4),
                                 Text('Réf: ${_receipt['reference']}', style: const TextStyle(color: Colors.grey)),
                               ],

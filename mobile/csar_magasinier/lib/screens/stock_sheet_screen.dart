@@ -76,7 +76,7 @@ class _StockSheetScreenState extends State<StockSheetScreen> {
                 // Header avec solde
                 Container(
                   padding: const EdgeInsets.all(16),
-                  color: const Color(0xFF1B5E20),
+                  color: const Color(0xFF1D4ED8),
                   child: Column(
                     children: [
                       const Text('SOLDE ACTUEL', style: TextStyle(color: Colors.white70, fontSize: 12)),

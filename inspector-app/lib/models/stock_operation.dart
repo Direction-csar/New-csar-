@@ -94,6 +94,39 @@ class StockOperation {
         verifiedAt: j['verified_at'] as String?,
       );
 
+  /// Sérialisation pour le cache hors ligne (champs utiles à l'affichage).
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'reference': reference,
+        'type': type,
+        'type_label': typeLabel,
+        'status': status,
+        'status_label': statusLabel,
+        'warehouse': warehouse,
+        'destination_warehouse': destinationWarehouse,
+        'inspector': inspector,
+        'magasinier': magasinier,
+        'executor': executor,
+        'verifier': verifier,
+        'produit': productName,
+        'unite': productUnit,
+        'format': format,
+        'quantity_requested': quantityRequested,
+        'quantity_requested_kg': quantityRequestedKg,
+        'quantity_executed': quantityExecuted,
+        'quantity_executed_kg': quantityExecutedKg,
+        'instructions': dgInstruction,
+        'dtl_comment': dtlInstruction,
+        'inspector_comment': inspectorComment,
+        'observation': observation,
+        'anomaly_report': anomalyReport,
+        'rejection_reason': rejectionReason,
+        'attachments': attachments,
+        'created_at': createdAt,
+        'executed_at': executedAt,
+        'verified_at': verifiedAt,
+      };
+
   static double? _toDouble(dynamic v) {
     if (v == null) return null;
     if (v is num) return v.toDouble();

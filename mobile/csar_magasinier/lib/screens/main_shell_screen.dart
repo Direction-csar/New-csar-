@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
 import 'stock_status_screen.dart';
-import 'movement_history_screen.dart';
-import 'missions_screen.dart';
 import 'operations_screen.dart';
+import 'missions_screen.dart';
+import 'movement_history_screen.dart';
 import 'profile_screen.dart';
 
-/// Coquille principale de l'application avec navigation basse :
-/// Accueil, Stocks, Mouvements, Profil.
+/// Coquille principale — navigation inférieure CSAR.
 class MainShellScreen extends StatefulWidget {
   const MainShellScreen({super.key});
 
@@ -18,68 +17,43 @@ class MainShellScreen extends StatefulWidget {
 class _MainShellScreenState extends State<MainShellScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _tabs = const [
-    DashboardScreen(),
-    StockStatusScreen(),
-    OperationsScreen(),
-    MissionsScreen(),
-    MovementHistoryScreen(),
-    ProfileScreen(),
+  static const _tabs = <_TabDef>[
+    _TabDef(DashboardScreen(), Icons.space_dashboard_rounded, Icons.space_dashboard_outlined, 'Accueil'),
+    _TabDef(StockStatusScreen(), Icons.inventory_2_rounded, Icons.inventory_2_outlined, 'Stocks'),
+    _TabDef(OperationsScreen(), Icons.assignment_turned_in_rounded, Icons.assignment_turned_in_outlined, 'Opérations'),
+    _TabDef(MissionsScreen(), Icons.local_shipping_outlined, Icons.local_shipping_outlined, 'Missions'),
+    _TabDef(MovementHistoryScreen(), Icons.history_rounded, Icons.history_outlined, 'Historique'),
+    _TabDef(ProfileScreen(), Icons.person_rounded, Icons.person_outline_rounded, 'Profil'),
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _tabs),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, -2))],
-        ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 68,
-            child: Row(
-              children: [
-                _navItem(0, Icons.home, Icons.home_outlined, 'Accueil'),
-                _navItem(1, Icons.inventory_2, Icons.inventory_2_outlined, 'Stocks'),
-                _navItem(2, Icons.assignment_turned_in, Icons.assignment_turned_in_outlined, 'Opérations'),
-                _navItem(3, Icons.assignment, Icons.assignment_outlined, 'Missions'),
-                _navItem(4, Icons.swap_horiz, Icons.swap_horiz, 'Mouvements'),
-                _navItem(5, Icons.person, Icons.person_outline, 'Profil'),
-              ],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: [for (final t in _tabs) t.screen],
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (i) => setState(() => _currentIndex = i),
+        height: 66,
+        destinations: [
+          for (final t in _tabs)
+            NavigationDestination(
+              icon: Icon(t.icon),
+              selectedIcon: Icon(t.activeIcon),
+              label: t.label,
             ),
-          ),
-        ),
+        ],
       ),
     );
   }
+}
 
-  Widget _navItem(int index, IconData activeIcon, IconData icon, String label) {
-    const green = Color(0xFF1B5E20);
-    final selected = _currentIndex == index;
-    final color = selected ? green : Colors.grey.shade600;
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _currentIndex = index),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(selected ? activeIcon : icon, color: color, size: 28),
-            const SizedBox(height: 4),
-            Text(label,
-                style: TextStyle(fontSize: 12.5, color: color, fontWeight: selected ? FontWeight.w700 : FontWeight.w500)),
-            const SizedBox(height: 5),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              height: 3,
-              width: selected ? 56 : 0,
-              decoration: BoxDecoration(color: green, borderRadius: BorderRadius.circular(2)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+class _TabDef {
+  final Widget screen;
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  const _TabDef(this.screen, this.activeIcon, this.icon, this.label);
 }

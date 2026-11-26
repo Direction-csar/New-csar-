@@ -72,9 +72,9 @@ class _StockStatusScreenState extends State<StockStatusScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1B5E20).withOpacity(0.1),
+                color: const Color(0xFF1D4ED8).withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF1B5E20).withOpacity(0.3)),
+                border: Border.all(color: const Color(0xFF1D4ED8).withOpacity(0.3)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -105,7 +105,7 @@ class _StockStatusScreenState extends State<StockStatusScreen> {
                             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                             child: ListTile(
                               leading: CircleAvatar(
-                                backgroundColor: const Color(0xFF1B5E20),
+                                backgroundColor: const Color(0xFF1D4ED8),
                                 child: Text('${p['format_kg']}$unit', style: const TextStyle(fontSize: 10, color: Colors.white)),
                               ),
                               title: Text(p['product_name'] ?? 'Produit'),
